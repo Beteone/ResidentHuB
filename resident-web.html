@@ -1,0 +1,914 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ResidentHub | Cư dân</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-soft: #f5f8fc;
+            --surface: #ffffff;
+            --surface-alt: #dceeff;
+            --ink: #10213c;
+            --muted: #61708a;
+            --primary: #1683ff;
+            --primary-strong: #0d65d5;
+            --primary-soft: rgba(22, 131, 255, 0.10);
+            --line: #e4eaf2;
+            --success: #18a878;
+            --warning: #f59e0b;
+            --danger: #ef4444;
+            --shadow-soft: 0 24px 56px rgba(15, 23, 42, 0.08);
+        }
+
+        * { box-sizing: border-box; }
+
+        body {
+            margin: 0;
+            font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+            background: linear-gradient(180deg, #f7f9fc 0%, #edf3fb 100%);
+            color: var(--ink);
+        }
+
+        .sidebar {
+            position: fixed;
+            inset: 0 auto 0 0;
+            width: 260px;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-right: 1px solid var(--line);
+            z-index: 20;
+        }
+
+        .sidebar-header {
+            padding: 1.5rem 1.25rem;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            gap: 0.85rem;
+        }
+
+        .brand-mark {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 12px 20px rgba(29, 78, 216, 0.2);
+        }
+
+        .menu {
+            padding: 1rem 0.75rem;
+        }
+
+        .section-label {
+            color: #94a3b8;
+            font-size: 0.72rem;
+            letter-spacing: 0.12em;
+            text-transform: uppercase;
+            font-weight: 700;
+            padding: 1rem 0.75rem 0.5rem;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 0.75rem 0.9rem;
+            border-radius: 0.85rem;
+            margin: 0.25rem 0;
+            color: #536275;
+            cursor: pointer;
+            transition: all 0.25s ease;
+            font-weight: 600;
+        }
+
+        .nav-item:hover {
+            background: #f1f5ff;
+            color: var(--primary-strong);
+        }
+
+        .nav-item.active {
+            background: linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(59,130,246,0.08) 100%);
+            color: var(--primary-strong);
+            border-left: 3px solid var(--primary);
+            padding-left: calc(0.9rem - 3px);
+        }
+
+        .main {
+            margin-left: 260px;
+            padding: 1.5rem;
+        }
+
+        .topbar {
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            padding: 1.2rem 1.5rem;
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.03);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .page-title {
+            font-size: 1.9rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .icon-btn {
+            width: 42px;
+            height: 42px;
+            border: 1px solid var(--line);
+            border-radius: 50%;
+            background: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            position: relative;
+            cursor: pointer;
+        }
+
+        .icon-btn:hover {
+            background: #f8fafc;
+            color: var(--primary);
+        }
+
+        .badge-dot {
+            position: absolute;
+            top: -4px;
+            right: -2px;
+            width: 18px;
+            height: 18px;
+            border-radius: 50%;
+            background: var(--danger);
+            color: white;
+            font-size: 0.65rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .user-card {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            padding: 0.35rem 0.6rem 0.35rem 0.3rem;
+            border-radius: 999px;
+            border: 1px solid var(--line);
+            background: white;
+        }
+
+        .avatar {
+            width: 38px;
+            height: 38px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+        }
+
+        .card {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            border: 1px solid var(--line);
+            border-radius: 1rem;
+            padding: 1.4rem;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.02);
+        }
+
+        .stat-grid {
+            display: grid;
+            grid-template-columns: repeat(4, minmax(180px, 1fr));
+            gap: 1.25rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .stat-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat-icon {
+            width: 54px;
+            height: 54px;
+            border-radius: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .stat-label {
+            color: var(--muted);
+            font-size: 0.82rem;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 800;
+            color: #0f172a;
+            line-height: 1.2;
+        }
+
+        .trend {
+            font-size: 0.8rem;
+            margin-top: 0.4rem;
+        }
+
+        .layout-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 1.5rem;
+            margin-bottom: 1.5rem;
+        }
+
+        .list-card {
+            margin-top: 1rem;
+        }
+
+        .table-wrap {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th, td {
+            padding: 0.85rem 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            text-align: left;
+        }
+
+        th {
+            font-size: 0.78rem;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: #64748b;
+            background: #f8fafc;
+        }
+
+        td {
+            color: #475569;
+        }
+
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .badge-paid { background: #dcfce7; color: #166534; }
+        .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-overdue { background: #fee2e2; color: #991b1b; }
+        .badge-info { background: #dbeafe; color: #0c4a6e; }
+
+        .request-box {
+            border: 1px solid #e2e8f0;
+            border-left: 4px solid var(--primary);
+            border-radius: 0.9rem;
+            padding: 0.9rem 1rem;
+            background: #f8fbff;
+        }
+
+        .notice-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .notice-item {
+            background: #f8fafc;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.8rem;
+            padding: 0.9rem 1rem;
+        }
+
+        .mini-chart {
+            height: 170px;
+            display: flex;
+            align-items: end;
+            gap: 0.55rem;
+            padding-top: 1rem;
+        }
+
+        .bar {
+            flex: 1;
+            border-radius: 0.75rem 0.75rem 0 0;
+            background: linear-gradient(180deg, #93c5fd 0%, #2563eb 100%);
+            box-shadow: 0 12px 18px rgba(37, 99, 235, 0.14);
+        }
+
+        .bottom-grid {
+            display: grid;
+            grid-template-columns: 1.3fr 0.7fr;
+            gap: 1.5rem;
+        }
+
+        .support-card {
+            padding: 1rem;
+            border-radius: 0.8rem;
+            background: linear-gradient(135deg, rgba(29,78,216,0.06) 0%, rgba(59,130,246,0.10) 100%);
+            border: 1px solid rgba(37, 99, 235, 0.12);
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            border-radius: 0.9rem;
+            padding: 0.8rem 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+            box-shadow: 0 12px 24px rgba(29, 78, 216, 0.18);
+        }
+
+        .btn-secondary {
+            background: white;
+            color: var(--primary-strong);
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            padding: 0.8rem 1.1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        @media (max-width: 1100px) {
+            .stat-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+            .layout-grid, .bottom-grid { grid-template-columns: 1fr; }
+        }
+
+        @media (max-width: 860px) {
+            .sidebar {
+                position: static;
+                width: 100%;
+                border-right: none;
+                border-bottom: 1px solid var(--line);
+            }
+            .main { margin-left: 0; }
+            .menu { display: grid; grid-template-columns: repeat(2, minmax(180px, 1fr)); }
+        }
+
+        @media (max-width: 640px) {
+            .main { padding: 1rem; }
+            .topbar { flex-direction: column; align-items: flex-start; }
+            .topbar-actions { width: 100%; justify-content: flex-end; }
+            .stat-grid { grid-template-columns: 1fr; }
+            .menu { grid-template-columns: 1fr; }
+        }
+        .sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-header{border-bottom-color:rgba(255,255,255,.1)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.brand-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.section-label{color:#8fb0d0}.nav-item{border:1px solid transparent;color:#b8cce1}.nav-item:hover{background:rgba(22,131,255,.16);color:#fff}.nav-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.main{background:transparent}.topbar,.card{border-radius:16px}.topbar{padding:1.35rem 1.5rem}.page-title{font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.03em}.icon-btn:hover{background:#eaf3ff;color:#0d65d5}.user-card{border-radius:14px}.avatar{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.2)}.stat-card{min-height:132px}.card:hover{border-color:rgba(22,131,255,.18);box-shadow:0 20px 38px rgba(11,36,71,.08);transform:translateY(-2px)}.card{transition:box-shadow .25s ease,border-color .25s ease,transform .25s ease}[style*="#2563eb"]{color:#1683ff!important}[style*="linear-gradient(90deg, #10b981 0%, #2563eb 100%)"]{background:linear-gradient(90deg,#18a878 0%,#1683ff 100%)!important}
+        @media(max-width:768px){.sidebar{box-shadow:10px 0 28px rgba(11,36,71,.2)}}
+    </style>
+</head>
+<body>
+    <aside class="sidebar">
+        <div class="sidebar-header">
+            <div class="brand-mark"><i class="fas fa-home"></i></div>
+            <div>
+                <div style="font-weight: 800; color: #0f172a;">ResidentHub</div>
+                <div style="font-size: 0.71rem; color: #94a3b8;">Giao diện Cư dân</div>
+            </div>
+        </div>
+
+        <div class="menu">
+            <div class="nav-item active" data-target="overview"><i class="fas fa-chart-line"></i> Tổng quan</div>
+            <div class="nav-item" data-target="invoices"><i class="fas fa-file-invoice-dollar"></i> Hóa đơn</div>
+            <div class="nav-item" data-target="requests"><i class="fas fa-tools"></i> Yêu cầu</div>
+            <div class="nav-item" data-target="contracts"><i class="fas fa-file-contract"></i> Hợp đồng</div>
+            <div class="nav-item" data-target="notifications"><i class="fas fa-bell"></i> Thông báo</div>
+            <div class="nav-item" data-target="profile"><i class="fas fa-user"></i> Hồ sơ</div>
+
+            <div class="section-label">Tiện ích</div>
+            <div class="nav-item" data-target="calendar"><i class="fas fa-calendar-check"></i> Lịch hẹn</div>
+            <div class="nav-item" data-target="security"><i class="fas fa-shield-alt"></i> Bảo mật</div>
+            <div class="nav-item" data-target="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</div>
+        </div>
+    </aside>
+
+    <main class="main">
+        <header class="topbar">
+            <div>
+                <div class="page-title" id="pageTitle">Tổng quan</div>
+                <div style="color: #94a3b8; font-size: 0.9rem;">Xin chào, Hương</div>
+            </div>
+
+            <div class="topbar-actions">
+                <button class="icon-btn" title="Tìm kiếm"><i class="fas fa-search"></i></button>
+                <button class="icon-btn" title="Thông báo">
+                    <i class="fas fa-bell"></i>
+                    <span class="badge-dot">3</span>
+                </button>
+                <div class="user-card">
+                    <div class="avatar">H</div>
+                    <div>
+                        <div style="font-weight: 700; color: var(--ink);">Hương</div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;">Phòng A502</div>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="screen-section" id="overviewSection">
+            <section class="stat-grid">
+                <div class="card stat-card">
+                    <div>
+                        <div class="stat-label">Cần thanh toán</div>
+                        <div class="stat-value">8.5M</div>
+                        <div class="trend" style="color: var(--danger);"><i class="fas fa-arrow-up"></i> Hạn: 20/08</div>
+                    </div>
+                    <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(220,38,38,0.08) 100%); color: var(--danger);">
+                        <i class="fas fa-wallet"></i>
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div>
+                        <div class="stat-label">Yêu cầu đang xử lý</div>
+                        <div class="stat-value">3</div>
+                        <div class="trend" style="color: var(--warning);"><i class="fas fa-clock"></i> 2 đang chờ</div>
+                    </div>
+                    <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245,158,11,0.10) 0%, rgba(217,119,6,0.08) 100%); color: var(--warning);">
+                        <i class="fas fa-tools"></i>
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div>
+                        <div class="stat-label">Hợp đồng</div>
+                        <div class="stat-value">11</div>
+                        <div class="trend" style="color: var(--success);"><i class="fas fa-check"></i> Còn hiệu lực</div>
+                    </div>
+                    <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16,185,129,0.10) 0%, rgba(5,150,105,0.08) 100%); color: var(--success);">
+                        <i class="fas fa-file-contract"></i>
+                    </div>
+                </div>
+
+                <div class="card stat-card">
+                    <div>
+                        <div class="stat-label">Thông báo mới</div>
+                        <div class="stat-value">12</div>
+                        <div class="trend" style="color: var(--primary);"><i class="fas fa-bell"></i> 4 quan trọng</div>
+                    </div>
+                    <div class="stat-icon" style="background: linear-gradient(135deg, rgba(37,99,235,0.10) 0%, rgba(29,78,216,0.08) 100%); color: var(--primary);">
+                        <i class="fas fa-bullhorn"></i>
+                    </div>
+                </div>
+            </section>
+
+            <section class="layout-grid">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0;">Hóa đơn gần đây</h3>
+                        <button class="btn-secondary">Xem tất cả</button>
+                    </div>
+
+                    <div class="table-wrap">
+                        <table>
+                            <thead>
+                                <tr>
+                                    <th>Khoản</th>
+                                    <th>Kỳ</th>
+                                    <th>Số tiền</th>
+                                    <th>Hạn</th>
+                                    <th>Trạng thái</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Tiền nhà</td>
+                                    <td>08/2026</td>
+                                    <td>6.5M</td>
+                                    <td>20/08</td>
+                                    <td><span class="badge badge-pending">Chưa thanh toán</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Điện nước</td>
+                                    <td>08/2026</td>
+                                    <td>1.2M</td>
+                                    <td>20/08</td>
+                                    <td><span class="badge badge-pending">Chưa thanh toán</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Internet</td>
+                                    <td>08/2026</td>
+                                    <td>0.8M</td>
+                                    <td>18/08</td>
+                                    <td><span class="badge badge-info">Đã thanh toán</span></td>
+                                </tr>
+                                <tr>
+                                    <td>Phí dịch vụ</td>
+                                    <td>07/2026</td>
+                                    <td>0.4M</td>
+                                    <td>05/07</td>
+                                    <td><span class="badge badge-paid">Đã thanh toán</span></td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+            </section>
+
+            <section class="bottom-grid">
+                <div class="card">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                        <h3 style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0;">Yêu cầu hỗ trợ</h3>
+                        <button class="btn-primary">Gửi yêu cầu mới</button>
+                    </div>
+
+                    <div class="notice-list">
+                        <div class="request-box">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                                <strong style="color: #0f172a;">Sửa điều hòa phòng A502</strong>
+                                <span class="badge badge-info">Đang xử lý</span>
+                            </div>
+                            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 0.5rem;">Ngày gửi: 14/08 • Nhân viên: Minh Anh</div>
+                            <div style="color: #475569;">Máy lạnh không làm lạnh, cần kiểm tra ngay trong ngày.</div>
+                        </div>
+
+                        <div class="request-box" style="border-left-color: #f59e0b; background: #fffaf2;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                                <strong style="color: #0f172a;">Bồn rửa bát hỏng</strong>
+                                <span class="badge" style="background: #fef3c7; color: #b45309;">Chờ xác nhận</span>
+                            </div>
+                            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 0.5rem;">Ngày gửi: 12/08 • Có hình ảnh kèm theo</div>
+                            <div style="color: #475569;">Mặt bồn có vết nứt và nguy cơ rỉ nước khi sử dụng.</div>
+                        </div>
+
+                        <div class="request-box" style="border-left-color: #10b981; background: #f0fdf4;">
+                            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.4rem;">
+                                <strong style="color: #0f172a;">Thay khóa cửa bị hỏng</strong>
+                                <span class="badge" style="background: #dcfce7; color: #166534;">Hoàn tất</span>
+                            </div>
+                            <div style="font-size: 0.82rem; color: #64748b; margin-bottom: 0.5rem;">Ngày xử lý: 10/08</div>
+                            <div style="color: #475569;">Khóa mới đã được thay thế, cư dân đã xác nhận hoạt động bình thường.</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0 0 1rem;">Thông báo</h3>
+
+                    <div class="notice-list">
+                        <div class="notice-item">
+                            <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.35rem;">Thông báo bảo trì hệ thống</div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.35rem;">11/08 • Thông báo nội bộ</div>
+                            <div style="color: #475569;">Hệ thống thanh toán sẽ bảo trì trong 30 phút vào 21:00 tối nay.</div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.35rem;">Nhắc nhở thanh toán</div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.35rem;">09/08 • Hóa đơn</div>
+                            <div style="color: #475569;">Đã mở hóa đơn tiền nhà và điện nước cho kỳ 08/2026.</div>
+                        </div>
+
+                        <div class="notice-item">
+                            <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.35rem;">Lịch dọn vệ sinh chung</div>
+                            <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.35rem;">08/08 • Mạng xã hội</div>
+                            <div style="color: #475569;">Dọn vệ sinh khu vực sân trước từ 08:00 đến 10:00 ngày 12/08.</div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section class="card" style="margin-top: 1.5rem;">
+                <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
+                    <h3 style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0;">Hợp đồng và dịch vụ</h3>
+                    <button class="btn-secondary">Chi tiết</button>
+                </div>
+
+                <div style="display: grid; grid-template-columns: repeat(3, minmax(200px, 1fr)); gap: 1rem;">
+                    <div class="support-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                            <strong>Hợp đồng thuê</strong>
+                            <span class="badge badge-paid">Còn hiệu lực</span>
+                        </div>
+                        <div style="color: #475569;">Mã: RES-PA-205</div>
+                        <div style="color: #475569;">Ngày kết thúc: 30/12/2026</div>
+                    </div>
+
+                    <div class="support-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                            <strong>Thẻ cư dân</strong>
+                            <span class="badge badge-info">Hoạt động</span>
+                        </div>
+                        <div style="color: #475569;">Mã thẻ: CUS-2026-051</div>
+                        <div style="color: #475569;">Lần cuối cập nhật: 08/08</div>
+                    </div>
+
+                    <div class="support-card">
+                        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.6rem;">
+                            <strong>Hỗ trợ nhanh</strong>
+                            <span class="badge badge-pending">24/7</span>
+                        </div>
+                        <div style="color: #475569;">Hotline: 1900 1234</div>
+                        <div style="color: #475569;">Phản hồi trung bình: 15 phút</div>
+                    </div>
+                </div>
+            </section>
+        </section>
+
+        <section class="screen-section" id="invoicesSection" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
+                    <h3 style="font-size:1.4rem; font-weight:800; margin:0; color:#0f172a;">Hóa đơn của tôi</h3>
+                    <button class="btn-primary">Thanh toán ngay</button>
+                </div>
+                <div class="table-wrap">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Mã hóa đơn</th>
+                                <th>Chủ đề</th>
+                                <th>Đến hạn</th>
+                                <th>Số tiền</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>INV-0826-01</td>
+                                <td>Tiền nhà</td>
+                                <td>20/08/2026</td>
+                                <td>6.500.000đ</td>
+                                <td><span class="badge badge-pending">Chưa thanh toán</span></td>
+                                <td><button class="btn-secondary">Chi tiết</button></td>
+                            </tr>
+                            <tr>
+                                <td>INV-0826-02</td>
+                                <td>Điện nước</td>
+                                <td>20/08/2026</td>
+                                <td>1.200.000đ</td>
+                                <td><span class="badge badge-pending">Chưa thanh toán</span></td>
+                                <td><button class="btn-secondary">Chi tiết</button></td>
+                            </tr>
+                            <tr>
+                                <td>INV-0726-12</td>
+                                <td>Internet</td>
+                                <td>18/07/2026</td>
+                                <td>800.000đ</td>
+                                <td><span class="badge badge-paid">Đã thanh toán</span></td>
+                                <td><button class="btn-secondary">Hóa đơn</button></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen-section" id="requestsSection" style="display:none;">
+            <div class="card">
+                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem; flex-wrap:wrap;">
+                    <h3 style="font-size:1.4rem; font-weight:800; margin:0; color:#0f172a;">Yêu cầu hỗ trợ</h3>
+                    <button class="btn-primary">Tạo yêu cầu mới</button>
+                </div>
+
+                <div style="display:grid; grid-template-columns:repeat(3, minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
+                    <div class="support-card">
+                        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; margin-bottom:0.5rem;">Đang xử lý</div>
+                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">2</div>
+                    </div>
+                    <div class="support-card">
+                        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; margin-bottom:0.5rem;">Chờ xác nhận</div>
+                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">1</div>
+                    </div>
+                    <div class="support-card">
+                        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; margin-bottom:0.5rem;">Hoàn tất</div>
+                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">5</div>
+                    </div>
+                </div>
+
+                <div class="notice-list">
+                    <div class="request-box">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                            <strong>Sửa điều hòa phòng A502</strong>
+                            <span class="badge badge-info">Đang xử lý</span>
+                        </div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.5rem;">Mã YCD-014 • 14/08/2026</div>
+                        <div style="color:#475569;">Máy lạnh không làm lạnh, cần kiểm tra kỹ trong ngày.</div>
+                    </div>
+                    <div class="request-box" style="border-left-color: #f59e0b; background:#fffaf2;">
+                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
+                            <strong>Bồn rửa bát hỏng</strong>
+                            <span class="badge" style="background:#fef3c7; color:#b45309;">Chờ xác nhận</span>
+                        </div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.5rem;">Mã YCD-012 • 12/08/2026</div>
+                        <div style="color:#475569;">Tình trạng bong tróc và rò rỉ tại góc bồn, cần sửa ngay.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen-section" id="contractsSection" style="display:none;">
+            <div class="card">
+                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Hợp đồng thuê nhà</h3>
+                <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:1.5rem;">
+                    <div>
+                        <div class="support-card" style="margin-bottom:1rem;">
+                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
+                                <strong>Hợp đồng số: RES-PA-205</strong>
+                                <span class="badge badge-paid">Còn hiệu lực</span>
+                            </div>
+                            <div style="color:#475569;">Phòng A502 • Giá thuê: 8.500.000đ / tháng</div>
+                            <div style="color:#475569;">Hiệu lực: 01/01/2026 đến 31/12/2026</div>
+                        </div>
+
+                        <div class="notice-list">
+                            <div class="notice-item">
+                                <div style="font-weight:700; margin-bottom:0.25rem;">Điều khoản chính</div>
+                                <div style="color:#475569;">- Thanh toán đúng hạn mỗi tháng.</div>
+                                <div style="color:#475569;">- Bảo trì và sửa chữa theo quy định của tòa nhà.</div>
+                                <div style="color:#475569;">- Gia hạn hợp đồng trước 30 ngày khi hết hạn.</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="card" style="background:#f8fafc;">
+                        <h4 style="margin-top:0; margin-bottom:1rem; color:#0f172a;">Gia hạn sắp tới</h4>
+                        <div style="font-size:2.2rem; font-weight:800; color:#2563eb;">18 ngày</div>
+                        <p style="color:#475569; margin-top:0.6rem;">Bạn nên xác nhận gia hạn trước ngày 30/12/2026 để đảm bảo phòng trống và điều khoản ưu tiên.</p>
+                        <button class="btn-primary" style="width:100%; margin-top:1rem;">Gia hạn ngay</button>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen-section" id="notificationsSection" style="display:none;">
+            <div class="card">
+                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Thông báo</h3>
+                <div class="notice-list">
+                    <div class="notice-item">
+                        <div style="font-weight:700; margin-bottom:0.35rem;">Thông báo bảo trì hệ thống</div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.35rem;">11/08/2026 • Hệ thống</div>
+                        <div style="color:#475569;">Hệ thống thanh toán sẽ tạm dừng 30 phút vào 21:00 tối nay để cập nhật bảo mật.</div>
+                    </div>
+                    <div class="notice-item">
+                        <div style="font-weight:700; margin-bottom:0.35rem;">Hóa đơn mới đã được phát hành</div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.35rem;">09/08/2026 • Hóa đơn</div>
+                        <div style="color:#475569;">Hóa đơn tiền nhà và điện nước cho tháng 08/2026 đã có sẵn trong mục hóa đơn.</div>
+                    </div>
+                    <div class="notice-item">
+                        <div style="font-weight:700; margin-bottom:0.35rem;">Lịch dọn vệ sinh chung</div>
+                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.35rem;">08/08/2026 • Khu vực sinh hoạt</div>
+                        <div style="color:#475569;">Sân trước và lối đi chính sẽ được vệ sinh từ 08:00 đến 10:00 ngày 12/08.</div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen-section" id="profileSection" style="display:none;">
+            <div class="card">
+                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Hồ sơ cư dân</h3>
+                <div style="display:grid; grid-template-columns: 180px 1fr; gap:1.5rem; align-items:center;">
+                    <div style="display:flex; justify-content:center;">
+                        <div class="avatar" style="width:120px; height:120px; font-size:2.2rem;">H</div>
+                    </div>
+                    <div>
+                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">Hương Nguyễn</div>
+                        <div style="color:#64748b; margin-bottom:0.8rem;">Phòng A502 • Cư dân chính</div>
+                        <div style="display:grid; grid-template-columns:repeat(2, minmax(180px,1fr)); gap:0.8rem;">
+                            <div class="support-card"><strong>Email:</strong><br>huong.nguyen@email.com</div>
+                            <div class="support-card"><strong>Số điện thoại:</strong><br>0908 123 456</div>
+                            <div class="support-card"><strong>Ngày vào ở:</strong><br>01/01/2026</div>
+                            <div class="support-card"><strong>Người liên hệ:</strong><br>Gia đình / người thân</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen-section" id="calendarSection" style="display:none;">
+            <div class="card">
+                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Lịch hẹn và nhắc nhở</h3>
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:1.5rem;">
+                    <div class="support-card">
+                        <div style="font-weight:700; margin-bottom:0.8rem;">Tháng 08/2026</div>
+                        <div style="display:grid; grid-template-columns:repeat(7,1fr); gap:0.6rem; text-align:center; font-size:0.75rem; color:#64748b;">
+                            <div>CN</div><div>T2</div><div>T3</div><div>T4</div><div>T5</div><div>T6</div><div>T7</div>
+                            <div></div><div>3</div><div>4</div><div>5</div><div>6</div><div>7</div><div>8</div>
+                            <div>9</div><div>10</div><div>11</div><div>12</div><div>13</div><div>14</div><div>15</div>
+                            <div>16</div><div>17</div><div>18</div><div>19</div><div>20</div><div>21</div><div>22</div>
+                            <div>23</div><div>24</div><div>25</div><div>26</div><div>27</div><div>28</div><div>29</div>
+                        </div>
+                    </div>
+                    <div class="notice-list">
+                        <div class="notice-item">
+                            <div style="font-weight:700; margin-bottom:0.25rem;">Khảo sát thiết bị điều hòa</div>
+                            <div style="font-size:0.82rem; color:#64748b;">20/08 • 09:30</div>
+                        </div>
+                        <div class="notice-item">
+                            <div style="font-weight:700; margin-bottom:0.25rem;">Hẹn thanh toán hóa đơn</div>
+                            <div style="font-size:0.82rem; color:#64748b;">20/08 • 17:00</div>
+                        </div>
+                        <div class="notice-item">
+                            <div style="font-weight:700; margin-bottom:0.25rem;">Lịch vệ sinh chung</div>
+                            <div style="font-size:0.82rem; color:#64748b;">12/08 • 08:00</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <section class="screen-section" id="securitySection" style="display:none;">
+            <div class="card">
+                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Bảo mật tài khoản</h3>
+                <div style="display:grid; grid-template-columns: 1.1fr 0.9fr; gap:1.5rem;">
+                    <div class="support-card">
+                        <div style="font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase; color:#64748b; margin-bottom:0.6rem;">Mức độ bảo mật</div>
+                        <div style="font-size:2.4rem; font-weight:800; color:#0f172a;">92%</div>
+                        <div style="margin-top:0.8rem; width:100%; height:10px; background:#e2e8f0; border-radius:999px; overflow:hidden;">
+                            <div style="width:92%; height:100%; background:linear-gradient(90deg, #10b981 0%, #2563eb 100%); border-radius:999px;"></div>
+                        </div>
+                    </div>
+                    <div class="notice-list">
+                        <div class="notice-item">
+                            <div style="font-weight:700; margin-bottom:0.25rem;">Xác thực hai bước</div>
+                            <div style="color:#475569;">Đang bật</div>
+                        </div>
+                        <div class="notice-item">
+                            <div style="font-weight:700; margin-bottom:0.25rem;">Thiết bị đăng nhập</div>
+                            <div style="color:#475569;">iPhone 15 Pro • 2 giờ trước</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+    </main>
+
+    <script>
+        const navItems = document.querySelectorAll('.nav-item');
+        const sections = {
+            overview: document.getElementById('overviewSection'),
+            invoices: document.getElementById('invoicesSection'),
+            requests: document.getElementById('requestsSection'),
+            contracts: document.getElementById('contractsSection'),
+            notifications: document.getElementById('notificationsSection'),
+            profile: document.getElementById('profileSection'),
+            calendar: document.getElementById('calendarSection'),
+            security: document.getElementById('securitySection')
+        };
+
+        const pageTitles = {
+            overview: 'Tổng quan',
+            invoices: 'Hóa đơn',
+            requests: 'Yêu cầu',
+            contracts: 'Hợp đồng',
+            notifications: 'Thông báo',
+            profile: 'Hồ sơ',
+            calendar: 'Lịch hẹn',
+            security: 'Bảo mật'
+        };
+
+        navItems.forEach(item => {
+            item.addEventListener('click', function () {
+                const target = this.dataset.target;
+                if (target === 'logout') {
+                    if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        window.location.href = 'index.html';
+                    }
+                    return;
+                }
+
+                navItems.forEach(el => el.classList.remove('active'));
+                this.classList.add('active');
+
+                Object.values(sections).forEach(section => section.style.display = 'none');
+                if (sections[target]) {
+                    sections[target].style.display = 'block';
+                }
+
+                document.getElementById('pageTitle').textContent = pageTitles[target] || 'Tổng quan';
+            });
+        });
+    </script>
+</body>
+</html>
+

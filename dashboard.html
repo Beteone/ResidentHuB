@@ -1,0 +1,1187 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý - ResidentHub</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --bg-soft: #f5f8fc;
+            --surface: #ffffff;
+            --surface-alt: #dceeff;
+            --surface-muted: #f8fafc;
+            --ink: #10213c;
+            --muted: #61708a;
+            --primary: #1683ff;
+            --primary-strong: #0d65d5;
+            --primary-soft: rgba(22, 131, 255, 0.10);
+            --line: #e4eaf2;
+            --success: #18a878;
+            --warning: #d6a85f;
+            --danger: #ef4444;
+            --shadow-soft: 0 24px 56px rgba(11, 36, 71, 0.10);
+        }
+
+        body {
+            background: linear-gradient(180deg, #f7f9fc 0%, #edf3fb 100%);
+            color: var(--ink);
+            font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
+        }
+
+        .sidebar {
+            position: fixed;
+            left: 0;
+            top: 0;
+            width: 260px;
+            height: 100vh;
+            background: linear-gradient(180deg, #ffffff 0%, #f8fbff 100%);
+            border-right: 1px solid var(--line);
+            overflow-y: auto;
+            z-index: 100;
+            box-shadow: 10px 0 24px rgba(15, 23, 42, 0.02);
+        }
+
+        .sidebar-header {
+            padding: 1.5rem;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .sidebar-logo {
+            width: 36px;
+            height: 36px;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-size: 1.25rem;
+            box-shadow: 0 12px 20px rgba(29, 78, 216, 0.2);
+        }
+
+        .sidebar-menu {
+            padding: 1rem 0;
+        }
+
+        .sidebar-menu-item {
+            padding: 0.8rem 1rem;
+            color: #536275;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+            border-radius: 0.75rem;
+            margin: 0.2rem 0.6rem;
+        }
+
+        .sidebar-menu-item:hover {
+            background: #f1f5ff;
+            color: var(--primary);
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, rgba(29, 78, 216, 0.1) 0%, rgba(59, 130, 246, 0.08) 100%);
+            color: var(--primary-strong);
+            border-left: 3px solid var(--primary);
+            padding-left: calc(1rem - 3px);
+        }
+
+        .sidebar-menu-item i {
+            width: 20px;
+        }
+
+        .main-content {
+            margin-left: 260px;
+            padding: 1.5rem;
+        }
+
+        .topbar {
+            background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            border: 1px solid var(--line);
+            box-shadow: 0 12px 24px rgba(15, 23, 42, 0.03);
+        }
+
+        .topbar-title {
+            font-size: 1.875rem;
+            font-weight: 700;
+            color: var(--ink);
+        }
+
+        .topbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .btn-icon {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: #f1f5f9;
+            border: none;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #64748b;
+            transition: all 0.3s ease;
+        }
+
+        .btn-icon:hover {
+            background: #e2e8f0;
+            color: #667eea;
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            border: none;
+            padding: 0.6rem 1rem;
+            border-radius: 0.75rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-weight: 600;
+            box-shadow: 0 12px 24px rgba(29, 78, 216, 0.18);
+        }
+
+        .btn-primary:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 16px 28px rgba(29, 78, 216, 0.26);
+        }
+
+        .card {
+            background: linear-gradient(180deg, #ffffff 0%, #fbfdff 100%);
+            border-radius: 1rem;
+            border: 1px solid var(--line);
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 10px 22px rgba(15, 23, 42, 0.02);
+        }
+
+        .card:hover {
+            border-color: rgba(29, 78, 216, 0.15);
+            box-shadow: var(--shadow-soft);
+        }
+
+        .stat-card {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+
+        .stat-icon {
+            width: 50px;
+            height: 50px;
+            border-radius: 0.75rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+        }
+
+        .stat-value {
+            font-size: 1.875rem;
+            font-weight: bold;
+            color: #1e293b;
+        }
+
+        .stat-label {
+            color: #64748b;
+            font-size: 0.875rem;
+            margin-top: 0.25rem;
+        }
+
+        .table-container {
+            overflow-x: auto;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        th {
+            background: #f1f5f9;
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #475569;
+            border-bottom: 1px solid #e2e8f0;
+        }
+
+        td {
+            padding: 1rem;
+            border-bottom: 1px solid #e2e8f0;
+            color: #475569;
+        }
+
+        tr:last-child td {
+            border-bottom: none;
+        }
+
+        .badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: 600;
+        }
+
+        .badge-success {
+            background: #dcfce7;
+            color: #166534;
+        }
+
+        .badge-warning {
+            background: #fef3c7;
+            color: #b45309;
+        }
+
+        .badge-danger {
+            background: #fee2e2;
+            color: #991b1b;
+        }
+
+        .badge-info {
+            background: #dbeafe;
+            color: #0c4a6e;
+        }
+
+        .grid-2 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .grid-3 {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 768px) {
+            .sidebar {
+                transform: translateX(-100%);
+                transition: transform 0.3s ease;
+            }
+
+            .sidebar.active {
+                transform: translateX(0);
+            }
+
+            .main-content {
+                margin-left: 0;
+            }
+
+            .topbar {
+                flex-direction: column;
+                align-items: flex-start;
+                gap: 1rem;
+            }
+
+            .topbar-actions {
+                width: 100%;
+                justify-content: flex-end;
+            }
+        }
+
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        .dropdown-menu {
+            display: none;
+            position: absolute;
+            right: 0;
+            top: 100%;
+            background: white;
+            border: 1px solid #e2e8f0;
+            border-radius: 0.5rem;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+            min-width: 200px;
+            z-index: 50;
+        }
+
+        .dropdown-menu.active {
+            display: block;
+        }
+
+        .dropdown-item {
+            padding: 0.75rem 1rem;
+            color: #475569;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            transition: all 0.3s ease;
+        }
+
+        .dropdown-item:hover {
+            background: #f1f5f9;
+            color: #667eea;
+        }
+
+        .avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            color: white;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            box-shadow: 0 12px 20px rgba(29, 78, 216, 0.2);
+        }
+
+        .chart-container {
+            position: relative;
+            height: 300px;
+            margin-top: 1rem;
+        }
+        .sidebar-header{padding:1.25rem 1.5rem;border-bottom-color:rgba(255,255,255,.1)}.sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.sidebar-menu-item{border:1px solid transparent;color:#b8cce1}.sidebar-menu-item:hover{background:rgba(22,131,255,.16);color:#fff}.sidebar-menu-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.sidebar-menu>div[style*="border-top"]{border-top-color:rgba(255,255,255,.1)!important}.sidebar-menu>div[style*="border-top"]>div[style*="text-transform"]{color:#8fb0d0!important}.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em}.topbar,.card{border-radius:16px}.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 12px 24px rgba(22,131,255,.18)}.btn-primary:hover{box-shadow:0 16px 28px rgba(22,131,255,.26)}[style*="#667eea"],[style*="rgba(102, 126, 234"]{color:#1683ff!important;border-left-color:#1683ff!important;background:#eaf3ff!important}[style*="#764ba2"]{color:#0d65d5!important}.main-content{background:transparent}.chart-container canvas{filter:drop-shadow(0 8px 12px rgba(22,131,255,.08))}
+        .workflow-hero{background:linear-gradient(135deg,#0b2447 0%,#174775 100%);border-radius:16px;color:#fff;margin-bottom:1.5rem;padding:28px 32px;position:relative;overflow:hidden}.workflow-hero:after{border:1px solid rgba(255,255,255,.12);border-radius:50%;content:'';height:260px;position:absolute;right:-70px;top:-120px;width:260px}.workflow-hero h2{font:800 26px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0 0 8px}.workflow-hero p{color:#b9cce3;margin:0;max-width:650px}.workflow-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-card{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid #e4eaf2;border-radius:16px;padding:22px;transition:.25s ease}.workflow-card:hover{border-color:#9ccaff;box-shadow:0 18px 36px rgba(22,131,255,.12);transform:translateY(-3px)}.workflow-card-head{align-items:flex-start;display:flex;gap:14px}.workflow-number{align-items:center;background:#eaf3ff;border-radius:12px;color:#1683ff;display:flex;flex:0 0 42px;font-weight:800;height:42px;justify-content:center}.workflow-card h3{color:#10213c;font:700 17px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:1px 0 4px}.workflow-card-head p{color:#61708a;font-size:12px;margin:0}.workflow-steps{display:grid;gap:0;list-style:none;margin:22px 0 0;padding:0}.workflow-steps li{align-items:flex-start;display:flex;gap:12px;min-height:42px;position:relative}.workflow-steps li:not(:last-child):after{background:#c9e2fb;content:'';height:calc(100% - 16px);left:10px;position:absolute;top:23px;width:2px}.workflow-steps li span{align-items:center;background:#1683ff;border:3px solid #eaf3ff;border-radius:50%;color:#fff;display:flex;flex:0 0 22px;font-size:10px;font-weight:700;height:22px;justify-content:center;position:relative;z-index:1}.workflow-steps li p{color:#526275;font-size:13px;margin:1px 0 14px}.workflow-footer{align-items:center;border-top:1px solid #e8eef5;display:flex;justify-content:space-between;margin-top:5px;padding-top:14px}.workflow-role{color:#61708a;font-size:11px}.workflow-status{background:#e6f8ef;border-radius:999px;color:#11804f;font-size:11px;font-weight:700;padding:6px 9px}.workflow-status.blue{background:#eaf3ff;color:#0d65d5}.workflow-status.orange{background:#fff4df;color:#a5680c}@media(max-width:850px){.workflow-grid{grid-template-columns:1fr}}
+        .main-content{padding:1.25rem 1.5rem 2.5rem}.topbar{align-items:center;background:rgba(255,255,255,.88);border:1px solid rgba(211,224,239,.9);border-radius:20px;box-shadow:0 14px 34px rgba(11,36,71,.06);margin-bottom:1.25rem;padding:1.15rem 1.4rem}.topbar-title{font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em}.topbar-actions{gap:.7rem}.btn-icon{background:#eef4fb;border:1px solid #e2ebf5;box-shadow:none;height:42px;position:relative;width:42px}.btn-icon:hover{background:#dceeff;color:#0d65d5}.grid-2{display:grid;gap:1rem;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-2>.card{border-radius:18px;min-height:148px;padding:1.25rem 1.3rem}.stat-card{align-items:stretch}.stat-label{font-size:.78rem;font-weight:600;letter-spacing:.02em}.stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:.35rem}.stat-icon{border-radius:14px;height:46px;width:46px}.grid-3{display:grid;gap:1rem;grid-template-columns:1.25fr 1fr 1fr}.grid-3>.card{border-radius:18px;min-height:365px;padding:1.2rem 1.25rem}.grid-3>.card h3{align-items:center;display:flex;font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;justify-content:space-between;letter-spacing:-.015em}.chart-container{height:285px;margin-top:1.25rem}.card{background:rgba(255,255,255,.95);border:1px solid #e1eaf4;border-radius:18px;box-shadow:0 12px 30px rgba(11,36,71,.055)}.card:hover{border-color:#b8d8f6;box-shadow:0 18px 38px rgba(22,131,255,.1);transform:translateY(-2px)}#dashboard-tab>.card[style*="margin-top: 1.5rem"]{border-radius:18px;padding:1.25rem 1.35rem}#dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3{font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif!important}#dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div{border:1px solid #e5edf5!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(11,36,71,.04);padding:1.1rem!important}.table-container{border:1px solid #e4eaf2;border-radius:14px;overflow:auto}.table-container table{min-width:640px}.table-container th{background:#f1f7fd;font-size:.7rem;letter-spacing:.08em}.table-container td,.table-container th{border-bottom-color:#e7eef6;padding:.85rem 1rem}@media(max-width:1100px){.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:first-child{grid-column:1/-1}}@media(max-width:700px){.main-content{padding:1rem}.grid-2,.grid-3{grid-template-columns:1fr}.grid-3>.card:first-child{grid-column:auto}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{align-self:flex-end}.grid-2>.card{min-height:132px}}
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <div class="sidebar">
+        <div class="sidebar-header">
+            <div class="sidebar-logo">
+                <i class="fas fa-home"></i>
+            </div>
+            <div>
+                <div style="font-weight: bold; color: #1e293b;">ResidentHub</div>
+                <div style="font-size: 0.75rem; color: #94a3b8;">Giao diện Quản lý
+                
+                </div>
+            </div>
+        </div>
+
+        <div class="sidebar-menu">
+            <div class="sidebar-menu-item active" onclick="switchTab('dashboard')">
+                <i class="fas fa-chart-line"></i>
+                <span>Quản lý</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('buildings')">
+                <i class="fas fa-building"></i>
+                <span>Tòa nhà và phòng</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('residents')">
+                <i class="fas fa-users"></i>
+                <span>Quản lý cư dân</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('invoices')">
+                <i class="fas fa-receipt"></i>
+                <span>Hóa đơn và thanh toán</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('support')">
+                <i class="fas fa-tools"></i>
+                <span>Yêu cầu hỗ trợ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('contracts')">
+                <i class="fas fa-file-contract"></i>
+                <span>Hợp đồng</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('reports')">
+                <i class="fas fa-chart-bar"></i>
+                <span>Báo cáo</span>
+            </div>
+
+            <div style="padding: 1.5rem 1rem 0.5rem; border-top: 1px solid var(--line); margin-top: 1rem;">
+                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Quản lý</div>
+                <div class="sidebar-menu-item" onclick="switchTab('workflows')">
+                    <i class="fas fa-project-diagram"></i>
+                    <span>Quy trình làm việc</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="switchTab('features')">
+                    <i class="fas fa-list-check"></i>
+                    <span>Chi tiết tính năng</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="switchTab('architecture')">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Kiến trúc hệ thống</span>
+                </div>
+            </div>
+
+            <div style="padding: 1.5rem 1rem 1rem; border-top: 1px solid var(--line); margin-top: 1rem;">
+                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Cài đặt</div>
+                <div class="sidebar-menu-item" onclick="switchTab('settings')">
+                    <i class="fas fa-cog"></i>
+                    <span>Cấu hình</span>
+                </div>
+                <div class="sidebar-menu-item" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Đăng xuất</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <!-- Topbar -->
+        <div class="topbar">
+            <div>
+                <div class="topbar-title" id="pageTitle">Quản lý</div>
+                <div style="color: #94a3b8; font-size: 0.875rem;">Chào mừng quay lại</div>
+            </div>
+            <div class="topbar-actions">
+                <button class="btn-icon" title="Tìm kiếm">
+                    <i class="fas fa-search"></i>
+                </button>
+                <button class="btn-icon" title="Thông báo">
+                    <i class="fas fa-bell"></i>
+                    <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">3</span>
+                </button>
+                <div class="dropdown">
+                    <button class="btn-icon" onclick="toggleDropdown()" title="Tài khoản">
+                        <div class="avatar" style="width: 32px; height: 32px;">
+                            <span>A</span>
+                        </div>
+                    </button>
+                    <div class="dropdown-menu" id="profileDropdown">
+                        <div class="dropdown-item">
+                            <i class="fas fa-user"></i>
+                            <span>Tài khoản của tôi</span>
+                        </div>
+                        <div class="dropdown-item">
+                            <i class="fas fa-cog"></i>
+                            <span>Cài đặt</span>
+                        </div>
+                        <div class="dropdown-item" onclick="logout()">
+                            <i class="fas fa-sign-out-alt"></i>
+                            <span>Đăng xuất</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Dashboard Tab -->
+        <div id="dashboard-tab">
+            <!-- Stats Cards -->
+            <div class="grid-2">
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Tổng phòng</div>
+                            <div class="stat-value">245</div>
+                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-arrow-up"></i> 8.5% so với tháng trước
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Phòng trống</div>
+                            <div class="stat-value">32</div>
+                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-arrow-down"></i> 2.1% lấp đầy
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
+                            <i class="fas fa-lock-open"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Doanh thu tháng</div>
+                            <div class="stat-value">543M</div>
+                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-arrow-up"></i> 12.3% tăng trưởng
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
+                            <i class="fas fa-chart-line"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Công nợ</div>
+                            <div class="stat-value">87M</div>
+                            <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-arrow-up"></i> 5.2% tăng
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
+                            <i class="fas fa-exclamation-circle"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Charts Section -->
+            <div class="grid-3" style="margin-top: 1.5rem;">
+                <div class="card">
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Doanh thu 12 tháng</h3>
+                    <div class="chart-container">
+                        <canvas id="revenueChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Tình trạng phòng</h3>
+                    <div class="chart-container">
+                        <canvas id="roomStatusChart"></canvas>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Thanh toán tháng này</h3>
+                    <div class="chart-container">
+                        <canvas id="paymentChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Priority Actions - Cần xử lý hôm nay -->
+            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%); border-left: 4px solid #ef4444;">
+                <h3 style="font-weight: 600; color: #ef4444; margin-bottom: 1rem;">
+                    <i class="fas fa-exclamation-circle"></i> Cần xử lý hôm nay
+                </h3>
+                <div class="grid-3">
+                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #ef4444;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Hóa đơn quá hạn</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #ef4444; margin: 0.5rem 0;">8</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Tổng nợ: 45M</div>
+                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem;">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Yêu cầu quá 24h</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #f59e0b; margin: 0.5rem 0;">5</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Cần xử lý ngay</div>
+                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
+                        <div style="font-size: 0.875rem; color: #64748b;">Hợp đồng sắp hết</div>
+                        <div style="font-size: 2rem; font-weight: bold; color: #0284c7; margin: 0.5rem 0;">6</div>
+                        <div style="font-size: 0.75rem; color: #94a3b8;">Còn dưới 30 ngày</div>
+                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                            Xem chi tiết
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Recent Activity -->
+            <div class="card" style="margin-top: 1.5rem;">
+                <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Hoạt động gần đây</h3>
+                <div class="table-container">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Sự kiện</th>
+                                <th>Chi tiết</th>
+                                <th>Thời gian</th>
+                                <th>Trạng thái</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Thanh toán</td>
+                                <td>Nguyễn Văn A thanh toán 8.5M</td>
+                                <td>10 phút trước</td>
+                                <td><span class="badge badge-success">Thành công</span></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-wrench" style="color: #0284c7; margin-right: 0.5rem;"></i> Hỗ trợ</td>
+                                <td>Yêu cầu sửa chữa phòng 312</td>
+                                <td>1 giờ trước</td>
+                                <td><span class="badge badge-info">Đang xử lý</span></td>
+                            </tr>
+                            <tr>
+                                <td><i class="fas fa-envelope" style="color: #7c3aed; margin-right: 0.5rem;"></i> Thông báo</td>
+                                <td>Gửi hóa đơn tháng 8 cho 245 cư dân</td>
+                                <td>3 giờ trước</td>
+                                <td><span class="badge badge-success">Hoàn thành</span></td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Other Tabs (placeholder) -->
+        <div id="buildings-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý tòa nhà và phòng</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý tòa nhà và phòng sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <div id="residents-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý cư dân</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý cư dân sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <div id="invoices-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Hóa đơn và thanh toán</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung hóa đơn sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <div id="support-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Yêu cầu Hỗ trợ</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung yêu cầu hỗ trợ sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <div id="contracts-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Hợp đồng</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý hợp đồng sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <div id="reports-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Báo cáo</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung báo cáo sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <div id="settings-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Cài đặt</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung cài đặt sẽ hiển thị ở đây</p>
+            </div>
+        </div>
+
+        <!-- Workflows Tab -->
+        <div id="workflows-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">4 Quy trình Chính</h2>
+                <p style="color: #64748b; margin-bottom: 1.5rem;">Những quy trình quan trọng nhất trong quản lý cư dân</p>
+            </div>
+
+            <!-- Workflow 1 -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+                    <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Quản lý Cư dân</h3>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #667eea;">
+                    <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                        Quản trị viên tạo hồ sơ cư dân<br>
+                        ↓<br>
+                        Nhập thông tin cư dân<br>
+                        ↓<br>
+                        Gán tòa nhà → phòng → hợp đồng<br>
+                        ↓<br>
+                        Hệ thống tự động tạo tài khoản cư dân<br>
+                        ↓<br>
+                        Cư dân đăng nhập ứng dụng<br>
+                        ↓<br>
+                        Xem thông tin phòng và hợp đồng
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow 2 -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+                    <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Thanh toán Hóa đơn</h3>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #10b981;">
+                    <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                        Đến kỳ thanh toán<br>
+                        ↓<br>
+                        Hệ thống tự động tạo hóa đơn<br>
+                        ↓<br>
+                        Gửi thông báo cho cư dân<br>
+                        ↓<br>
+                        Cư dân mở ứng dụng, xem hóa đơn<br>
+                        ↓<br>
+                        Kiểm tra: tiền phòng + điện + nước + dịch vụ<br>
+                        ↓<br>
+                        Thanh toán<br>
+                        ↓<br>
+                        Hệ thống cập nhật: ✅ Đã thanh toán<br>
+                        ↓<br>
+                        Website công ty tự động cập nhật công nợ
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow 3 -->
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+                    <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Báo Sự Cố</h3>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                        <div>
+                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">👤 Cư dân:</div>
+                            <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                                Phát hiện sự cố<br>
+                                ↓<br>
+                                Mở ứng dụng<br>
+                                ↓<br>
+                                Báo sự cố: Điều hòa<br>
+                                Phòng 502, Mức độ: Cao<br>
+                                ↓<br>
+                                Thêm ảnh/video<br>
+                                ↓<br>
+                                Gửi yêu cầu
+                            </div>
+                        </div>
+                        <div>
+                            <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">👨‍💼 Công ty:</div>
+                            <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                                Website nhận thông báo<br>
+                                ↓<br>
+                                Nhân viên xem yêu cầu<br>
+                                ↓<br>
+                                Phân công kỹ thuật viên<br>
+                                ↓<br>
+                                Trạng thái: 🟡 Đang xử lý<br>
+                                ↓<br>
+                                Hoàn thành: 🟢<br>
+                                ↓<br>
+                                Cư dân nhận thông báo<br>
+                                ↓<br>
+                                Đánh giá dịch vụ
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow 4 -->
+            <div class="card">
+                <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">4</div>
+                    <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Hợp đồng Sắp Hết Hạn</h3>
+                </div>
+                <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
+                    <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                        Hệ thống kiểm tra ngày hết hạn hợp đồng<br>
+                        ↓<br>
+                        Phát hiện: Còn 30 ngày<br>
+                        ↓<br>
+                        Website cảnh báo quản lý ⚠️ 12 hợp đồng sắp hết<br>
+                        ↓<br>
+                        Công ty gửi thông báo gia hạn<br>
+                        ↓<br>
+                        Cư dân nhận trên ứng dụng<br>
+                        ↓<br>
+                        Cư dân chọn: Gia hạn / Không gia hạn<br>
+                        ↓<br>
+                        Website tự động cập nhật trạng thái
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Features Tab -->
+        <div id="features-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Chi tiết Tính năng MVP</h2>
+                <p style="color: #64748b;">5 Module chính trong phiên bản ban đầu</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                            <i class="fas fa-users"></i>
+                        </div>
+                        <h3 style="font-weight: 600; color: #1e293b;">👥 Cư dân</h3>
+                    </div>
+                    <ul style="list-style: none;">
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý hồ sơ cư dân
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem hồ sơ
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tìm kiếm và cập nhật thông tin
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                        <h3 style="font-weight: 600; color: #1e293b;">🏠 Phòng và hợp đồng</h3>
+                    </div>
+                    <ul style="list-style: none;">
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý phòng và hợp đồng
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem hợp đồng
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi chi tiết phòng
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                            <i class="fas fa-receipt"></i>
+                        </div>
+                        <h3 style="font-weight: 600; color: #1e293b;">💰 Thanh toán</h3>
+                    </div>
+                    <ul style="list-style: none;">
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tạo hóa đơn tự động
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi công nợ
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem và thanh toán
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                            <i class="fas fa-tools"></i>
+                        </div>
+                        <h3 style="font-weight: 600; color: #1e293b;">🔧 Yêu cầu</h3>
+                    </div>
+                    <ul style="list-style: none;">
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tiếp nhận yêu cầu
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Phân công xử lý
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân gửi và theo dõi
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="card">
+                    <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
+                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                            <i class="fas fa-bell"></i>
+                        </div>
+                        <h3 style="font-weight: 600; color: #1e293b;">🔔 Thông báo</h3>
+                    </div>
+                    <ul style="list-style: none;">
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Gửi thông báo tự động
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý thông báo
+                        </li>
+                        <li style="padding: 0.5rem 0; color: #475569;">
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân nhận thông báo
+                        </li>
+                    </ul>
+                </div>
+            </div>
+
+            <!-- Future Modules -->
+            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-left: 3px solid #667eea;">
+                <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">📈 Tính năng mở rộng (Giai đoạn 2)</h3>
+                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
+                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
+                        <i class="fas fa-chart-bar" style="color: #667eea; margin-right: 0.5rem;"></i> Phân tích và báo cáo
+                    </div>
+                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
+                        <i class="fas fa-users-cog" style="color: #667eea; margin-right: 0.5rem;"></i> Quản lý nhân viên
+                    </div>
+                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
+                        <i class="fas fa-file-pdf" style="color: #667eea; margin-right: 0.5rem;"></i> Báo cáo
+                    </div>
+                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
+                        <i class="fas fa-chart-line" style="color: #667eea; margin-right: 0.5rem;"></i> Phân tích cư dân
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Architecture Tab -->
+        <div id="architecture-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Kiến trúc Hệ thống</h2>
+                <p style="color: #64748b;">Cấu trúc website cho công ty quản lý và ứng dụng cho cư dân</p>
+            </div>
+
+            <div class="grid-2">
+                <div class="card">
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">
+                        <i class="fas fa-desktop" style="color: #667eea; margin-right: 0.5rem;"></i>
+                        Website - Công ty
+                    </h3>
+                    <nav style="list-style: none;">
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-chart-line" style="color: #667eea; margin-right: 0.75rem;"></i> Quản lý tổng quan
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-users" style="color: #667eea; margin-right: 0.75rem;"></i> Cư dân
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-building" style="color: #667eea; margin-right: 0.75rem;"></i> Phòng và tòa nhà
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-file-contract" style="color: #667eea; margin-right: 0.75rem;"></i> Hợp đồng
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-receipt" style="color: #667eea; margin-right: 0.75rem;"></i> Thanh toán
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-tools" style="color: #667eea; margin-right: 0.75rem;"></i> Yêu cầu hỗ trợ
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-bell" style="color: #667eea; margin-right: 0.75rem;"></i> Thông báo
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-chart-bar" style="color: #667eea; margin-right: 0.75rem;"></i> Báo cáo
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; border-radius: 0.25rem;">
+                            <i class="fas fa-cog" style="color: #667eea; margin-right: 0.75rem;"></i> Cài đặt
+                        </div>
+                    </nav>
+                </div>
+
+                <div class="card">
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">
+                        <i class="fas fa-mobile-alt" style="color: #667eea; margin-right: 0.5rem;"></i>
+                        Ứng dụng - Cư dân
+                    </h3>
+                    <nav style="list-style: none;">
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-home" style="color: #667eea; margin-right: 0.75rem;"></i> Trang chủ
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-door-open" style="color: #667eea; margin-right: 0.75rem;"></i> Phòng
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-file-contract" style="color: #667eea; margin-right: 0.75rem;"></i> Hợp đồng
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-receipt" style="color: #667eea; margin-right: 0.75rem;"></i> Hóa đơn
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-credit-card" style="color: #667eea; margin-right: 0.75rem;"></i> Thanh toán
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-tools" style="color: #667eea; margin-right: 0.75rem;"></i> Yêu cầu
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-bell" style="color: #667eea; margin-right: 0.75rem;"></i> Thông báo
+                        </div>
+                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; border-radius: 0.25rem;">
+                            <i class="fas fa-user-circle" style="color: #667eea; margin-right: 0.75rem;"></i> Cá nhân
+                        </div>
+                    </nav>
+                </div>
+            </div>
+
+            <!-- Core Concept -->
+            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-left: 4px solid #667eea;">
+                <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">
+                    🔥 Câu chuyện cốt lõi
+                </h3>
+                <p style="color: #1e293b; line-height: 1.8; font-size: 1.1rem;">
+                    <strong>ResidentHub</strong> giúp công ty quản lý nhà cho thuê chuyển từ <strong>"quản lý từng cư dân"</strong> sang <strong>"quản lý toàn bộ vận hành trên một hệ thống"</strong>.
+                </p>
+                <p style="color: #475569; margin-top: 1rem; font-size: 0.95rem;">
+                    Mỗi tính năng đều phải phục vụ câu chuyện này. Nếu một tính năng không liên quan đến quản lý cư dân/vận hành thì loại bỏ, như vậy hệ thống sẽ không trở nên quá phức tạp.
+                </p>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Initialize Charts
+        function initCharts() {
+            // Revenue Chart
+            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
+            new Chart(revenueCtx, {
+                type: 'line',
+                data: {
+                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
+                    datasets: [{
+                        label: 'Doanh thu (Triệu)',
+                        data: [380, 410, 450, 480, 520, 550, 580, 543, 600, 620, 590, 543],
+                        borderColor: '#1683ff',
+                        backgroundColor: 'rgba(22, 131, 255, 0.12)',
+                        tension: 0.35,
+                        borderWidth: 3,
+                        pointRadius: 3,
+                        pointHoverRadius: 5,
+                        fill: true
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } },
+                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } } }
+                }
+            });
+
+            // Room Status Chart
+            const roomCtx = document.getElementById('roomStatusChart').getContext('2d');
+            new Chart(roomCtx, {
+                type: 'doughnut',
+                data: {
+                    labels: ['Có người', 'Trống', 'Bảo trì'],
+                    datasets: [{
+                        data: [213, 25, 7],
+                        backgroundColor: ['#18a878', '#1683ff', '#f0a34a'],
+                        borderWidth: 0
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { position: 'bottom', labels: { color: '#61708a', padding: 16, usePointStyle: true, font: { family: 'Be Vietnam Pro', size: 11 } } }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } }
+                }
+            });
+
+            // Payment Chart
+            const paymentCtx = document.getElementById('paymentChart').getContext('2d');
+            new Chart(paymentCtx, {
+                type: 'bar',
+                data: {
+                    labels: ['Đã thanh toán', 'Chờ thanh toán', 'Quá hạn'],
+                    datasets: [{
+                        label: 'Số lượng',
+                        data: [195, 35, 15],
+                        backgroundColor: ['#18a878', '#f0a34a', '#e45b68'],
+                        borderRadius: 8,
+                        borderSkipped: false,
+                        barPercentage: 0.58,
+                        categoryPercentage: 0.7
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } },
+                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } } }
+                }
+            });
+        }
+
+        // Switch Tab Function
+        function switchTab(tabName) {
+            // Hide all tabs
+            const tabs = document.querySelectorAll('[id$="-tab"]');
+            tabs.forEach(tab => tab.style.display = 'none');
+
+            // Show selected tab
+            const selectedTab = document.getElementById(tabName + '-tab');
+            if (selectedTab) selectedTab.style.display = 'block';
+
+            // Update active menu item
+            const menuItems = document.querySelectorAll('.sidebar-menu-item');
+            menuItems.forEach(item => item.classList.remove('active'));
+            event.target.closest('.sidebar-menu-item').classList.add('active');
+
+            // Update page title
+            const titles = {
+                'dashboard': 'Quản lý',
+                'buildings': 'Tòa nhà và phòng',
+                'residents': 'Quản lý cư dân',
+                'invoices': 'Hóa đơn và thanh toán',
+                'support': 'Yêu cầu hỗ trợ',
+                'contracts': 'Hợp đồng',
+                'reports': 'Báo cáo',
+                'workflows': 'Quy trình làm việc',
+                'features': 'Chi tiết tính năng',
+                'architecture': 'Kiến trúc hệ thống',
+                'settings': 'Cài đặt'
+            };
+            document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
+            window.scrollTo(0, 0);
+        }
+
+        // Dropdown Toggle
+        function toggleDropdown() {
+            const dropdown = document.getElementById('profileDropdown');
+            dropdown.classList.toggle('active');
+        }
+
+        // Logout Function
+        function logout() {
+            if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                localStorage.removeItem('authToken');
+                window.location.href = 'index.html';
+            }
+        }
+
+        // Close dropdown when clicking outside
+        document.addEventListener('click', function(event) {
+            const dropdown = document.getElementById('profileDropdown');
+            if (!event.target.closest('.dropdown')) {
+                dropdown.classList.remove('active');
+            }
+        });
+
+        // Initialize on load
+        window.addEventListener('load', function() {
+            initCharts();
+            renderWorkflows();
+        });
+
+        function renderWorkflows() {
+            const workflowTab = document.getElementById('workflows-tab');
+            if (!workflowTab) return;
+            workflowTab.innerHTML = `<div class="workflow-hero"><h2>Quy trình làm việc</h2><p>Theo dõi các luồng vận hành quan trọng từ lúc phát sinh đến khi hoàn tất trên cùng một hệ thống.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Tiếp nhận cư dân</h3><p>Tạo hồ sơ và kích hoạt quyền truy cập</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Tạo hồ sơ cư dân</p></li><li><span>2</span><p>Gán tòa nhà, căn hộ và hợp đồng</p></li><li><span>3</span><p>Gửi lời mời đăng nhập tự động</p></li><li><span>4</span><p>Cư dân xác nhận và bắt đầu sử dụng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Đã chuẩn hóa</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Thu phí và thanh toán</h3><p>Tự động hóa chu kỳ thu phí hàng tháng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Hệ thống tạo hóa đơn theo kỳ</p></li><li><span>2</span><p>Gửi thông báo đến cư dân</p></li><li><span>3</span><p>Cư dân kiểm tra và thanh toán trực tuyến</p></li><li><span>4</span><p>Cập nhật công nợ và biên lai</p></li></ol><div class="workflow-footer"><span class="workflow-role">Tự động trên hệ thống</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu</h3><p>Minh bạch tiến độ từ báo sự cố đến hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm hình ảnh</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật trạng thái đang xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Cần theo dõi</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn hợp đồng</h3><p>Chủ động giữ chân cư dân trước ngày hết hạn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Phát hiện hợp đồng sắp hết hạn</p></li><li><span>2</span><p>Gửi cảnh báo cho ban quản lý</p></li><li><span>3</span><p>Cư dân chọn gia hạn hoặc kết thúc</p></li><li><span>4</span><p>Cập nhật trạng thái hợp đồng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Nhắc trước 30 ngày</span></div></article></div>`;
+        }
+    </script>
+</body>
+</html>
