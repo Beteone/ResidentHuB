@@ -72,6 +72,7 @@ const textWalker=document.createTreeWalker(document.body,NodeFilter.SHOW_TEXT)
 const textNodes=[]
 while(textWalker.nextNode())if(!['SCRIPT','STYLE'].includes(textWalker.currentNode.parentElement.tagName))textNodes.push(textWalker.currentNode)
 textNodes.forEach(node=>{let text=node.nodeValue.replace(/\s&\s/g,' và ');Object.entries(textReplacements).forEach(([from,to])=>{text=text.split(from).join(to)});node.nodeValue=text})
+textNodes.forEach(node=>{node.nodeValue=node.nodeValue.replaceAll('Nguyễn Minh Anh','Nguyễn Thị Hoa').replaceAll('Minh Anh','chị Hoa')})
 </script>
 </body>
 </html>
