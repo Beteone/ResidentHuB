@@ -358,6 +358,352 @@
             box-shadow: 0 12px 20px rgba(29, 78, 216, 0.2);
         }
 
+        .stat-card-editable {
+            cursor: pointer;
+        }
+
+        .stat-card-editable:focus-visible {
+            outline: 3px solid rgba(22, 131, 255, 0.35);
+            outline-offset: 3px;
+        }
+
+        .stat-update-trigger {
+            background: transparent;
+            border: 0;
+            color: var(--primary-strong);
+            cursor: pointer;
+            font: 600 0.8rem 'Be Vietnam Pro', sans-serif;
+            margin-top: 0.5rem;
+            padding: 0;
+        }
+
+        .stat-update-trigger:hover {
+            text-decoration: underline;
+        }
+
+        .stat-update-modal {
+            align-items: center;
+            background: rgba(11, 36, 71, 0.42);
+            display: none;
+            inset: 0;
+            justify-content: center;
+            padding: 1rem;
+            position: fixed;
+            z-index: 200;
+        }
+
+        .stat-update-modal.is-open {
+            display: flex;
+        }
+
+        .stat-update-dialog {
+            background: #fff;
+            border: 1px solid #e1eaf4;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(11, 36, 71, 0.2);
+            max-width: 420px;
+            padding: 1.5rem;
+            width: 100%;
+        }
+
+        .stat-update-dialog h2 {
+            color: var(--ink);
+            font: 700 1.15rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-update-dialog p {
+            color: var(--muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-update-dialog label {
+            color: var(--ink);
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.45rem;
+        }
+
+        .stat-update-dialog input {
+            border: 1px solid #d7e2ef;
+            border-radius: 10px;
+            color: var(--ink);
+            font: 600 1rem 'Be Vietnam Pro', sans-serif;
+            padding: 0.75rem;
+            width: 100%;
+        }
+
+        .stat-update-dialog input:focus {
+            border-color: var(--primary);
+            outline: 3px solid rgba(22, 131, 255, 0.12);
+        }
+
+        .stat-update-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.25rem;
+        }
+
+        .stat-update-actions button {
+            border: 0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0.65rem 1rem;
+        }
+
+        .stat-update-cancel {
+            background: #eef4fb;
+            color: #526275;
+        }
+
+        .building-page-header {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .building-page-header h2 {
+            color: var(--ink);
+            font: 700 1.35rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+        }
+
+        .building-page-header p {
+            color: var(--muted);
+            font-size: 0.875rem;
+            margin-top: 0.35rem;
+        }
+
+        .building-add-button {
+            align-items: center;
+            border: 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            gap: 0.5rem;
+            padding: 0.7rem 1rem;
+        }
+
+        .building-list {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .building-item {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e1eaf4;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 1.1rem;
+        }
+
+        .building-item[role="button"] {
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .building-item[role="button"]:hover,
+        .building-item[role="button"]:focus-visible {
+            border-color: #9ccaff;
+            box-shadow: 0 10px 24px rgba(22, 131, 255, 0.1);
+            outline: none;
+        }
+
+        .building-item-actions {
+            align-items: center;
+            display: flex;
+            gap: 0.65rem;
+        }
+
+        .building-delete-button {
+            align-items: center;
+            background: #fff1f2;
+            border: 0;
+            border-radius: 9px;
+            color: #e11d48;
+            cursor: pointer;
+            display: inline-flex;
+            height: 34px;
+            justify-content: center;
+            width: 34px;
+        }
+
+        .building-delete-button:hover {
+            background: #ffe4e6;
+        }
+
+        .building-item h3 {
+            color: var(--ink);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .building-item p {
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .building-status {
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.35rem 0.65rem;
+        }
+
+        .building-status.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .building-status.inactive {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .building-empty {
+            color: var(--muted);
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        .building-empty i {
+            color: #a8b6c7;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .building-form-dialog {
+            max-height: calc(100vh - 2rem);
+            max-width: 680px;
+            overflow-y: auto;
+        }
+
+        .building-form-section {
+            border-top: 1px solid #e8eef5;
+            margin-top: 1.2rem;
+            padding-top: 1.1rem;
+        }
+
+        .building-form-section h3 {
+            color: var(--ink);
+            font-size: 0.95rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .building-form-grid {
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .building-form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .building-form-field label {
+            color: var(--ink);
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .building-form-field input,
+        .building-form-field select {
+            border: 1px solid #d7e2ef;
+            border-radius: 9px;
+            color: var(--ink);
+            font: 400 0.875rem 'Be Vietnam Pro', sans-serif;
+            padding: 0.65rem 0.7rem;
+            width: 100%;
+        }
+
+        .building-form-field input:focus,
+        .building-form-field select:focus {
+            border-color: var(--primary);
+            outline: 3px solid rgba(22, 131, 255, 0.12);
+        }
+
+        .building-toggle-row {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .building-toggle {
+            appearance: none;
+            background: #cbd5e1;
+            border-radius: 999px;
+            cursor: pointer;
+            height: 26px;
+            position: relative;
+            transition: background 0.2s ease;
+            width: 48px;
+        }
+
+        .stat-update-dialog .building-toggle {
+            flex: 0 0 48px;
+            width: 48px;
+        }
+
+        .building-toggle::after {
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
+            content: '';
+            height: 20px;
+            left: 3px;
+            position: absolute;
+            top: 3px;
+            transition: transform 0.2s ease;
+            width: 20px;
+        }
+
+        .building-toggle:checked {
+            background: var(--success);
+        }
+
+        .building-toggle:checked::after {
+            transform: translateX(22px);
+        }
+
+        .building-active-label {
+            color: var(--success);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 0.65rem;
+        }
+
+        @media (max-width: 640px) {
+            .building-page-header {
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .building-page-header h2 {
+                font-size: 1.1rem;
+            }
+
+            .building-add-button {
+                padding: 0.65rem 0.8rem;
+            }
+
+            .building-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .building-form-field.full-width {
+                grid-column: auto;
+            }
+        }
+
         .chart-container {
             position: relative;
             height: 300px;
@@ -487,47 +833,47 @@
         <div id="dashboard-tab">
             <!-- Stats Cards -->
             <div class="grid-2">
-                <div class="card">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openBuildingList()" onkeydown="handleBuildingCardKeydown(event)">
                     <div class="stat-card">
                         <div>
-                            <div class="stat-label">Tổng phòng</div>
-                            <div class="stat-value">245</div>
+                            <div class="stat-label">Tòa nhà</div>
+                            <div class="stat-value" data-stat-value="buildings">0</div>
                             <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 8.5% so với tháng trước
+                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openBuildingList()"><i class="fas fa-building"></i> Xem danh sách tòa nhà</button>
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('rooms')" onkeydown="handleStatCardKeydown(event, 'rooms')">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Tổng phòng</div>
+                            <div class="stat-value" data-stat-value="rooms">245</div>
+                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('rooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
                             <i class="fas fa-door-open"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('vacantRooms')" onkeydown="handleStatCardKeydown(event, 'vacantRooms')">
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Phòng trống</div>
-                            <div class="stat-value">32</div>
-                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-down"></i> 2.1% lấp đầy
+                            <div class="stat-value" data-stat-value="vacantRooms">32</div>
+                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('vacantRooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
                             <i class="fas fa-lock-open"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Doanh thu tháng</div>
-                            <div class="stat-value">543M</div>
-                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 12.3% tăng trưởng
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
-                            <i class="fas fa-chart-line"></i>
                         </div>
                     </div>
                 </div>
@@ -546,6 +892,19 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="stat-update-modal" id="statUpdateModal" role="dialog" aria-modal="true" aria-labelledby="statUpdateTitle" onclick="closeStatUpdateOnBackdrop(event)">
+                <form class="stat-update-dialog" onsubmit="saveStatUpdate(event)">
+                    <h2 id="statUpdateTitle">Cập nhật số liệu</h2>
+                    <p>Nhập số liệu mới cho chỉ số đang chọn.</p>
+                    <label for="statUpdateInput">Số liệu</label>
+                    <input id="statUpdateInput" type="number" min="0" step="1" required>
+                    <div class="stat-update-actions">
+                        <button class="stat-update-cancel" type="button" onclick="closeStatUpdate()">Hủy</button>
+                        <button class="btn-primary" type="submit">Lưu số liệu</button>
+                    </div>
+                </form>
             </div>
 
             <!-- Charts Section -->
@@ -643,12 +1002,106 @@
             </div>
         </div>
 
-        <!-- Other Tabs (placeholder) -->
+        <!-- Buildings -->
         <div id="buildings-tab" style="display: none;">
             <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý tòa nhà và phòng</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý tòa nhà và phòng sẽ hiển thị ở đây</p>
+                <div class="building-page-header">
+                    <div>
+                        <h2>Tòa nhà</h2>
+                        <p>Danh sách các tòa nhà đã đăng ký</p>
+                    </div>
+                    <button class="btn-primary building-add-button" type="button" onclick="openBuildingForm()">
+                        <i class="fas fa-plus"></i> Thêm tòa nhà
+                    </button>
+                </div>
+                <div class="building-list" id="buildingList"></div>
             </div>
+        </div>
+
+        <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true" aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
+            <form class="stat-update-dialog building-form-dialog" onsubmit="saveBuilding(event)">
+                <h2 id="buildingFormTitle">Thêm thông tin tòa nhà</h2>
+                <p>Nhập thông tin để quản lý tòa nhà trên hệ thống.</p>
+
+                <div class="building-form-section" style="border-top: 0; margin-top: 0; padding-top: 0;">
+                    <h3>Thông tin tòa nhà</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field">
+                            <label for="buildingName">Tên tòa nhà *</label>
+                            <input id="buildingName" name="buildingName" required>
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingCode">Tên viết tắt/Mã tòa *</label>
+                            <input id="buildingCode" name="buildingCode" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <h3>Địa chỉ</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field">
+                            <label for="buildingProvince">Tỉnh/Thành phố *</label>
+                            <input id="buildingProvince" name="buildingProvince" required>
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingWard">Xã/Phường *</label>
+                            <input id="buildingWard" name="buildingWard" required>
+                        </div>
+                        <div class="building-form-field full-width">
+                            <label for="buildingAddress">Địa chỉ chi tiết *</label>
+                            <input id="buildingAddress" name="buildingAddress" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <h3>Dịch vụ</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field full-width">
+                            <label for="buildingService">Dịch vụ quản lý</label>
+                            <input id="buildingService" name="buildingService" placeholder="Ví dụ: Quản lý vận hành, vệ sinh, bảo vệ">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <h3>Cấu hình</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field">
+                            <label for="buildingDebtAccount">Tài khoản gạch nợ tự động</label>
+                            <input id="buildingDebtAccount" name="buildingDebtAccount">
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingInvoiceTemplate">Mẫu in hóa đơn</label>
+                            <input id="buildingInvoiceTemplate" name="buildingInvoiceTemplate">
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingContractTemplate">Mẫu hợp đồng</label>
+                            <input id="buildingContractTemplate" name="buildingContractTemplate">
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingAccount">Tài khoản</label>
+                            <input id="buildingAccount" name="buildingAccount">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <div class="building-toggle-row">
+                        <div>
+                            <h3 style="margin-bottom: 0.25rem;">Trạng thái</h3>
+                            <span class="building-active-label" id="buildingActiveLabel">Đang hoạt động</span>
+                        </div>
+                        <input class="building-toggle" id="buildingActive" name="buildingActive" type="checkbox" checked onchange="updateBuildingActiveLabel()">
+                    </div>
+                </div>
+
+                <div class="stat-update-actions">
+                    <button class="stat-update-cancel" type="button" onclick="closeBuildingForm()">Hủy</button>
+                    <button class="btn-primary" type="submit">Xác nhận</button>
+                </div>
+            </form>
         </div>
 
         <div id="residents-tab" style="display: none;">
@@ -1116,8 +1569,211 @@
             });
         }
 
+        const editableStats = {
+            buildings: { label: 'Tòa nhà' },
+            rooms: { label: 'Tổng phòng' },
+            vacantRooms: { label: 'Phòng trống' }
+        };
+        let activeStatKey = null;
+        let activeBuildingId = null;
+
+        function getBuildings() {
+            return JSON.parse(localStorage.getItem('residentHubBuildings') || '[]');
+        }
+
+        function saveBuildings(buildings) {
+            localStorage.setItem('residentHubBuildings', JSON.stringify(buildings));
+        }
+
+        function openBuildingList() {
+            switchTab('buildings');
+            renderBuildings();
+        }
+
+        function handleBuildingCardKeydown(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openBuildingList();
+            }
+        }
+
+        function openBuildingForm() {
+            activeBuildingId = null;
+            document.getElementById('buildingFormTitle').textContent = 'Thêm thông tin tòa nhà';
+            document.querySelector('#buildingFormModal form').reset();
+            document.getElementById('buildingActive').checked = true;
+            updateBuildingActiveLabel();
+            document.getElementById('buildingFormModal').classList.add('is-open');
+            document.getElementById('buildingName').focus();
+        }
+
+        function openBuildingEdit(buildingId) {
+            const building = getBuildings().find(item => item.id === buildingId);
+            if (!building) return;
+
+            activeBuildingId = buildingId;
+            document.getElementById('buildingFormTitle').textContent = 'Chỉnh sửa thông tin tòa nhà';
+            document.getElementById('buildingName').value = building.name || '';
+            document.getElementById('buildingCode').value = building.code || '';
+            document.getElementById('buildingProvince').value = building.province || '';
+            document.getElementById('buildingWard').value = building.ward || '';
+            document.getElementById('buildingAddress').value = building.address || '';
+            document.getElementById('buildingService').value = building.service || '';
+            document.getElementById('buildingDebtAccount').value = building.debtAccount || '';
+            document.getElementById('buildingInvoiceTemplate').value = building.invoiceTemplate || '';
+            document.getElementById('buildingContractTemplate').value = building.contractTemplate || '';
+            document.getElementById('buildingAccount').value = building.account || '';
+            document.getElementById('buildingActive').checked = building.active !== false;
+            updateBuildingActiveLabel();
+            document.getElementById('buildingFormModal').classList.add('is-open');
+            document.getElementById('buildingName').focus();
+        }
+
+        function handleBuildingItemKeydown(event, buildingId) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openBuildingEdit(buildingId);
+            }
+        }
+
+        function closeBuildingForm() {
+            document.getElementById('buildingFormModal').classList.remove('is-open');
+            activeBuildingId = null;
+        }
+
+        function closeBuildingFormOnBackdrop(event) {
+            if (event.target.id === 'buildingFormModal') closeBuildingForm();
+        }
+
+        function deleteBuilding(event, buildingId, buildingName) {
+            event.stopPropagation();
+            if (!confirm(`Bạn có chắc chắn muốn xóa tòa nhà "${buildingName}"?`)) return;
+
+            const buildings = getBuildings().filter(building => building.id !== buildingId);
+            saveBuildings(buildings);
+            renderBuildings();
+            updateBuildingCount();
+        }
+
+        function updateBuildingActiveLabel() {
+            const active = document.getElementById('buildingActive').checked;
+            const label = document.getElementById('buildingActiveLabel');
+            label.textContent = active ? 'Đang hoạt động' : 'Không hoạt động';
+            label.style.color = active ? 'var(--success)' : '#64748b';
+        }
+
+        function saveBuilding(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const building = {
+                id: activeBuildingId || Date.now(),
+                name: formData.get('buildingName').trim(),
+                code: formData.get('buildingCode').trim(),
+                province: formData.get('buildingProvince').trim(),
+                ward: formData.get('buildingWard').trim(),
+                address: formData.get('buildingAddress').trim(),
+                service: formData.get('buildingService').trim(),
+                debtAccount: formData.get('buildingDebtAccount').trim(),
+                invoiceTemplate: formData.get('buildingInvoiceTemplate').trim(),
+                contractTemplate: formData.get('buildingContractTemplate').trim(),
+                account: formData.get('buildingAccount').trim(),
+                active: document.getElementById('buildingActive').checked
+            };
+            const buildings = getBuildings();
+            const existingIndex = buildings.findIndex(item => item.id === activeBuildingId);
+            if (existingIndex >= 0) {
+                buildings[existingIndex] = building;
+            } else {
+                buildings.push(building);
+            }
+            saveBuildings(buildings);
+            closeBuildingForm();
+            renderBuildings();
+            updateBuildingCount();
+        }
+
+        function renderBuildings() {
+            const list = document.getElementById('buildingList');
+            if (!list) return;
+            const buildings = getBuildings();
+            if (!buildings.length) {
+                list.innerHTML = '<div class="building-empty"><i class="fas fa-building"></i><h3>Chưa có tòa nhà nào</h3><p>Nhấn nút Thêm tòa nhà để đăng ký tòa nhà đầu tiên.</p></div>';
+                return;
+            }
+            list.innerHTML = buildings.map(building => `<article class="building-item" role="button" tabindex="0" onclick="openBuildingEdit(${building.id})" onkeydown="handleBuildingItemKeydown(event, ${building.id})"><div><h3>${escapeBuildingText(building.name)} <span style="color: #94a3b8; font-size: 0.75rem;">(${escapeBuildingText(building.code)})</span></h3><p>${escapeBuildingText(building.address)}, ${escapeBuildingText(building.ward)}, ${escapeBuildingText(building.province)}</p></div><div class="building-item-actions"><span class="building-status ${building.active ? 'active' : 'inactive'}">${building.active ? 'Đang hoạt động' : 'Không hoạt động'}</span><button class="building-delete-button" type="button" title="Xóa tòa nhà" aria-label="Xóa ${escapeBuildingText(building.name)}" onclick="deleteBuilding(event, ${building.id}, '${escapeBuildingText(building.name)}')"><i class="fas fa-trash"></i></button></div></article>`).join('');
+        }
+
+        function escapeBuildingText(value) {
+            return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+        }
+
+        function updateBuildingCount() {
+            const count = getBuildings().length;
+            document.querySelectorAll('[data-stat-value="buildings"]').forEach(element => {
+                element.textContent = count.toLocaleString('vi-VN');
+            });
+        }
+
+        function openStatUpdate(statKey) {
+            const stat = editableStats[statKey];
+            const valueElement = document.querySelector(`[data-stat-value="${statKey}"]`);
+            if (!stat || !valueElement) return;
+
+            activeStatKey = statKey;
+            document.getElementById('statUpdateTitle').textContent = `Cập nhật ${stat.label.toLowerCase()}`;
+            document.getElementById('statUpdateInput').value = valueElement.textContent.trim();
+            document.getElementById('statUpdateModal').classList.add('is-open');
+            document.getElementById('statUpdateInput').focus();
+        }
+
+        function saveStatUpdate(event) {
+            event.preventDefault();
+            if (!activeStatKey) return;
+
+            const input = document.getElementById('statUpdateInput');
+            const value = Number(input.value);
+            if (!Number.isInteger(value) || value < 0) return;
+
+            document.querySelectorAll(`[data-stat-value="${activeStatKey}"]`).forEach(element => {
+                element.textContent = value.toLocaleString('vi-VN');
+            });
+            const savedStats = JSON.parse(localStorage.getItem('residentHubStats') || '{}');
+            savedStats[activeStatKey] = value;
+            localStorage.setItem('residentHubStats', JSON.stringify(savedStats));
+            closeStatUpdate();
+        }
+
+        function closeStatUpdate() {
+            document.getElementById('statUpdateModal').classList.remove('is-open');
+            activeStatKey = null;
+        }
+
+        function closeStatUpdateOnBackdrop(event) {
+            if (event.target.id === 'statUpdateModal') closeStatUpdate();
+        }
+
+        function handleStatCardKeydown(event, statKey) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openStatUpdate(statKey);
+            }
+        }
+
+        function loadSavedStats() {
+            const savedStats = JSON.parse(localStorage.getItem('residentHubStats') || '{}');
+            Object.keys(editableStats).forEach(statKey => {
+                if (statKey !== 'buildings' && Number.isInteger(savedStats[statKey]) && savedStats[statKey] >= 0) {
+                    document.querySelectorAll(`[data-stat-value="${statKey}"]`).forEach(element => {
+                        element.textContent = savedStats[statKey].toLocaleString('vi-VN');
+                    });
+                }
+            });
+            updateBuildingCount();
+            renderBuildings();
+        }
+
         // Switch Tab Function
-        function switchTab(tabName) {
+        function switchTab(tabName, sourceEvent) {
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
             tabs.forEach(tab => tab.style.display = 'none');
@@ -1129,7 +1785,10 @@
             // Update active menu item
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
-            event.target.closest('.sidebar-menu-item').classList.add('active');
+            const navigationEvent = sourceEvent || window.event;
+            if (navigationEvent && navigationEvent.target && navigationEvent.target.closest('.sidebar-menu-item')) {
+                navigationEvent.target.closest('.sidebar-menu-item').classList.add('active');
+            }
 
             // Update page title
             const titles = {
@@ -1173,6 +1832,7 @@
 
         // Initialize on load
         window.addEventListener('load', function() {
+            loadSavedStats();
             initCharts();
             renderWorkflows();
         });
