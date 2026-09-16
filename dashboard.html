@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="auth.js"></script>
     <style>
         * {
             margin: 0;
@@ -369,6 +370,7 @@
     </style>
 </head>
 <body>
+    <script>var RH_SESSION = RH.requireRole('manager');</script>
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
@@ -449,7 +451,7 @@
         <div class="topbar">
             <div>
                 <div class="topbar-title" id="pageTitle">Quản lý</div>
-                <div style="color: #94a3b8; font-size: 0.875rem;">Chào mừng quay lại</div>
+                <div style="color: #94a3b8; font-size: 0.875rem;" id="topbarWelcome">Chào mừng quay lại</div>
             </div>
             <div class="topbar-actions">
                 <button class="btn-icon" title="Tìm kiếm">
@@ -462,13 +464,13 @@
                 <div class="dropdown">
                     <button class="btn-icon" onclick="toggleDropdown()" title="Tài khoản">
                         <div class="avatar" style="width: 32px; height: 32px;">
-                            <span>A</span>
+                            <span id="topbarAvatar">A</span>
                         </div>
                     </button>
                     <div class="dropdown-menu" id="profileDropdown">
-                        <div class="dropdown-item">
+                        <div class="dropdown-item" style="cursor: default;">
                             <i class="fas fa-user"></i>
-                            <span>Tài khoản của tôi</span>
+                            <span id="topbarUserLabel">Tài khoản của tôi</span>
                         </div>
                         <div class="dropdown-item">
                             <i class="fas fa-cog"></i>
@@ -687,9 +689,68 @@
         </div>
 
         <div id="settings-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý tài khoản</h2>
+                        <p style="color: #94a3b8; margin-top: 0.4rem; font-size: 0.875rem;">Tạo và phân quyền tài khoản Quản lý hoặc Cư dân. Vai trò gán ở đây quyết định giao diện và chức năng tài khoản được phép truy cập.</p>
+                    </div>
+                    <button class="btn-icon" style="width: auto; padding: 0 1rem; background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border-radius: 10px;" onclick="openAccountForm()">
+                        <i class="fas fa-user-plus"></i>&nbsp; Thêm tài khoản
+                    </button>
+                </div>
+
+                <form id="accountForm" onsubmit="handleAccountFormSubmit(event)" style="display: none; margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem;">
+                    <input type="hidden" id="accountId">
+                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem;">
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Họ tên</label>
+                            <input id="accountName" type="text" required placeholder="Nguyễn Thị Hoa" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Email đăng nhập</label>
+                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Mật khẩu</label>
+                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <div id="accountPasswordHint" style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;"></div>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Vai trò</label>
+                            <select id="accountRole" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                                <option value="manager">Quản lý</option>
+                                <option value="resident">Cư dân</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Căn hộ (nếu là Cư dân)</label>
+                            <input id="accountUnit" type="text" placeholder="VD: A-1208" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                        </div>
+                    </div>
+                    <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
+                    <div style="display: flex; gap: 0.6rem; margin-top: 1rem;">
+                        <button type="submit" style="background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border: 0; border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Lưu tài khoản</button>
+                        <button type="button" onclick="closeAccountForm()" style="background: #fff; color: #475569; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Huỷ</button>
+                    </div>
+                </form>
+            </div>
+
             <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Cài đặt</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung cài đặt sẽ hiển thị ở đây</p>
+                <div class="table-container">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Họ tên</th>
+                                <th style="text-align: left;">Email</th>
+                                <th style="text-align: left;">Vai trò</th>
+                                <th style="text-align: left;">Căn hộ</th>
+                                <th style="text-align: right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
@@ -1158,7 +1219,7 @@
         // Logout Function
         function logout() {
             if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                localStorage.removeItem('authToken');
+                RH.logout();
                 window.location.href = 'index.html';
             }
         }
@@ -1171,10 +1232,113 @@
             }
         });
 
+        function renderCurrentUser() {
+            if (!RH_SESSION) return;
+            document.getElementById('topbarWelcome').textContent = 'Chào mừng quay lại, ' + RH_SESSION.name;
+            document.getElementById('topbarAvatar').textContent = RH_SESSION.name.trim().charAt(0).toUpperCase();
+            document.getElementById('topbarUserLabel').textContent = RH_SESSION.name + ' (Quản lý)';
+        }
+
+        const ROLE_LABELS = { manager: 'Quản lý', resident: 'Cư dân' };
+
+        function renderAccountsTable() {
+            const body = document.getElementById('accountsTableBody');
+            if (!body) return;
+            const users = RH.getUsers();
+            body.innerHTML = users.map(function (u) {
+                const badgeColor = u.role === 'manager' ? '#0d65d5' : '#18a878';
+                const badgeBg = u.role === 'manager' ? '#eaf3ff' : '#e6f8ef';
+                return '<tr>' +
+                    '<td>' + escapeHtml(u.name) + '</td>' +
+                    '<td>' + escapeHtml(u.email) + '</td>' +
+                    '<td><span style="background:' + badgeBg + ';color:' + badgeColor + ';font-size:0.72rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;">' + ROLE_LABELS[u.role] + '</span></td>' +
+                    '<td>' + escapeHtml(u.unit || '—') + '</td>' +
+                    '<td style="text-align:right; white-space:nowrap;">' +
+                        '<button onclick="openAccountForm(\'' + u.id + '\')" style="background:none;border:1px solid var(--line);border-radius:6px;padding:0.35rem 0.6rem;margin-right:0.4rem;cursor:pointer;color:#475569;" title="Sửa"><i class="fas fa-pen"></i></button>' +
+                        '<button onclick="deleteAccount(\'' + u.id + '\')" style="background:none;border:1px solid #fecaca;border-radius:6px;padding:0.35rem 0.6rem;cursor:pointer;color:#ef4444;" title="Xoá"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('') || '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có tài khoản nào</td></tr>';
+        }
+
+        function escapeHtml(str) {
+            return String(str).replace(/[&<>"']/g, function (c) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+            });
+        }
+
+        function openAccountForm(id) {
+            const form = document.getElementById('accountForm');
+            document.getElementById('accountFormError').textContent = '';
+            if (id) {
+                const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
+                if (!user) return;
+                document.getElementById('accountId').value = user.id;
+                document.getElementById('accountName').value = user.name;
+                document.getElementById('accountEmail').value = user.email;
+                document.getElementById('accountPassword').value = '';
+                document.getElementById('accountPasswordHint').textContent = 'Để trống nếu không đổi mật khẩu.';
+                document.getElementById('accountRole').value = user.role;
+                document.getElementById('accountUnit').value = user.unit || '';
+            } else {
+                document.getElementById('accountId').value = '';
+                document.getElementById('accountForm').reset();
+                document.getElementById('accountPasswordHint').textContent = 'Tài khoản mới bắt buộc có mật khẩu (tối thiểu 6 ký tự).';
+            }
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function closeAccountForm() {
+            document.getElementById('accountForm').style.display = 'none';
+        }
+
+        function handleAccountFormSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('accountId').value;
+            const name = document.getElementById('accountName').value;
+            const email = document.getElementById('accountEmail').value;
+            const password = document.getElementById('accountPassword').value;
+            const role = document.getElementById('accountRole').value;
+            const unit = document.getElementById('accountUnit').value;
+            const errorEl = document.getElementById('accountFormError');
+
+            let result;
+            if (id) {
+                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, password: password });
+            } else {
+                if (!password) {
+                    errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
+                    return;
+                }
+                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit });
+            }
+
+            if (!result.ok) {
+                errorEl.textContent = result.error;
+                return;
+            }
+            closeAccountForm();
+            renderAccountsTable();
+            renderCurrentUser();
+        }
+
+        function deleteAccount(id) {
+            if (!confirm('Xoá tài khoản này? Hành động không thể hoàn tác.')) return;
+            const result = RH.deleteUser(id);
+            if (!result.ok) {
+                alert(result.error);
+                return;
+            }
+            renderAccountsTable();
+        }
+
         // Initialize on load
         window.addEventListener('load', function() {
             initCharts();
             renderWorkflows();
+            renderCurrentUser();
+            renderAccountsTable();
         });
 
         function renderWorkflows() {
