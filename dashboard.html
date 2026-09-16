@@ -364,6 +364,41 @@
             height: 300px;
             margin-top: 1rem;
         }
+        .data-editor {
+            align-items: end;
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
+        }
+        .data-editor label {
+            color: #61708a;
+            display: grid;
+            font-size: .8rem;
+            font-weight: 600;
+            gap: .4rem;
+        }
+        .data-editor input {
+            border: 1px solid #dbe5f0;
+            border-radius: .65rem;
+            color: #10213c;
+            font: 600 .95rem 'Be Vietnam Pro', sans-serif;
+            min-width: 0;
+            padding: .7rem .75rem;
+        }
+        .data-editor input:focus {
+            border-color: #1683ff;
+            box-shadow: 0 0 0 3px rgba(22, 131, 255, .12);
+            outline: none;
+        }
+        .data-editor-message {
+            color: #18a878;
+            font-size: .8rem;
+            margin-top: .75rem;
+        }
+        @media (max-width: 900px) {
+            .data-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+            .data-editor .btn-primary { width: 100%; }
+        }
         .sidebar-header{padding:1.25rem 1.5rem;border-bottom-color:rgba(255,255,255,.1)}.sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.sidebar-menu-item{border:1px solid transparent;color:#b8cce1}.sidebar-menu-item:hover{background:rgba(22,131,255,.16);color:#fff}.sidebar-menu-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.sidebar-menu>div[style*="border-top"]{border-top-color:rgba(255,255,255,.1)!important}.sidebar-menu>div[style*="border-top"]>div[style*="text-transform"]{color:#8fb0d0!important}.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em}.topbar,.card{border-radius:16px}.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 12px 24px rgba(22,131,255,.18)}.btn-primary:hover{box-shadow:0 16px 28px rgba(22,131,255,.26)}[style*="#667eea"],[style*="rgba(102, 126, 234"]{color:#1683ff!important;border-left-color:#1683ff!important;background:#eaf3ff!important}[style*="#764ba2"]{color:#0d65d5!important}.main-content{background:transparent}.chart-container canvas{filter:drop-shadow(0 8px 12px rgba(22,131,255,.08))}
         .workflow-hero{background:linear-gradient(135deg,#0b2447 0%,#174775 100%);border-radius:16px;color:#fff;margin-bottom:1.5rem;padding:28px 32px;position:relative;overflow:hidden}.workflow-hero:after{border:1px solid rgba(255,255,255,.12);border-radius:50%;content:'';height:260px;position:absolute;right:-70px;top:-120px;width:260px}.workflow-hero h2{font:800 26px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0 0 8px}.workflow-hero p{color:#b9cce3;margin:0;max-width:650px}.workflow-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-card{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid #e4eaf2;border-radius:16px;padding:22px;transition:.25s ease}.workflow-card:hover{border-color:#9ccaff;box-shadow:0 18px 36px rgba(22,131,255,.12);transform:translateY(-3px)}.workflow-card-head{align-items:flex-start;display:flex;gap:14px}.workflow-number{align-items:center;background:#eaf3ff;border-radius:12px;color:#1683ff;display:flex;flex:0 0 42px;font-weight:800;height:42px;justify-content:center}.workflow-card h3{color:#10213c;font:700 17px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:1px 0 4px}.workflow-card-head p{color:#61708a;font-size:12px;margin:0}.workflow-steps{display:grid;gap:0;list-style:none;margin:22px 0 0;padding:0}.workflow-steps li{align-items:flex-start;display:flex;gap:12px;min-height:42px;position:relative}.workflow-steps li:not(:last-child):after{background:#c9e2fb;content:'';height:calc(100% - 16px);left:10px;position:absolute;top:23px;width:2px}.workflow-steps li span{align-items:center;background:#1683ff;border:3px solid #eaf3ff;border-radius:50%;color:#fff;display:flex;flex:0 0 22px;font-size:10px;font-weight:700;height:22px;justify-content:center;position:relative;z-index:1}.workflow-steps li p{color:#526275;font-size:13px;margin:1px 0 14px}.workflow-footer{align-items:center;border-top:1px solid #e8eef5;display:flex;justify-content:space-between;margin-top:5px;padding-top:14px}.workflow-role{color:#61708a;font-size:11px}.workflow-status{background:#e6f8ef;border-radius:999px;color:#11804f;font-size:11px;font-weight:700;padding:6px 9px}.workflow-status.blue{background:#eaf3ff;color:#0d65d5}.workflow-status.orange{background:#fff4df;color:#a5680c}@media(max-width:850px){.workflow-grid{grid-template-columns:1fr}}
         .main-content{padding:1.25rem 1.5rem 2.5rem}.topbar{align-items:center;background:rgba(255,255,255,.88);border:1px solid rgba(211,224,239,.9);border-radius:20px;box-shadow:0 14px 34px rgba(11,36,71,.06);margin-bottom:1.25rem;padding:1.15rem 1.4rem}.topbar-title{font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em}.topbar-actions{gap:.7rem}.btn-icon{background:#eef4fb;border:1px solid #e2ebf5;box-shadow:none;height:42px;position:relative;width:42px}.btn-icon:hover{background:#dceeff;color:#0d65d5}.grid-2{display:grid;gap:1rem;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-2>.card{border-radius:18px;min-height:148px;padding:1.25rem 1.3rem}.stat-card{align-items:stretch}.stat-label{font-size:.78rem;font-weight:600;letter-spacing:.02em}.stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:.35rem}.stat-icon{border-radius:14px;height:46px;width:46px}.grid-3{display:grid;gap:1rem;grid-template-columns:1.25fr 1fr 1fr}.grid-3>.card{border-radius:18px;min-height:365px;padding:1.2rem 1.25rem}.grid-3>.card h3{align-items:center;display:flex;font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;justify-content:space-between;letter-spacing:-.015em}.chart-container{height:285px;margin-top:1.25rem}.card{background:rgba(255,255,255,.95);border:1px solid #e1eaf4;border-radius:18px;box-shadow:0 12px 30px rgba(11,36,71,.055)}.card:hover{border-color:#b8d8f6;box-shadow:0 18px 38px rgba(22,131,255,.1);transform:translateY(-2px)}#dashboard-tab>.card[style*="margin-top: 1.5rem"]{border-radius:18px;padding:1.25rem 1.35rem}#dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3{font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif!important}#dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div{border:1px solid #e5edf5!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(11,36,71,.04);padding:1.1rem!important}.table-container{border:1px solid #e4eaf2;border-radius:14px;overflow:auto}.table-container table{min-width:640px}.table-container th{background:#f1f7fd;font-size:.7rem;letter-spacing:.08em}.table-container td,.table-container th{border-bottom-color:#e7eef6;padding:.85rem 1rem}@media(max-width:1100px){.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:first-child{grid-column:1/-1}}@media(max-width:700px){.main-content{padding:1rem}.grid-2,.grid-3{grid-template-columns:1fr}.grid-3>.card:first-child{grid-column:auto}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{align-self:flex-end}.grid-2>.card{min-height:132px}}
@@ -493,7 +528,7 @@
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Tổng phòng</div>
-                            <div class="stat-value">245</div>
+                            <div class="stat-value" id="totalRoomsValue">245</div>
                             <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
                                 <i class="fas fa-arrow-up"></i> 8.5% so với tháng trước
                             </div>
@@ -508,7 +543,7 @@
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Phòng trống</div>
-                            <div class="stat-value">32</div>
+                            <div class="stat-value" id="emptyRoomsValue">32</div>
                             <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
                                 <i class="fas fa-arrow-down"></i> 2.1% lấp đầy
                             </div>
@@ -523,7 +558,7 @@
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Doanh thu tháng</div>
-                            <div class="stat-value">543M</div>
+                            <div class="stat-value" id="revenueValue">543M</div>
                             <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
                                 <i class="fas fa-arrow-up"></i> 12.3% tăng trưởng
                             </div>
@@ -538,7 +573,7 @@
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Công nợ</div>
-                            <div class="stat-value">87M</div>
+                            <div class="stat-value" id="debtValue">87M</div>
                             <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
                                 <i class="fas fa-arrow-up"></i> 5.2% tăng
                             </div>
@@ -548,6 +583,24 @@
                         </div>
                     </div>
                 </div>
+            </div>
+
+            <div class="card" style="margin-top: 1rem;">
+                <div style="align-items: center; display: flex; gap: .75rem; justify-content: space-between; margin-bottom: 1rem;">
+                    <div>
+                        <h3 style="color: #10213c; font: 700 1rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Cập nhật số liệu</h3>
+                        <p style="color: #61708a; font-size: .8rem; margin-top: .25rem;">Thay đổi số liệu hiển thị trên dashboard</p>
+                    </div>
+                    <i class="fas fa-pen-to-square" style="color: #1683ff;"></i>
+                </div>
+                <form class="data-editor" id="dashboardDataForm">
+                    <label>Tổng phòng<input id="totalRoomsInput" name="totalRooms" min="0" required type="number"></label>
+                    <label>Phòng trống<input id="emptyRoomsInput" name="emptyRooms" min="0" required type="number"></label>
+                    <label>Doanh thu tháng (triệu)<input id="revenueInput" name="revenue" min="0" required type="number"></label>
+                    <label>Công nợ (triệu)<input id="debtInput" name="debt" min="0" required type="number"></label>
+                    <button class="btn-primary" type="submit"><i class="fas fa-save"></i> Lưu số liệu</button>
+                </form>
+                <div class="data-editor-message" id="dataEditorMessage" role="status"></div>
             </div>
 
             <!-- Charts Section -->
@@ -1105,11 +1158,78 @@
     </div>
 
     <script>
+        const dashboardDataDefaults = {
+            totalRooms: 245,
+            emptyRooms: 32,
+            revenue: 543,
+            debt: 87
+        };
+        let dashboardData = loadDashboardData();
+        let roomStatusChart;
+        let revenueChart;
+
+        function loadDashboardData() {
+            try {
+                return { ...dashboardDataDefaults, ...JSON.parse(localStorage.getItem('residentHubDashboardData') || '{}') };
+            } catch (error) {
+                return { ...dashboardDataDefaults };
+            }
+        }
+
+        function formatMillion(value) {
+            return `${Number(value).toLocaleString('vi-VN')}M`;
+        }
+
+        function renderDashboardData() {
+            document.getElementById('totalRoomsValue').textContent = dashboardData.totalRooms.toLocaleString('vi-VN');
+            document.getElementById('emptyRoomsValue').textContent = dashboardData.emptyRooms.toLocaleString('vi-VN');
+            document.getElementById('revenueValue').textContent = formatMillion(dashboardData.revenue);
+            document.getElementById('debtValue').textContent = formatMillion(dashboardData.debt);
+            document.getElementById('totalRoomsInput').value = dashboardData.totalRooms;
+            document.getElementById('emptyRoomsInput').value = dashboardData.emptyRooms;
+            document.getElementById('revenueInput').value = dashboardData.revenue;
+            document.getElementById('debtInput').value = dashboardData.debt;
+
+            if (roomStatusChart) {
+                const maintenanceRooms = Math.min(7, dashboardData.totalRooms);
+                const occupiedRooms = Math.max(0, dashboardData.totalRooms - dashboardData.emptyRooms - maintenanceRooms);
+                roomStatusChart.data.datasets[0].data = [occupiedRooms, dashboardData.emptyRooms, maintenanceRooms];
+                roomStatusChart.update();
+            }
+            if (revenueChart) {
+                revenueChart.data.datasets[0].data[11] = dashboardData.revenue;
+                revenueChart.update();
+            }
+        }
+
+        function saveDashboardData(event) {
+            event.preventDefault();
+            const formData = new FormData(event.currentTarget);
+            const totalRooms = Number(formData.get('totalRooms'));
+            const emptyRooms = Number(formData.get('emptyRooms'));
+            const message = document.getElementById('dataEditorMessage');
+            if (emptyRooms > totalRooms) {
+                message.textContent = 'Phòng trống không được lớn hơn tổng phòng.';
+                message.style.color = '#ef4444';
+                return;
+            }
+            dashboardData = {
+                totalRooms,
+                emptyRooms,
+                revenue: Number(formData.get('revenue')),
+                debt: Number(formData.get('debt'))
+            };
+            localStorage.setItem('residentHubDashboardData', JSON.stringify(dashboardData));
+            renderDashboardData();
+            message.style.color = '#18a878';
+            message.textContent = 'Đã lưu số liệu trên trình duyệt này.';
+        }
+
         // Initialize Charts
         function initCharts() {
             // Revenue Chart
             const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            new Chart(revenueCtx, {
+            revenueChart = new Chart(revenueCtx, {
                 type: 'line',
                 data: {
                     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
@@ -1135,7 +1255,7 @@
 
             // Room Status Chart
             const roomCtx = document.getElementById('roomStatusChart').getContext('2d');
-            new Chart(roomCtx, {
+            roomStatusChart = new Chart(roomCtx, {
                 type: 'doughnut',
                 data: {
                     labels: ['Có người', 'Trống', 'Bảo trì'],
@@ -1336,6 +1456,8 @@
         // Initialize on load
         window.addEventListener('load', function() {
             initCharts();
+            document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
+            renderDashboardData();
             renderWorkflows();
             renderCurrentUser();
             renderAccountsTable();
