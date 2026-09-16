@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="auth.js"></script>
     <style>
         :root {
             --bg-soft: #f5f8fc;
@@ -388,6 +389,7 @@
     </style>
 </head>
 <body>
+    <script>var RH_SESSION = RH.requireRole('resident');</script>
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="brand-mark"><i class="fas fa-home"></i></div>
@@ -416,7 +418,7 @@
         <header class="topbar">
             <div>
                 <div class="page-title" id="pageTitle">Tổng quan</div>
-                <div style="color: #94a3b8; font-size: 0.9rem;">Xin chào, Hương</div>
+                <div style="color: #94a3b8; font-size: 0.9rem;" id="residentGreeting">Xin chào, Hương</div>
             </div>
 
             <div class="topbar-actions">
@@ -426,10 +428,10 @@
                     <span class="badge-dot">3</span>
                 </button>
                 <div class="user-card">
-                    <div class="avatar">H</div>
+                    <div class="avatar" id="residentAvatar">H</div>
                     <div>
-                        <div style="font-weight: 700; color: var(--ink);">Hương</div>
-                        <div style="font-size: 0.7rem; color: #94a3b8;">Phòng A502</div>
+                        <div style="font-weight: 700; color: var(--ink);" id="residentName">Hương</div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;" id="residentUnit">Phòng A502</div>
                     </div>
                 </div>
             </div>
@@ -789,13 +791,13 @@
                 <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Hồ sơ cư dân</h3>
                 <div style="display:grid; grid-template-columns: 180px 1fr; gap:1.5rem; align-items:center;">
                     <div style="display:flex; justify-content:center;">
-                        <div class="avatar" style="width:120px; height:120px; font-size:2.2rem;">H</div>
+                        <div class="avatar" style="width:120px; height:120px; font-size:2.2rem;" id="profileAvatar">H</div>
                     </div>
                     <div>
-                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">Hương Nguyễn</div>
-                        <div style="color:#64748b; margin-bottom:0.8rem;">Phòng A502 • Cư dân chính</div>
+                        <div style="font-size:2rem; font-weight:800; color:#0f172a;" id="profileName">Hương Nguyễn</div>
+                        <div style="color:#64748b; margin-bottom:0.8rem;"><span id="profileUnit">Phòng A502</span> • Cư dân chính</div>
                         <div style="display:grid; grid-template-columns:repeat(2, minmax(180px,1fr)); gap:0.8rem;">
-                            <div class="support-card"><strong>Email:</strong><br>huong.nguyen@email.com</div>
+                            <div class="support-card"><strong>Email:</strong><br><span id="profileEmail">huong.nguyen@email.com</span></div>
                             <div class="support-card"><strong>Số điện thoại:</strong><br>0908 123 456</div>
                             <div class="support-card"><strong>Ngày vào ở:</strong><br>01/01/2026</div>
                             <div class="support-card"><strong>Người liên hệ:</strong><br>Gia đình / người thân</div>
@@ -892,6 +894,7 @@
                 const target = this.dataset.target;
                 if (target === 'logout') {
                     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        RH.logout();
                         window.location.href = 'index.html';
                     }
                     return;
@@ -908,6 +911,20 @@
                 document.getElementById('pageTitle').textContent = pageTitles[target] || 'Tổng quan';
             });
         });
+
+        (function renderResidentIdentity() {
+            if (!RH_SESSION) return;
+            const initial = RH_SESSION.name.trim().charAt(0).toUpperCase();
+            const firstName = RH_SESSION.name.trim().split(' ').pop();
+            document.getElementById('residentGreeting').textContent = 'Xin chào, ' + firstName;
+            document.getElementById('residentAvatar').textContent = initial;
+            document.getElementById('residentName').textContent = firstName;
+            document.getElementById('residentUnit').textContent = RH_SESSION.unit ? ('Phòng ' + RH_SESSION.unit) : 'Chưa gán phòng';
+            document.getElementById('profileAvatar').textContent = initial;
+            document.getElementById('profileName').textContent = RH_SESSION.name;
+            document.getElementById('profileUnit').textContent = RH_SESSION.unit ? ('Phòng ' + RH_SESSION.unit) : 'Chưa gán phòng';
+            document.getElementById('profileEmail').textContent = RH_SESSION.email;
+        })();
     </script>
 </body>
 </html>
