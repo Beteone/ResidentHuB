@@ -12,6 +12,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
+    <script src="data.js"></script>
+    <script src="manager-modules.js"></script>
     <style>
         * {
             margin: 0;
@@ -402,10 +404,48 @@
         .sidebar-header{padding:1.25rem 1.5rem;border-bottom-color:rgba(255,255,255,.1)}.sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.sidebar-menu-item{border:1px solid transparent;color:#b8cce1}.sidebar-menu-item:hover{background:rgba(22,131,255,.16);color:#fff}.sidebar-menu-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.sidebar-menu>div[style*="border-top"]{border-top-color:rgba(255,255,255,.1)!important}.sidebar-menu>div[style*="border-top"]>div[style*="text-transform"]{color:#8fb0d0!important}.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em}.topbar,.card{border-radius:16px}.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 12px 24px rgba(22,131,255,.18)}.btn-primary:hover{box-shadow:0 16px 28px rgba(22,131,255,.26)}[style*="#667eea"],[style*="rgba(102, 126, 234"]{color:#1683ff!important;border-left-color:#1683ff!important;background:#eaf3ff!important}[style*="#764ba2"]{color:#0d65d5!important}.main-content{background:transparent}.chart-container canvas{filter:drop-shadow(0 8px 12px rgba(22,131,255,.08))}
         .workflow-hero{background:linear-gradient(135deg,#0b2447 0%,#174775 100%);border-radius:16px;color:#fff;margin-bottom:1.5rem;padding:28px 32px;position:relative;overflow:hidden}.workflow-hero:after{border:1px solid rgba(255,255,255,.12);border-radius:50%;content:'';height:260px;position:absolute;right:-70px;top:-120px;width:260px}.workflow-hero h2{font:800 26px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0 0 8px}.workflow-hero p{color:#b9cce3;margin:0;max-width:650px}.workflow-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-card{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid #e4eaf2;border-radius:16px;padding:22px;transition:.25s ease}.workflow-card:hover{border-color:#9ccaff;box-shadow:0 18px 36px rgba(22,131,255,.12);transform:translateY(-3px)}.workflow-card-head{align-items:flex-start;display:flex;gap:14px}.workflow-number{align-items:center;background:#eaf3ff;border-radius:12px;color:#1683ff;display:flex;flex:0 0 42px;font-weight:800;height:42px;justify-content:center}.workflow-card h3{color:#10213c;font:700 17px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:1px 0 4px}.workflow-card-head p{color:#61708a;font-size:12px;margin:0}.workflow-steps{display:grid;gap:0;list-style:none;margin:22px 0 0;padding:0}.workflow-steps li{align-items:flex-start;display:flex;gap:12px;min-height:42px;position:relative}.workflow-steps li:not(:last-child):after{background:#c9e2fb;content:'';height:calc(100% - 16px);left:10px;position:absolute;top:23px;width:2px}.workflow-steps li span{align-items:center;background:#1683ff;border:3px solid #eaf3ff;border-radius:50%;color:#fff;display:flex;flex:0 0 22px;font-size:10px;font-weight:700;height:22px;justify-content:center;position:relative;z-index:1}.workflow-steps li p{color:#526275;font-size:13px;margin:1px 0 14px}.workflow-footer{align-items:center;border-top:1px solid #e8eef5;display:flex;justify-content:space-between;margin-top:5px;padding-top:14px}.workflow-role{color:#61708a;font-size:11px}.workflow-status{background:#e6f8ef;border-radius:999px;color:#11804f;font-size:11px;font-weight:700;padding:6px 9px}.workflow-status.blue{background:#eaf3ff;color:#0d65d5}.workflow-status.orange{background:#fff4df;color:#a5680c}@media(max-width:850px){.workflow-grid{grid-template-columns:1fr}}
         .main-content{padding:1.25rem 1.5rem 2.5rem}.topbar{align-items:center;background:rgba(255,255,255,.88);border:1px solid rgba(211,224,239,.9);border-radius:20px;box-shadow:0 14px 34px rgba(11,36,71,.06);margin-bottom:1.25rem;padding:1.15rem 1.4rem}.topbar-title{font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em}.topbar-actions{gap:.7rem}.btn-icon{background:#eef4fb;border:1px solid #e2ebf5;box-shadow:none;height:42px;position:relative;width:42px}.btn-icon:hover{background:#dceeff;color:#0d65d5}.grid-2{display:grid;gap:1rem;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-2>.card{border-radius:18px;min-height:148px;padding:1.25rem 1.3rem}.stat-card{align-items:stretch}.stat-label{font-size:.78rem;font-weight:600;letter-spacing:.02em}.stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:.35rem}.stat-icon{border-radius:14px;height:46px;width:46px}.grid-3{display:grid;gap:1rem;grid-template-columns:1.25fr 1fr 1fr}.grid-3>.card{border-radius:18px;min-height:365px;padding:1.2rem 1.25rem}.grid-3>.card h3{align-items:center;display:flex;font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;justify-content:space-between;letter-spacing:-.015em}.chart-container{height:285px;margin-top:1.25rem}.card{background:rgba(255,255,255,.95);border:1px solid #e1eaf4;border-radius:18px;box-shadow:0 12px 30px rgba(11,36,71,.055)}.card:hover{border-color:#b8d8f6;box-shadow:0 18px 38px rgba(22,131,255,.1);transform:translateY(-2px)}#dashboard-tab>.card[style*="margin-top: 1.5rem"]{border-radius:18px;padding:1.25rem 1.35rem}#dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3{font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif!important}#dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div{border:1px solid #e5edf5!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(11,36,71,.04);padding:1.1rem!important}.table-container{border:1px solid #e4eaf2;border-radius:14px;overflow:auto}.table-container table{min-width:640px}.table-container th{background:#f1f7fd;font-size:.7rem;letter-spacing:.08em}.table-container td,.table-container th{border-bottom-color:#e7eef6;padding:.85rem 1rem}@media(max-width:1100px){.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:first-child{grid-column:1/-1}}@media(max-width:700px){.main-content{padding:1rem}.grid-2,.grid-3{grid-template-columns:1fr}.grid-3>.card:first-child{grid-column:auto}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{align-self:flex-end}.grid-2>.card{min-height:132px}}
+
+        /* --- Manager workflow modules: Buildings -> Apartments -> Customers -> Meters -> Contracts -> Invoices --- */
+        .rh-demo-banner{align-items:center;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;color:#61708a;display:flex;flex-wrap:wrap;font-size:.8rem;gap:1rem;justify-content:space-between;margin-bottom:1.25rem;padding:.6rem 1rem;transition:.2s ease}
+        .rh-demo-banner.warn{background:linear-gradient(135deg,#fff4df,#ffe9c2);border-color:#f3d9a4;color:#7a5410;font-size:.85rem;padding:.9rem 1.25rem}
+        .rh-demo-banner.blocked{background:linear-gradient(135deg,#fee2e2,#fecaca);border-color:#f3a8a8;color:#8a1c1c;font-size:.85rem;padding:.9rem 1.25rem}
+        .rh-demo-tag{background:#94a3b8;border-radius:999px;color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.06em;margin-right:.5rem;padding:.2rem .5rem}
+        .rh-demo-banner.warn .rh-demo-tag{background:#a5680c}
+        .rh-demo-banner.blocked .rh-demo-tag{background:#c0392b}
+        .rh-empty{color:#94a3b8;padding:3rem 1rem;text-align:center}.rh-empty i{font-size:2rem;margin-bottom:.75rem;opacity:.6}
+        .rh-row-btn{background:none;border:1px solid var(--line);border-radius:6px;color:#475569;cursor:pointer;margin-right:.35rem;padding:.35rem .55rem}.rh-row-btn:hover{background:#f1f7fd}.rh-row-btn.danger{border-color:#fecaca;color:#ef4444}.rh-row-btn.danger:hover{background:#fee2e2}
+        .rh-link-btn{background:none;border:0;color:#1683ff;cursor:pointer;font:inherit;font-weight:700;font-size:.82rem}.rh-link-btn:hover{color:#0d65d5}
+        .rh-drawer-overlay{background:rgba(11,36,71,.45);bottom:0;display:none;justify-content:flex-end;left:0;position:fixed;right:0;top:0;z-index:300}
+        .rh-drawer-overlay.show{display:flex}
+        .rh-drawer{animation:rhDrawerIn .25s ease;background:#fff;box-shadow:-24px 0 60px rgba(11,36,71,.25);display:flex;flex-direction:column;height:100vh;max-width:100%;width:600px}
+        @keyframes rhDrawerIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
+        .rh-drawer-header{align-items:center;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;padding:1.15rem 1.5rem;position:sticky;top:0;z-index:2}
+        .rh-drawer-body{flex:1;overflow-y:auto;padding:1.5rem}
+        .rh-section{border-top:1px solid var(--line);margin-top:1.5rem;padding-top:1.25rem}
+        .rh-section-title{color:#94a3b8;font-size:.75rem;font-weight:700;letter-spacing:.08em;margin-bottom:.75rem;text-transform:uppercase}
+        .rh-grid-2{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr))}
+        @media(max-width:560px){.rh-grid-2{grid-template-columns:1fr}}
+        .rh-field label{color:#475569;display:block;font-size:.8rem;font-weight:600;margin-bottom:.35rem}
+        .rh-field input,.rh-field select,.rh-field textarea{border:1px solid var(--line);border-radius:8px;font:inherit;padding:.6rem .75rem;width:100%}
+        .rh-field input:focus,.rh-field select:focus,.rh-field textarea:focus{border-color:#1683ff;outline:none}
+        .rh-service-row{background:#f8fafc;border:1px solid var(--line);border-radius:12px;margin-bottom:.75rem;padding:1rem}
+        .rh-choice{align-items:center;border:1px solid var(--line);border-radius:8px;cursor:pointer;display:flex;flex:1;font-size:.9rem;font-weight:600;gap:.5rem;padding:.6rem .75rem}
+        .rh-choice input{accent-color:#1683ff}
     </style>
 </head>
 <body>
-    <script>var RH_SESSION = RH.requireRole('manager');</script>
+    <script>
+        // Demo Mode: dashboard.html#demo=1 opens the manager workspace without login,
+        // scoped to a separate sandboxed dataset (see data.js) with hard record limits.
+        // Any other access still requires a real manager session.
+        // Uses a hash flag (not ?query) because static hosts commonly 301-redirect
+        // "clean URLs" and drop query strings; hash fragments always survive that.
+        var RH_IS_DEMO = /(^|[#&])demo=1(&|$)/.test(window.location.hash);
+        var RH_SESSION = RH_IS_DEMO
+            ? { id: 'demo', name: 'Khách demo', email: '', role: 'manager', unit: '', demo: true }
+            : RH.requireRole('manager');
+        RHD.setMode(RH_IS_DEMO ? 'demo' : 'live');
+    </script>
     <!-- Sidebar -->
     <div class="sidebar">
         <div class="sidebar-header">
@@ -427,23 +467,31 @@
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('buildings')">
                 <i class="fas fa-building"></i>
-                <span>Tòa nhà và phòng</span>
+                <span>Tòa nhà</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('residents')">
+            <div class="sidebar-menu-item" onclick="switchTab('apartments')">
+                <i class="fas fa-door-open"></i>
+                <span>Căn hộ</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('customers')">
                 <i class="fas fa-users"></i>
-                <span>Quản lý cư dân</span>
+                <span>Khách hàng</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('invoices')">
-                <i class="fas fa-receipt"></i>
-                <span>Hóa đơn và thanh toán</span>
-            </div>
-            <div class="sidebar-menu-item" onclick="switchTab('support')">
-                <i class="fas fa-tools"></i>
-                <span>Yêu cầu hỗ trợ</span>
+            <div class="sidebar-menu-item" onclick="switchTab('meters')">
+                <i class="fas fa-gauge"></i>
+                <span>Ghi chỉ số</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('contracts')">
                 <i class="fas fa-file-contract"></i>
                 <span>Hợp đồng</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('invoices')">
+                <i class="fas fa-receipt"></i>
+                <span>Hóa đơn</span>
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('support')">
+                <i class="fas fa-tools"></i>
+                <span>Yêu cầu hỗ trợ</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('reports')">
                 <i class="fas fa-chart-bar"></i>
@@ -468,11 +516,11 @@
 
             <div style="padding: 1.5rem 1rem 1rem; border-top: 1px solid var(--line); margin-top: 1rem;">
                 <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Cài đặt</div>
-                <div class="sidebar-menu-item" onclick="switchTab('settings')">
+                <div class="sidebar-menu-item" id="rhSettingsMenuItem" onclick="switchTab('settings')">
                     <i class="fas fa-cog"></i>
                     <span>Cấu hình</span>
                 </div>
-                <div class="sidebar-menu-item" onclick="logout()">
+                <div class="sidebar-menu-item" id="rhLogoutMenuItem" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
                     <span>Đăng xuất</span>
                 </div>
@@ -485,7 +533,10 @@
         <!-- Topbar -->
         <div class="topbar">
             <div>
-                <div class="topbar-title" id="pageTitle">Quản lý</div>
+                <div style="display:flex;align-items:center;">
+                    <div class="topbar-title" id="pageTitle">Quản lý</div>
+                    <span class="rh-demo-tag" id="rhDemoBadge" style="display:none;margin-left:.6rem;">DEMO</span>
+                </div>
                 <div style="color: #94a3b8; font-size: 0.875rem;" id="topbarWelcome">Chào mừng quay lại</div>
             </div>
             <div class="topbar-actions">
@@ -549,7 +600,7 @@
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
-                            <i class="fas fa-lock-open"></i>
+                            <i class="fas fa-user-group"></i>
                         </div>
                     </div>
                 </div>
@@ -564,7 +615,7 @@
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
-                            <i class="fas fa-chart-line"></i>
+                            <i class="fas fa-file-signature"></i>
                         </div>
                     </div>
                 </div>
@@ -579,7 +630,74 @@
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
-                            <i class="fas fa-exclamation-circle"></i>
+                            <i class="fas fa-sack-dollar"></i>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Workflow module counts: Tòa nhà -> Căn hộ -> Khách hàng -> Hợp đồng -> Hóa đơn (data.js / manager-modules.js) -->
+            <div style="align-items: center; display: flex; gap: .5rem; margin: 1.25rem 0 .6rem;">
+                <span style="color: #94a3b8; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;">Số liệu từ module quản lý</span>
+                <span style="background: #e4eaf2; flex: 1; height: 1px;"></span>
+            </div>
+            <div class="grid-2">
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Tòa nhà / Căn hộ</div>
+                            <div class="stat-value"><span id="rhCountBuildings">0</span> / <span id="rhCountApartments">0</span></div>
+                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-building"></i> Tòa nhà và căn hộ đang quản lý
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
+                            <i class="fas fa-door-open"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Khách hàng</div>
+                            <div class="stat-value" id="rhCountCustomers">0</div>
+                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-users"></i> Hồ sơ khách hàng đã lưu
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
+                            <i class="fas fa-user-group"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Hợp đồng</div>
+                            <div class="stat-value" id="rhCountContracts">0</div>
+                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-file-contract"></i> Hợp đồng đã lập
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
+                            <i class="fas fa-file-signature"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Doanh thu đã thu</div>
+                            <div class="stat-value" id="rhCountRevenue" style="font-size: 1.5rem;">0đ</div>
+                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <i class="fas fa-receipt"></i> <span id="rhCountOverdue">0</span> hóa đơn quá hạn
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
+                            <i class="fas fa-sack-dollar"></i>
                         </div>
                     </div>
                 </div>
@@ -698,27 +816,12 @@
             </div>
         </div>
 
-        <!-- Other Tabs (placeholder) -->
-        <div id="buildings-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý tòa nhà và phòng</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý tòa nhà và phòng sẽ hiển thị ở đây</p>
-            </div>
-        </div>
-
-        <div id="residents-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý cư dân</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý cư dân sẽ hiển thị ở đây</p>
-            </div>
-        </div>
-
-        <div id="invoices-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Hóa đơn và thanh toán</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung hóa đơn sẽ hiển thị ở đây</p>
-            </div>
-        </div>
+        <!-- Workflow modules: Tòa nhà -> Căn hộ -> Khách hàng -> Ghi chỉ số -> Hợp đồng -> Hóa đơn -->
+        <div id="buildings-tab" style="display: none;"></div>
+        <div id="apartments-tab" style="display: none;"></div>
+        <div id="customers-tab" style="display: none;"></div>
+        <div id="meters-tab" style="display: none;"></div>
+        <div id="invoices-tab" style="display: none;"></div>
 
         <div id="support-tab" style="display: none;">
             <div class="card">
@@ -727,12 +830,7 @@
             </div>
         </div>
 
-        <div id="contracts-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Hợp đồng</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung quản lý hợp đồng sẽ hiển thị ở đây</p>
-            </div>
-        </div>
+        <div id="contracts-tab" style="display: none;"></div>
 
         <div id="reports-tab" style="display: none;">
             <div class="card">
@@ -1298,7 +1396,20 @@
         }
 
         // Switch Tab Function
-        function switchTab(tabName) {
+        const TAB_RENDERERS = {
+            buildings: () => RHUI.renderBuildingsTab(),
+            apartments: () => RHUI.renderApartmentsTab(),
+            customers: () => RHUI.renderCustomersTab(),
+            meters: () => RHUI.renderMetersTab(),
+            contracts: () => RHUI.renderContractsTab(),
+            invoices: () => RHUI.renderInvoicesTab()
+        };
+
+        function switchTab(tabName, evt) {
+            if (tabName === 'settings' && RH_IS_DEMO) {
+                alert('Cấu hình tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
+                return;
+            }
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
             tabs.forEach(tab => tab.style.display = 'none');
@@ -1306,18 +1417,22 @@
             // Show selected tab
             const selectedTab = document.getElementById(tabName + '-tab');
             if (selectedTab) selectedTab.style.display = 'block';
+            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName]();
 
             // Update active menu item
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
-            event.target.closest('.sidebar-menu-item').classList.add('active');
+            const source = (evt || window.event);
+            if (source && source.target) source.target.closest('.sidebar-menu-item').classList.add('active');
 
             // Update page title
             const titles = {
                 'dashboard': 'Quản lý',
-                'buildings': 'Tòa nhà và phòng',
-                'residents': 'Quản lý cư dân',
-                'invoices': 'Hóa đơn và thanh toán',
+                'buildings': 'Tòa nhà',
+                'apartments': 'Căn hộ',
+                'customers': 'Khách hàng',
+                'meters': 'Ghi chỉ số',
+                'invoices': 'Hóa đơn',
                 'support': 'Yêu cầu hỗ trợ',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
@@ -1354,9 +1469,23 @@
 
         function renderCurrentUser() {
             if (!RH_SESSION) return;
-            document.getElementById('topbarWelcome').textContent = 'Chào mừng quay lại, ' + RH_SESSION.name;
+            document.getElementById('topbarWelcome').textContent = RH_IS_DEMO
+                ? 'Bản Demo — dữ liệu giới hạn, không ảnh hưởng hệ thống thật'
+                : 'Chào mừng quay lại, ' + RH_SESSION.name;
             document.getElementById('topbarAvatar').textContent = RH_SESSION.name.trim().charAt(0).toUpperCase();
-            document.getElementById('topbarUserLabel').textContent = RH_SESSION.name + ' (Quản lý)';
+            document.getElementById('topbarUserLabel').textContent = RH_IS_DEMO ? 'Khách demo' : (RH_SESSION.name + ' (Quản lý)');
+
+            if (RH_IS_DEMO) {
+                const settingsItem = document.getElementById('rhSettingsMenuItem');
+                if (settingsItem) settingsItem.style.opacity = '0.45';
+                const logoutItem = document.getElementById('rhLogoutMenuItem');
+                if (logoutItem) {
+                    logoutItem.querySelector('span').textContent = 'Thoát Demo';
+                    logoutItem.setAttribute('onclick', "window.location.href='index.html'");
+                }
+                const demoBadge = document.getElementById('rhDemoBadge');
+                if (demoBadge) demoBadge.style.display = 'inline-block';
+            }
         }
 
         const ROLE_LABELS = { manager: 'Quản lý', resident: 'Cư dân' };
@@ -1460,7 +1589,8 @@
             renderDashboardData();
             renderWorkflows();
             renderCurrentUser();
-            renderAccountsTable();
+            if (!RH_IS_DEMO) renderAccountsTable();
+            RHUI.renderDashboardCounts();
         });
 
         function renderWorkflows() {

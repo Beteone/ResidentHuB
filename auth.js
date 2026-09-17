@@ -82,6 +82,8 @@
             password: password,
             role: role,
             unit: data.unit ? String(data.unit).trim() : '',
+            plan: data.plan || null,
+            planStatus: data.plan ? 'active' : null,
             createdAt: Date.now()
         };
         var users = readUsers();
