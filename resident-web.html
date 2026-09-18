@@ -351,6 +351,562 @@
             box-shadow: 0 12px 24px rgba(29, 78, 216, 0.18);
         }
 
+        .btn-ghost {
+            background: white;
+            color: #334155;
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            padding: 0.8rem 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background: #fff5f5;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 0.9rem;
+            padding: 0.8rem 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .settings-page {
+            padding: 0.25rem 0 0;
+        }
+
+        .settings-shell {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .settings-nav {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.02);
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .settings-nav-header {
+            padding: 0 0.5rem 0.8rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .settings-nav-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0f172a;
+        }
+
+        .settings-nav-header p {
+            margin: 0.45rem 0 0;
+            color: #64748b;
+            line-height: 1.5;
+            font-size: 0.78rem;
+        }
+
+        .settings-menu {
+            display: grid;
+            gap: 0.45rem;
+            margin-top: 1rem;
+        }
+
+        .settings-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem;
+            padding: 0.82rem 0.8rem;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: transparent;
+            color: #475569;
+            text-align: left;
+            font: 600 0.82rem 'Be Vietnam Pro', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .settings-menu-item:hover {
+            background: #f8fbff;
+            border-color: #e8f0ff;
+            color: #0d65d5;
+        }
+
+        .settings-menu-item.active {
+            background: #eaf3ff;
+            border-color: #d3e7ff;
+            color: #1769e8;
+        }
+
+        .settings-menu-item .left {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .settings-menu-item .arrow {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .settings-content-panel {
+            background: transparent;
+            min-width: 0;
+        }
+
+        .settings-header-block {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .settings-header-block h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #0f172a;
+        }
+
+        .settings-header-block p {
+            margin: 0.4rem 0 0;
+            color: #64748b;
+        }
+
+        .settings-section-stack {
+            display: grid;
+            gap: 1.1rem;
+        }
+
+        .settings-card {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1.2rem 1.1rem;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.02);
+        }
+
+        .settings-card h3 {
+            margin: 0 0 0.85rem;
+            font-size: 1.05rem;
+            color: #0f172a;
+        }
+
+        .settings-profile-top {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .settings-profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #dfeeff 0%, #cfe4ff 100%);
+            color: #1769e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .settings-profile-name {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .settings-profile-role {
+            margin: 0.2rem 0 0.6rem;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+
+        .settings-upload-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1769e8;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .settings-field {
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .settings-field label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .settings-field input,
+        .settings-field select,
+        .settings-field textarea {
+            width: 100%;
+            border: 1px solid #dbe5f1;
+            border-radius: 10px;
+            padding: 0.78rem 0.9rem;
+            background: #fff;
+            color: #0f172a;
+            font: 500 0.9rem 'Be Vietnam Pro', sans-serif;
+        }
+
+        .settings-field input[readonly],
+        .settings-field textarea[readonly] {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .settings-card-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.7rem;
+        }
+
+        .settings-compact-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .settings-compact-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .settings-compact-row strong {
+            display: block;
+            color: #0f172a;
+        }
+
+        .settings-compact-row small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .toggle-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            width: 46px;
+            height: 28px;
+        }
+
+        .toggle-wrap input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .toggle-slider {
+            position: relative;
+            display: block;
+            width: 46px;
+            height: 28px;
+            background: #dfe7f0;
+            border-radius: 999px;
+            transition: 0.2s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 4px;
+            top: 4px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+            transition: 0.2s ease;
+        }
+
+        .toggle-wrap input:checked + .toggle-slider {
+            background: #1769e8;
+        }
+
+        .toggle-wrap input:checked + .toggle-slider::before {
+            transform: translateX(18px);
+        }
+
+        .settings-theme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .theme-option {
+            border: 1px solid #dbe5f1;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 0.8rem;
+            text-align: left;
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .theme-option.selected {
+            border-color: #93c5fd;
+            background: #f5f9ff;
+            box-shadow: inset 0 0 0 1px rgba(37,99,235,0.10);
+        }
+
+        .theme-option strong {
+            display: block;
+            margin-top: 0.8rem;
+        }
+
+        .theme-option small {
+            display: block;
+            margin-top: 0.2rem;
+            color: #64748b;
+        }
+
+        .theme-preview {
+            height: 96px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f8fafc 0%, #eaf2ff 100%);
+            border: 1px solid #e5ebf3;
+        }
+
+        .theme-option[data-theme="dark"] .theme-preview {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-color: #334155;
+        }
+
+        .theme-option[data-theme="system"] .theme-preview {
+            background: linear-gradient(135deg, #f8fafc 0%, #dfeeff 100%);
+        }
+
+        .theme-option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 0.75rem;
+            top: 0.75rem;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1769e8;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .settings-save-bar {
+            position: sticky;
+            bottom: 1rem;
+            margin-top: 1.2rem;
+            background: rgba(15, 23, 42, 0.96);
+            color: white;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.2s ease;
+        }
+
+        .settings-save-bar.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(10px);
+        }
+
+        .settings-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .settings-toast {
+            position: fixed;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            background: #0f172a;
+            color: white;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+            opacity: 0;
+            transform: translateY(14px);
+            pointer-events: none;
+            transition: all 0.2s ease;
+            z-index: 70;
+        }
+
+        .settings-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .settings-toast.error {
+            background: #b91c1c;
+        }
+
+        .device-private-note {
+            color: #64748b;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .settings-device-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.9rem 0.95rem;
+            border: 1px solid #e7edf5;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .device-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .device-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: #eaf3ff;
+            color: #1769e8;
+        }
+
+        .device-item strong {
+            display: block;
+            color: #0f172a;
+        }
+
+        .device-item small {
+            color: #64748b;
+        }
+
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid #d9eafb;
+            background: #eff6ff;
+            color: #1769e8;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .confirm-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 80;
+        }
+
+        .confirm-modal.open {
+            display: flex;
+        }
+
+        .confirm-panel {
+            width: min(420px, 100%);
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e5ebf3;
+            padding: 1.5rem;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);
+        }
+
+        .confirm-panel h3 {
+            margin: 0 0 0.7rem;
+            color: #0f172a;
+            font-size: 1.35rem;
+        }
+
+        .confirm-panel p {
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .confirm-actions {
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.7rem;
+        }
+
+        @media (max-width: 980px) {
+            .settings-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-nav {
+                position: static;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .settings-grid,
+            .settings-theme-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-header-block {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
         .btn-secondary {
             background: white;
             color: var(--primary-strong);
@@ -583,11 +1139,10 @@
             <div class="nav-item active" data-target="requests"><i class="fas fa-tools"></i> Yêu cầu</div>
             <div class="nav-item" data-target="contracts"><i class="fas fa-file-contract"></i> Hợp đồng</div>
             <div class="nav-item" data-target="notifications"><i class="fas fa-bell"></i> Thông báo <span class="sidebar-notification-count" id="sidebarNotificationCount">7</span></div>
-            <div class="nav-item" data-target="profile"><i class="fas fa-user"></i> Hồ sơ</div>
+            <div class="nav-item" data-target="settings"><i class="fas fa-gear"></i> Cài đặt</div>
 
             <div class="section-label">Tiện ích</div>
             <div class="nav-item" data-target="calendar"><i class="fas fa-calendar-check"></i> Lịch hẹn</div>
-            <div class="nav-item" data-target="security"><i class="fas fa-shield-alt"></i> Bảo mật</div>
             <div class="nav-item" data-target="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</div>
         </div>
     </aside>
@@ -850,25 +1405,39 @@
 
         <section class="screen-section" id="notificationsSection" style="display:none;"></section>
 
-        <section class="screen-section" id="profileSection" style="display:none;">
-            <div class="card">
-                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Hồ sơ cư dân</h3>
-                <div style="display:grid; grid-template-columns: 180px 1fr; gap:1.5rem; align-items:center;">
-                    <div style="display:flex; justify-content:center;">
-                        <div class="avatar" style="width:120px; height:120px; font-size:2.2rem;" id="profileAvatar">H</div>
-                    </div>
-                    <div>
-                        <div style="font-size:2rem; font-weight:800; color:#0f172a;" id="profileName">Hương Nguyễn</div>
-                        <div style="color:#64748b; margin-bottom:0.8rem;"><span id="profileUnit">Phòng A502</span> • Cư dân chính</div>
-                        <div style="display:grid; grid-template-columns:repeat(2, minmax(180px,1fr)); gap:0.8rem;">
-                            <div class="support-card"><strong>Email:</strong><br><span id="profileEmail">huong.nguyen@email.com</span></div>
-                            <div class="support-card"><strong>Số điện thoại:</strong><br>0908 123 456</div>
-                            <div class="support-card"><strong>Ngày vào ở:</strong><br>01/01/2026</div>
-                            <div class="support-card"><strong>Người liên hệ:</strong><br>Gia đình / người thân</div>
+        <section class="screen-section" id="settingsSection" style="display:none;">
+            <div class="settings-page">
+                <div class="settings-shell">
+                    <aside class="settings-nav">
+                        <div class="settings-nav-header">
+                            <h2>Cài đặt</h2>
+                            <p>Quản lý tài khoản, bảo mật và tùy chỉnh trải nghiệm ResidentHub.</p>
                         </div>
+                        <div class="settings-menu" id="settingsMenu"></div>
+                    </aside>
+
+                    <div class="settings-content-panel">
+                        <div class="settings-header-block">
+                            <div>
+                                <h1 id="settingsGroupTitle">Tài khoản</h1>
+                                <p id="settingsGroupDescription">Quản lý thông tin cá nhân và thông tin căn hộ của bạn.</p>
+                            </div>
+                            <button class="btn-ghost" id="resetSettingsBtn"><i class="fas fa-rotate-right"></i> Khôi phục mặc định</button>
+                        </div>
+                        <div class="settings-section-stack" id="settingsContent"></div>
                     </div>
                 </div>
             </div>
+
+            <div id="settingsSaveBar" class="settings-save-bar hidden">
+                <span>Bạn có thay đổi chưa được lưu.</span>
+                <div class="settings-actions-row">
+                    <button class="btn-ghost" id="settingsDiscardBtn">Hủy</button>
+                    <button class="btn-primary" id="settingsSaveBtn">Lưu thay đổi</button>
+                </div>
+            </div>
+
+            <div id="settingsToast" class="settings-toast"></div>
         </section>
 
         <section class="screen-section" id="calendarSection" style="display:none;">
@@ -1005,9 +1574,8 @@
             requests: document.getElementById('requestsSection'),
             contracts: document.getElementById('contractsSection'),
             notifications: document.getElementById('notificationsSection'),
-            profile: document.getElementById('profileSection'),
-            calendar: document.getElementById('calendarSection'),
-            security: document.getElementById('securitySection')
+            settings: document.getElementById('settingsSection'),
+            calendar: document.getElementById('calendarSection')
         };
 
         const pageTitles = {
@@ -1016,10 +1584,572 @@
             requests: 'Yêu cầu',
             contracts: 'Hợp đồng',
             notifications: 'Thông báo',
-            profile: 'Hồ sơ',
-            calendar: 'Lịch hẹn',
-            security: 'Bảo mật'
+            settings: 'Cài đặt',
+            calendar: 'Lịch hẹn'
         };
+
+        const settingsMeta = {
+            account: { title: 'Tài khoản', description: 'Quản lý thông tin cá nhân và thông tin căn hộ của bạn.' },
+            security: { title: 'Bảo mật', description: 'Bảo vệ tài khoản và kiểm soát các phương thức đăng nhập.' },
+            theme: { title: 'Giao diện', description: 'Tùy chỉnh giao diện ResidentHub theo sở thích của bạn.' },
+            language: { title: 'Ngôn ngữ & khu vực', description: 'Thiết lập ngôn ngữ và định dạng hiển thị.' },
+            privacy: { title: 'Quyền riêng tư', description: 'Kiểm soát cách thông tin của bạn được sử dụng.' },
+            devices: { title: 'Thiết bị đăng nhập', description: 'Theo dõi các thiết bị đang truy cập tài khoản của bạn.' },
+            data: { title: 'Dữ liệu & tài khoản', description: 'Quản lý dữ liệu cá nhân và các thao tác liên quan đến tài khoản.' }
+        };
+
+        let activeSettingsTab = 'account';
+        let settingsDirty = false;
+        const SETTINGS_KEY_PREFIX = 'residenthub_settings_';
+
+        function getResidentSettingsKey() {
+            const session = RH.getSession();
+            return SETTINGS_KEY_PREFIX + (session ? session.id : 'guest');
+        }
+
+        function getResidentSettings() {
+            const defaults = {
+                theme: 'light',
+                language: 'vi',
+                timezone: 'GMT+07:00',
+                dateFormat: 'DD/MM/YYYY',
+                currency: 'VNĐ (₫)',
+                security: { twoFactor: true, lastPasswordChange: '30 ngày trước' },
+                privacy: { phone: true, email: true, apartment: 'Được quản lý bởi hệ thống' },
+                devices: [
+                    { id: 'device-iphone', type: 'iPhone 15 Pro', os: 'iOS', lastSeen: 'Hoạt động 2 giờ trước', current: true },
+                    { id: 'device-chrome', type: 'Chrome trên Windows', os: 'Windows 11', lastSeen: 'Hoạt động hôm qua', current: false },
+                    { id: 'device-edge', type: 'Microsoft Edge', os: 'Windows', lastSeen: 'Hoạt động 3 ngày trước', current: false }
+                ],
+                user: {
+                    name: RH.getSession() ? RH.getSession().name : 'Nguyễn Văn Hùng',
+                    email: RH.getSession() ? RH.getSession().email : 'resident@residenthub.vn',
+                    phone: '0908 123 456',
+                    apartment: RH.getSession() ? RH.getSession().unit : 'A-1208',
+                    building: 'ResidentHub Tower A',
+                    floor: '12',
+                    status: 'Đang sinh sống'
+                }
+            };
+
+            try {
+                const raw = localStorage.getItem(getResidentSettingsKey());
+                if (!raw) return defaults;
+                const parsed = JSON.parse(raw);
+                return {
+                    ...defaults,
+                    ...parsed,
+                    user: { ...defaults.user, ...(parsed.user || {}) },
+                    security: { ...defaults.security, ...(parsed.security || {}) },
+                    privacy: { ...defaults.privacy, ...(parsed.privacy || {}) },
+                    devices: Array.isArray(parsed.devices) ? parsed.devices : defaults.devices
+                };
+            } catch (error) {
+                return defaults;
+            }
+        }
+
+        function renderSettingsSaveBar() {
+            const bar = document.getElementById('settingsSaveBar');
+            if (bar) bar.classList.toggle('hidden', !settingsDirty);
+        }
+
+        function showSettingsToast(message, type) {
+            const toast = document.getElementById('settingsToast');
+            if (!toast) return;
+            toast.className = 'settings-toast show ' + (type || 'success');
+            toast.textContent = message;
+            clearTimeout(showSettingsToast.timer);
+            showSettingsToast.timer = setTimeout(() => {
+                toast.className = 'settings-toast';
+            }, 2200);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function (character) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character];
+            });
+        }
+
+        function renderSettingsNav() {
+            const nav = document.getElementById('settingsMenu');
+            if (!nav) return;
+            nav.innerHTML = Object.entries(settingsMeta).map(([key, meta]) => `
+                <button class="settings-menu-item ${activeSettingsTab === key ? 'active' : ''}" data-settings-tab="${key}">
+                    <span class="left">
+                        <span>${key === 'account' ? '👤' : key === 'security' ? '🔐' : key === 'theme' ? '🎨' : key === 'language' ? '🌐' : key === 'privacy' ? '🔒' : key === 'devices' ? '📱' : '⚠️'}</span>
+                        <span>${meta.title}</span>
+                    </span>
+                    <span class="arrow">→</span>
+                </button>
+            `).join('');
+            nav.querySelectorAll('[data-settings-tab]').forEach(button => {
+                button.addEventListener('click', () => {
+                    activeSettingsTab = button.dataset.settingsTab;
+                    renderSettingPage();
+                });
+            });
+        }
+
+        function renderSettingPage() {
+            const group = settingsMeta[activeSettingsTab];
+            const title = document.getElementById('settingsGroupTitle');
+            const description = document.getElementById('settingsGroupDescription');
+            const content = document.getElementById('settingsContent');
+            if (!title || !description || !content || !group) return;
+            title.textContent = group.title;
+            description.textContent = group.description;
+            renderSettingsNav();
+
+            const settings = getResidentSettings();
+            let markup = '';
+
+            if (activeSettingsTab === 'account') {
+                markup = `
+                    <div class="settings-card">
+                        <div class="settings-profile-top">
+                            <div class="settings-profile-avatar">${escapeHtml((settings.user.name || 'H').trim().charAt(0).toUpperCase())}</div>
+                            <div>
+                                <p class="settings-profile-name">${escapeHtml(settings.user.name)}</p>
+                                <p class="settings-profile-role">Cư dân • Phòng ${escapeHtml(settings.user.apartment)}</p>
+                                <label class="settings-upload-link"><i class="fas fa-camera"></i> <span>Thay đổi ảnh</span><input type="file" accept="image/*" style="display:none" id="avatarUpload"></label>
+                            </div>
+                        </div>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label>Họ và tên</label><input type="text" value="${escapeHtml(settings.user.name)}" id="accountName"></div>
+                            <div class="settings-field"><label>Email</label><input type="email" value="${escapeHtml(settings.user.email)}" id="accountEmail"></div>
+                            <div class="settings-field"><label>Số điện thoại</label><input type="tel" value="${escapeHtml(settings.user.phone)}" id="accountPhone"></div>
+                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" readonly></div>
+                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" readonly></div>
+                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" readonly></div>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Thông tin căn hộ</h3>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" readonly></div>
+                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" readonly></div>
+                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" readonly></div>
+                            <div class="settings-field"><label>Trạng thái</label><input type="text" value="${escapeHtml(settings.user.status)}" readonly></div>
+                        </div>
+                        <p class="device-private-note" style="margin-top: 1rem;">Thông tin căn hộ được quản lý bởi ban quản lý.</p>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('avatarUpload')?.addEventListener('change', (event) => {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const nextSettings = { ...settings, user: { ...settings.user, avatar: reader.result } };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        settingsDirty = false;
+                        renderSettingsSaveBar();
+                        renderSettingPage();
+                        showSettingsToast('Ảnh đại diện đã được cập nhật.', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                });
+                document.querySelectorAll('#accountName, #accountEmail, #accountPhone').forEach(input => {
+                    input.addEventListener('input', () => {
+                        settingsDirty = true;
+                        renderSettingsSaveBar();
+                    });
+                });
+            }
+
+            if (activeSettingsTab === 'security') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Mức độ bảo mật</h3>
+                        <div style="display:flex; align-items:flex-end; gap:1rem; justify-content:space-between; flex-wrap:wrap;">
+                            <div>
+                                <div style="font-size:0.75rem; letter-spacing:.12em; text-transform:uppercase; color:#64748b; font-weight:800; margin-bottom:0.4rem;">Mức độ bảo mật</div>
+                                <div style="font-size:2.5rem; font-weight:800; color:#0f172a; line-height:1;">92%</div>
+                            </div>
+                            <div style="flex:1; min-width:220px;">
+                                <div style="height:10px; width:100%; background:#e5edf6; border-radius:999px; overflow:hidden;">
+                                    <div style="width:92%; height:100%; background:linear-gradient(90deg, #10b981 0%, #1769e8 100%); border-radius:999px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="device-private-note" style="margin-top:0.8rem;">Tài khoản của bạn đang được bảo vệ tốt.</p>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Mật khẩu</strong>
+                                <small>Cập nhật lần cuối: ${escapeHtml(settings.security.lastPasswordChange)}</small>
+                            </div>
+                            <button class="btn-primary" id="changePasswordBtn">Đổi mật khẩu</button>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Xác thực hai bước</strong>
+                                <small>Bảo vệ tài khoản bằng lớp xác thực bổ sung.</small>
+                            </div>
+                            <label class="toggle-wrap">
+                                <input type="checkbox" id="twoFactorToggle" ${settings.security.twoFactor ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Thiết bị đăng nhập</strong>
+                                <small>2 thiết bị đang hoạt động.</small>
+                            </div>
+                            <button class="btn-ghost" id="viewDevicesBtn">Xem thiết bị</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
+                    const current = window.prompt('Nhập mật khẩu hiện tại:', '');
+                    const next = window.prompt('Nhập mật khẩu mới (ít nhất 6 ký tự):', '');
+                    if (!current || !next) {
+                        showSettingsToast('Vui lòng nhập đầy đủ thông tin.', 'error');
+                        return;
+                    }
+                    const session = RH.getSession();
+                    if (!session) return;
+                    const user = RH.getUsers().find(item => item.id === session.id);
+                    if (!user || user.password !== current) {
+                        showSettingsToast('Mật khẩu hiện tại không chính xác.', 'error');
+                        return;
+                    }
+                    if (next.length < 6) {
+                        showSettingsToast('Mật khẩu mới phải có ít nhất 6 ký tự.', 'error');
+                        return;
+                    }
+                    const updateResult = RH.updateUser(user.id, { password: next });
+                    if (!updateResult.ok) {
+                        showSettingsToast(updateResult.error || 'Không thể cập nhật mật khẩu.', 'error');
+                        return;
+                    }
+                    const nextSettings = { ...settings, security: { ...settings.security, lastPasswordChange: 'vừa xong' } };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    showSettingsToast('Mật khẩu đã được cập nhật.', 'success');
+                });
+                document.getElementById('twoFactorToggle')?.addEventListener('change', function () {
+                    const nextSettings = { ...settings, security: { ...settings.security, twoFactor: this.checked } };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    showSettingsToast(this.checked ? 'Xác thực hai bước đã được bật.' : 'Xác thực hai bước đã được tắt.', 'success');
+                });
+                document.getElementById('viewDevicesBtn')?.addEventListener('click', () => {
+                    activeSettingsTab = 'devices';
+                    renderSettingPage();
+                });
+            }
+
+            if (activeSettingsTab === 'theme') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Chủ đề</h3>
+                        <div class="settings-theme-grid">
+                            <button class="theme-option ${settings.theme === 'light' ? 'selected' : ''}" data-theme="light">
+                                <div class="theme-preview"></div>
+                                <strong>☀️ Sáng</strong>
+                                <small>Giao diện sáng mặc định</small>
+                            </button>
+                            <button class="theme-option ${settings.theme === 'dark' ? 'selected' : ''}" data-theme="dark">
+                                <div class="theme-preview"></div>
+                                <strong>🌙 Tối</strong>
+                                <small>Giao diện tối</small>
+                            </button>
+                            <button class="theme-option ${settings.theme === 'system' ? 'selected' : ''}" data-theme="system">
+                                <div class="theme-preview"></div>
+                                <strong>🖥 Theo máy</strong>
+                                <small>Tự động theo thiết bị</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Mật độ hiển thị</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Tiêu chuẩn</strong>
+                                <small>Độ rộng nội dung tối ưu cho hệ thống.</small>
+                            </div>
+                            <input type="radio" checked>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                content.querySelectorAll('.theme-option').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const nextSettings = { ...settings, theme: button.dataset.theme };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        showSettingsToast('Giao diện đã được lưu.', 'success');
+                        renderSettingPage();
+                    });
+                });
+            }
+
+            if (activeSettingsTab === 'language') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Ngôn ngữ</h3>
+                        <div class="settings-field"><label>Ngôn ngữ</label><select id="settingsLanguage">
+                            <option value="vi" ${settings.language === 'vi' ? 'selected' : ''}>Tiếng Việt</option>
+                            <option value="en" ${settings.language === 'en' ? 'selected' : ''}>English</option>
+                        </select></div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Múi giờ & định dạng</h3>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label>Múi giờ</label><input type="text" value="${escapeHtml(settings.timezone)}" readonly></div>
+                            <div class="settings-field"><label>Định dạng ngày</label><input type="text" value="${escapeHtml(settings.dateFormat)}" readonly></div>
+                            <div class="settings-field"><label>Tiền tệ</label><input type="text" value="${escapeHtml(settings.currency)}" readonly></div>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('settingsLanguage')?.addEventListener('change', function () {
+                    const nextSettings = { ...settings, language: this.value };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    showSettingsToast('Ngôn ngữ đã được cập nhật.', 'success');
+                });
+            }
+
+            if (activeSettingsTab === 'privacy') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Quyền hiển thị</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Số điện thoại</strong>
+                                <small>Cho phép ban quản lý xem số điện thoại của bạn.</small>
+                            </div>
+                            <label class="toggle-wrap"><input type="checkbox" ${settings.privacy.phone ? 'checked' : ''} data-privacy-field="phone"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Email</strong>
+                                <small>Cho phép ban quản lý liên hệ qua email.</small>
+                            </div>
+                            <label class="toggle-wrap"><input type="checkbox" ${settings.privacy.email ? 'checked' : ''} data-privacy-field="email"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Thông tin căn hộ</strong>
+                                <small>Thông tin này được dùng để cung cấp dịch vụ cư dân.</small>
+                            </div>
+                            <span class="device-badge">Được quản lý</span>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Dữ liệu cá nhân</h3>
+                        <p class="device-private-note">Bạn có thể tải xuống bản sao dữ liệu được lưu trong hệ thống ResidentHub.</p>
+                        <div class="settings-card-actions">
+                            <button class="btn-primary" id="downloadPrivacyDataBtn">Tải xuống dữ liệu</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                content.querySelectorAll('[data-privacy-field]').forEach(toggle => {
+                    toggle.addEventListener('change', function () {
+                        const nextSettings = { ...settings, privacy: { ...settings.privacy, [this.dataset.privacyField]: this.checked } };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        showSettingsToast('Cài đặt quyền riêng tư đã được cập nhật.', 'success');
+                    });
+                });
+                document.getElementById('downloadPrivacyDataBtn')?.addEventListener('click', () => {
+                    const data = JSON.stringify({ profile: settings.user, settings }, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'residenthub-data.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showSettingsToast('Bản sao dữ liệu đang được tải xuống.', 'success');
+                });
+            }
+
+            if (activeSettingsTab === 'devices') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Thiết bị đang hoạt động</h3>
+                        <div class="settings-device-list">
+                            ${settings.devices.map(device => `
+                                <div class="device-item">
+                                    <div class="device-meta">
+                                        <div class="device-icon"><i class="${device.type.includes('iPhone') ? 'fas fa-mobile-alt' : device.type.includes('Chrome') ? 'fas fa-laptop' : 'fas fa-desktop'}"></i></div>
+                                        <div>
+                                            <strong>${escapeHtml(device.type)}</strong>
+                                            <small>${escapeHtml(device.os)} • ${escapeHtml(device.lastSeen)}</small>
+                                        </div>
+                                    </div>
+                                    ${device.current ? '<span class="device-badge">Thiết bị hiện tại</span>' : '<button class="btn-ghost" data-device-logout="'+escapeHtml(device.id)+'">Đăng xuất</button>'}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="settings-card-actions">
+                            <button class="btn-danger" id="logoutAllOtherDevicesBtn">Đăng xuất khỏi tất cả thiết bị khác</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                content.querySelectorAll('[data-device-logout]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const deviceId = button.dataset.deviceLogout;
+                        const nextDevices = settings.devices.filter(device => device.id !== deviceId);
+                        const nextSettings = { ...settings, devices: nextDevices };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        renderSettingPage();
+                        showSettingsToast('Thiết bị đã được đăng xuất.', 'success');
+                    });
+                });
+                document.getElementById('logoutAllOtherDevicesBtn')?.addEventListener('click', () => {
+                    const nextSettings = { ...settings, devices: settings.devices.filter(device => device.current) };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    renderSettingPage();
+                    showSettingsToast('Đã đăng xuất các thiết bị khác.', 'success');
+                });
+            }
+
+            if (activeSettingsTab === 'data') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Tải dữ liệu</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Tải xuống dữ liệu</strong>
+                                <small>Nhận bản sao dữ liệu cá nhân và tùy chọn cài đặt.</small>
+                            </div>
+                            <button class="btn-primary" id="downloadResidentDataBtn">Tải xuống</button>
+                        </div>
+                    </div>
+                    <div class="settings-card" style="border-color:#fecaca; background:#fff7f8;">
+                        <h3 style="color:#b91c1c;">Xóa tài khoản</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Xóa tài khoản</strong>
+                                <small>Xóa tài khoản sẽ mất quyền truy cập vào ResidentHub và dữ liệu liên quan.</small>
+                            </div>
+                            <button class="btn-danger" id="deleteAccountBtn">Xóa tài khoản</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('downloadResidentDataBtn')?.addEventListener('click', () => {
+                    const data = JSON.stringify({ profile: settings.user, settings }, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'residenthub-account-data.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showSettingsToast('Đã bắt đầu tải xuống dữ liệu.', 'success');
+                });
+                document.getElementById('deleteAccountBtn')?.addEventListener('click', () => {
+                    document.getElementById('settingsDeleteModal')?.classList.add('open');
+                });
+            }
+
+            renderSettingsSaveBar();
+        }
+
+        const settingsDeleteModalHtml = `
+            <div id="settingsDeleteModal" class="confirm-modal" aria-modal="true">
+                <div class="confirm-panel">
+                    <h3>Xóa tài khoản?</h3>
+                    <p>Bạn có chắc chắn muốn xóa tài khoản này không? Hành động này không thể hoàn tác và bạn sẽ mất quyền truy cập vào tất cả dữ liệu liên quan.</p>
+                    <div class="confirm-actions">
+                        <button class="btn-ghost" id="cancelDeleteAccountBtn">Hủy</button>
+                        <button class="btn-danger" id="confirmDeleteAccountBtn">Xóa tài khoản</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', settingsDeleteModalHtml);
+        document.getElementById('cancelDeleteAccountBtn')?.addEventListener('click', () => document.getElementById('settingsDeleteModal')?.classList.remove('open'));
+        document.getElementById('confirmDeleteAccountBtn')?.addEventListener('click', () => {
+            const session = RH.getSession();
+            if (!session) return;
+            const deleteResult = RH.deleteUser(session.id);
+            if (!deleteResult.ok) {
+                showSettingsToast(deleteResult.error || 'Không thể xóa tài khoản.', 'error');
+                document.getElementById('settingsDeleteModal')?.classList.remove('open');
+                return;
+            }
+            RH.logout();
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('resetSettingsBtn')?.addEventListener('click', () => {
+            const defaults = {
+                theme: 'light',
+                language: 'vi',
+                timezone: 'GMT+07:00',
+                dateFormat: 'DD/MM/YYYY',
+                currency: 'VNĐ (₫)',
+                security: { twoFactor: true, lastPasswordChange: '30 ngày trước' },
+                privacy: { phone: true, email: true, apartment: 'Được quản lý bởi hệ thống' },
+                devices: [
+                    { id: 'device-iphone', type: 'iPhone 15 Pro', os: 'iOS', lastSeen: 'Hoạt động 2 giờ trước', current: true },
+                    { id: 'device-chrome', type: 'Chrome trên Windows', os: 'Windows 11', lastSeen: 'Hoạt động hôm qua', current: false },
+                    { id: 'device-edge', type: 'Microsoft Edge', os: 'Windows', lastSeen: 'Hoạt động 3 ngày trước', current: false }
+                ],
+                user: {
+                    name: RH.getSession() ? RH.getSession().name : 'Nguyễn Văn Hùng',
+                    email: RH.getSession() ? RH.getSession().email : 'resident@residenthub.vn',
+                    phone: '0908 123 456',
+                    apartment: RH.getSession() ? RH.getSession().unit : 'A-1208',
+                    building: 'ResidentHub Tower A',
+                    floor: '12',
+                    status: 'Đang sinh sống'
+                }
+            };
+            localStorage.setItem(getResidentSettingsKey(), JSON.stringify(defaults));
+            settingsDirty = false;
+            renderSettingPage();
+            showSettingsToast('Cài đặt đã được khôi phục mặc định.', 'success');
+        });
+
+        document.getElementById('settingsSaveBtn')?.addEventListener('click', () => {
+            const currentSettings = getResidentSettings();
+            const accountName = document.getElementById('accountName')?.value.trim();
+            const accountEmail = document.getElementById('accountEmail')?.value.trim();
+            const accountPhone = document.getElementById('accountPhone')?.value.trim();
+            if (activeSettingsTab === 'account' && (!accountName || !accountEmail)) {
+                showSettingsToast('Họ tên và email không được để trống.', 'error');
+                return;
+            }
+            if (activeSettingsTab === 'account') {
+                const session = RH.getSession();
+                const user = RH.getUsers().find(item => item.id === session.id);
+                if (user) {
+                    const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '' });
+                    if (!updateResult.ok) {
+                        showSettingsToast(updateResult.error || 'Không thể lưu thông tin.', 'error');
+                        return;
+                    }
+                }
+                localStorage.setItem(getResidentSettingsKey(), JSON.stringify({
+                    ...currentSettings,
+                    user: {
+                        ...currentSettings.user,
+                        name: accountName,
+                        email: accountEmail,
+                        phone: accountPhone || currentSettings.user.phone
+                    }
+                }));
+            }
+            settingsDirty = false;
+            renderSettingsSaveBar();
+            renderSettingPage();
+            showSettingsToast('Cài đặt đã được lưu.', 'success');
+        });
+
+        document.getElementById('settingsDiscardBtn')?.addEventListener('click', () => {
+            settingsDirty = false;
+            renderSettingsSaveBar();
+            renderSettingPage();
+        });
+
+        renderSettingPage();
 
         const requestData = [
             { id: 'YCD-019', title: 'Sửa điều hòa phòng khách', type: 'Sửa chữa căn hộ', subType: 'Điều hòa', priority: 'needed', status: 'processing', date: '16/09/2026', time: '09:15', description: 'Điều hòa không làm lạnh, cần kiểm tra kỹ trong ngày.', location: 'Phòng khách, A502', assignee: 'Nguyễn Văn A', expected: '16/09/2026 • 16:00', step: 4, attachments: 2, messages: [{ from: 'Cư dân', text: 'Máy lạnh vẫn chưa hoạt động, anh/chị có thể kiểm tra giúp tôi chiều nay không?', time: '16/09 • 13:20' }, { from: 'Ban quản lý', text: 'Kỹ thuật viên sẽ đến kiểm tra lúc 15:00 hôm nay.', time: '16/09 • 13:35' }] },
