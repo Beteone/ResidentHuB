@@ -285,6 +285,691 @@
             gap: 1.5rem;
         }
 
+        .resident-shell {
+            background: rgba(255, 255, 255, 0.76);
+            border: 1px solid #e5edf5;
+            border-radius: 28px;
+            box-shadow: 0 18px 38px rgba(14, 33, 60, 0.06);
+            padding: 1.4rem 1.4rem 0.5rem;
+        }
+
+        .resident-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1.15rem;
+            gap: 1rem;
+        }
+
+        .resident-header-left {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .resident-icon {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #cfeadf 0%, #9fd3b8 100%);
+            color: #1c7f5b;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            box-shadow: inset 0 0 0 1px rgba(28, 127, 91, 0.12);
+        }
+
+        .resident-header h2 {
+            margin: 0;
+            font-size: 2.05rem;
+            color: #1d2432;
+            line-height: 1.2;
+            letter-spacing: -0.04em;
+            font-weight: 800;
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+        }
+
+        .resident-subtitle {
+            margin-top: 0.2rem;
+            color: #6a7586;
+            font-size: 0.95rem;
+            font-weight: 500;
+        }
+
+        .resident-detail-btn {
+            border: 1px solid #dfe8f2;
+            border-radius: 999px;
+            background: rgba(255, 255, 255, 0.9);
+            color: #1d2432;
+            padding: 0.5rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            font-weight: 600;
+            cursor: pointer;
+        }
+
+        .resident-detail-btn i {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            background: #edf2f7;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.72rem;
+            color: #516079;
+        }
+
+        .resident-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0;
+            border: 1px solid #e5edf5;
+            border-radius: 18px;
+            overflow: hidden;
+            background: rgba(255, 255, 255, 0.55);
+            margin-bottom: 1.1rem;
+        }
+
+        .resident-summary-card {
+            padding: 1.1rem 1.15rem 1rem;
+            min-height: 118px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-right: 1px solid #e5edf5;
+            background: rgba(255,255,255,0.2);
+        }
+
+        .resident-summary-card:last-child {
+            border-right: none;
+        }
+
+        .resident-summary-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.7rem;
+            font-weight: 800;
+            color: #1e2432;
+            letter-spacing: -0.04em;
+            flex-wrap: wrap;
+        }
+
+        .resident-summary-main i {
+            font-size: 1.2rem;
+            color: #2a7d52;
+        }
+
+        .resident-summary-main .resident-summary-value {
+            font-size: 2.1rem;
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            line-height: 1;
+        }
+
+        .resident-summary-main .resident-summary-icon-warning {
+            color: #f09f1c;
+        }
+
+        .resident-summary-main .resident-summary-icon-danger {
+            color: #d96546;
+        }
+
+        .resident-summary-main .resident-summary-icon-muted {
+            color: #d08a08;
+        }
+
+        .resident-summary-label {
+            color: #4c5a70;
+            font-size: 0.95rem;
+            font-weight: 600;
+            display: block;
+            margin-top: 0.3rem;
+        }
+
+        .resident-tab-switch {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.95rem;
+            margin: 0 0 1.2rem;
+        }
+
+        .resident-tab {
+            border: none;
+            border-radius: 999px;
+            background: #edf2f7;
+            color: #344154;
+            font-size: 1.05rem;
+            font-weight: 700;
+            padding: 0.85rem 1rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.6rem;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .resident-tab.active {
+            background: #111d2d;
+            color: white;
+            box-shadow: 0 12px 20px rgba(17, 29, 45, 0.1);
+        }
+
+        .resident-badge {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 1.5rem;
+            height: 1.5rem;
+            padding: 0 0.35rem;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.18);
+            font-size: 0.8rem;
+            font-weight: 800;
+            color: inherit;
+        }
+
+        .resident-tab:not(.active) .resident-badge {
+            background: rgba(17, 29, 45, 0.08);
+            color: #2d3a49;
+        }
+
+        .resident-empty-state {
+            min-height: 420px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            color: #5f6d7f;
+            padding: 2rem 1rem 4rem;
+            position: relative;
+        }
+
+        .resident-list {
+            display: none;
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+            gap: 0.9rem;
+            margin-top: 0.5rem;
+        }
+
+        .resident-item {
+            background: #ffffff;
+            border: 1px solid #e7edf5;
+            border-radius: 16px;
+            padding: 1rem 1.1rem;
+            box-shadow: 0 8px 24px rgba(15, 23, 42, 0.04);
+        }
+
+        .resident-item-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.75rem;
+            margin-bottom: 0.5rem;
+        }
+
+        .resident-item-name {
+            font-size: 1.05rem;
+            font-weight: 800;
+            color: #101c2d;
+            letter-spacing: -0.03em;
+            margin: 0;
+        }
+
+        .resident-item-status {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 999px;
+            background: #e7f8f1;
+            color: #0d7a58;
+            padding: 0.35rem 0.7rem;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .resident-item-status.moved-out {
+            background: #fff0ea;
+            color: #c65a2b;
+        }
+
+        .resident-item-meta {
+            margin: 0.35rem 0;
+            color: #53657b;
+            font-size: 0.88rem;
+            line-height: 1.45;
+        }
+
+        .resident-item-actions {
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            flex-wrap: wrap;
+            gap: 0.5rem;
+            margin-top: 0.75rem;
+        }
+
+        .resident-item-action {
+            border: none;
+            border-radius: 10px;
+            background: #eef4fb;
+            color: #35507a;
+            width: 2rem;
+            height: 2rem;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 0.8rem;
+            transition: transform 0.15s ease;
+        }
+
+        .resident-item-action:hover {
+            transform: translateY(-1px);
+        }
+
+        .resident-item-action.delete {
+            background: #ffe5e5;
+            color: #b42318;
+        }
+
+        .resident-item-quick-action {
+            border: none;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #1e8fff 0%, #0e6ee7 100%);
+            color: #fff;
+            font-size: 0.76rem;
+            font-weight: 700;
+            padding: 0.5rem 0.7rem;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(14, 110, 231, 0.18);
+        }
+
+        .resident-item-quick-action.secondary {
+            background: linear-gradient(135deg, #f5f7fa 0%, #edf2f7 100%);
+            color: #2d3a49;
+            box-shadow: none;
+        }
+
+        .resident-empty-illustration {
+            width: 170px;
+            height: 110px;
+            margin-bottom: 1rem;
+            position: relative;
+            filter: grayscale(100%);
+            opacity: 0.9;
+        }
+
+        .resident-empty-illustration .person {
+            position: absolute;
+            bottom: 0;
+            width: 38px;
+            height: 52px;
+            border-radius: 50% 50% 18% 18%;
+            background: #cdd5df;
+        }
+
+        .resident-empty-illustration .person::before {
+            content: '';
+            position: absolute;
+            width: 24px;
+            height: 24px;
+            border-radius: 50%;
+            background: #cdd5df;
+            left: 7px;
+            top: -14px;
+        }
+
+        .resident-empty-illustration .person::after {
+            content: '';
+            position: absolute;
+            width: 56px;
+            height: 22px;
+            border-radius: 20px 20px 8px 8px;
+            background: #cdd5df;
+            left: -9px;
+            bottom: -8px;
+        }
+
+        .resident-empty-illustration .person:nth-child(1) { left: 10px; }
+        .resident-empty-illustration .person:nth-child(2) { left: 58px; }
+        .resident-empty-illustration .person:nth-child(3) { left: 106px; }
+
+        .resident-empty-state h3 {
+            margin: 0;
+            font-size: clamp(2rem, 3vw, 3rem);
+            color: #1f2b3d;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+        }
+
+        .resident-empty-state p {
+            max-width: 600px;
+            font-size: 1.05rem;
+            line-height: 1.5;
+            margin: 0.8rem 0 0;
+            color: #5b6a7f;
+        }
+
+        .resident-fab {
+            position: fixed;
+            right: 2rem;
+            bottom: 1.9rem;
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #1e8fff 0%, #0e6ee7 100%);
+            color: white;
+            font-size: 1.9rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 16px 28px rgba(14, 110, 231, 0.28);
+            cursor: pointer;
+            z-index: 50;
+        }
+
+        .resident-form-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.38);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 1000;
+        }
+
+        .resident-form-modal.is-open {
+            display: flex;
+        }
+
+        .resident-form-panel {
+            width: min(1100px, 100%);
+            max-height: min(92vh, 1000px);
+            overflow: auto;
+            background: #fff;
+            border-radius: 22px;
+            box-shadow: 0 28px 70px rgba(15, 34, 65, 0.22);
+            border: 1px solid #e3ebf4;
+            padding: 1.4rem 1.5rem 1.1rem;
+        }
+
+        .resident-form-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 1rem;
+            padding-bottom: 0.7rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .resident-form-header h3 {
+            margin: 0;
+            font-size: 1.55rem;
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            color: #101c2d;
+            font-weight: 800;
+            letter-spacing: -0.03em;
+        }
+
+        .resident-form-close {
+            width: 38px;
+            height: 38px;
+            border-radius: 12px;
+            border: 1px solid #e5edf5;
+            background: #f8fafc;
+            color: #56657d;
+            font-size: 1.15rem;
+            cursor: pointer;
+        }
+
+        .resident-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem 1.2rem;
+        }
+
+        .resident-field {
+            display: flex;
+            flex-direction: column;
+            gap: 0.4rem;
+        }
+
+        .resident-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .resident-field label {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 0.8rem;
+            font-weight: 700;
+            color: #273548;
+        }
+
+        .resident-field label .required {
+            color: #d92d20;
+        }
+
+        .resident-field input,
+        .resident-field select,
+        .resident-field textarea {
+            width: 100%;
+            border: 1px solid #dfe9f2;
+            border-radius: 12px;
+            background: #fff;
+            color: #1d2a39;
+            font: 500 0.92rem 'Be Vietnam Pro', sans-serif;
+            padding: 0.7rem 0.8rem;
+            transition: all 0.2s ease;
+        }
+
+        .resident-field input:focus,
+        .resident-field select:focus,
+        .resident-field textarea:focus {
+            outline: 3px solid rgba(22, 131, 255, 0.12);
+            border-color: #6daeff;
+        }
+
+        .resident-field textarea {
+            min-height: 100px;
+            resize: vertical;
+        }
+
+        .resident-inline-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin: 0.2rem 0 0.6rem;
+        }
+
+        .resident-toggle-wrap {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .resident-toggle-label {
+            display: none;
+            font-weight: 700;
+            color: #42516a;
+            min-width: 46px;
+            text-align: right;
+        }
+
+        .resident-toggle {
+            appearance: none;
+            width: 54px;
+            height: 30px;
+            border-radius: 999px;
+            background: #dfe5ee;
+            position: relative;
+            cursor: pointer;
+            transition: background 0.2s ease;
+        }
+
+        .resident-toggle::after {
+            content: '';
+            position: absolute;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            background: #fff;
+            left: 4px;
+            top: 4px;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.15);
+            transition: transform 0.2s ease;
+        }
+
+        .resident-toggle:checked {
+            background: #1ea86d;
+        }
+
+        .resident-toggle:checked::after {
+            transform: translateX(24px);
+        }
+
+        .resident-form-section {
+            border-top: 1px solid #edf2f7;
+            padding-top: 1rem;
+            margin-top: 1rem;
+        }
+
+        .resident-form-section h4 {
+            margin: 0 0 0.8rem;
+            color: #1d2a39;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .resident-form-compact-header {
+            margin: 0 0 1rem;
+            color: #111827;
+            font-size: 1.1rem;
+            font-weight: 900;
+            letter-spacing: -0.02em;
+            text-transform: uppercase;
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+        }
+
+        .resident-form-grid.single-column {
+            grid-template-columns: 1fr;
+        }
+
+        .resident-field .field-placeholder {
+            color: #b0bac8;
+            font-weight: 500;
+        }
+
+        .resident-vehicle-wrap {
+            padding-top: 0.3rem;
+        }
+
+        .resident-vehicle-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .resident-vehicle-title {
+            margin: 0;
+            font-size: clamp(1.5rem, 1.8vw, 2.1rem);
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #1a273a;
+        }
+
+        .resident-vehicle-add {
+            min-width: 72px;
+            padding: 0.45rem 0.8rem;
+            border: none;
+            border-radius: 12px;
+            background: linear-gradient(180deg, #0f1f35 0%, #0d1b2d 100%);
+            color: #fff;
+            font-size: 0.85rem;
+            font-weight: 700;
+            line-height: 1.2;
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            cursor: pointer;
+            box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+        }
+
+        .resident-vehicle-empty {
+            min-height: 110px;
+            display: flex;
+            align-items: center;
+            justify-content: flex-start;
+            color: #6a7584;
+            font-size: clamp(0.9rem, 1.2vw, 1.2rem);
+            font-weight: 500;
+            letter-spacing: -0.02em;
+            padding: 0.5rem 0 1.25rem;
+            border-bottom: 1px solid #e6edf3;
+            margin-bottom: 1rem;
+        }
+
+        .resident-vehicle-form {
+            display: none;
+            margin-top: 1rem;
+        }
+
+        .resident-vehicle-confirm {
+            width: 100%;
+            margin-top: 1rem;
+            border: none;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #1ea96a 0%, #13915a 100%);
+            color: #fff;
+            font-size: clamp(1.5rem, 2vw, 2.2rem);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            padding: 0.9rem 1.2rem;
+            cursor: pointer;
+            box-shadow: 0 18px 28px rgba(19, 145, 90, 0.2);
+        }
+
+        .resident-form-actions {
+            margin-top: 1.1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            border-top: 1px solid #edf2f7;
+            padding-top: 1rem;
+        }
+
+        .resident-btn-secondary,
+        .resident-btn-primary {
+            border: none;
+            border-radius: 12px;
+            padding: 0.7rem 1.15rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .resident-btn-secondary {
+            background: #eef4fb;
+            color: #455571;
+        }
+
+        .resident-btn-primary {
+            background: linear-gradient(135deg, #2290ff 0%, #0d65d5 100%);
+            color: #fff;
+            box-shadow: 0 12px 24px rgba(22, 131, 255, 0.18);
+        }
+
         @media (max-width: 768px) {
             .sidebar {
                 transform: translateX(-100%);
@@ -359,6 +1044,352 @@
             justify-content: center;
             font-weight: 600;
             box-shadow: 0 12px 20px rgba(29, 78, 216, 0.2);
+        }
+
+        .stat-card-editable {
+            cursor: pointer;
+        }
+
+        .stat-card-editable:focus-visible {
+            outline: 3px solid rgba(22, 131, 255, 0.35);
+            outline-offset: 3px;
+        }
+
+        .stat-update-trigger {
+            background: transparent;
+            border: 0;
+            color: var(--primary-strong);
+            cursor: pointer;
+            font: 600 0.8rem 'Be Vietnam Pro', sans-serif;
+            margin-top: 0.5rem;
+            padding: 0;
+        }
+
+        .stat-update-trigger:hover {
+            text-decoration: underline;
+        }
+
+        .stat-update-modal {
+            align-items: center;
+            background: rgba(11, 36, 71, 0.42);
+            display: none;
+            inset: 0;
+            justify-content: center;
+            padding: 1rem;
+            position: fixed;
+            z-index: 200;
+        }
+
+        .stat-update-modal.is-open {
+            display: flex;
+        }
+
+        .stat-update-dialog {
+            background: #fff;
+            border: 1px solid #e1eaf4;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(11, 36, 71, 0.2);
+            max-width: 420px;
+            padding: 1.5rem;
+            width: 100%;
+        }
+
+        .stat-update-dialog h2 {
+            color: var(--ink);
+            font: 700 1.15rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            margin-bottom: 0.35rem;
+        }
+
+        .stat-update-dialog p {
+            color: var(--muted);
+            font-size: 0.875rem;
+            margin-bottom: 1.25rem;
+        }
+
+        .stat-update-dialog label {
+            color: var(--ink);
+            display: block;
+            font-size: 0.875rem;
+            font-weight: 600;
+            margin-bottom: 0.45rem;
+        }
+
+        .stat-update-dialog input {
+            border: 1px solid #d7e2ef;
+            border-radius: 10px;
+            color: var(--ink);
+            font: 600 1rem 'Be Vietnam Pro', sans-serif;
+            padding: 0.75rem;
+            width: 100%;
+        }
+
+        .stat-update-dialog input:focus {
+            border-color: var(--primary);
+            outline: 3px solid rgba(22, 131, 255, 0.12);
+        }
+
+        .stat-update-actions {
+            display: flex;
+            gap: 0.75rem;
+            justify-content: flex-end;
+            margin-top: 1.25rem;
+        }
+
+        .stat-update-actions button {
+            border: 0;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 600;
+            padding: 0.65rem 1rem;
+        }
+
+        .stat-update-cancel {
+            background: #eef4fb;
+            color: #526275;
+        }
+
+        .building-page-header {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+        }
+
+        .building-page-header h2 {
+            color: var(--ink);
+            font: 700 1.35rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+        }
+
+        .building-page-header p {
+            color: var(--muted);
+            font-size: 0.875rem;
+            margin-top: 0.35rem;
+        }
+
+        .building-add-button {
+            align-items: center;
+            border: 0;
+            border-radius: 12px;
+            cursor: pointer;
+            display: inline-flex;
+            gap: 0.5rem;
+            padding: 0.7rem 1rem;
+        }
+
+        .building-list {
+            display: grid;
+            gap: 0.9rem;
+        }
+
+        .building-item {
+            align-items: center;
+            background: #fff;
+            border: 1px solid #e1eaf4;
+            border-radius: 14px;
+            display: flex;
+            justify-content: space-between;
+            padding: 1rem 1.1rem;
+        }
+
+        .building-item[role="button"] {
+            cursor: pointer;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .building-item[role="button"]:hover,
+        .building-item[role="button"]:focus-visible {
+            border-color: #9ccaff;
+            box-shadow: 0 10px 24px rgba(22, 131, 255, 0.1);
+            outline: none;
+        }
+
+        .building-item-actions {
+            align-items: center;
+            display: flex;
+            gap: 0.65rem;
+        }
+
+        .building-delete-button {
+            align-items: center;
+            background: #fff1f2;
+            border: 0;
+            border-radius: 9px;
+            color: #e11d48;
+            cursor: pointer;
+            display: inline-flex;
+            height: 34px;
+            justify-content: center;
+            width: 34px;
+        }
+
+        .building-delete-button:hover {
+            background: #ffe4e6;
+        }
+
+        .building-item h3 {
+            color: var(--ink);
+            font-size: 1rem;
+            font-weight: 700;
+        }
+
+        .building-item p {
+            color: var(--muted);
+            font-size: 0.8rem;
+            margin-top: 0.25rem;
+        }
+
+        .building-status {
+            border-radius: 999px;
+            font-size: 0.75rem;
+            font-weight: 700;
+            padding: 0.35rem 0.65rem;
+        }
+
+        .building-status.active {
+            background: #dcfce7;
+            color: #15803d;
+        }
+
+        .building-status.inactive {
+            background: #f1f5f9;
+            color: #64748b;
+        }
+
+        .building-empty {
+            color: var(--muted);
+            padding: 3rem 1rem;
+            text-align: center;
+        }
+
+        .building-empty i {
+            color: #a8b6c7;
+            font-size: 3rem;
+            margin-bottom: 1rem;
+        }
+
+        .building-form-dialog {
+            max-height: calc(100vh - 2rem);
+            max-width: 680px;
+            overflow-y: auto;
+        }
+
+        .building-form-section {
+            border-top: 1px solid #e8eef5;
+            margin-top: 1.2rem;
+            padding-top: 1.1rem;
+        }
+
+        .building-form-section h3 {
+            color: var(--ink);
+            font-size: 0.95rem;
+            margin-bottom: 0.85rem;
+        }
+
+        .building-form-grid {
+            display: grid;
+            gap: 0.85rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+
+        .building-form-field.full-width {
+            grid-column: 1 / -1;
+        }
+
+        .building-form-field label {
+            color: var(--ink);
+            display: block;
+            font-size: 0.8rem;
+            font-weight: 600;
+            margin-bottom: 0.35rem;
+        }
+
+        .building-form-field input,
+        .building-form-field select {
+            border: 1px solid #d7e2ef;
+            border-radius: 9px;
+            color: var(--ink);
+            font: 400 0.875rem 'Be Vietnam Pro', sans-serif;
+            padding: 0.65rem 0.7rem;
+            width: 100%;
+        }
+
+        .building-form-field input:focus,
+        .building-form-field select:focus {
+            border-color: var(--primary);
+            outline: 3px solid rgba(22, 131, 255, 0.12);
+        }
+
+        .building-toggle-row {
+            align-items: center;
+            display: flex;
+            justify-content: space-between;
+        }
+
+        .building-toggle {
+            appearance: none;
+            background: #cbd5e1;
+            border-radius: 999px;
+            cursor: pointer;
+            height: 26px;
+            position: relative;
+            transition: background 0.2s ease;
+            width: 48px;
+        }
+
+        .stat-update-dialog .building-toggle {
+            flex: 0 0 48px;
+            width: 48px;
+        }
+
+        .building-toggle::after {
+            background: #fff;
+            border-radius: 50%;
+            box-shadow: 0 1px 4px rgba(15, 23, 42, 0.2);
+            content: '';
+            height: 20px;
+            left: 3px;
+            position: absolute;
+            top: 3px;
+            transition: transform 0.2s ease;
+            width: 20px;
+        }
+
+        .building-toggle:checked {
+            background: var(--success);
+        }
+
+        .building-toggle:checked::after {
+            transform: translateX(22px);
+        }
+
+        .building-active-label {
+            color: var(--success);
+            font-size: 0.8rem;
+            font-weight: 700;
+            margin-right: 0.65rem;
+        }
+
+        @media (max-width: 640px) {
+            .building-page-header {
+                align-items: flex-start;
+                gap: 0.75rem;
+            }
+
+            .building-page-header h2 {
+                font-size: 1.1rem;
+            }
+
+            .building-add-button {
+                padding: 0.65rem 0.8rem;
+            }
+
+            .building-form-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .building-form-field.full-width {
+                grid-column: auto;
+            }
         }
 
         .chart-container {
@@ -575,47 +1606,49 @@
         <div id="dashboard-tab">
             <!-- Stats Cards -->
             <div class="grid-2">
-                <div class="card">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openBuildingList()" onkeydown="handleBuildingCardKeydown(event)">
                     <div class="stat-card">
                         <div>
+                            <div class="stat-label">Tòa nhà</div>
+                            <div class="stat-value" data-stat-value="buildings">0</div>
                             <div class="stat-label">Tổng phòng</div>
                             <div class="stat-value" id="totalRoomsValue">245</div>
                             <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 8.5% so với tháng trước
+                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openBuildingList()"><i class="fas fa-building"></i> Xem danh sách tòa nhà</button>
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
+                            <i class="fas fa-building"></i>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('rooms')" onkeydown="handleStatCardKeydown(event, 'rooms')">
+                    <div class="stat-card">
+                        <div>
+                            <div class="stat-label">Tổng phòng</div>
+                            <div class="stat-value" data-stat-value="rooms">245</div>
+                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('rooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
+                            </div>
+                        </div>
+                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
                             <i class="fas fa-door-open"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="card">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('vacantRooms')" onkeydown="handleStatCardKeydown(event, 'vacantRooms')">
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Phòng trống</div>
-                            <div class="stat-value" id="emptyRoomsValue">32</div>
-                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-down"></i> 2.1% lấp đầy
+                            <div class="stat-value" data-stat-value="vacantRooms">32</div>
+                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
+                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('vacantRooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
                             <i class="fas fa-user-group"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Doanh thu tháng</div>
-                            <div class="stat-value" id="revenueValue">543M</div>
-                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 12.3% tăng trưởng
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
-                            <i class="fas fa-file-signature"></i>
                         </div>
                     </div>
                 </div>
@@ -624,101 +1657,29 @@
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Công nợ</div>
-                            <div class="stat-value" id="debtValue">87M</div>
+                            <div class="stat-value">87M</div>
                             <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
                                 <i class="fas fa-arrow-up"></i> 5.2% tăng
                             </div>
                         </div>
                         <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
-                            <i class="fas fa-sack-dollar"></i>
+                            <i class="fas fa-exclamation-circle"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Workflow module counts: Tòa nhà -> Căn hộ -> Khách hàng -> Hợp đồng -> Hóa đơn (data.js / manager-modules.js) -->
-            <div style="align-items: center; display: flex; gap: .5rem; margin: 1.25rem 0 .6rem;">
-                <span style="color: #94a3b8; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;">Số liệu từ module quản lý</span>
-                <span style="background: #e4eaf2; flex: 1; height: 1px;"></span>
-            </div>
-            <div class="grid-2">
-                <div class="card">
-                    <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Tòa nhà / Căn hộ</div>
-                            <div class="stat-value"><span id="rhCountBuildings">0</span> / <span id="rhCountApartments">0</span></div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-building"></i> Tòa nhà và căn hộ đang quản lý
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
-                            <i class="fas fa-door-open"></i>
-                        </div>
+            <div class="stat-update-modal" id="statUpdateModal" role="dialog" aria-modal="true" aria-labelledby="statUpdateTitle" onclick="closeStatUpdateOnBackdrop(event)">
+                <form class="stat-update-dialog" onsubmit="saveStatUpdate(event)">
+                    <h2 id="statUpdateTitle">Cập nhật số liệu</h2>
+                    <p>Nhập số liệu mới cho chỉ số đang chọn.</p>
+                    <label for="statUpdateInput">Số liệu</label>
+                    <input id="statUpdateInput" type="number" min="0" step="1" required>
+                    <div class="stat-update-actions">
+                        <button class="stat-update-cancel" type="button" onclick="closeStatUpdate()">Hủy</button>
+                        <button class="btn-primary" type="submit">Lưu số liệu</button>
                     </div>
-                </div>
-
-                <div class="card">
-                    <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Khách hàng</div>
-                            <div class="stat-value" id="rhCountCustomers">0</div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-users"></i> Hồ sơ khách hàng đã lưu
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
-                            <i class="fas fa-user-group"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Hợp đồng</div>
-                            <div class="stat-value" id="rhCountContracts">0</div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-file-contract"></i> Hợp đồng đã lập
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
-                            <i class="fas fa-file-signature"></i>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="card">
-                    <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Doanh thu đã thu</div>
-                            <div class="stat-value" id="rhCountRevenue" style="font-size: 1.5rem;">0đ</div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-receipt"></i> <span id="rhCountOverdue">0</span> hóa đơn quá hạn
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
-                            <i class="fas fa-sack-dollar"></i>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card" style="margin-top: 1rem;">
-                <div style="align-items: center; display: flex; gap: .75rem; justify-content: space-between; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="color: #10213c; font: 700 1rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Cập nhật số liệu</h3>
-                        <p style="color: #61708a; font-size: .8rem; margin-top: .25rem;">Thay đổi số liệu hiển thị trên dashboard</p>
-                    </div>
-                    <i class="fas fa-pen-to-square" style="color: #1683ff;"></i>
-                </div>
-                <form class="data-editor" id="dashboardDataForm">
-                    <label>Tổng phòng<input id="totalRoomsInput" name="totalRooms" min="0" required type="number"></label>
-                    <label>Phòng trống<input id="emptyRoomsInput" name="emptyRooms" min="0" required type="number"></label>
-                    <label>Doanh thu tháng (triệu)<input id="revenueInput" name="revenue" min="0" required type="number"></label>
-                    <label>Công nợ (triệu)<input id="debtInput" name="debt" min="0" required type="number"></label>
-                    <button class="btn-primary" type="submit"><i class="fas fa-save"></i> Lưu số liệu</button>
                 </form>
-                <div class="data-editor-message" id="dataEditorMessage" role="status"></div>
             </div>
 
             <!-- Charts Section -->
@@ -816,12 +1777,473 @@
             </div>
         </div>
 
-        <!-- Workflow modules: Tòa nhà -> Căn hộ -> Khách hàng -> Ghi chỉ số -> Hợp đồng -> Hóa đơn -->
-        <div id="buildings-tab" style="display: none;"></div>
-        <div id="apartments-tab" style="display: none;"></div>
-        <div id="customers-tab" style="display: none;"></div>
-        <div id="meters-tab" style="display: none;"></div>
-        <div id="invoices-tab" style="display: none;"></div>
+        <!-- Buildings -->
+        <div id="buildings-tab" style="display: none;">
+            <div class="card">
+                <div class="building-page-header">
+                    <div>
+                        <h2>Tòa nhà</h2>
+                        <p>Danh sách các tòa nhà đã đăng ký</p>
+                    </div>
+                    <button class="btn-primary building-add-button" type="button" onclick="openBuildingForm()">
+                        <i class="fas fa-plus"></i> Thêm tòa nhà
+                    </button>
+                </div>
+                <div class="building-list" id="buildingList"></div>
+            </div>
+        </div>
+
+        <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true" aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
+            <form class="stat-update-dialog building-form-dialog" onsubmit="saveBuilding(event)">
+                <h2 id="buildingFormTitle">Thêm thông tin tòa nhà</h2>
+                <p>Nhập thông tin để quản lý tòa nhà trên hệ thống.</p>
+
+                <div class="building-form-section" style="border-top: 0; margin-top: 0; padding-top: 0;">
+                    <h3>Thông tin tòa nhà</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field">
+                            <label for="buildingName">Tên tòa nhà *</label>
+                            <input id="buildingName" name="buildingName" required>
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingCode">Tên viết tắt/Mã tòa *</label>
+                            <input id="buildingCode" name="buildingCode" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <h3>Địa chỉ</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field">
+                            <label for="buildingProvince">Tỉnh/Thành phố *</label>
+                            <input id="buildingProvince" name="buildingProvince" required>
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingWard">Xã/Phường *</label>
+                            <input id="buildingWard" name="buildingWard" required>
+                        </div>
+                        <div class="building-form-field full-width">
+                            <label for="buildingAddress">Địa chỉ chi tiết *</label>
+                            <input id="buildingAddress" name="buildingAddress" required>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <h3>Dịch vụ</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field full-width">
+                            <label for="buildingService">Dịch vụ quản lý</label>
+                            <input id="buildingService" name="buildingService" placeholder="Ví dụ: Quản lý vận hành, vệ sinh, bảo vệ">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <h3>Cấu hình</h3>
+                    <div class="building-form-grid">
+                        <div class="building-form-field">
+                            <label for="buildingDebtAccount">Tài khoản gạch nợ tự động</label>
+                            <input id="buildingDebtAccount" name="buildingDebtAccount">
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingInvoiceTemplate">Mẫu in hóa đơn</label>
+                            <input id="buildingInvoiceTemplate" name="buildingInvoiceTemplate">
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingContractTemplate">Mẫu hợp đồng</label>
+                            <input id="buildingContractTemplate" name="buildingContractTemplate">
+                        </div>
+                        <div class="building-form-field">
+                            <label for="buildingAccount">Tài khoản</label>
+                            <input id="buildingAccount" name="buildingAccount">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="building-form-section">
+                    <div class="building-toggle-row">
+                        <div>
+                            <h3 style="margin-bottom: 0.25rem;">Trạng thái</h3>
+                            <span class="building-active-label" id="buildingActiveLabel">Đang hoạt động</span>
+                        </div>
+                        <input class="building-toggle" id="buildingActive" name="buildingActive" type="checkbox" checked onchange="updateBuildingActiveLabel()">
+                    </div>
+                </div>
+
+                <div class="stat-update-actions">
+                    <button class="stat-update-cancel" type="button" onclick="closeBuildingForm()">Hủy</button>
+                    <button class="btn-primary" type="submit">Xác nhận</button>
+                </div>
+            </form>
+        </div>
+
+        <div id="residents-tab" style="display: none;">
+            <div class="resident-shell">
+                <div class="resident-header">
+                    <div class="resident-header-left">
+                        <div class="resident-icon">
+                            <i class="fa-solid fa-chart-column"></i>
+                        </div>
+                        <div>
+                            <h2>Cư dân</h2>
+                            <div class="resident-subtitle">Theo bộ lọc đang xem</div>
+                        </div>
+                    </div>
+                    <button class="resident-detail-btn" type="button" aria-label="Xem chi tiết">
+                        <i class="fa-solid fa-circle-info"></i>
+                        Chi tiết
+                    </button>
+                </div>
+
+                <div class="resident-summary-grid">
+                    <div class="resident-summary-card">
+                        <div>
+                            <div class="resident-summary-main">
+                                <i class="fa-solid fa-user-group"></i>
+                                <span class="resident-summary-value" data-resident-count="active">0</span>
+                            </div>
+                            <span class="resident-summary-label">Khách đang ở</span>
+                        </div>
+                    </div>
+                    <div class="resident-summary-card">
+                        <div>
+                            <div class="resident-summary-main">
+                                <i class="fa-solid fa-right-left resident-summary-icon-warning"></i>
+                                <span class="resident-summary-value" data-resident-count="left">0</span>
+                            </div>
+                            <span class="resident-summary-label">Mới vào 30 ngày</span>
+                        </div>
+                    </div>
+                    <div class="resident-summary-card">
+                        <div>
+                            <div class="resident-summary-main">
+                                <i class="fa-solid fa-xmark resident-summary-icon-danger"></i>
+                                <span class="resident-summary-value" data-resident-count="expired">0</span>
+                            </div>
+                            <span class="resident-summary-label">HĐ hết hạn trong 30 ngày</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="resident-tab-switch">
+                    <button class="resident-tab active" type="button" data-tab="active">
+                        <span>Đang ở</span>
+                        <span class="resident-badge">0</span>
+                    </button>
+                    <button class="resident-tab" type="button" data-tab="moved-out">
+                        <span>Đã chuyển đi</span>
+                        <span class="resident-badge">0</span>
+                    </button>
+                    <button class="resident-tab" type="button" data-tab="visitor">
+                        <span>Khách vãng lai</span>
+                        <span class="resident-badge">0</span>
+                    </button>
+                </div>
+            </div>
+
+            <div class="resident-empty-state" id="residentEmptyState">
+                <div class="resident-empty-illustration" aria-hidden="true">
+                    <div class="person"></div>
+                    <div class="person"></div>
+                    <div class="person"></div>
+                </div>
+                <h3>Chưa có khách hàng nào</h3>
+                <p>Nhấn nút thêm để thêm khách hàng, hoặc<br>đổi tab và bộ lọc.</p>
+            </div>
+
+            <div id="residentList" class="resident-list" aria-live="polite"></div>
+
+            <button class="resident-fab" type="button" id="residentAddButton" aria-label="Thêm khách hàng">
+                <i class="fas fa-plus"></i>
+            </button>
+        </div>
+
+        <div id="residentFormModal" class="resident-form-modal" aria-hidden="true">
+            <div class="resident-form-panel" role="dialog" aria-modal="true" aria-labelledby="residentFormTitle">
+                <div class="resident-form-header">
+                    <h3 id="residentFormTitle">Thêm khách hàng mới</h3>
+                    <button class="resident-form-close" type="button" aria-label="Đóng" onclick="closeResidentForm()">×</button>
+                </div>
+
+                <form id="residentForm" onsubmit="saveResident(event)">
+                    <div class="resident-form-section">
+                        <h4>THÔNG TIN CĂN CƯỚC</h4>
+                        <div class="resident-form-grid">
+                            <div class="resident-field">
+                                <label for="residentIdFront">CCCD (mặt trước)</label>
+                                <input id="residentIdFront" name="residentIdFront" type="file" accept="image/*">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentIdBack">CCCD (mặt sau)</label>
+                                <input id="residentIdBack" name="residentIdBack" type="file" accept="image/*">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentFullName">Họ và tên <span class="required">*</span></label>
+                                <input id="residentFullName" name="residentFullName" type="text" required>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentPhone">Số điện thoại <span class="required">*</span></label>
+                                <input id="residentPhone" name="residentPhone" type="tel" required>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentEmail">Email</label>
+                                <input id="residentEmail" name="residentEmail" type="email">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentDob">Ngày sinh</label>
+                                <input id="residentDob" name="residentDob" type="date">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentGender">Giới tính</label>
+                                <select id="residentGender" name="residentGender">
+                                    <option value="">-- Chọn --</option>
+                                    <option value="Nam">Nam</option>
+                                    <option value="Nữ">Nữ</option>
+                                    <option value="Khác">Khác</option>
+                                </select>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentCitizenId">Số CMMD/CCCD</label>
+                                <input id="residentCitizenId" name="residentCitizenId" type="text">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentIssueDate">Ngày cấp</label>
+                                <input id="residentIssueDate" name="residentIssueDate" type="date">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resident-form-section">
+                        <div class="resident-form-compact-header">ĐỊA CHỈ CHI TIẾT</div>
+                        <div class="resident-form-grid single-column">
+                            <div class="resident-field">
+                                <label for="residentProvince">Tỉnh/Thành phố</label>
+                                <select id="residentProvince" name="residentProvince">
+                                    <option value="">Chọn tỉnh/Thành phố</option>
+                                    <option value="Hà Nội">Hà Nội</option>
+                                    <option value="TP. Hồ Chí Minh">TP. Hồ Chí Minh</option>
+                                    <option value="Đà Nẵng">Đà Nẵng</option>
+                                </select>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentWard">Xã/Phường</label>
+                                <select id="residentWard" name="residentWard">
+                                    <option value="">Chọn xã/phường</option>
+                                    <option value="Phường 1">Phường 1</option>
+                                    <option value="Phường 2">Phường 2</option>
+                                    <option value="Phường 3">Phường 3</option>
+                                </select>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentAddress">Địa chỉ chi tiết</label>
+                                <input id="residentAddress" name="residentAddress" type="text" placeholder="Địa chỉ chi tiết">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentCurrentAddress">Nơi ở hiện tại</label>
+                                <input id="residentCurrentAddress" name="residentCurrentAddress" type="text" placeholder="Nơi ở hiện tại">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentPermanentAddress">Nơi thường trú</label>
+                                <input id="residentPermanentAddress" name="residentPermanentAddress" type="text" placeholder="Nơi thường trú">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentTemporaryAddress">Nơi tạm trú</label>
+                                <input id="residentTemporaryAddress" name="residentTemporaryAddress" type="text" placeholder="Nơi tạm trú">
+                            </div>
+                        </div>
+
+                        <div style="margin-top: 1rem; color: #4b5563; font-size: 0.95rem; line-height: 1.5;">
+                            Thường trú, tạm trú và chỗ ở hiện tại được dùng cho CT01, tách riêng với địa chỉ liên hệ ở trên. Thay đổi chỉ cần báo cáo lại cho ngân hàng nếu cần.
+                        </div>
+                    </div>
+
+                    <div class="resident-form-section">
+                        <div class="resident-form-compact-header">THÔNG TIN BỔ SUNG</div>
+                        <div class="resident-form-grid single-column">
+                            <div class="resident-field">
+                                <label for="residentCustomerType">Loại khách hàng</label>
+                                <select id="residentCustomerType" name="residentCustomerType">
+                                    <option value="">Loại khách hàng</option>
+                                    <option value="Căn hộ đẹp">Căn hộ đẹp</option>
+                                    <option value="Khách vãng lai">Khách vãng lai</option>
+                                    <option value="Khách thời vụ">Khách thời vụ</option>
+                                    <option value="Khách dài hạn">Khách dài hạn</option>
+                                    <option value="Khách mới">Khách mới</option>
+                                    <option value="VIP">VIP</option>
+                                </select>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentMoveInDate">Thời gian đăng ký vào ở</label>
+                                <input id="residentMoveInDate" name="residentMoveInDate" type="date">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentNotes">Ghi chú</label>
+                                <input id="residentNotes" name="residentNotes" type="text" placeholder="Ghi chú">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentConsultantName">Tên tư vấn viên</label>
+                                <input id="residentConsultantName" name="residentConsultantName" type="text" placeholder="Tên tư vấn viên">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentConsultantPhone">SĐT tư vấn viên</label>
+                                <input id="residentConsultantPhone" name="residentConsultantPhone" type="tel" placeholder="SĐT tư vấn viên">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentContactName">Người liên lạc</label>
+                                <input id="residentContactName" name="residentContactName" type="text" placeholder="Người liên lạc">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentContactPhone">SĐT người liên lạc</label>
+                                <input id="residentContactPhone" name="residentContactPhone" type="tel" placeholder="SĐT người liên lạc">
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentFingerprintCode">Mã vân tay cửa ra vào</label>
+                                <input id="residentFingerprintCode" name="residentFingerprintCode" type="text" placeholder="Mã vân tay cửa ra vào">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resident-form-section">
+                        <div class="resident-inline-row">
+                            <h4 style="margin: 0;">Khách nước ngoài</h4>
+                            <div class="resident-toggle-wrap">
+                                <span class="resident-toggle-label" id="residentForeignerToggleLabel">Không</span>
+                                <input class="resident-toggle" id="residentIsForeigner" name="residentIsForeigner" type="checkbox">
+                            </div>
+                        </div>
+
+                        <div id="residentForeignerFields" style="display: none;">
+                            <div class="resident-form-grid">
+                                <div class="resident-field">
+                                    <label for="residentNationality">Quốc tịch</label>
+                                    <input id="residentNationality" name="residentNationality" type="text">
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentPassportNo">Số hộ chiếu</label>
+                                    <input id="residentPassportNo" name="residentPassportNo" type="text">
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentPassportType">Loại hộ chiếu</label>
+                                    <select id="residentPassportType" name="residentPassportType">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="Thường">Thường</option>
+                                        <option value="Dịch vụ">Dịch vụ</option>
+                                        <option value="Công vụ">Công vụ</option>
+                                    </select>
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentPassportExpiry">Ngày hết hạn</label>
+                                    <input id="residentPassportExpiry" name="residentPassportExpiry" type="date">
+                                </div>
+                                <div class="resident-field full-width">
+                                    <label for="residentPassportPhoto">Ảnh hộ chiếu</label>
+                                    <input id="residentPassportPhoto" name="residentPassportPhoto" type="file" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resident-form-section resident-vehicle-wrap">
+                        <div class="resident-vehicle-header">
+                            <h4 class="resident-vehicle-title" style="margin: 0;">PHƯƠNG TIỆN</h4>
+                            <button class="resident-vehicle-add" type="button" id="residentVehicleAddButton">Thêm</button>
+                        </div>
+
+                        <div class="resident-vehicle-empty" id="residentVehicleEmptyState">Không có dữ liệu trả về</div>
+
+                        <div class="resident-vehicle-form" id="residentVehicleFormFields">
+                            <div class="resident-form-grid">
+                                <div class="resident-field">
+                                    <label for="residentVehicleType">Loại xe</label>
+                                    <select id="residentVehicleType" name="residentVehicleType">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="Ô tô">Ô tô</option>
+                                        <option value="Ô tô điện">Ô tô điện</option>
+                                        <option value="Xe máy">Xe máy</option>
+                                        <option value="Xe máy điện">Xe máy điện</option>
+                                        <option value="Xe đạp">Xe đạp</option>
+                                    </select>
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentVehicleLine">Tên dòng xe</label>
+                                    <input id="residentVehicleLine" name="residentVehicleLine" type="text">
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentPlateNumber">Biển số xe</label>
+                                    <input id="residentPlateNumber" name="residentPlateNumber" type="text">
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentVehicleColor">Màu sắc xe</label>
+                                    <input id="residentVehicleColor" name="residentVehicleColor" type="text">
+                                </div>
+                                <div class="resident-field">
+                                    <label for="residentVehicleTicket">Vé xe</label>
+                                    <select id="residentVehicleTicket" name="residentVehicleTicket">
+                                        <option value="">-- Chọn --</option>
+                                        <option value="Có">Có</option>
+                                        <option value="Không">Không</option>
+                                    </select>
+                                </div>
+                                <div class="resident-field full-width">
+                                    <label for="residentVehiclePhoto">Ảnh xe</label>
+                                    <input id="residentVehiclePhoto" name="residentVehiclePhoto" type="file" accept="image/*">
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+
+                    <div class="resident-form-actions">
+                        <button class="resident-btn-secondary" type="button" onclick="closeResidentForm()">Hủy</button>
+                        <button class="resident-btn-primary" type="submit">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="residentMoveOutModal" class="resident-form-modal" aria-hidden="true">
+            <div class="resident-form-panel" role="dialog" aria-modal="true" aria-labelledby="residentMoveOutTitle">
+                <div class="resident-form-header">
+                    <h3 id="residentMoveOutTitle">Chuyển đi</h3>
+                    <button class="resident-form-close" type="button" aria-label="Đóng" onclick="closeResidentMoveOutForm()">×</button>
+                </div>
+
+                <form id="residentMoveOutForm" onsubmit="saveResidentMoveOut(event)">
+                    <input id="residentMoveOutId" name="residentMoveOutId" type="hidden">
+
+                    <div class="resident-form-section">
+                        <div class="resident-form-grid single-column">
+                            <div class="resident-field">
+                                <label for="residentMoveOutName">Khách hàng</label>
+                                <input id="residentMoveOutName" name="residentMoveOutName" type="text" readonly>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentMoveOutDate">Ngày chuyển đi <span class="required">*</span></label>
+                                <input id="residentMoveOutDate" name="residentMoveOutDate" type="date" required>
+                            </div>
+                            <div class="resident-field">
+                                <label for="residentMoveOutNote">Ghi chú</label>
+                                <textarea id="residentMoveOutNote" name="residentMoveOutNote" rows="4" placeholder="Nhập ghi chú về việc chuyển đi"></textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="resident-form-actions">
+                        <button class="resident-btn-secondary" type="button" onclick="closeResidentMoveOutForm()">Hủy</button>
+                        <button class="resident-btn-primary" type="submit">Xác nhận</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <div id="invoices-tab" style="display: none;">
+            <div class="card">
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Hóa đơn và thanh toán</h2>
+                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung hóa đơn sẽ hiển thị ở đây</p>
+            </div>
+        </div>
 
         <div id="support-tab" style="display: none;">
             <div class="card">
@@ -1395,21 +2817,570 @@
             });
         }
 
-        // Switch Tab Function
-        const TAB_RENDERERS = {
-            buildings: () => RHUI.renderBuildingsTab(),
-            apartments: () => RHUI.renderApartmentsTab(),
-            customers: () => RHUI.renderCustomersTab(),
-            meters: () => RHUI.renderMetersTab(),
-            contracts: () => RHUI.renderContractsTab(),
-            invoices: () => RHUI.renderInvoicesTab()
+        const editableStats = {
+            buildings: { label: 'Tòa nhà' },
+            rooms: { label: 'Tổng phòng' },
+            vacantRooms: { label: 'Phòng trống' }
         };
+        let activeStatKey = null;
+        let activeBuildingId = null;
 
-        function switchTab(tabName, evt) {
-            if (tabName === 'settings' && RH_IS_DEMO) {
-                alert('Cấu hình tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
+        function getBuildings() {
+            return JSON.parse(localStorage.getItem('residentHubBuildings') || '[]');
+        }
+
+        function saveBuildings(buildings) {
+            localStorage.setItem('residentHubBuildings', JSON.stringify(buildings));
+        }
+
+        function openBuildingList() {
+            switchTab('buildings');
+            renderBuildings();
+        }
+
+        function handleBuildingCardKeydown(event) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openBuildingList();
+            }
+        }
+
+        function openBuildingForm() {
+            activeBuildingId = null;
+            document.getElementById('buildingFormTitle').textContent = 'Thêm thông tin tòa nhà';
+            document.querySelector('#buildingFormModal form').reset();
+            document.getElementById('buildingActive').checked = true;
+            updateBuildingActiveLabel();
+            document.getElementById('buildingFormModal').classList.add('is-open');
+            document.getElementById('buildingName').focus();
+        }
+
+        function openBuildingEdit(buildingId) {
+            const building = getBuildings().find(item => item.id === buildingId);
+            if (!building) return;
+
+            activeBuildingId = buildingId;
+            document.getElementById('buildingFormTitle').textContent = 'Chỉnh sửa thông tin tòa nhà';
+            document.getElementById('buildingName').value = building.name || '';
+            document.getElementById('buildingCode').value = building.code || '';
+            document.getElementById('buildingProvince').value = building.province || '';
+            document.getElementById('buildingWard').value = building.ward || '';
+            document.getElementById('buildingAddress').value = building.address || '';
+            document.getElementById('buildingService').value = building.service || '';
+            document.getElementById('buildingDebtAccount').value = building.debtAccount || '';
+            document.getElementById('buildingInvoiceTemplate').value = building.invoiceTemplate || '';
+            document.getElementById('buildingContractTemplate').value = building.contractTemplate || '';
+            document.getElementById('buildingAccount').value = building.account || '';
+            document.getElementById('buildingActive').checked = building.active !== false;
+            updateBuildingActiveLabel();
+            document.getElementById('buildingFormModal').classList.add('is-open');
+            document.getElementById('buildingName').focus();
+        }
+
+        function handleBuildingItemKeydown(event, buildingId) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openBuildingEdit(buildingId);
+            }
+        }
+
+        function closeBuildingForm() {
+            document.getElementById('buildingFormModal').classList.remove('is-open');
+            activeBuildingId = null;
+        }
+
+        function closeBuildingFormOnBackdrop(event) {
+            if (event.target.id === 'buildingFormModal') closeBuildingForm();
+        }
+
+        function deleteBuilding(event, buildingId, buildingName) {
+            event.stopPropagation();
+            if (!confirm(`Bạn có chắc chắn muốn xóa tòa nhà "${buildingName}"?`)) return;
+
+            const buildings = getBuildings().filter(building => building.id !== buildingId);
+            saveBuildings(buildings);
+            renderBuildings();
+            updateBuildingCount();
+        }
+
+        function updateBuildingActiveLabel() {
+            const active = document.getElementById('buildingActive').checked;
+            const label = document.getElementById('buildingActiveLabel');
+            label.textContent = active ? 'Đang hoạt động' : 'Không hoạt động';
+            label.style.color = active ? 'var(--success)' : '#64748b';
+        }
+
+        function saveBuilding(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const building = {
+                id: activeBuildingId || Date.now(),
+                name: formData.get('buildingName').trim(),
+                code: formData.get('buildingCode').trim(),
+                province: formData.get('buildingProvince').trim(),
+                ward: formData.get('buildingWard').trim(),
+                address: formData.get('buildingAddress').trim(),
+                service: formData.get('buildingService').trim(),
+                debtAccount: formData.get('buildingDebtAccount').trim(),
+                invoiceTemplate: formData.get('buildingInvoiceTemplate').trim(),
+                contractTemplate: formData.get('buildingContractTemplate').trim(),
+                account: formData.get('buildingAccount').trim(),
+                active: document.getElementById('buildingActive').checked
+            };
+            const buildings = getBuildings();
+            const existingIndex = buildings.findIndex(item => item.id === activeBuildingId);
+            if (existingIndex >= 0) {
+                buildings[existingIndex] = building;
+            } else {
+                buildings.push(building);
+            }
+            saveBuildings(buildings);
+            closeBuildingForm();
+            renderBuildings();
+            updateBuildingCount();
+        }
+
+        function renderBuildings() {
+            const list = document.getElementById('buildingList');
+            if (!list) return;
+            const buildings = getBuildings();
+            if (!buildings.length) {
+                list.innerHTML = '<div class="building-empty"><i class="fas fa-building"></i><h3>Chưa có tòa nhà nào</h3><p>Nhấn nút Thêm tòa nhà để đăng ký tòa nhà đầu tiên.</p></div>';
                 return;
             }
+            list.innerHTML = buildings.map(building => `<article class="building-item" role="button" tabindex="0" onclick="openBuildingEdit(${building.id})" onkeydown="handleBuildingItemKeydown(event, ${building.id})"><div><h3>${escapeBuildingText(building.name)} <span style="color: #94a3b8; font-size: 0.75rem;">(${escapeBuildingText(building.code)})</span></h3><p>${escapeBuildingText(building.address)}, ${escapeBuildingText(building.ward)}, ${escapeBuildingText(building.province)}</p></div><div class="building-item-actions"><span class="building-status ${building.active ? 'active' : 'inactive'}">${building.active ? 'Đang hoạt động' : 'Không hoạt động'}</span><button class="building-delete-button" type="button" title="Xóa tòa nhà" aria-label="Xóa ${escapeBuildingText(building.name)}" onclick="deleteBuilding(event, ${building.id}, '${escapeBuildingText(building.name)}')"><i class="fas fa-trash"></i></button></div></article>`).join('');
+        }
+
+        function getResidents() {
+            return JSON.parse(localStorage.getItem('residentHubResidents') || '[]');
+        }
+
+        function saveResidents(residents) {
+            localStorage.setItem('residentHubResidents', JSON.stringify(residents));
+        }
+
+        function formatResidentName(resident) {
+            return resident.residentFullName || resident.fullName || resident.name || 'Khách hàng mới';
+        }
+
+        function getResidentStatus(resident) {
+            return resident && resident.status === 'Đã chuyển đi' ? 'Đã chuyển đi' : 'Đang ở';
+        }
+
+        function isVisitorResident(resident) {
+            const customerType = resident.residentCustomerType || resident.customerType || '';
+            return ['Khách vãng lai', 'Khách thời vụ'].includes(customerType);
+        }
+
+        function getResidentMoveInCount(residents) {
+            const now = new Date();
+            return residents.filter((resident) => {
+                if (getResidentStatus(resident) !== 'Đang ở') return false;
+                const value = resident.residentMoveInDate || resident.moveInDate || resident.checkInDate;
+                if (!value) return false;
+                const date = new Date(value);
+                if (Number.isNaN(date.getTime())) return false;
+                const diffDays = (now.getTime() - date.getTime()) / (1000 * 60 * 60 * 24);
+                return diffDays >= 30;
+            }).length;
+        }
+
+        function getResidentTabData() {
+            const residents = getResidents();
+            return {
+                all: residents,
+                active: residents.filter(resident => getResidentStatus(resident) === 'Đang ở'),
+                movedOut: residents.filter(resident => getResidentStatus(resident) === 'Đã chuyển đi')
+            };
+        }
+
+        function renderResidents(tabName = 'active') {
+            const emptyState = document.getElementById('residentEmptyState');
+            const list = document.getElementById('residentList');
+            const residents = getResidents();
+            const activeResidents = residents.filter(resident => getResidentStatus(resident) === 'Đang ở');
+            const movedOutResidents = residents.filter(resident => getResidentStatus(resident) === 'Đã chuyển đi');
+            const visitorResidents = activeResidents.filter(isVisitorResident);
+            const newIn30DaysCount = getResidentMoveInCount(residents);
+
+            document.querySelectorAll('[data-resident-count="active"]').forEach(element => {
+                element.textContent = activeResidents.length.toLocaleString('vi-VN');
+            });
+            document.querySelectorAll('[data-resident-count="left"]').forEach(element => {
+                element.textContent = newIn30DaysCount.toLocaleString('vi-VN');
+            });
+            document.querySelectorAll('[data-resident-count="expired"]').forEach(element => {
+                element.textContent = '0';
+            });
+
+            const badges = document.querySelectorAll('.resident-tab .resident-badge');
+            badges.forEach((badge, index) => {
+                const value = index === 0 ? activeResidents.length : index === 1 ? movedOutResidents.length : visitorResidents.length;
+                badge.textContent = value.toLocaleString('vi-VN');
+            });
+
+            if (!list || !emptyState) return;
+
+            const filteredResidents = tabName === 'moved-out'
+                ? movedOutResidents
+                : tabName === 'visitor'
+                    ? visitorResidents
+                    : activeResidents;
+
+            if (!filteredResidents.length) {
+                emptyState.style.display = 'flex';
+                list.style.display = 'none';
+                list.innerHTML = '';
+                emptyState.querySelector('h3').textContent = tabName === 'visitor' ? 'Chưa có khách vãng lai nào' : 'Chưa có khách hàng nào';
+                return;
+            }
+
+            emptyState.style.display = 'none';
+            emptyState.querySelector('h3').textContent = 'Chưa có khách hàng nào';
+            list.style.display = 'grid';
+            list.innerHTML = filteredResidents.map((resident) => {
+                const fullName = formatResidentName(resident);
+                const phone = resident.residentPhone || resident.phone || 'Chưa cập nhật';
+                const customerType = resident.residentCustomerType || 'Khách mới';
+                const address = resident.residentCurrentAddress || resident.residentAddress || 'Chưa có địa chỉ';
+                const moveInDate = resident.residentMoveInDate || resident.moveInDate || resident.checkInDate;
+                const moveInLabel = moveInDate ? new Date(moveInDate).toLocaleDateString('vi-VN') : 'Chưa có ngày';
+                const status = getResidentStatus(resident);
+                const statusClass = status === 'Đã chuyển đi' ? 'moved-out' : '';
+                const actionButton = status === 'Đang ở'
+                    ? `<button class="resident-item-quick-action" type="button" title="Chuyển đi" aria-label="Chuyển đi ${escapeBuildingText(fullName)}" onclick="openResidentMoveOutForm(${resident.id ?? 0})">Chuyển đi</button>`
+                    : `<button class="resident-item-quick-action secondary" type="button" title="Đặt lại đang ở" aria-label="Đặt lại đang ở ${escapeBuildingText(fullName)}" onclick="markResidentActive(${resident.id ?? 0})">Đang ở</button>`;
+                return `
+                    <article class="resident-item" data-resident-id="${resident.id ?? ''}">
+                        <div class="resident-item-header">
+                            <h4 class="resident-item-name">${escapeBuildingText(fullName)}</h4>
+                            <span class="resident-item-status ${statusClass}">${escapeBuildingText(status)}</span>
+                        </div>
+                        <p class="resident-item-meta"><strong>SĐT:</strong> ${escapeBuildingText(phone)}</p>
+                        <p class="resident-item-meta"><strong>Loại:</strong> ${escapeBuildingText(customerType)}</p>
+                        <p class="resident-item-meta"><strong>Địa chỉ:</strong> ${escapeBuildingText(address)}</p>
+                        <p class="resident-item-meta"><strong>Ngày vào ở:</strong> ${escapeBuildingText(moveInLabel)}</p>
+                        <div class="resident-item-actions">
+                            <button class="resident-item-action" type="button" title="Chỉnh sửa" aria-label="Chỉnh sửa ${escapeBuildingText(fullName)}" onclick="editResident(${resident.id ?? 0})"><i class="fas fa-pen"></i></button>
+                            ${actionButton}
+                            <button class="resident-item-action delete" type="button" title="Xóa" aria-label="Xóa ${escapeBuildingText(fullName)}" onclick="deleteResident(${resident.id ?? 0})"><i class="fas fa-trash"></i></button>
+                        </div>
+                    </article>
+                `;
+            }).join('');
+        }
+
+        function editResident(residentId) {
+            const resident = getResidents().find(item => String(item.id) === String(residentId));
+            if (!resident) return;
+
+            const form = document.getElementById('residentForm');
+            const modal = document.getElementById('residentFormModal');
+            if (!form || !modal) return;
+
+            const fields = [
+                ['residentFullName', resident.residentFullName],
+                ['residentPhone', resident.residentPhone],
+                ['residentEmail', resident.residentEmail],
+                ['residentDob', resident.residentDob],
+                ['residentGender', resident.residentGender],
+                ['residentCitizenId', resident.residentCitizenId],
+                ['residentIssueDate', resident.residentIssueDate],
+                ['residentProvince', resident.residentProvince],
+                ['residentWard', resident.residentWard],
+                ['residentAddress', resident.residentAddress],
+                ['residentCurrentAddress', resident.residentCurrentAddress],
+                ['residentPermanentAddress', resident.residentPermanentAddress],
+                ['residentTemporaryAddress', resident.residentTemporaryAddress],
+                ['residentCustomerType', resident.residentCustomerType],
+                ['residentMoveInDate', resident.residentMoveInDate],
+                ['residentNotes', resident.residentNotes],
+                ['residentConsultantName', resident.residentConsultantName],
+                ['residentConsultantPhone', resident.residentConsultantPhone],
+                ['residentContactName', resident.residentContactName],
+                ['residentContactPhone', resident.residentContactPhone],
+                ['residentFingerprintCode', resident.residentFingerprintCode],
+                ['residentNationality', resident.residentNationality],
+                ['residentPassportNo', resident.residentPassportNo],
+                ['residentPassportType', resident.residentPassportType],
+                ['residentPassportExpiry', resident.residentPassportExpiry],
+                ['residentVehicleType', resident.residentVehicleType],
+                ['residentVehicleLine', resident.residentVehicleLine],
+                ['residentPlateNumber', resident.residentPlateNumber],
+                ['residentVehicleColor', resident.residentVehicleColor],
+                ['residentVehicleTicket', resident.residentVehicleTicket]
+            ];
+
+            fields.forEach(([fieldName, value]) => {
+                const element = document.getElementById(fieldName);
+                if (element) element.value = value || '';
+            });
+
+            const foreignToggle = document.getElementById('residentIsForeigner');
+            if (foreignToggle) {
+                foreignToggle.checked = !!resident.isForeigner;
+                updateForeignerFields();
+            }
+
+            form.dataset.editingResidentId = String(residentId);
+            document.getElementById('residentFormTitle').textContent = 'Chỉnh sửa thông tin khách hàng';
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function openResidentMoveOutForm(residentId) {
+            const resident = getResidents().find(item => String(item.id) === String(residentId));
+            if (!resident) return;
+
+            const modal = document.getElementById('residentMoveOutModal');
+            const hiddenInput = document.getElementById('residentMoveOutId');
+            const nameInput = document.getElementById('residentMoveOutName');
+            const dateInput = document.getElementById('residentMoveOutDate');
+            const noteInput = document.getElementById('residentMoveOutNote');
+            if (!modal || !hiddenInput || !nameInput || !dateInput || !noteInput) return;
+
+            hiddenInput.value = String(residentId);
+            nameInput.value = formatResidentName(resident);
+            dateInput.value = new Date().toISOString().slice(0, 10);
+            noteInput.value = resident.moveOutNote || '';
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            dateInput.focus();
+        }
+
+        function closeResidentMoveOutForm() {
+            const modal = document.getElementById('residentMoveOutModal');
+            const form = document.getElementById('residentMoveOutForm');
+            if (modal) {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+            if (form) form.reset();
+        }
+
+        function saveResidentMoveOut(event) {
+            event.preventDefault();
+            const form = event.target;
+            const residentId = document.getElementById('residentMoveOutId')?.value;
+            const date = document.getElementById('residentMoveOutDate')?.value;
+            const note = document.getElementById('residentMoveOutNote')?.value || '';
+            if (!residentId || !date) return;
+
+            const residents = getResidents();
+            const resident = residents.find(item => String(item.id) === String(residentId));
+            if (!resident) return;
+
+            resident.status = 'Đã chuyển đi';
+            resident.moveOutDate = date;
+            resident.moveOutNote = note;
+            saveResidents(residents);
+            closeResidentMoveOutForm();
+            renderResidents(activeResidentTab || 'active');
+        }
+
+        function markResidentLeft(residentId) {
+            openResidentMoveOutForm(residentId);
+        }
+
+        function markResidentActive(residentId) {
+            const residents = getResidents();
+            const resident = residents.find(item => String(item.id) === String(residentId));
+            if (!resident) return;
+            resident.status = 'Đang ở';
+            resident.moveOutDate = '';
+            resident.moveOutNote = '';
+            saveResidents(residents);
+            renderResidents('moved-out');
+        }
+
+        function deleteResident(residentId) {
+            const residents = getResidents().filter(item => String(item.id) !== String(residentId));
+            saveResidents(residents);
+            renderResidents(activeResidentTab || 'active');
+        }
+
+        function openResidentForm() {
+            const modal = document.getElementById('residentFormModal');
+            if (!modal) return;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+            const fullNameInput = document.getElementById('residentFullName');
+            if (fullNameInput) setTimeout(() => fullNameInput.focus(), 50);
+        }
+
+        function closeResidentForm() {
+            const modal = document.getElementById('residentFormModal');
+            const form = document.getElementById('residentForm');
+            if (modal) {
+                modal.classList.remove('is-open');
+                modal.setAttribute('aria-hidden', 'true');
+            }
+            if (form) {
+                form.reset();
+                delete form.dataset.editingResidentId;
+                document.getElementById('residentFormTitle').textContent = 'Thêm khách hàng mới';
+            }
+        }
+
+        function closeResidentFormOnBackdrop(event) {
+            if (event.target.id === 'residentFormModal') closeResidentForm();
+        }
+
+        function closeResidentMoveOutFormOnBackdrop(event) {
+            if (event.target.id === 'residentMoveOutModal') closeResidentMoveOutForm();
+        }
+
+        function saveResident(event) {
+            event.preventDefault();
+            const formData = new FormData(event.target);
+            const resident = Object.fromEntries(formData.entries());
+            const editingId = event.target.dataset.editingResidentId ? Number(event.target.dataset.editingResidentId) : null;
+            resident.id = editingId || Date.now();
+            resident.isForeigner = document.getElementById('residentIsForeigner')?.checked || false;
+            resident.status = 'Đang ở';
+            resident.customerType = resident.residentCustomerType || 'Khách mới';
+            resident.residentMoveInDate = resident.residentMoveInDate || resident.moveInDate || '';
+            const residents = getResidents();
+            if (editingId) {
+                const index = residents.findIndex(item => String(item.id) === String(editingId));
+                if (index >= 0) residents[index] = resident;
+            } else {
+                residents.push(resident);
+            }
+            saveResidents(residents);
+            renderResidents();
+            closeResidentForm();
+        }
+
+        function updateForeignerFields() {
+            const toggle = document.getElementById('residentIsForeigner');
+            const fields = document.getElementById('residentForeignerFields');
+            const label = document.getElementById('residentForeignerToggleLabel');
+            if (!toggle || !fields || !label) return;
+            const isOn = toggle.checked;
+            fields.style.display = isOn ? 'block' : 'none';
+            label.textContent = isOn ? 'Có' : 'Không';
+            label.style.color = isOn ? '#0f766e' : '#42516a';
+        }
+
+        function toggleVehicleForm() {
+            const vehicleFields = document.getElementById('residentVehicleFormFields');
+            const emptyState = document.getElementById('residentVehicleEmptyState');
+            if (!vehicleFields || !emptyState) return;
+            const isVisible = vehicleFields.style.display === 'block';
+            vehicleFields.style.display = isVisible ? 'none' : 'block';
+            emptyState.style.display = isVisible ? 'flex' : 'none';
+        }
+
+        let activeResidentTab = 'active';
+
+        document.addEventListener('DOMContentLoaded', function () {
+            const modal = document.getElementById('residentFormModal');
+            const moveOutModal = document.getElementById('residentMoveOutModal');
+            const addButton = document.getElementById('residentAddButton');
+            const foreignerToggle = document.getElementById('residentIsForeigner');
+            const vehicleAddButton = document.getElementById('residentVehicleAddButton');
+            const residentTabs = document.querySelectorAll('.resident-tab');
+            if (modal) {
+                modal.addEventListener('click', closeResidentFormOnBackdrop);
+            }
+            if (moveOutModal) {
+                moveOutModal.addEventListener('click', closeResidentMoveOutFormOnBackdrop);
+            }
+            if (addButton) {
+                addButton.addEventListener('click', openResidentForm);
+            }
+            if (foreignerToggle) {
+                foreignerToggle.addEventListener('change', updateForeignerFields);
+                updateForeignerFields();
+            }
+            if (vehicleAddButton) {
+                vehicleAddButton.addEventListener('click', toggleVehicleForm);
+            }
+            residentTabs.forEach((tab) => {
+                tab.addEventListener('click', () => {
+                    activeResidentTab = tab.dataset.tab || 'active';
+                    document.querySelectorAll('.resident-tab').forEach(item => item.classList.toggle('active', item === tab));
+                    renderResidents(activeResidentTab);
+                });
+            });
+            document.querySelectorAll('.resident-tab').forEach((tab, index) => {
+                tab.dataset.tab = index === 0 ? 'active' : index === 1 ? 'moved-out' : 'visitor';
+            });
+            renderResidents(activeResidentTab);
+        });
+
+        function escapeBuildingText(value) {
+            return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+        }
+
+        function updateBuildingCount() {
+            const count = getBuildings().length;
+            document.querySelectorAll('[data-stat-value="buildings"]').forEach(element => {
+                element.textContent = count.toLocaleString('vi-VN');
+            });
+        }
+
+        function openStatUpdate(statKey) {
+            const stat = editableStats[statKey];
+            const valueElement = document.querySelector(`[data-stat-value="${statKey}"]`);
+            if (!stat || !valueElement) return;
+
+            activeStatKey = statKey;
+            document.getElementById('statUpdateTitle').textContent = `Cập nhật ${stat.label.toLowerCase()}`;
+            document.getElementById('statUpdateInput').value = valueElement.textContent.trim();
+            document.getElementById('statUpdateModal').classList.add('is-open');
+            document.getElementById('statUpdateInput').focus();
+        }
+
+        function saveStatUpdate(event) {
+            event.preventDefault();
+            if (!activeStatKey) return;
+
+            const input = document.getElementById('statUpdateInput');
+            const value = Number(input.value);
+            if (!Number.isInteger(value) || value < 0) return;
+
+            document.querySelectorAll(`[data-stat-value="${activeStatKey}"]`).forEach(element => {
+                element.textContent = value.toLocaleString('vi-VN');
+            });
+            const savedStats = JSON.parse(localStorage.getItem('residentHubStats') || '{}');
+            savedStats[activeStatKey] = value;
+            localStorage.setItem('residentHubStats', JSON.stringify(savedStats));
+            closeStatUpdate();
+        }
+
+        function closeStatUpdate() {
+            document.getElementById('statUpdateModal').classList.remove('is-open');
+            activeStatKey = null;
+        }
+
+        function closeStatUpdateOnBackdrop(event) {
+            if (event.target.id === 'statUpdateModal') closeStatUpdate();
+        }
+
+        function handleStatCardKeydown(event, statKey) {
+            if (event.key === 'Enter' || event.key === ' ') {
+                event.preventDefault();
+                openStatUpdate(statKey);
+            }
+        }
+
+        function loadSavedStats() {
+            const savedStats = JSON.parse(localStorage.getItem('residentHubStats') || '{}');
+            Object.keys(editableStats).forEach(statKey => {
+                if (statKey !== 'buildings' && Number.isInteger(savedStats[statKey]) && savedStats[statKey] >= 0) {
+                    document.querySelectorAll(`[data-stat-value="${statKey}"]`).forEach(element => {
+                        element.textContent = savedStats[statKey].toLocaleString('vi-VN');
+                    });
+                }
+            });
+            updateBuildingCount();
+            renderBuildings();
+        }
+
+        // Switch Tab Function
+        function switchTab(tabName, sourceEvent) {
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
             tabs.forEach(tab => tab.style.display = 'none');
@@ -1422,8 +3393,10 @@
             // Update active menu item
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
-            const source = (evt || window.event);
-            if (source && source.target) source.target.closest('.sidebar-menu-item').classList.add('active');
+            const navigationEvent = sourceEvent || window.event;
+            if (navigationEvent && navigationEvent.target && navigationEvent.target.closest('.sidebar-menu-item')) {
+                navigationEvent.target.closest('.sidebar-menu-item').classList.add('active');
+            }
 
             // Update page title
             const titles = {
@@ -1584,6 +3557,7 @@
 
         // Initialize on load
         window.addEventListener('load', function() {
+            loadSavedStats();
             initCharts();
             document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
             renderDashboardData();
