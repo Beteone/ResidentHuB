@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="auth.js"></script>
     <style>
         :root {
             --bg-soft: #f5f8fc;
@@ -350,6 +351,562 @@
             box-shadow: 0 12px 24px rgba(29, 78, 216, 0.18);
         }
 
+        .btn-ghost {
+            background: white;
+            color: #334155;
+            border: 1px solid var(--line);
+            border-radius: 0.9rem;
+            padding: 0.8rem 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-danger {
+            background: #fff5f5;
+            color: #b91c1c;
+            border: 1px solid #fecaca;
+            border-radius: 0.9rem;
+            padding: 0.8rem 1rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .settings-page {
+            padding: 0.25rem 0 0;
+        }
+
+        .settings-shell {
+            display: grid;
+            grid-template-columns: 260px minmax(0, 1fr);
+            gap: 1.5rem;
+            align-items: start;
+        }
+
+        .settings-nav {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 18px;
+            padding: 1rem;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.02);
+            position: sticky;
+            top: 1.5rem;
+        }
+
+        .settings-nav-header {
+            padding: 0 0.5rem 0.8rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .settings-nav-header h2 {
+            margin: 0;
+            font-size: 1.5rem;
+            color: #0f172a;
+        }
+
+        .settings-nav-header p {
+            margin: 0.45rem 0 0;
+            color: #64748b;
+            line-height: 1.5;
+            font-size: 0.78rem;
+        }
+
+        .settings-menu {
+            display: grid;
+            gap: 0.45rem;
+            margin-top: 1rem;
+        }
+
+        .settings-menu-item {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.7rem;
+            padding: 0.82rem 0.8rem;
+            border: 1px solid transparent;
+            border-radius: 12px;
+            background: transparent;
+            color: #475569;
+            text-align: left;
+            font: 600 0.82rem 'Be Vietnam Pro', sans-serif;
+            cursor: pointer;
+            transition: all 0.2s ease;
+        }
+
+        .settings-menu-item:hover {
+            background: #f8fbff;
+            border-color: #e8f0ff;
+            color: #0d65d5;
+        }
+
+        .settings-menu-item.active {
+            background: #eaf3ff;
+            border-color: #d3e7ff;
+            color: #1769e8;
+        }
+
+        .settings-menu-item .left {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .settings-menu-item .arrow {
+            color: #94a3b8;
+            font-size: 0.8rem;
+        }
+
+        .settings-content-panel {
+            background: transparent;
+            min-width: 0;
+        }
+
+        .settings-header-block {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            margin-bottom: 1rem;
+        }
+
+        .settings-header-block h1 {
+            margin: 0;
+            font-size: 2rem;
+            color: #0f172a;
+        }
+
+        .settings-header-block p {
+            margin: 0.4rem 0 0;
+            color: #64748b;
+        }
+
+        .settings-section-stack {
+            display: grid;
+            gap: 1.1rem;
+        }
+
+        .settings-card {
+            background: #ffffff;
+            border: 1px solid var(--line);
+            border-radius: 16px;
+            padding: 1.2rem 1.1rem;
+            box-shadow: 0 10px 20px rgba(15, 23, 42, 0.02);
+        }
+
+        .settings-card h3 {
+            margin: 0 0 0.85rem;
+            font-size: 1.05rem;
+            color: #0f172a;
+        }
+
+        .settings-profile-top {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding-bottom: 1rem;
+            margin-bottom: 1rem;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .settings-profile-avatar {
+            width: 64px;
+            height: 64px;
+            border-radius: 18px;
+            background: linear-gradient(135deg, #dfeeff 0%, #cfe4ff 100%);
+            color: #1769e8;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.5rem;
+        }
+
+        .settings-profile-name {
+            margin: 0;
+            color: #0f172a;
+            font-size: 1.3rem;
+            font-weight: 800;
+        }
+
+        .settings-profile-role {
+            margin: 0.2rem 0 0.6rem;
+            color: #64748b;
+            font-size: 0.82rem;
+        }
+
+        .settings-upload-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            color: #1769e8;
+            font-size: 0.8rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .settings-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .settings-field {
+            display: grid;
+            gap: 0.45rem;
+        }
+
+        .settings-field label {
+            font-size: 0.75rem;
+            color: #64748b;
+            font-weight: 700;
+            letter-spacing: 0.04em;
+            text-transform: uppercase;
+        }
+
+        .settings-field input,
+        .settings-field select,
+        .settings-field textarea {
+            width: 100%;
+            border: 1px solid #dbe5f1;
+            border-radius: 10px;
+            padding: 0.78rem 0.9rem;
+            background: #fff;
+            color: #0f172a;
+            font: 500 0.9rem 'Be Vietnam Pro', sans-serif;
+        }
+
+        .settings-field input[readonly],
+        .settings-field textarea[readonly] {
+            background: #f8fafc;
+            color: #475569;
+        }
+
+        .settings-card-actions {
+            margin-top: 1rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.7rem;
+        }
+
+        .settings-compact-row {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.8rem 0;
+            border-bottom: 1px solid #edf2f7;
+        }
+
+        .settings-compact-row:last-child {
+            border-bottom: none;
+            padding-bottom: 0;
+        }
+
+        .settings-compact-row strong {
+            display: block;
+            color: #0f172a;
+        }
+
+        .settings-compact-row small {
+            display: block;
+            margin-top: 0.25rem;
+            color: #64748b;
+            line-height: 1.5;
+        }
+
+        .toggle-wrap {
+            position: relative;
+            display: inline-flex;
+            align-items: center;
+            width: 46px;
+            height: 28px;
+        }
+
+        .toggle-wrap input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .toggle-slider {
+            position: relative;
+            display: block;
+            width: 46px;
+            height: 28px;
+            background: #dfe7f0;
+            border-radius: 999px;
+            transition: 0.2s ease;
+        }
+
+        .toggle-slider::before {
+            content: '';
+            position: absolute;
+            width: 20px;
+            height: 20px;
+            left: 4px;
+            top: 4px;
+            border-radius: 50%;
+            background: white;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.12);
+            transition: 0.2s ease;
+        }
+
+        .toggle-wrap input:checked + .toggle-slider {
+            background: #1769e8;
+        }
+
+        .toggle-wrap input:checked + .toggle-slider::before {
+            transform: translateX(18px);
+        }
+
+        .settings-theme-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .theme-option {
+            border: 1px solid #dbe5f1;
+            background: #ffffff;
+            border-radius: 14px;
+            padding: 0.8rem;
+            text-align: left;
+            color: #0f172a;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            position: relative;
+        }
+
+        .theme-option.selected {
+            border-color: #93c5fd;
+            background: #f5f9ff;
+            box-shadow: inset 0 0 0 1px rgba(37,99,235,0.10);
+        }
+
+        .theme-option strong {
+            display: block;
+            margin-top: 0.8rem;
+        }
+
+        .theme-option small {
+            display: block;
+            margin-top: 0.2rem;
+            color: #64748b;
+        }
+
+        .theme-preview {
+            height: 96px;
+            border-radius: 10px;
+            background: linear-gradient(135deg, #f8fafc 0%, #eaf2ff 100%);
+            border: 1px solid #e5ebf3;
+        }
+
+        .theme-option[data-theme="dark"] .theme-preview {
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 100%);
+            border-color: #334155;
+        }
+
+        .theme-option[data-theme="system"] .theme-preview {
+            background: linear-gradient(135deg, #f8fafc 0%, #dfeeff 100%);
+        }
+
+        .theme-option.selected::after {
+            content: '✓';
+            position: absolute;
+            right: 0.75rem;
+            top: 0.75rem;
+            width: 22px;
+            height: 22px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #1769e8;
+            color: white;
+            font-size: 0.8rem;
+        }
+
+        .settings-save-bar {
+            position: sticky;
+            bottom: 1rem;
+            margin-top: 1.2rem;
+            background: rgba(15, 23, 42, 0.96);
+            color: white;
+            border-radius: 14px;
+            padding: 0.9rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            box-shadow: 0 16px 40px rgba(15, 23, 42, 0.22);
+            transform: translateY(0);
+            opacity: 1;
+            transition: all 0.2s ease;
+        }
+
+        .settings-save-bar.hidden {
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transform: translateY(10px);
+        }
+
+        .settings-actions-row {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .settings-toast {
+            position: fixed;
+            right: 1.5rem;
+            bottom: 1.5rem;
+            background: #0f172a;
+            color: white;
+            border-radius: 12px;
+            padding: 0.8rem 1rem;
+            box-shadow: 0 18px 36px rgba(15, 23, 42, 0.22);
+            opacity: 0;
+            transform: translateY(14px);
+            pointer-events: none;
+            transition: all 0.2s ease;
+            z-index: 70;
+        }
+
+        .settings-toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .settings-toast.error {
+            background: #b91c1c;
+        }
+
+        .device-private-note {
+            color: #64748b;
+            font-size: 0.82rem;
+            line-height: 1.6;
+        }
+
+        .settings-device-list {
+            display: grid;
+            gap: 0.8rem;
+        }
+
+        .device-item {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 1rem;
+            padding: 0.9rem 0.95rem;
+            border: 1px solid #e7edf5;
+            border-radius: 12px;
+            background: #f8fafc;
+        }
+
+        .device-meta {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+        }
+
+        .device-icon {
+            width: 42px;
+            height: 42px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 12px;
+            background: #eaf3ff;
+            color: #1769e8;
+        }
+
+        .device-item strong {
+            display: block;
+            color: #0f172a;
+        }
+
+        .device-item small {
+            color: #64748b;
+        }
+
+        .device-badge {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            border: 1px solid #d9eafb;
+            background: #eff6ff;
+            color: #1769e8;
+            font-size: 0.7rem;
+            font-weight: 700;
+        }
+
+        .confirm-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.55);
+            display: none;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            z-index: 80;
+        }
+
+        .confirm-modal.open {
+            display: flex;
+        }
+
+        .confirm-panel {
+            width: min(420px, 100%);
+            background: white;
+            border-radius: 18px;
+            border: 1px solid #e5ebf3;
+            padding: 1.5rem;
+            box-shadow: 0 18px 44px rgba(15, 23, 42, 0.18);
+        }
+
+        .confirm-panel h3 {
+            margin: 0 0 0.7rem;
+            color: #0f172a;
+            font-size: 1.35rem;
+        }
+
+        .confirm-panel p {
+            color: #475569;
+            line-height: 1.7;
+        }
+
+        .confirm-actions {
+            margin-top: 1.2rem;
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.7rem;
+        }
+
+        @media (max-width: 980px) {
+            .settings-shell {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-nav {
+                position: static;
+            }
+        }
+
+        @media (max-width: 720px) {
+            .settings-grid,
+            .settings-theme-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .settings-header-block {
+                align-items: flex-start;
+                flex-direction: column;
+            }
+        }
+
         .btn-secondary {
             background: white;
             color: var(--primary-strong);
@@ -359,6 +916,119 @@
             font-weight: 700;
             cursor: pointer;
         }
+
+        .request-dashboard { display: grid; gap: 1rem; }
+        .request-stat-grid { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 1rem; }
+        .request-stat { padding: 1rem; border: 1px solid #d9e6fb; border-radius: 0.9rem; background: linear-gradient(135deg, #f5f9ff, #eaf2ff); }
+        .request-toolbar { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
+        .request-search { flex: 1 1 240px; position: relative; }
+        .request-search i { position: absolute; left: 0.9rem; top: 0.78rem; color: #8ba0bb; }
+        .request-search input, .request-toolbar select, .form-field input, .form-field textarea, .form-field select, .chat-compose input, .chat-compose textarea { width: 100%; border: 1px solid #dbe5f1; border-radius: 0.7rem; padding: 0.78rem 0.9rem; font: inherit; color: var(--ink); background: #fff; }
+        .request-search input { padding-left: 2.4rem; }
+        .request-toolbar select { width: auto; min-width: 145px; }
+        .request-item { cursor: pointer; transition: transform .2s ease, box-shadow .2s ease; }
+        .request-item:hover { transform: translateY(-2px); box-shadow: 0 14px 28px rgba(15, 23, 42, .08); }
+        .request-item-head { display: flex; justify-content: space-between; gap: 1rem; align-items: flex-start; }
+        .request-progress { display: flex; align-items: center; gap: 0.35rem; margin-top: 0.85rem; color: #8ba0bb; font-size: 0.72rem; }
+        .request-progress span { height: 5px; flex: 1; border-radius: 99px; background: #dbe5f1; }
+        .request-progress span.done { background: var(--primary); }
+        .request-empty { text-align: center; padding: 2.5rem 1rem; color: var(--muted); }
+        .history-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--line); }
+        .history-tab { border: 0; background: transparent; padding: 0.7rem 0.9rem; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; }
+        .history-tab.active { color: var(--primary-strong); border-bottom-color: var(--primary); }
+        .modal-backdrop { position: fixed; inset: 0; background: rgba(8, 25, 52, .5); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
+        .modal-backdrop.open { display: flex; }
+        .request-modal { width: min(780px, 100%); max-height: 92vh; overflow: auto; background: white; border-radius: 1.2rem; box-shadow: 0 30px 80px rgba(15, 23, 42, .25); }
+        .modal-head { display: flex; justify-content: space-between; align-items: flex-start; padding: 1.4rem 1.5rem 1rem; border-bottom: 1px solid var(--line); }
+        .modal-close { border: 0; background: #f1f5f9; color: #64748b; width: 34px; height: 34px; border-radius: 50%; cursor: pointer; }
+        .modal-body { padding: 1.35rem 1.5rem; }
+        .step-indicator { display: flex; gap: 0.5rem; margin-bottom: 1.2rem; }
+        .step-indicator span { flex: 1; height: 5px; border-radius: 99px; background: #e2e8f0; }
+        .step-indicator span.active { background: var(--primary); }
+        .category-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+        .category-card { border: 1px solid #dbe5f1; background: #fff; border-radius: 0.85rem; padding: 0.9rem; text-align: left; cursor: pointer; font: inherit; color: var(--ink); }
+        .category-card:hover, .category-card.selected { border-color: var(--primary); background: #eff6ff; box-shadow: 0 8px 18px rgba(37, 99, 235, .1); }
+        .category-card strong { display: block; margin-bottom: 0.25rem; }
+        .category-card small { color: var(--muted); line-height: 1.5; }
+        .form-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 1rem; }
+        .form-field { display: grid; gap: 0.4rem; }
+        .form-field.full { grid-column: 1 / -1; }
+        .form-field label { font-size: 0.82rem; font-weight: 700; color: #475569; }
+        .time-options { display: flex; gap: 0.6rem; flex-wrap: wrap; }
+        .choice-pill { display: flex; align-items: center; gap: 0.35rem; border: 1px solid #dbe5f1; border-radius: 0.7rem; padding: 0.65rem 0.75rem; cursor: pointer; font-size: 0.82rem; }
+        .choice-pill:has(input:checked) { border-color: var(--primary); background: #eff6ff; }
+        .file-drop { border: 1px dashed #9bb8dc; background: #f8fbff; padding: 1rem; border-radius: 0.8rem; color: var(--muted); text-align: center; }
+        .modal-actions { display: flex; justify-content: space-between; gap: 0.75rem; padding-top: 1.2rem; margin-top: 1.2rem; border-top: 1px solid var(--line); }
+        .detail-grid { display: grid; grid-template-columns: 1.1fr 0.9fr; gap: 1.2rem; }
+        .detail-meta { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.75rem; }
+        .meta-box { padding: 0.8rem; border-radius: 0.7rem; background: #f8fafc; border: 1px solid #e2e8f0; }
+        .meta-box small { display: block; color: #64748b; margin-bottom: 0.25rem; }
+        .timeline { position: relative; display: grid; gap: 1rem; padding-left: 1.6rem; }
+        .timeline:before { content: ''; position: absolute; left: 0.35rem; top: 0.3rem; bottom: 0.3rem; width: 2px; background: #dbe5f1; }
+        .timeline-item { position: relative; }
+        .timeline-item:before { content: ''; position: absolute; left: -1.45rem; top: 0.25rem; width: 11px; height: 11px; border-radius: 50%; border: 3px solid white; background: #cbd5e1; box-shadow: 0 0 0 1px #cbd5e1; }
+        .timeline-item.done:before { background: var(--success); box-shadow: 0 0 0 1px var(--success); }
+        .timeline-item.current:before { background: var(--primary); box-shadow: 0 0 0 1px var(--primary); }
+        .timeline-item small { color: #64748b; }
+        .chat-box { display: grid; gap: 0.75rem; margin-top: 1rem; }
+        .message { max-width: 88%; padding: 0.75rem 0.85rem; border-radius: 0.8rem; background: #f1f5f9; color: #334155; }
+        .message.resident { justify-self: end; background: #e8f2ff; }
+        .message small { display: block; color: #64748b; font-size: 0.68rem; margin-bottom: 0.2rem; }
+        .star-rating { display: flex; gap: 0.3rem; font-size: 1.8rem; color: #cbd5e1; cursor: pointer; }
+        .success-state { text-align: center; padding: 2.2rem 1rem; }
+        .success-state i { font-size: 3rem; color: var(--success); margin-bottom: 0.8rem; }
+
+        @media (max-width: 700px) {
+            .request-stat-grid, .detail-grid, .form-grid { grid-template-columns: 1fr; }
+            .category-grid { grid-template-columns: 1fr; }
+            .request-toolbar select { flex: 1; }
+            .detail-meta { grid-template-columns: 1fr; }
+        }
+
+        /* Resident request workspace */
+        .sidebar { width: 240px; background: #0b2344; box-shadow: none; }
+        .main { margin-left: 240px; background: #f6f9fd; min-height: 100vh; }
+        .topbar { border-radius: 16px; box-shadow: none; background: #fff; }
+        .topbar-search { width: min(360px, 48%); min-height: 42px; display: flex; align-items: center; gap: .65rem; padding: 0 .85rem; border: 1px solid #e1e8f1; border-radius: 12px; color: #8a99ac; background: #fbfcfe; }
+        .topbar-search input { min-width: 0; flex: 1; border: 0; outline: 0; background: transparent; color: #102a43; font: inherit; }
+        .topbar-search kbd { padding: .18rem .4rem; border: 1px solid #dce6f2; border-radius: 5px; color: #8a99ac; font-size: .68rem; background: #fff; white-space: nowrap; }
+        .card { border-radius: 18px; box-shadow: none; }
+        .request-workspace { display: grid; gap: 1.25rem; }
+        .request-page-heading { display: flex; align-items: center; gap: .85rem; }
+        .request-heading-icon { width: 44px; height: 44px; display: grid; place-items: center; border-radius: 12px; color: #1769e8; background: #eaf3ff; }
+        .request-stat-grid { gap: .85rem; }
+        .request-stat { background: #fff; border: 1px solid #e5ebf3; border-radius: 14px; padding: 1.1rem 1.2rem; }
+        .request-stat-value { display: flex; align-items: center; justify-content: space-between; }
+        .request-stat-icon { width: 34px; height: 34px; display: grid; place-items: center; border-radius: 10px; color: #1769e8; background: #edf4ff; }
+        .request-toolbar { padding: .8rem; border: 1px solid #e5ebf3; border-radius: 14px; background: #fff; }
+        .request-toolbar select, .request-search input { min-height: 42px; border-color: #e1e8f1; background: #fbfcfe; }
+        .request-table-wrap { overflow-x: auto; border: 1px solid #e5ebf3; border-radius: 14px; background: #fff; }
+        .request-table { min-width: 860px; }
+        .request-table th { padding: .75rem 1rem; background: #fbfcfe; font-size: .7rem; color: #718096; }
+        .request-table td { padding: .9rem 1rem; vertical-align: middle; border-bottom-color: #edf1f6; }
+        .request-table tbody tr { cursor: pointer; transition: background .15s ease; }
+        .request-table tbody tr:hover { background: #f8fbff; }
+        .request-thumb { width: 38px; height: 38px; border-radius: 10px; display: grid; place-items: center; flex: none; color: #1769e8; background: #edf4ff; }
+        .request-title-cell { display: flex; align-items: center; gap: .7rem; min-width: 260px; }
+        .request-title-cell strong { display: block; color: #132238; font-size: .86rem; }
+        .request-title-cell small { display: block; max-width: 290px; margin-top: .2rem; color: #718096; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .request-table .badge { white-space: nowrap; }
+        .request-action { color: #1769e8; border: 1px solid #c9ddfb; background: #fff; border-radius: 8px; padding: .48rem .65rem; font: inherit; font-size: .76rem; font-weight: 700; cursor: pointer; white-space: nowrap; transition: background .2s ease, border-color .2s ease; }
+        .request-action:hover { background: #edf4ff; border-color: #1769e8; }
+        .new-badge { display: inline-block; margin-left: .35rem; padding: .18rem .4rem; border-radius: 5px; color: #1769e8; background: #eaf3ff; font-size: .62rem; font-weight: 700; vertical-align: middle; }
+        .request-pagination { display: flex; align-items: center; justify-content: space-between; padding-top: .9rem; color: #718096; font-size: .8rem; }
+        .pagination-buttons { display: flex; gap: .35rem; }
+        .page-button { min-width: 32px; height: 32px; border: 1px solid #e1e8f1; border-radius: 8px; background: #fff; color: #526174; cursor: pointer; }
+        .page-button.active { background: #1769e8; color: #fff; border-color: #1769e8; }
+        .page-button:disabled { cursor: not-allowed; opacity: .45; }
+        .request-tabs { margin-top: .35rem; }
+        .history-tabs { gap: 1.3rem; }
+        .history-tab { padding: .7rem 0; }
+        .priority-normal { background: #f1f5f9; color: #526174; }
+        .priority-needed { background: #fff7df; color: #a16207; }
+        .priority-urgent { background: #fff0f0; color: #c24141; }
+        @media (max-width: 860px) { .sidebar { width: 100%; } .main { margin-left: 0; } }
+        @media (max-width: 640px) { .topbar-search { width: 100%; } .request-page-heading { align-items: flex-start; } }
 
         @media (max-width: 1100px) {
             .stat-grid { grid-template-columns: repeat(2, minmax(180px, 1fr)); }
@@ -385,39 +1055,101 @@
         }
         .sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-header{border-bottom-color:rgba(255,255,255,.1)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.brand-mark{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.section-label{color:#8fb0d0}.nav-item{border:1px solid transparent;color:#b8cce1}.nav-item:hover{background:rgba(22,131,255,.16);color:#fff}.nav-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.main{background:transparent}.topbar,.card{border-radius:16px}.topbar{padding:1.35rem 1.5rem}.page-title{font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.03em}.icon-btn:hover{background:#eaf3ff;color:#0d65d5}.user-card{border-radius:14px}.avatar{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.2)}.stat-card{min-height:132px}.card:hover{border-color:rgba(22,131,255,.18);box-shadow:0 20px 38px rgba(11,36,71,.08);transform:translateY(-2px)}.card{transition:box-shadow .25s ease,border-color .25s ease,transform .25s ease}[style*="#2563eb"]{color:#1683ff!important}[style*="linear-gradient(90deg, #10b981 0%, #2563eb 100%)"]{background:linear-gradient(90deg,#18a878 0%,#1683ff 100%)!important}
         @media(max-width:768px){.sidebar{box-shadow:10px 0 28px rgba(11,36,71,.2)}}
+
+        /* Notification workspace */
+        .notification-workspace{display:grid;gap:1rem}.notification-head,.notification-tools,.notification-item,.notification-drawer-head{display:flex;align-items:center;justify-content:space-between;gap:1rem}.notification-head{align-items:flex-start}.notification-head h1{margin:0;color:#10213c;font:800 1.7rem 'Plus Jakarta Sans',sans-serif;letter-spacing:-.035em}.notification-head p{margin:.35rem 0 0;color:#718096;font-size:.85rem}.notification-actions,.notification-buttons,.notification-side-actions{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}.notification-button{border:1px solid #dbe5f1;border-radius:10px;padding:.65rem .85rem;background:#fff;color:#526174;font:inherit;font-size:.78rem;font-weight:700;cursor:pointer}.notification-button.primary{border-color:#1769e8;background:#1769e8;color:#fff}.notification-button:hover{border-color:#1769e8;color:#1769e8}.notification-button.primary:hover{color:#fff;background:#0d65d5}.notification-tabs{display:flex;gap:.3rem;overflow-x:auto;border-bottom:1px solid #e5ebf3}.notification-tab{border:0;border-bottom:2px solid transparent;padding:.8rem .7rem;background:transparent;color:#718096;font:inherit;font-size:.78rem;font-weight:700;white-space:nowrap;cursor:pointer}.notification-tab.active{border-color:#1769e8;color:#1769e8}.count-badge{display:inline-grid;place-items:center;min-width:20px;height:20px;margin-left:.3rem;padding:0 .35rem;border-radius:999px;background:#eaf3ff;color:#1769e8;font-size:.68rem}.notification-tools{padding:.8rem;border:1px solid #e5ebf3;border-radius:14px;background:#fff}.notification-search{flex:1 1 240px;display:flex;align-items:center;gap:.6rem;min-height:40px;padding:0 .8rem;border:1px solid #e1e8f1;border-radius:10px;color:#8a99ac;background:#fbfcfe}.notification-search input{min-width:0;flex:1;border:0;outline:0;background:transparent;color:#102a43;font:inherit;font-size:.82rem}.notification-check{display:flex;align-items:center;gap:.4rem;color:#526174;font-size:.78rem;font-weight:600;white-space:nowrap;cursor:pointer}.notification-groups{display:grid;gap:1.1rem}.notification-group h3{display:flex;align-items:center;gap:.55rem;margin:0 0 .55rem;color:#718096;font-size:.75rem;font-weight:800;text-transform:uppercase;letter-spacing:.08em}.notification-group h3:after{content:'';height:1px;flex:1;background:#e5ebf3}.notification-list{display:grid;gap:.65rem}.notification-item{align-items:flex-start;padding:1rem;border:1px solid #e5ebf3;border-left:3px solid transparent;border-radius:14px;background:#fff;cursor:pointer;transition:box-shadow .2s,transform .2s,border-color .2s}.notification-item:hover{border-color:#c9ddfb;box-shadow:0 12px 25px rgba(11,36,71,.07);transform:translateY(-1px)}.notification-item.unread{border-left-color:#72b9fa;background:#fbfdff}.notification-main{display:flex;align-items:flex-start;gap:.8rem;min-width:0;flex:1}.notification-icon{display:grid;place-items:center;flex:0 0 42px;width:42px;height:42px;border-radius:12px;font-size:1rem}.notification-icon.billing{color:#dc3d4b;background:#fff0f1}.notification-icon.request{color:#c87913;background:#fff6e5}.notification-icon.contract{color:#15966b;background:#eaf9f2}.notification-icon.announcement{color:#1769e8;background:#eaf3ff}.notification-icon.utility{color:#8056bf;background:#f5edff}.notification-copy{min-width:0}.notification-title{display:flex;align-items:center;gap:.4rem;color:#132238;font-size:.88rem}.notification-title strong{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.unread-dot{width:7px;height:7px;border-radius:50%;background:#1769e8;flex:0 0 7px}.notification-meta{display:flex;gap:.4rem;align-items:center;margin-top:.3rem;color:#8a99ac;font-size:.7rem}.notification-body{margin:.4rem 0 0;color:#526174;font-size:.78rem;line-height:1.55}.notification-tag{display:inline-flex;align-items:center;padding:.18rem .4rem;border-radius:5px;color:#c24141;background:#fff0f0;font-size:.63rem;font-weight:800}.notification-tag.pinned{color:#b45309;background:#fff7df}.notification-attachment{display:inline-flex;align-items:center;gap:.35rem;margin-top:.55rem;padding:.35rem .5rem;border:1px solid #e1e8f1;border-radius:6px;color:#526174;background:#fbfcfe;font-size:.68rem}.notification-ack{display:flex;align-items:center;justify-content:space-between;gap:.7rem;margin-top:.65rem;padding:.65rem .75rem;border-radius:9px;color:#a16207;background:#fff7df;font-size:.72rem}.notification-ack button{border:0;border-radius:7px;padding:.45rem .6rem;color:#fff;background:#d98c19;font-size:.7rem;font-weight:700;cursor:pointer}.notification-buttons{margin-top:.7rem}.notification-buttons button{border:1px solid #c9ddfb;border-radius:8px;padding:.45rem .6rem;color:#1769e8;background:#fff;font:inherit;font-size:.7rem;font-weight:700;cursor:pointer}.notification-buttons button:first-child{border-color:#1769e8;color:#fff;background:#1769e8}.notification-right{display:flex;align-items:flex-end;flex-direction:column;gap:.55rem;min-width:78px;color:#8a99ac;font-size:.7rem}.notification-side-actions button{width:28px;height:28px;border:0;border-radius:7px;color:#8a99ac;background:transparent;cursor:pointer}.notification-side-actions button:hover,.notification-side-actions button.active{color:#1769e8;background:#eaf3ff}.notification-empty{padding:3rem 1rem;border:1px dashed #cbd9e8;border-radius:14px;color:#718096;text-align:center;background:#fff}.notification-empty i{display:block;margin-bottom:.7rem;color:#9bb8dc;font-size:2.2rem}.drawer-backdrop{position:fixed;inset:0;z-index:60;visibility:hidden;background:rgba(8,25,52,.38);opacity:0;transition:opacity .25s,visibility .25s}.drawer-backdrop.open{visibility:visible;opacity:1}.notification-drawer{position:absolute;top:0;right:0;display:flex;flex-direction:column;width:min(460px,100%);height:100%;padding:1.35rem;overflow-y:auto;background:#fff;transform:translateX(100%);transition:transform .28s ease}.drawer-backdrop.open .notification-drawer{transform:translateX(0)}.notification-drawer-head{padding-bottom:1rem;border-bottom:1px solid #e5ebf3}.notification-drawer-head h2{margin:0;color:#132238;font:800 1.2rem 'Plus Jakarta Sans',sans-serif}.drawer-close{width:34px;height:34px;border:0;border-radius:50%;color:#718096;background:#f1f5f9;cursor:pointer}.settings-card{margin-top:1rem;padding:1rem;border:1px solid #e5ebf3;border-radius:13px}.settings-card h3{margin:0 0 .8rem;color:#132238;font-size:.9rem}.channel-row{display:flex;align-items:center;justify-content:space-between;padding:.55rem 0;color:#526174;font-size:.78rem}.channel-row+.channel-row{border-top:1px solid #f0f3f7}.channel-toggle{position:relative;width:38px;height:22px;appearance:none;border-radius:999px;background:#dbe5f1;cursor:pointer;transition:background .2s}.channel-toggle:after{content:'';position:absolute;top:3px;left:3px;width:16px;height:16px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(15,23,42,.2);transition:transform .2s}.channel-toggle:checked{background:#1769e8}.channel-toggle:checked:after{transform:translateX(16px)}.channel-toggle:disabled{cursor:not-allowed;opacity:.55}.settings-select{width:100%;padding:.65rem .7rem;border:1px solid #dbe5f1;border-radius:8px;color:#526174;background:#fff;font:inherit;font-size:.78rem}.toast-stack{position:fixed;right:1.25rem;bottom:1.25rem;z-index:80;display:grid;gap:.55rem}.notification-toast{display:flex;align-items:center;gap:.65rem;min-width:280px;max-width:360px;padding:.8rem .9rem;border:1px solid #c9ddfb;border-radius:11px;color:#132238;background:#fff;box-shadow:0 16px 35px rgba(11,36,71,.16);animation:toastIn .25s ease;font-size:.78rem}@keyframes toastIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+        .sidebar-notification-count{margin-left:auto;min-width:22px;padding:.16rem .38rem;border-radius:999px;color:#fff;background:#ef6b73;font-size:.67rem;text-align:center}.drawer-footer{margin-top:auto;padding-top:1rem}.notification-save{width:100%}
+        @media(max-width:700px){.notification-head{flex-direction:column}.notification-actions{width:100%}.notification-actions button{flex:1}.notification-item{flex-direction:column}.notification-right{width:100%;align-items:flex-start;flex-direction:row;justify-content:space-between}.notification-title strong{white-space:normal}.notification-tools{align-items:flex-start;flex-direction:column}.notification-check{margin-right:.5rem}}
+        /* Billing and contract workspace */
+        .resident-feature { display:grid; gap:1.25rem; }
+        .resident-feature-hero { padding:1.5rem; border-radius:16px; color:#fff; background:linear-gradient(120deg,#0d65d5,#1683ff 62%,#4bb3ff); box-shadow:0 20px 34px rgba(22,131,255,.2); }
+        .resident-feature-hero h3 { margin:0; font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif; font-size:1.45rem; font-weight:800; }
+        .resident-feature-hero p { max-width:620px; margin:.45rem 0 0; color:#eaf5ff; line-height:1.55; font-size:.9rem; }
+        .resident-feature-hero > div { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+        .resident-feature-icon { width:52px; height:52px; display:grid; place-items:center; flex:0 0 auto; border-radius:15px; background:rgba(255,255,255,.16); font-size:1.35rem; }
+        .billing-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
+        .billing-summary-item { padding:1.1rem 1.2rem; border:1px solid var(--line); border-radius:14px; background:#fff; }
+        .billing-summary-item small { display:block; color:#64748b; font-weight:700; }
+        .billing-summary-item strong { display:block; margin:.55rem 0 .4rem; color:#10213c; font-size:1.5rem; }
+        .billing-summary-item span { color:#718096; font-size:.75rem; }
+        .billing-toolbar { display:flex; justify-content:space-between; align-items:center; flex-wrap:wrap; gap:.8rem; margin-bottom:1.1rem; }
+        .billing-filters { display:flex; flex-wrap:wrap; gap:.5rem; }
+        .billing-filter { padding:.58rem .78rem; border:1px solid var(--line); border-radius:.65rem; background:#fff; color:#536275; font:600 .78rem 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .billing-filter.active,.billing-filter:hover { border-color:#93c5fd; background:#eff6ff; color:#0d65d5; }
+        .billing-search { position:relative; }
+        .billing-search i { position:absolute; top:50%; left:.75rem; transform:translateY(-50%); color:#94a3b8; font-size:.75rem; }
+        .billing-search input { width:220px; padding:.6rem .75rem .6rem 2rem; border:1px solid var(--line); border-radius:.65rem; outline:0; font:500 .78rem 'Be Vietnam Pro',sans-serif; }
+        .billing-search input:focus { border-color:#60a5fa; box-shadow:0 0 0 3px rgba(22,131,255,.1); }
+        .billing-name { display:flex; align-items:center; gap:.7rem; color:#1e293b; font-weight:700; }
+        .billing-name i { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:#eaf3ff; color:#1683ff; }
+        .billing-action { width:32px; height:32px; border:1px solid var(--line); border-radius:8px; color:#1683ff; background:#fff; cursor:pointer; }
+        .billing-action:hover { background:#eff6ff; border-color:#93c5fd; }
+        .contract-workspace { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(275px,.75fr); gap:1.25rem; }
+        .contract-overview { padding:1.35rem; border:1px solid #cfe5ff; border-radius:16px; background:linear-gradient(145deg,#f8fcff,#ecf6ff); }
+        .contract-overview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
+        .contract-overview-head small { color:#1683ff; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+        .contract-overview-head h4 { margin:.35rem 0 0; color:#10213c; font-size:1.12rem; }
+        .contract-values { display:grid; grid-template-columns:repeat(3,1fr); gap:.75rem; padding-top:1.2rem; margin-top:1.2rem; border-top:1px solid #d9eafb; }
+        .contract-values div { color:#64748b; font-size:.73rem; }.contract-values strong { display:block; margin-top:.25rem; color:#1e293b; font-size:.86rem; }
+        .contract-document { display:flex; align-items:center; justify-content:space-between; gap:.6rem; padding:.8rem; border:1px solid var(--line); border-radius:10px; background:#fff; }
+        .contract-document > div { display:flex; gap:.65rem; align-items:center; min-width:0; }.contract-document .fa-file-pdf { color:#ef4444; font-size:1.1rem; }.contract-document strong { display:block; color:#334155; font-size:.78rem; }.contract-document small { display:block; margin-top:.18rem; color:#94a3b8; font-size:.69rem; }
+        .contract-renewal-card { min-height: 238px; display: flex; flex-direction: column; }
+        .contract-renewal-card .contract-renew { margin-top: auto; }
+        .contract-countdown { margin-top:.55rem; font-size:2.1rem; font-weight:800; color:#10213c; }
+        .contract-deadline { color:#718096; font-size:.79rem; line-height:1.55; margin:.45rem 0 1rem; }
+        .contract-status { margin-top:.85rem; padding:.75rem; border-radius:10px; background:#f0fdf4; color:#166534; font-size:.78rem; line-height:1.45; }
+        .contract-status.pending { background:#eff6ff; color:#1d4ed8; }
+        .contract-status.review { background:#fff7ed; color:#9a3412; }
+        .contract-status.expired { background:#fef2f2; color:#991b1b; }
+        .contract-section-heading { display:flex; justify-content:space-between; align-items:center; gap:1rem; margin:1.35rem 0 .75rem; }
+        .contract-section-heading h4 { margin:0; color:#10213c; }
+        .contract-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:.75rem; margin-top:1rem; }
+        .contract-detail-grid .meta-box { min-height:72px; }
+        .contract-doc-actions { display:flex; gap:.5rem; align-items:center; }
+        .contract-document button { flex:0 0 auto; }
+        .contract-preview { width:100%; min-height:240px; padding:1.1rem; border:1px solid #dbe5f1; border-radius:12px; background:#f8fafc; color:#526174; line-height:1.6; }
+        .contract-preview strong { color:#10213c; }
+        .contract-document .file-verified { color:#18a878; font-size:.7rem; }
+        .contract-inline-link { display:inline-block; margin-top:.25rem; padding:0; border:0; background:transparent; color:#1769e8; font:700 .75rem 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .contract-progress { display:grid; grid-template-columns:repeat(4,1fr); gap:.45rem; margin-top:1rem; }
+        .contract-progress-step { position:relative; padding-top:1.35rem; color:#94a3b8; font-size:.68rem; line-height:1.35; }
+        .contract-progress-step::before { content:''; position:absolute; top:.25rem; left:0; width:100%; height:4px; border-radius:99px; background:#e2e8f0; }
+        .contract-progress-step.done::before,.contract-progress-step.current::before { background:#1683ff; }
+        .contract-progress-step.current { color:#1d4ed8; font-weight:700; }
+        .contract-progress-step.done { color:#166534; }
+        .resident-feature-modal { display:none; position:fixed; inset:0; z-index:80; align-items:center; justify-content:center; padding:1rem; background:rgba(15,35,64,.48); }.resident-feature-modal.open { display:flex; }
+        .resident-feature-dialog { width:min(500px,100%); max-height:90vh; overflow:auto; padding:1.4rem; border-radius:16px; background:#fff; box-shadow:0 30px 70px rgba(15,35,64,.24); }.resident-feature-dialog header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }.resident-feature-dialog h4 { margin:0; color:#10213c; font-size:1.12rem; }.resident-feature-close { border:0; background:transparent; color:#64748b; font-size:1.2rem; cursor:pointer; }.payment-method { width:100%; margin-top:.7rem; padding:.85rem; border:1px solid var(--line); border-radius:10px; background:#fff; text-align:left; cursor:pointer; color:#334155; font:600 .82rem 'Be Vietnam Pro',sans-serif; }.payment-method:hover { border-color:#60a5fa; background:#f8fbff; }
+        @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}}
     </style>
 </head>
 <body>
+    <script>var RH_SESSION = RH.requireRole('resident');</script>
     <aside class="sidebar">
         <div class="sidebar-header">
             <div class="brand-mark"><i class="fas fa-home"></i></div>
             <div>
                 <div style="font-weight: 800; color: #0f172a;">ResidentHub</div>
-                <div style="font-size: 0.71rem; color: #94a3b8;">Giao diện Cư dân</div>
+                <div style="font-size: 0.71rem; color: #94a3b8;">Cộng đồng cư dân thông minh</div>
             </div>
         </div>
 
         <div class="menu">
-            <div class="nav-item active" data-target="overview"><i class="fas fa-chart-line"></i> Tổng quan</div>
+            <div class="nav-item" data-target="overview"><i class="fas fa-chart-line"></i> Tổng quan</div>
             <div class="nav-item" data-target="invoices"><i class="fas fa-file-invoice-dollar"></i> Hóa đơn</div>
-            <div class="nav-item" data-target="requests"><i class="fas fa-tools"></i> Yêu cầu</div>
+            <div class="nav-item active" data-target="requests"><i class="fas fa-tools"></i> Yêu cầu</div>
             <div class="nav-item" data-target="contracts"><i class="fas fa-file-contract"></i> Hợp đồng</div>
-            <div class="nav-item" data-target="notifications"><i class="fas fa-bell"></i> Thông báo</div>
-            <div class="nav-item" data-target="profile"><i class="fas fa-user"></i> Hồ sơ</div>
+            <div class="nav-item" data-target="notifications"><i class="fas fa-bell"></i> Thông báo <span class="sidebar-notification-count" id="sidebarNotificationCount">7</span></div>
+            <div class="nav-item" data-target="settings"><i class="fas fa-gear"></i> Cài đặt</div>
 
             <div class="section-label">Tiện ích</div>
             <div class="nav-item" data-target="calendar"><i class="fas fa-calendar-check"></i> Lịch hẹn</div>
-            <div class="nav-item" data-target="security"><i class="fas fa-shield-alt"></i> Bảo mật</div>
             <div class="nav-item" data-target="logout"><i class="fas fa-sign-out-alt"></i> Đăng xuất</div>
         </div>
     </aside>
 
     <main class="main">
         <header class="topbar">
-            <div>
-                <div class="page-title" id="pageTitle">Tổng quan</div>
-                <div style="color: #94a3b8; font-size: 0.9rem;">Xin chào, Hương</div>
-            </div>
+            <div class="topbar-search"><i class="fas fa-search"></i><input type="search" placeholder="Tìm kiếm..." aria-label="Tìm kiếm"><kbd>Ctrl K</kbd><span id="pageTitle" hidden>Yêu cầu</span><span id="residentGreeting" hidden>Xin chào, Hương</span></div>
 
             <div class="topbar-actions">
                 <button class="icon-btn" title="Tìm kiếm"><i class="fas fa-search"></i></button>
@@ -426,22 +1158,22 @@
                     <span class="badge-dot">3</span>
                 </button>
                 <div class="user-card">
-                    <div class="avatar">H</div>
+                    <div class="avatar" id="residentAvatar">H</div>
                     <div>
-                        <div style="font-weight: 700; color: var(--ink);">Hương</div>
-                        <div style="font-size: 0.7rem; color: #94a3b8;">Phòng A502</div>
+                        <div style="font-weight: 700; color: var(--ink);" id="residentName">Hương</div>
+                        <div style="font-size: 0.7rem; color: #94a3b8;" id="residentUnit">Phòng A502</div>
                     </div>
                 </div>
             </div>
         </header>
 
-        <section class="screen-section" id="overviewSection">
+        <section class="screen-section" id="overviewSection" style="display:none;">
             <section class="stat-grid">
                 <div class="card stat-card">
                     <div>
                         <div class="stat-label">Cần thanh toán</div>
-                        <div class="stat-value">8.5M</div>
-                        <div class="trend" style="color: var(--danger);"><i class="fas fa-arrow-up"></i> Hạn: 20/08</div>
+                        <div class="stat-value">8.9M</div>
+                        <div class="trend" style="color: var(--danger);"><i class="fas fa-arrow-up"></i> Hạn: 05/09</div>
                     </div>
                     <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239,68,68,0.10) 0%, rgba(220,38,38,0.08) 100%); color: var(--danger);">
                         <i class="fas fa-wallet"></i>
@@ -502,31 +1234,17 @@
                             </thead>
                             <tbody>
                                 <tr>
-                                    <td>Tiền nhà</td>
-                                    <td>08/2026</td>
-                                    <td>6.5M</td>
-                                    <td>20/08</td>
+                                    <td>Hóa đơn phòng A502</td>
+                                    <td>28/08 - 05/09/2026</td>
+                                    <td>8.9M</td>
+                                    <td>05/09</td>
                                     <td><span class="badge badge-pending">Chưa thanh toán</span></td>
                                 </tr>
                                 <tr>
-                                    <td>Điện nước</td>
-                                    <td>08/2026</td>
-                                    <td>1.2M</td>
-                                    <td>20/08</td>
-                                    <td><span class="badge badge-pending">Chưa thanh toán</span></td>
-                                </tr>
-                                <tr>
-                                    <td>Internet</td>
-                                    <td>08/2026</td>
-                                    <td>0.8M</td>
-                                    <td>18/08</td>
-                                    <td><span class="badge badge-info">Đã thanh toán</span></td>
-                                </tr>
-                                <tr>
-                                    <td>Phí dịch vụ</td>
-                                    <td>07/2026</td>
-                                    <td>0.4M</td>
-                                    <td>05/07</td>
+                                    <td>Hóa đơn phòng A502</td>
+                                    <td>28/07 - 05/08/2026</td>
+                                    <td>12.45M</td>
+                                    <td>05/08</td>
                                     <td><span class="badge badge-paid">Đã thanh toán</span></td>
                                 </tr>
                             </tbody>
@@ -540,7 +1258,7 @@
                 <div class="card">
                     <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1rem;">
                         <h3 style="font-size: 1.2rem; font-weight: 700; color: #0f172a; margin: 0;">Yêu cầu hỗ trợ</h3>
-                        <button class="btn-primary">Gửi yêu cầu mới</button>
+                        <button class="btn-primary js-new-request">Gửi yêu cầu mới</button>
                     </div>
 
                     <div class="notice-list">
@@ -586,7 +1304,7 @@
                         <div class="notice-item">
                             <div style="font-weight: 700; color: #0f172a; margin-bottom: 0.35rem;">Nhắc nhở thanh toán</div>
                             <div style="font-size: 0.8rem; color: #64748b; margin-bottom: 0.35rem;">09/08 • Hóa đơn</div>
-                            <div style="color: #475569;">Đã mở hóa đơn tiền nhà và điện nước cho kỳ 08/2026.</div>
+                            <div style="color: #475569;">Đã mở hóa đơn tổng hợp phòng A502 cho kỳ thu 28/08–05/09/2026.</div>
                         </div>
 
                         <div class="notice-item">
@@ -611,7 +1329,7 @@
                             <span class="badge badge-paid">Còn hiệu lực</span>
                         </div>
                         <div style="color: #475569;">Mã: RES-PA-205</div>
-                        <div style="color: #475569;">Ngày kết thúc: 30/12/2026</div>
+                        <div style="color: #475569;">Ngày kết thúc: 31/12/2026</div>
                     </div>
 
                     <div class="support-card">
@@ -636,173 +1354,90 @@
         </section>
 
         <section class="screen-section" id="invoicesSection" style="display:none;">
-            <div class="card">
-                <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem;">
-                    <h3 style="font-size:1.4rem; font-weight:800; margin:0; color:#0f172a;">Hóa đơn của tôi</h3>
-                    <button class="btn-primary">Thanh toán ngay</button>
-                </div>
-                <div class="table-wrap">
-                    <table>
-                        <thead>
-                            <tr>
-                                <th>Mã hóa đơn</th>
-                                <th>Chủ đề</th>
-                                <th>Đến hạn</th>
-                                <th>Số tiền</th>
-                                <th>Trạng thái</th>
-                                <th>Thao tác</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td>INV-0826-01</td>
-                                <td>Tiền nhà</td>
-                                <td>20/08/2026</td>
-                                <td>6.500.000đ</td>
-                                <td><span class="badge badge-pending">Chưa thanh toán</span></td>
-                                <td><button class="btn-secondary">Chi tiết</button></td>
-                            </tr>
-                            <tr>
-                                <td>INV-0826-02</td>
-                                <td>Điện nước</td>
-                                <td>20/08/2026</td>
-                                <td>1.200.000đ</td>
-                                <td><span class="badge badge-pending">Chưa thanh toán</span></td>
-                                <td><button class="btn-secondary">Chi tiết</button></td>
-                            </tr>
-                            <tr>
-                                <td>INV-0726-12</td>
-                                <td>Internet</td>
-                                <td>18/07/2026</td>
-                                <td>800.000đ</td>
-                                <td><span class="badge badge-paid">Đã thanh toán</span></td>
-                                <td><button class="btn-secondary">Hóa đơn</button></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
+            <div class="resident-feature">
+                <div class="resident-feature-hero"><div><div><h3>Hóa đơn & thanh toán</h3><p>Quản lý hóa đơn theo từng tòa nhà và phòng; mỗi kỳ thu gồm tiền nhà, dịch vụ, điện nước và các khoản phí khác.</p></div><i class="fas fa-receipt resident-feature-icon"></i></div></div>
+                <div class="billing-summary"><div class="billing-summary-item"><small><i class="fas fa-wallet" style="color:#f59e0b"></i> CẦN THANH TOÁN</small><strong id="billingDue">26.800.000đ</strong><span id="billingDueNote">3 hóa đơn, hạn thanh toán 05/09/2026</span></div><div class="billing-summary-item"><small><i class="fas fa-circle-check" style="color:#18a878"></i> ĐÃ THANH TOÁN</small><strong id="billingPaid">20.850.000đ</strong><span>Tổng chi phí trong 3 tháng gần đây</span></div><div class="billing-summary-item"><small><i class="fas fa-calendar-days" style="color:#1683ff"></i> KỲ HIỆN TẠI</small><strong>09/2026</strong><span>Thu từ 28/08 đến 05/09/2026</span></div></div>
+                <div class="card"><div class="billing-toolbar"><div class="billing-filters"><button class="billing-filter active" data-billing-filter="all">Tất cả</button><button class="billing-filter" data-billing-filter="pending">Chưa thanh toán</button><button class="billing-filter" data-billing-filter="paid">Đã thanh toán</button></div><label class="billing-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hoặc khoản thu"></label></div>
+                    <div class="table-wrap"><table><thead><tr><th>Hóa đơn theo phòng</th><th>Tòa nhà</th><th>Số phòng</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody id="billingRows">
+                        <tr data-billing-status="pending" data-billing-breakdown="Tiền thuê nhà: 6.500.000đ|Điện & nước: 1.200.000đ|Internet: 800.000đ|Phí dịch vụ: 400.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/08–05/09/2026</span></td><td><strong>Tòa A</strong></td><td><strong>A502</strong></td><td>INV-0926-A502</td><td>05/09/2026</td><td><strong>8.900.000đ</strong></td><td><span class="badge badge-pending">Chưa thanh toán</span></td><td><button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button></td></tr>
+                        <tr data-billing-status="paid" data-billing-breakdown="Tiền thuê nhà: 8.500.000đ|Điện & nước: 1.800.000đ|Internet: 1.200.000đ|Phí dịch vụ: 950.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/07–05/08/2026</span></td><td><strong>Tòa A</strong></td><td><strong>A502</strong></td><td>INV-0826-A502</td><td>05/08/2026</td><td><strong>12.450.000đ</strong></td><td><span class="badge badge-paid">Đã thanh toán</span></td><td><button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button></td></tr>
+                        <tr data-billing-status="pending" data-billing-breakdown="Tiền thuê nhà: 6.500.000đ|Điện & nước: 1.200.000đ|Internet: 800.000đ|Phí dịch vụ: 400.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/08–05/09/2026</span></td><td><strong>Tòa A</strong></td><td><strong>A-1208</strong></td><td>INV-0926-A1208</td><td>05/09/2026</td><td><strong>8.900.000đ</strong></td><td><span class="badge badge-pending">Chưa thanh toán</span></td><td><button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button></td></tr>
+                        <tr data-billing-status="paid" data-billing-breakdown="Tiền thuê nhà: 8.500.000đ|Điện & nước: 1.800.000đ|Internet: 1.200.000đ|Phí dịch vụ: 950.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/07–05/08/2026</span></td><td><strong>Tòa A</strong></td><td><strong>A-1208</strong></td><td>INV-0826-A1208</td><td>05/08/2026</td><td><strong>12.450.000đ</strong></td><td><span class="badge badge-paid">Đã thanh toán</span></td><td><button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button></td></tr>
+                        <tr data-billing-status="pending" data-billing-breakdown="Tiền thuê nhà: 7.000.000đ|Điện & nước: 950.000đ|Internet: 250.000đ|Phí dịch vụ: 350.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/08–05/09/2026</span></td><td><strong>Tòa A</strong></td><td><strong>A503</strong></td><td>INV-0926-A503</td><td>05/09/2026</td><td><strong>8.550.000đ</strong></td><td><span class="badge badge-pending">Chưa thanh toán</span></td><td><button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button></td></tr>
+                        <tr data-billing-status="paid" data-billing-breakdown="Tiền thuê nhà: 6.800.000đ|Điện & nước: 1.050.000đ|Internet: 250.000đ|Phí dịch vụ: 300.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/07–05/08/2026</span></td><td><strong>Tòa B</strong></td><td><strong>B201</strong></td><td>INV-0826-B201</td><td>05/08/2026</td><td><strong>8.400.000đ</strong></td><td><span class="badge badge-paid">Đã thanh toán</span></td><td><button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button></td></tr>
+                        <tr data-billing-status="pending" data-billing-breakdown="Tiền thuê nhà: 7.500.000đ|Điện & nước: 1.100.000đ|Internet: 300.000đ|Phí dịch vụ: 450.000đ"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu 28/08–05/09/2026</span></td><td><strong>Tòa C</strong></td><td><strong>C305</strong></td><td>INV-0926-C305</td><td>05/09/2026</td><td><strong>9.350.000đ</strong></td><td><span class="badge badge-pending">Chưa thanh toán</span></td><td><button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button></td></tr>
+                    </tbody></table></div><div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1rem; color:#718096; font-size:.78rem"><span id="billingCount">Hiển thị 7 hóa đơn</span><button class="btn-primary billing-pay-all" style="padding:.65rem 1rem"><i class="fas fa-credit-card"></i> Thanh toán 4 hóa đơn</button></div></div>
             </div>
         </section>
 
-        <section class="screen-section" id="requestsSection" style="display:none;">
+        <section class="screen-section" id="requestsSection">
             <div class="card">
                 <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1rem; gap:1rem; flex-wrap:wrap;">
-                    <h3 style="font-size:1.4rem; font-weight:800; margin:0; color:#0f172a;">Yêu cầu hỗ trợ</h3>
-                    <button class="btn-primary">Tạo yêu cầu mới</button>
+                    <div class="request-page-heading"><div class="request-heading-icon"><i class="fas fa-tools"></i></div><div><h3 style="font-size:1.4rem; font-weight:800; margin:0; color:#0f172a;">Yêu cầu</h3><p style="margin:.3rem 0 0; color:#64748b;">Quản lý và theo dõi mọi yêu cầu của bạn</p></div></div>
+                    <button class="btn-primary js-new-request"><i class="fas fa-plus"></i> Tạo yêu cầu mới</button>
                 </div>
 
-                <div style="display:grid; grid-template-columns:repeat(3, minmax(180px,1fr)); gap:1rem; margin-bottom:1.5rem;">
-                    <div class="support-card">
-                        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; margin-bottom:0.5rem;">Đang xử lý</div>
-                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">2</div>
+                <div class="request-dashboard request-workspace">
+                    <div class="request-stat-grid" id="requestStats"></div>
+                    <div class="history-tabs request-tabs"><button class="history-tab active" data-history="active">Danh sách yêu cầu</button><button class="history-tab" data-history="all">Lịch sử yêu cầu</button></div>
+                    <div class="request-toolbar">
+                        <div class="request-search"><i class="fas fa-search"></i><input id="requestSearch" type="search" placeholder="Tìm kiếm yêu cầu..."></div>
+                        <select id="requestStatus"><option value="all">Tất cả trạng thái</option><option value="processing">Đang xử lý</option><option value="waiting">Chờ xác nhận</option><option value="completed">Hoàn tất</option><option value="cancelled">Đã hủy</option></select>
+                        <select id="requestType"><option value="all">Tất cả loại</option><option value="Sửa chữa căn hộ">Sửa chữa căn hộ</option><option value="Cơ sở vật chất chung">Cơ sở vật chất chung</option><option value="An ninh">An ninh</option><option value="Vệ sinh">Vệ sinh</option><option value="Phí & thanh toán">Phí & thanh toán</option></select>
+                        <select id="requestPriority"><option value="all">Mọi mức độ</option><option value="normal">Bình thường</option><option value="needed">Cần xử lý</option><option value="urgent">Khẩn cấp</option></select>
+                        <select id="requestPeriod"><option value="all">Mọi thời gian</option><option value="7">7 ngày qua</option><option value="30">30 ngày qua</option><option value="90">90 ngày qua</option></select>
                     </div>
-                    <div class="support-card">
-                        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; margin-bottom:0.5rem;">Chờ xác nhận</div>
-                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">1</div>
-                    </div>
-                    <div class="support-card">
-                        <div style="font-size:0.75rem; text-transform:uppercase; letter-spacing:0.08em; color:#64748b; margin-bottom:0.5rem;">Hoàn tất</div>
-                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">5</div>
-                    </div>
-                </div>
-
-                <div class="notice-list">
-                    <div class="request-box">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                            <strong>Sửa điều hòa phòng A502</strong>
-                            <span class="badge badge-info">Đang xử lý</span>
-                        </div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.5rem;">Mã YCD-014 • 14/08/2026</div>
-                        <div style="color:#475569;">Máy lạnh không làm lạnh, cần kiểm tra kỹ trong ngày.</div>
-                    </div>
-                    <div class="request-box" style="border-left-color: #f59e0b; background:#fffaf2;">
-                        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.4rem;">
-                            <strong>Bồn rửa bát hỏng</strong>
-                            <span class="badge" style="background:#fef3c7; color:#b45309;">Chờ xác nhận</span>
-                        </div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.5rem;">Mã YCD-012 • 12/08/2026</div>
-                        <div style="color:#475569;">Tình trạng bong tróc và rò rỉ tại góc bồn, cần sửa ngay.</div>
-                    </div>
+                    <div class="notice-list" id="requestList"></div>
                 </div>
             </div>
         </section>
+
+        <div class="modal-backdrop" id="requestModal" role="dialog" aria-modal="true">
+            <div class="request-modal"><div class="modal-head"><div><h3 id="modalTitle" style="margin:0; color:#0f172a;">Tạo yêu cầu mới</h3><p id="modalSubtitle" style="margin:.3rem 0 0; color:#64748b;">Chọn nhóm vấn đề để được hỗ trợ nhanh hơn</p></div><button class="modal-close" data-close-modal aria-label="Đóng"><i class="fas fa-times"></i></button></div><div class="modal-body" id="modalBody"></div></div>
+        </div>
 
         <section class="screen-section" id="contractsSection" style="display:none;">
-            <div class="card">
-                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Hợp đồng thuê nhà</h3>
-                <div style="display:grid; grid-template-columns:1.2fr 0.8fr; gap:1.5rem;">
-                    <div>
-                        <div class="support-card" style="margin-bottom:1rem;">
-                            <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:0.6rem;">
-                                <strong>Hợp đồng số: RES-PA-205</strong>
-                                <span class="badge badge-paid">Còn hiệu lực</span>
-                            </div>
-                            <div style="color:#475569;">Phòng A502 • Giá thuê: 8.500.000đ / tháng</div>
-                            <div style="color:#475569;">Hiệu lực: 01/01/2026 đến 31/12/2026</div>
-                        </div>
-
-                        <div class="notice-list">
-                            <div class="notice-item">
-                                <div style="font-weight:700; margin-bottom:0.25rem;">Điều khoản chính</div>
-                                <div style="color:#475569;">- Thanh toán đúng hạn mỗi tháng.</div>
-                                <div style="color:#475569;">- Bảo trì và sửa chữa theo quy định của tòa nhà.</div>
-                                <div style="color:#475569;">- Gia hạn hợp đồng trước 30 ngày khi hết hạn.</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <div class="card" style="background:#f8fafc;">
-                        <h4 style="margin-top:0; margin-bottom:1rem; color:#0f172a;">Gia hạn sắp tới</h4>
-                        <div style="font-size:2.2rem; font-weight:800; color:#2563eb;">18 ngày</div>
-                        <p style="color:#475569; margin-top:0.6rem;">Bạn nên xác nhận gia hạn trước ngày 30/12/2026 để đảm bảo phòng trống và điều khoản ưu tiên.</p>
-                        <button class="btn-primary" style="width:100%; margin-top:1rem;">Gia hạn ngay</button>
-                    </div>
-                </div>
+            <div class="resident-feature"><div class="resident-feature-hero"><div><div><h3>Hợp đồng thuê nhà</h3><p>Tra cứu trạng thái hợp đồng, điều khoản quan trọng và tài liệu đã ký của căn hộ A502.</p></div><i class="fas fa-file-signature resident-feature-icon"></i></div></div>
+                <div class="contract-workspace"><div class="card"><div class="contract-overview"><div class="contract-overview-head"><div><small>HỢP ĐỒNG RES-PA-205</small><h4>Hợp đồng thuê nhà</h4></div></div><div class="contract-values"><div>Căn hộ<strong>A502 · Tòa A</strong></div><div>Thời hạn<strong id="contractTerm">01/01/2026 — 31/12/2026</strong></div><div>Giá thuê<strong>8.500.000 ₫/tháng</strong></div></div><div class="contract-detail-grid"><div class="meta-box"><small>Ngày ký</small><strong>28/12/2025</strong></div><div class="meta-box"><small>Bên cho thuê</small><strong>Công ty TNHH Tòa A</strong></div><div class="meta-box"><small>Tiền đặt cọc</small><strong>17.000.000 ₫</strong></div><div class="meta-box"><small>Phiên bản</small><strong>v3.1 · Cập nhật 28/12/2025</strong></div></div></div><div class="contract-section-heading"><h4>Điều khoản cần lưu ý</h4><span class="badge badge-info">2 trong số 14 điều khoản</span></div><div class="notice-list"><div class="notice-item"><strong>Thanh toán và đặt cọc</strong><p style="margin:.35rem 0 0; color:#475569; font-size:.84rem; line-height:1.55">Một hóa đơn phòng gồm tiền thuê, dịch vụ và các khoản phí khác, được thu một lần từ ngày 28 đến ngày 05 tháng sau. Tiền đặt cọc 17.000.000 ₫ được hoàn trả sau khi đối soát hiện trạng và công nợ.</p></div><div class="notice-item"><strong>Gia hạn hợp đồng</strong><p style="margin:.35rem 0 0; color:#475569; font-size:.84rem; line-height:1.55">Gửi xác nhận gia hạn trước tối thiểu 30 ngày để được ưu tiên giữ phòng. Hạn chót của hợp đồng này được tính tự động theo ngày kết thúc.</p></div></div><div class="contract-section-heading"><h4>Thông tin pháp lý liên quan</h4><button class="billing-filter contract-terms">Xem đầy đủ</button></div><div class="notice-list"><div class="notice-item"><strong>Chấm dứt sớm và phạt</strong><p style="margin:.35rem 0 0;color:#475569;font-size:.84rem;line-height:1.55">Báo trước 30 ngày; chấm dứt không đủ báo trước có thể bị khấu trừ tối đa một tháng tiền thuê theo phụ lục.</p></div><div class="notice-item"><strong>Sửa chữa, thú cưng và cho thuê lại</strong><p style="margin:.35rem 0 0;color:#475569;font-size:.84rem;line-height:1.55">Mọi sửa chữa kết cấu cần được phê duyệt; nuôi thú cưng và cho thuê lại phải có chấp thuận bằng văn bản.</p></div></div></div>
+                    <div style="display:grid; gap:1.25rem"><div class="card contract-renewal-card"><small style="color:#64748b; font-weight:700">ĐẾN HẠN GIA HẠN</small><div class="contract-countdown" id="contractCountdown">Đang tính...</div><p class="contract-deadline" id="contractDeadline">Đang tính hạn chót theo điều khoản...</p><button class="btn-primary contract-renew" style="width:100%; padding:.7rem">Yêu cầu gia hạn</button><div class="contract-status" id="contractRenewalStatus">Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và gửi phụ lục để ký nếu được duyệt.</div><div class="contract-progress" id="contractProgress" aria-label="Tiến trình gia hạn"></div></div><div class="card"><div class="contract-section-heading" style="margin:0 0 .85rem"><h4>Tài liệu hợp đồng</h4><button class="billing-filter contract-download-all">Tải tất cả</button></div><div style="display:grid; gap:.65rem"><div class="contract-document"><div><i class="fas fa-file-pdf"></i><span><strong>Hợp đồng thuê RES-PA-205</strong><small>PDF · 2.4 MB · Ký số 28/12/2025 <span class="file-verified"><i class="fas fa-shield-check"></i> Đã xác thực</span></small></span></div><div class="contract-doc-actions"><button class="billing-action contract-preview-file" aria-label="Xem nhanh hợp đồng thuê RES-PA-205" title="Xem nhanh"><i class="fas fa-eye"></i></button><button class="billing-action contract-file" aria-label="Tải hợp đồng thuê RES-PA-205" title="Tải xuống"><i class="fas fa-download"></i></button></div></div><div class="contract-document"><div><i class="fas fa-file-pdf"></i><span><strong>Biên bản bàn giao căn hộ</strong><small>PDF · 1.8 MB · Ký ngày 01/01/2026 <span class="file-verified"><i class="fas fa-shield-check"></i> Toàn vẹn</span></small></span></div><div class="contract-doc-actions"><button class="billing-action contract-preview-file" aria-label="Xem nhanh biên bản bàn giao căn hộ" title="Xem nhanh"><i class="fas fa-eye"></i></button><button class="billing-action contract-file" aria-label="Tải biên bản bàn giao căn hộ" title="Tải xuống"><i class="fas fa-download"></i></button></div></div></div><div class="notice-item" style="margin-top:.8rem"><strong>Phụ lục đã ký</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.8rem">01 phụ lục · Không có phụ lục gia hạn trong phiên bản hiện tại.</p></div><div class="notice-item" style="margin-top:.65rem"><strong>Lịch sử hợp đồng</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.8rem">2025–2026 · RES-PA-205 · Bản hiện hành</p></div></div></div></div>
             </div>
         </section>
 
-        <section class="screen-section" id="notificationsSection" style="display:none;">
-            <div class="card">
-                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Thông báo</h3>
-                <div class="notice-list">
-                    <div class="notice-item">
-                        <div style="font-weight:700; margin-bottom:0.35rem;">Thông báo bảo trì hệ thống</div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.35rem;">11/08/2026 • Hệ thống</div>
-                        <div style="color:#475569;">Hệ thống thanh toán sẽ tạm dừng 30 phút vào 21:00 tối nay để cập nhật bảo mật.</div>
-                    </div>
-                    <div class="notice-item">
-                        <div style="font-weight:700; margin-bottom:0.35rem;">Hóa đơn mới đã được phát hành</div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.35rem;">09/08/2026 • Hóa đơn</div>
-                        <div style="color:#475569;">Hóa đơn tiền nhà và điện nước cho tháng 08/2026 đã có sẵn trong mục hóa đơn.</div>
-                    </div>
-                    <div class="notice-item">
-                        <div style="font-weight:700; margin-bottom:0.35rem;">Lịch dọn vệ sinh chung</div>
-                        <div style="font-size:0.8rem; color:#64748b; margin-bottom:0.35rem;">08/08/2026 • Khu vực sinh hoạt</div>
-                        <div style="color:#475569;">Sân trước và lối đi chính sẽ được vệ sinh từ 08:00 đến 10:00 ngày 12/08.</div>
-                    </div>
-                </div>
-            </div>
-        </section>
+        <section class="screen-section" id="notificationsSection" style="display:none;"></section>
 
-        <section class="screen-section" id="profileSection" style="display:none;">
-            <div class="card">
-                <h3 style="font-size:1.4rem; font-weight:800; margin:0 0 1rem; color:#0f172a;">Hồ sơ cư dân</h3>
-                <div style="display:grid; grid-template-columns: 180px 1fr; gap:1.5rem; align-items:center;">
-                    <div style="display:flex; justify-content:center;">
-                        <div class="avatar" style="width:120px; height:120px; font-size:2.2rem;">H</div>
-                    </div>
-                    <div>
-                        <div style="font-size:2rem; font-weight:800; color:#0f172a;">Hương Nguyễn</div>
-                        <div style="color:#64748b; margin-bottom:0.8rem;">Phòng A502 • Cư dân chính</div>
-                        <div style="display:grid; grid-template-columns:repeat(2, minmax(180px,1fr)); gap:0.8rem;">
-                            <div class="support-card"><strong>Email:</strong><br>huong.nguyen@email.com</div>
-                            <div class="support-card"><strong>Số điện thoại:</strong><br>0908 123 456</div>
-                            <div class="support-card"><strong>Ngày vào ở:</strong><br>01/01/2026</div>
-                            <div class="support-card"><strong>Người liên hệ:</strong><br>Gia đình / người thân</div>
+        <section class="screen-section" id="settingsSection" style="display:none;">
+            <div class="settings-page">
+                <div class="settings-shell">
+                    <aside class="settings-nav">
+                        <div class="settings-nav-header">
+                            <h2>Cài đặt</h2>
+                            <p>Quản lý tài khoản, bảo mật và tùy chỉnh trải nghiệm ResidentHub.</p>
                         </div>
+                        <div class="settings-menu" id="settingsMenu"></div>
+                    </aside>
+
+                    <div class="settings-content-panel">
+                        <div class="settings-header-block">
+                            <div>
+                                <h1 id="settingsGroupTitle">Tài khoản</h1>
+                                <p id="settingsGroupDescription">Quản lý thông tin cá nhân và thông tin căn hộ của bạn.</p>
+                            </div>
+                            <button class="btn-ghost" id="resetSettingsBtn"><i class="fas fa-rotate-right"></i> Khôi phục mặc định</button>
+                        </div>
+                        <div class="settings-section-stack" id="settingsContent"></div>
                     </div>
                 </div>
             </div>
+
+            <div id="settingsSaveBar" class="settings-save-bar hidden">
+                <span>Bạn có thay đổi chưa được lưu.</span>
+                <div class="settings-actions-row">
+                    <button class="btn-ghost" id="settingsDiscardBtn">Hủy</button>
+                    <button class="btn-primary" id="settingsSaveBtn">Lưu thay đổi</button>
+                </div>
+            </div>
+
+            <div id="settingsToast" class="settings-toast"></div>
         </section>
 
         <section class="screen-section" id="calendarSection" style="display:none;">
@@ -822,11 +1457,11 @@
                     <div class="notice-list">
                         <div class="notice-item">
                             <div style="font-weight:700; margin-bottom:0.25rem;">Khảo sát thiết bị điều hòa</div>
-                            <div style="font-size:0.82rem; color:#64748b;">20/08 • 09:30</div>
+                            <div style="font-size:0.82rem; color:#64748b;">05/09 • 09:30</div>
                         </div>
                         <div class="notice-item">
-                            <div style="font-weight:700; margin-bottom:0.25rem;">Hẹn thanh toán hóa đơn</div>
-                            <div style="font-size:0.82rem; color:#64748b;">20/08 • 17:00</div>
+                            <div style="font-weight:700; margin-bottom:0.25rem;">Hạn thanh toán hóa đơn phòng</div>
+                            <div style="font-size:0.82rem; color:#64748b;">05/09 • 17:00</div>
                         </div>
                         <div class="notice-item">
                             <div style="font-weight:700; margin-bottom:0.25rem;">Lịch vệ sinh chung</div>
@@ -861,9 +1496,77 @@
                 </div>
             </div>
         </section>
+        <div class="resident-feature-modal" id="residentFeatureModal" aria-hidden="true"><div class="resident-feature-dialog" role="dialog" aria-modal="true"><header><h4 id="residentFeatureTitle">Thông tin</h4><button class="resident-feature-close" aria-label="Đóng"><i class="fas fa-xmark"></i></button></header><div id="residentFeatureContent" style="margin-top:1rem"></div></div></div>
     </main>
 
     <script>
+        const contractData = {
+            id: 'RES-PA-205',
+            startDate: '2026-01-01',
+            endDate: '2026-12-31',
+            noticeDays: 30,
+            renewalStatus: localStorage.getItem('residenthub_contract_renewal_status') || 'draft'
+        };
+        const contractDate = value => { const parts = value.split('-').map(Number); return new Date(parts[0], parts[1] - 1, parts[2]); };
+        const contractFormatDate = value => { const date = contractDate(value); return String(date.getDate()).padStart(2, '0') + '/' + String(date.getMonth() + 1).padStart(2, '0') + '/' + date.getFullYear(); };
+        const contractDeadline = () => { const date = contractDate(contractData.endDate); date.setDate(date.getDate() - contractData.noticeDays + 1); return date; };
+        const contractDaysRemaining = () => { const today = new Date(); today.setHours(0, 0, 0, 0); return Math.ceil((contractDeadline() - today) / 86400000); };
+
+        const notificationData = [
+            { id:'NT-1001', type:'BILLING', subType:'BILL_DUE', title:'Hóa đơn phí quản lý tháng 09/2026 đã phát hành', body:'Số tiền 4.850.000đ, hạn thanh toán 20/09/2026. Vui lòng thanh toán đúng hạn để tránh phát sinh phí.', priority:'HIGH', refType:'invoice', refId:'INV-092026', actionUrl:'invoices', actionLabel:'Thanh toán ngay', isRead:false, isPinned:true, isArchived:false, group:'Hôm nay', time:'10 phút trước', tags:['Quan trọng','Đã ghim'], attachments:[{name:'hoa-don-09-2026.pdf',url:'#'}] },
+            { id:'NT-1002', type:'REQUEST', subType:'REQUEST_ASSIGNED', title:'Yêu cầu YCD-019 đã được phân công kỹ thuật viên', body:'Kỹ thuật viên Nguyễn Văn A sẽ kiểm tra điều hòa phòng khách lúc 15:00 hôm nay.', priority:'NORMAL', refType:'request', refId:'YCD-019', actionUrl:'requests', actionLabel:'Xem yêu cầu', isRead:false, isPinned:false, isArchived:false, group:'Hôm nay', time:'35 phút trước', tags:[] },
+            { id:'NT-1003', type:'CONTRACT', subType:'CONTRACT_EXPIRING', title:'Hợp đồng thuê căn hộ sắp hết hạn', body:'Hợp đồng RES-PA-205 còn '+contractDaysRemaining()+' ngày đến hạn báo trước '+contractFormatDate(contractData.endDate)+'. Hạn chót gửi xác nhận là '+contractFormatDate(contractData.endDate)+' trừ '+contractData.noticeDays+' ngày.', priority:'HIGH', refType:'contract', refId:'RES-PA-205', actionUrl:'contracts', actionLabel:'Xem hợp đồng', isRead:false, isPinned:true, isArchived:false, group:'Hôm nay', time:'2 giờ trước', tags:['Quan trọng'], requiresAck:true },
+            { id:'NT-1004', type:'ANNOUNCEMENT', subType:'BUILDING_NOTICE', title:'Bảo trì thang máy tòa A vào tối nay', body:'Thang máy A1 và A2 tạm dừng từ 22:00 đến 23:30 ngày 16/09/2026 để kiểm tra định kỳ.', priority:'NORMAL', isRead:false, isPinned:false, isArchived:false, group:'Hôm nay', time:'3 giờ trước', tags:[], actionLabel:'Xem thông báo', actionUrl:'notifications' },
+            { id:'NT-1005', type:'UTILITY', subType:'WATER_MAINTENANCE', title:'Lịch vệ sinh bể nước sinh hoạt', body:'Khu vực cấp nước tòa A có thể yếu trong khung giờ 08:00–10:00 ngày 17/09/2026.', priority:'NORMAL', isRead:false, isPinned:false, isArchived:false, group:'Hôm qua', time:'Hôm qua, 16:20', tags:[], actionLabel:'Xem lịch', actionUrl:'calendar' },
+            { id:'NT-1006', type:'REQUEST', subType:'REQUEST_COMPLETED', title:'Yêu cầu YCD-018 đã hoàn tất', body:'Vòi nước bếp căn hộ A502 đã được sửa xong. Vui lòng xác nhận kết quả xử lý.', priority:'NORMAL', refType:'request', refId:'YCD-018', actionUrl:'requests', actionLabel:'Xác nhận hoàn tất', isRead:false, isPinned:false, isArchived:false, group:'Hôm qua', time:'Hôm qua, 14:05', tags:[] },
+            { id:'NT-1007', type:'BILLING', subType:'PAYMENT_RECEIPT', title:'Thanh toán hóa đơn tháng 08 thành công', body:'Đã nhận 4.850.000đ từ giao dịch VNPay lúc 09:42 ngày 15/09/2026.', priority:'LOW', isRead:false, isPinned:false, isArchived:false, group:'Hôm qua', time:'Hôm qua, 09:42', tags:[], actionLabel:'Tải biên nhận', actionUrl:'invoices', attachments:[{name:'bien-nhan-vnpay.pdf',url:'#'}] },
+            { id:'NT-1008', type:'ANNOUNCEMENT', subType:'RULE_UPDATE', title:'Cập nhật nội quy sử dụng khu vực chung', body:'Ban quản lý cập nhật quy định sử dụng phòng sinh hoạt cộng đồng và khu BBQ.', priority:'NORMAL', isRead:true, isPinned:false, isArchived:false, group:'Trước đó', time:'12/09/2026', tags:[], actionLabel:'Đọc nội quy', actionUrl:'notifications' },
+            { id:'NT-1009', type:'UTILITY', subType:'EVENT', title:'Mở đăng ký hội thảo sống xanh', body:'Hội thảo diễn ra lúc 09:00 ngày 21/09/2026 tại sảnh cộng đồng. Số chỗ còn lại: 12.', priority:'LOW', isRead:true, isPinned:false, isArchived:false, group:'Trước đó', time:'10/09/2026', tags:[], actionLabel:'Xem lịch', actionUrl:'calendar' }
+        ];
+        let notificationFilter = 'ALL';
+        let showArchivedNotifications = false;
+        const notificationTypeLabels = { ALL:'Tất cả', BILLING:'Thanh toán', REQUEST:'Yêu cầu', CONTRACT:'Hợp đồng', ANNOUNCEMENT:'Ban quản lý', UTILITY:'Tiện ích' };
+        const notificationTypeIcons = { BILLING:'fa-file-invoice-dollar', REQUEST:'fa-screwdriver-wrench', CONTRACT:'fa-file-signature', ANNOUNCEMENT:'fa-building-shield', UTILITY:'fa-wand-magic-sparkles' };
+        const notificationTypeClasses = { BILLING:'billing', REQUEST:'request', CONTRACT:'contract', ANNOUNCEMENT:'announcement', UTILITY:'utility' };
+        function notificationUnreadCount(){ return notificationData.filter(item => !item.isRead && !item.isArchived).length; }
+        function notificationToast(message){ const stack = document.getElementById('notificationToastStack'); if(!stack) return; const toast = document.createElement('div'); toast.className='notification-toast'; toast.innerHTML='<i class="fas fa-bell" style="color:#1769e8;"></i><span>'+message+'</span>'; stack.appendChild(toast); setTimeout(() => toast.remove(), 4200); }
+        function notificationRoute(target){
+            if(target === 'notifications') return;
+            const nav = document.querySelector('.nav-item[data-target="'+target+'"]');
+            if(nav) nav.click();
+        }
+        function notificationAction(event, id, actionUrl){ event.stopPropagation(); const item=notificationData.find(notification=>notification.id===id); if(item){ item.isRead=true; } renderNotifications(); notificationRoute(actionUrl); }
+        function notificationClick(id){ const item=notificationData.find(notification=>notification.id===id); if(!item) return; item.isRead=true; renderNotifications(); notificationRoute(item.actionUrl || item.refType || 'notifications'); }
+        function notificationIcon(type){ return '<span class="notification-icon '+notificationTypeClasses[type]+'"><i class="fas '+notificationTypeIcons[type]+'"></i></span>'; }
+        function notificationItemMarkup(item){
+            const tags=(item.tags||[]).map(tag=>'<span class="notification-tag '+(tag==='Đã ghim'?'pinned':'')+'">'+(tag==='Đã ghim'?'<i class="fas fa-thumbtack"></i> ':'')+tag+'</span>').join('');
+            const attachment=item.attachments&&item.attachments[0]?'<div class="notification-attachment"><i class="fas fa-file-pdf" style="color:#e05252"></i>'+item.attachments[0].name+'</div>':'';
+            const ack=item.requiresAck?'<div class="notification-ack"><span><i class="fas fa-circle-info"></i> Vui lòng xác nhận bạn đã nắm thông tin này.</span><button onclick="acknowledgeNotification(event,\''+item.id+'\')">Tôi đã đọc và hiểu</button></div>':'';
+            const action=item.actionLabel?'<div class="notification-buttons"><button onclick="notificationAction(event,\''+item.id+'\',\''+(item.actionUrl||'notifications')+'\')">'+item.actionLabel+'</button>'+(item.refType==='invoice'&&item.actionLabel==='Thanh toán ngay'?'<button onclick="notificationAction(event,\''+item.id+'\',\'invoices\')">Xem hóa đơn</button>':'')+'</div>':'';
+            return '<article class="notification-item '+(!item.isRead?'unread':'')+'" data-notification="'+item.id+'" onclick="notificationClick(\''+item.id+'\')"><div class="notification-main">'+notificationIcon(item.type)+'<div class="notification-copy"><div class="notification-title">'+(!item.isRead?'<span class="unread-dot"></span>':'')+'<strong>'+item.title+'</strong></div><div class="notification-meta"><span>'+notificationTypeLabels[item.type]+'</span><span>•</span><span>'+item.time+'</span>'+tags+'</div><p class="notification-body">'+item.body+'</p>'+attachment+ack+action+'</div></div><div class="notification-right"><span>'+item.time+'</span><div class="notification-side-actions"><button class="'+(item.isPinned?'active':'')+'" title="Ghim" onclick="toggleNotificationPin(event,\''+item.id+'\')"><i class="fas fa-thumbtack"></i></button><button title="Đánh dấu đã đọc" onclick="toggleNotificationRead(event,\''+item.id+'\')"><i class="fas fa-envelope-open"></i></button><button title="Lưu trữ" onclick="archiveNotification(event,\''+item.id+'\')"><i class="fas fa-box-archive"></i></button></div></div></article>';
+        }
+        function renderNotifications(){
+            const root=document.getElementById('notificationsSection'); if(!root) return;
+            const unread=notificationUnreadCount(); const counts={ALL:unread}; Object.keys(notificationTypeLabels).filter(key=>key!=='ALL').forEach(key=>counts[key]=notificationData.filter(item=>item.type===key&&!item.isRead&&!item.isArchived).length);
+            const query=(document.getElementById('notificationSearch')?.value||'').toLowerCase(); const unreadOnly=document.getElementById('notificationUnreadOnly')?.checked; const pinnedOnly=document.getElementById('notificationPinnedOnly')?.checked;
+            const filtered=notificationData.filter(item=> (showArchivedNotifications?item.isArchived:!item.isArchived) && (notificationFilter==='ALL'||item.type===notificationFilter) && (!unreadOnly||!item.isRead) && (!pinnedOnly||item.isPinned) && (item.title+' '+item.body+' '+item.subType).toLowerCase().includes(query)).sort((a,b)=>(b.isPinned-a.isPinned));
+            const groups=['Hôm nay','Hôm qua','Trước đó']; const list=groups.map(group=>{const items=filtered.filter(item=>item.group===group); return items.length?'<div class="notification-group"><h3>'+group+' <span>'+items.length+'</span></h3><div class="notification-list">'+items.map(notificationItemMarkup).join('')+'</div></div>':''}).join('');
+            root.innerHTML='<div class="notification-workspace"><div class="notification-head"><div><h1>Thông báo</h1><p>Bạn có <strong>'+unread+'</strong> thông báo chưa đọc và cần xử lý.</p></div><div class="notification-actions"><button class="notification-button" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc</button><button class="notification-button primary" onclick="openNotificationSettings()"><i class="fas fa-sliders"></i> Cài đặt nhận thông báo</button></div></div><div class="notification-tabs">'+Object.keys(notificationTypeLabels).map(key=>'<button class="notification-tab '+(notificationFilter===key?'active':'')+'" onclick="setNotificationFilter(\''+key+'\')">'+notificationTypeLabels[key]+' <span class="count-badge">'+counts[key]+'</span></button>').join('')+'</div><div class="notification-tools"><label class="notification-search"><i class="fas fa-search"></i><input id="notificationSearch" type="search" placeholder="Tìm theo tiêu đề, nội dung hoặc mã..." value="'+(query.replace(/"/g,'&quot;'))+'" oninput="renderNotifications()"></label><label class="notification-check"><input id="notificationUnreadOnly" type="checkbox" '+(unreadOnly?'checked':'')+' onchange="renderNotifications()"> Chỉ chưa đọc</label><label class="notification-check"><input id="notificationPinnedOnly" type="checkbox" '+(pinnedOnly?'checked':'')+' onchange="renderNotifications()"> Đã ghim</label><button class="notification-button" onclick="showArchivedNotifications=!showArchivedNotifications;renderNotifications()"><i class="fas fa-box-archive"></i> '+(showArchivedNotifications?'Thông báo đã lưu trữ':'Đã lưu trữ')+'</button></div><div class="notification-groups">'+(list||'<div class="notification-empty"><i class="far fa-bell-slash"></i><strong>Không có thông báo nào ở đây</strong><p>Hãy thử bỏ bớt một vài bộ lọc để xem thêm thông báo.</p></div>')+'</div></div><div class="drawer-backdrop" id="notificationDrawer" onclick="closeNotificationSettings(event)"><aside class="notification-drawer" onclick="event.stopPropagation()"><div class="notification-drawer-head"><h2>Cài đặt nhận thông báo</h2><button class="drawer-close" onclick="closeNotificationSettings()"><i class="fas fa-times"></i></button></div>'+notificationSettingsMarkup()+'</aside></div><div class="toast-stack" id="notificationToastStack"></div>';
+            const sidebarCount=document.getElementById('sidebarNotificationCount'); if(sidebarCount){sidebarCount.textContent=unread;sidebarCount.style.display=unread?'inline-block':'none';} const topBadge=document.querySelector('.topbar-actions .badge-dot'); if(topBadge) topBadge.textContent=unread;
+        }
+        function notificationSettingsMarkup(){ const groups=[['Thanh toán','BILLING'],['Yêu cầu','REQUEST'],['Hợp đồng','CONTRACT'],['Ban quản lý','ANNOUNCEMENT'],['Tiện ích','UTILITY']]; return groups.map(group=>'<div class="settings-card"><h3>'+group[0]+'</h3>'+['Trong ứng dụng','Email','Zalo','SMS'].map((channel,index)=>'<label class="channel-row"><span>'+channel+(group[1]==='ANNOUNCEMENT'&&index===0?' <small>(bắt buộc)</small>':'')+'</span><input class="channel-toggle" type="checkbox" '+(index<2||group[1]==='ANNOUNCEMENT'&&index===0?'checked':'')+' '+(group[1]==='ANNOUNCEMENT'&&index===0?'disabled':'')+'></label>').join('')+'</div>').join('')+'<div class="settings-card"><h3>Nhắc hóa đơn trước hạn</h3><select class="settings-select"><option>1 ngày</option><option selected>3 ngày</option><option>5 ngày</option><option>7 ngày</option></select></div><div class="settings-card"><h3>Không làm phiền</h3><label class="channel-row"><span>Tắt</span><input name="quietHours" type="radio" checked></label><label class="channel-row"><span>22:00–07:00</span><input name="quietHours" type="radio"></label></div><div class="drawer-footer"><button class="notification-button primary notification-save" onclick="saveNotificationSettings()"><i class="fas fa-check"></i> Lưu cài đặt</button></div>'; }
+        function setNotificationFilter(filter){ notificationFilter=filter; renderNotifications(); }
+        function markAllNotificationsRead(){ notificationData.forEach(item=>{if(!item.isArchived)item.isRead=true}); renderNotifications(); notificationToast('Đã đánh dấu tất cả thông báo là đã đọc.'); }
+        function toggleNotificationRead(event,id){event.stopPropagation();const item=notificationData.find(notification=>notification.id===id);if(item)item.isRead=!item.isRead;renderNotifications();}
+        function toggleNotificationPin(event,id){event.stopPropagation();const item=notificationData.find(notification=>notification.id===id);if(item){item.isPinned=!item.isPinned;item.tags=item.isPinned?Array.from(new Set([...(item.tags||[]),'Đã ghim'])):(item.tags||[]).filter(tag=>tag!=='Đã ghim');}renderNotifications();}
+        function archiveNotification(event,id){event.stopPropagation();const item=notificationData.find(notification=>notification.id===id);if(item){item.isArchived=true;item.isRead=true;}renderNotifications();notificationToast('Thông báo đã được lưu trữ.');}
+        function acknowledgeNotification(event,id){event.stopPropagation();const item=notificationData.find(notification=>notification.id===id);if(item){item.requiresAck=false;item.isRead=true;}renderNotifications();notificationToast('Đã ghi nhận xác nhận của bạn.');}
+        function openNotificationSettings(){const drawer=document.getElementById('notificationDrawer');if(drawer)drawer.classList.add('open');}
+        function closeNotificationSettings(event){if(event&&event.target!==event.currentTarget)return;const drawer=document.getElementById('notificationDrawer');if(drawer)drawer.classList.remove('open');}
+        function saveNotificationSettings(){closeNotificationSettings();notificationToast('Cài đặt nhận thông báo đã được lưu.');}
+        window.addEventListener('residenthub:notification',event=>{if(event.detail){notificationData.unshift({...event.detail,isRead:false,isArchived:false,group:'Hôm nay',time:'Vừa xong'});renderNotifications();notificationToast('Bạn có thông báo mới: '+event.detail.title);}});
+        const contractPaymentNote = document.querySelector('#contractsSection .notice-item p');
+        if (contractPaymentNote) contractPaymentNote.textContent = 'Một hóa đơn phòng gồm tiền thuê, dịch vụ và các khoản phí khác, được thu một lần từ ngày 28 đến ngày 05 tháng sau. Tiền đặt cọc được hoàn trả sau khi đối soát hiện trạng và công nợ.';
         const navItems = document.querySelectorAll('.nav-item');
         const sections = {
             overview: document.getElementById('overviewSection'),
@@ -871,9 +1574,8 @@
             requests: document.getElementById('requestsSection'),
             contracts: document.getElementById('contractsSection'),
             notifications: document.getElementById('notificationsSection'),
-            profile: document.getElementById('profileSection'),
-            calendar: document.getElementById('calendarSection'),
-            security: document.getElementById('securitySection')
+            settings: document.getElementById('settingsSection'),
+            calendar: document.getElementById('calendarSection')
         };
 
         const pageTitles = {
@@ -882,16 +1584,694 @@
             requests: 'Yêu cầu',
             contracts: 'Hợp đồng',
             notifications: 'Thông báo',
-            profile: 'Hồ sơ',
-            calendar: 'Lịch hẹn',
-            security: 'Bảo mật'
+            settings: 'Cài đặt',
+            calendar: 'Lịch hẹn'
         };
+
+        const settingsMeta = {
+            account: { title: 'Tài khoản', description: 'Quản lý thông tin cá nhân và thông tin căn hộ của bạn.' },
+            security: { title: 'Bảo mật', description: 'Bảo vệ tài khoản và kiểm soát các phương thức đăng nhập.' },
+            theme: { title: 'Giao diện', description: 'Tùy chỉnh giao diện ResidentHub theo sở thích của bạn.' },
+            language: { title: 'Ngôn ngữ & khu vực', description: 'Thiết lập ngôn ngữ và định dạng hiển thị.' },
+            privacy: { title: 'Quyền riêng tư', description: 'Kiểm soát cách thông tin của bạn được sử dụng.' },
+            devices: { title: 'Thiết bị đăng nhập', description: 'Theo dõi các thiết bị đang truy cập tài khoản của bạn.' },
+            data: { title: 'Dữ liệu & tài khoản', description: 'Quản lý dữ liệu cá nhân và các thao tác liên quan đến tài khoản.' }
+        };
+
+        let activeSettingsTab = 'account';
+        let settingsDirty = false;
+        const SETTINGS_KEY_PREFIX = 'residenthub_settings_';
+
+        function getResidentSettingsKey() {
+            const session = RH.getSession();
+            return SETTINGS_KEY_PREFIX + (session ? session.id : 'guest');
+        }
+
+        function getResidentSettings() {
+            const defaults = {
+                theme: 'light',
+                language: 'vi',
+                timezone: 'GMT+07:00',
+                dateFormat: 'DD/MM/YYYY',
+                currency: 'VNĐ (₫)',
+                security: { twoFactor: true, lastPasswordChange: '30 ngày trước' },
+                privacy: { phone: true, email: true, apartment: 'Được quản lý bởi hệ thống' },
+                devices: [
+                    { id: 'device-iphone', type: 'iPhone 15 Pro', os: 'iOS', lastSeen: 'Hoạt động 2 giờ trước', current: true },
+                    { id: 'device-chrome', type: 'Chrome trên Windows', os: 'Windows 11', lastSeen: 'Hoạt động hôm qua', current: false },
+                    { id: 'device-edge', type: 'Microsoft Edge', os: 'Windows', lastSeen: 'Hoạt động 3 ngày trước', current: false }
+                ],
+                user: {
+                    name: RH.getSession() ? RH.getSession().name : 'Nguyễn Văn Hùng',
+                    email: RH.getSession() ? RH.getSession().email : 'resident@residenthub.vn',
+                    phone: '0908 123 456',
+                    apartment: RH.getSession() ? RH.getSession().unit : 'A-1208',
+                    building: 'ResidentHub Tower A',
+                    floor: '12',
+                    status: 'Đang sinh sống'
+                }
+            };
+
+            try {
+                const raw = localStorage.getItem(getResidentSettingsKey());
+                if (!raw) return defaults;
+                const parsed = JSON.parse(raw);
+                return {
+                    ...defaults,
+                    ...parsed,
+                    user: { ...defaults.user, ...(parsed.user || {}) },
+                    security: { ...defaults.security, ...(parsed.security || {}) },
+                    privacy: { ...defaults.privacy, ...(parsed.privacy || {}) },
+                    devices: Array.isArray(parsed.devices) ? parsed.devices : defaults.devices
+                };
+            } catch (error) {
+                return defaults;
+            }
+        }
+
+        function renderSettingsSaveBar() {
+            const bar = document.getElementById('settingsSaveBar');
+            if (bar) bar.classList.toggle('hidden', !settingsDirty);
+        }
+
+        function showSettingsToast(message, type) {
+            const toast = document.getElementById('settingsToast');
+            if (!toast) return;
+            toast.className = 'settings-toast show ' + (type || 'success');
+            toast.textContent = message;
+            clearTimeout(showSettingsToast.timer);
+            showSettingsToast.timer = setTimeout(() => {
+                toast.className = 'settings-toast';
+            }, 2200);
+        }
+
+        function escapeHtml(value) {
+            return String(value ?? '').replace(/[&<>"']/g, function (character) {
+                return ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[character];
+            });
+        }
+
+        function renderSettingsNav() {
+            const nav = document.getElementById('settingsMenu');
+            if (!nav) return;
+            nav.innerHTML = Object.entries(settingsMeta).map(([key, meta]) => `
+                <button class="settings-menu-item ${activeSettingsTab === key ? 'active' : ''}" data-settings-tab="${key}">
+                    <span class="left">
+                        <span>${key === 'account' ? '👤' : key === 'security' ? '🔐' : key === 'theme' ? '🎨' : key === 'language' ? '🌐' : key === 'privacy' ? '🔒' : key === 'devices' ? '📱' : '⚠️'}</span>
+                        <span>${meta.title}</span>
+                    </span>
+                    <span class="arrow">→</span>
+                </button>
+            `).join('');
+            nav.querySelectorAll('[data-settings-tab]').forEach(button => {
+                button.addEventListener('click', () => {
+                    activeSettingsTab = button.dataset.settingsTab;
+                    renderSettingPage();
+                });
+            });
+        }
+
+        function renderSettingPage() {
+            const group = settingsMeta[activeSettingsTab];
+            const title = document.getElementById('settingsGroupTitle');
+            const description = document.getElementById('settingsGroupDescription');
+            const content = document.getElementById('settingsContent');
+            if (!title || !description || !content || !group) return;
+            title.textContent = group.title;
+            description.textContent = group.description;
+            renderSettingsNav();
+
+            const settings = getResidentSettings();
+            let markup = '';
+
+            if (activeSettingsTab === 'account') {
+                markup = `
+                    <div class="settings-card">
+                        <div class="settings-profile-top">
+                            <div class="settings-profile-avatar">${escapeHtml((settings.user.name || 'H').trim().charAt(0).toUpperCase())}</div>
+                            <div>
+                                <p class="settings-profile-name">${escapeHtml(settings.user.name)}</p>
+                                <p class="settings-profile-role">Cư dân • Phòng ${escapeHtml(settings.user.apartment)}</p>
+                                <label class="settings-upload-link"><i class="fas fa-camera"></i> <span>Thay đổi ảnh</span><input type="file" accept="image/*" style="display:none" id="avatarUpload"></label>
+                            </div>
+                        </div>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label>Họ và tên</label><input type="text" value="${escapeHtml(settings.user.name)}" id="accountName"></div>
+                            <div class="settings-field"><label>Email</label><input type="email" value="${escapeHtml(settings.user.email)}" id="accountEmail"></div>
+                            <div class="settings-field"><label>Số điện thoại</label><input type="tel" value="${escapeHtml(settings.user.phone)}" id="accountPhone"></div>
+                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" readonly></div>
+                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" readonly></div>
+                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" readonly></div>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Thông tin căn hộ</h3>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" readonly></div>
+                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" readonly></div>
+                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" readonly></div>
+                            <div class="settings-field"><label>Trạng thái</label><input type="text" value="${escapeHtml(settings.user.status)}" readonly></div>
+                        </div>
+                        <p class="device-private-note" style="margin-top: 1rem;">Thông tin căn hộ được quản lý bởi ban quản lý.</p>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('avatarUpload')?.addEventListener('change', (event) => {
+                    const file = event.target.files && event.target.files[0];
+                    if (!file) return;
+                    const reader = new FileReader();
+                    reader.onload = () => {
+                        const nextSettings = { ...settings, user: { ...settings.user, avatar: reader.result } };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        settingsDirty = false;
+                        renderSettingsSaveBar();
+                        renderSettingPage();
+                        showSettingsToast('Ảnh đại diện đã được cập nhật.', 'success');
+                    };
+                    reader.readAsDataURL(file);
+                });
+                document.querySelectorAll('#accountName, #accountEmail, #accountPhone').forEach(input => {
+                    input.addEventListener('input', () => {
+                        settingsDirty = true;
+                        renderSettingsSaveBar();
+                    });
+                });
+            }
+
+            if (activeSettingsTab === 'security') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Mức độ bảo mật</h3>
+                        <div style="display:flex; align-items:flex-end; gap:1rem; justify-content:space-between; flex-wrap:wrap;">
+                            <div>
+                                <div style="font-size:0.75rem; letter-spacing:.12em; text-transform:uppercase; color:#64748b; font-weight:800; margin-bottom:0.4rem;">Mức độ bảo mật</div>
+                                <div style="font-size:2.5rem; font-weight:800; color:#0f172a; line-height:1;">92%</div>
+                            </div>
+                            <div style="flex:1; min-width:220px;">
+                                <div style="height:10px; width:100%; background:#e5edf6; border-radius:999px; overflow:hidden;">
+                                    <div style="width:92%; height:100%; background:linear-gradient(90deg, #10b981 0%, #1769e8 100%); border-radius:999px;"></div>
+                                </div>
+                            </div>
+                        </div>
+                        <p class="device-private-note" style="margin-top:0.8rem;">Tài khoản của bạn đang được bảo vệ tốt.</p>
+                    </div>
+                    <div class="settings-card">
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Mật khẩu</strong>
+                                <small>Cập nhật lần cuối: ${escapeHtml(settings.security.lastPasswordChange)}</small>
+                            </div>
+                            <button class="btn-primary" id="changePasswordBtn">Đổi mật khẩu</button>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Xác thực hai bước</strong>
+                                <small>Bảo vệ tài khoản bằng lớp xác thực bổ sung.</small>
+                            </div>
+                            <label class="toggle-wrap">
+                                <input type="checkbox" id="twoFactorToggle" ${settings.security.twoFactor ? 'checked' : ''}>
+                                <span class="toggle-slider"></span>
+                            </label>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Thiết bị đăng nhập</strong>
+                                <small>2 thiết bị đang hoạt động.</small>
+                            </div>
+                            <button class="btn-ghost" id="viewDevicesBtn">Xem thiết bị</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
+                    const current = window.prompt('Nhập mật khẩu hiện tại:', '');
+                    const next = window.prompt('Nhập mật khẩu mới (ít nhất 6 ký tự):', '');
+                    if (!current || !next) {
+                        showSettingsToast('Vui lòng nhập đầy đủ thông tin.', 'error');
+                        return;
+                    }
+                    const session = RH.getSession();
+                    if (!session) return;
+                    const user = RH.getUsers().find(item => item.id === session.id);
+                    if (!user || user.password !== current) {
+                        showSettingsToast('Mật khẩu hiện tại không chính xác.', 'error');
+                        return;
+                    }
+                    if (next.length < 6) {
+                        showSettingsToast('Mật khẩu mới phải có ít nhất 6 ký tự.', 'error');
+                        return;
+                    }
+                    const updateResult = RH.updateUser(user.id, { password: next });
+                    if (!updateResult.ok) {
+                        showSettingsToast(updateResult.error || 'Không thể cập nhật mật khẩu.', 'error');
+                        return;
+                    }
+                    const nextSettings = { ...settings, security: { ...settings.security, lastPasswordChange: 'vừa xong' } };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    showSettingsToast('Mật khẩu đã được cập nhật.', 'success');
+                });
+                document.getElementById('twoFactorToggle')?.addEventListener('change', function () {
+                    const nextSettings = { ...settings, security: { ...settings.security, twoFactor: this.checked } };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    showSettingsToast(this.checked ? 'Xác thực hai bước đã được bật.' : 'Xác thực hai bước đã được tắt.', 'success');
+                });
+                document.getElementById('viewDevicesBtn')?.addEventListener('click', () => {
+                    activeSettingsTab = 'devices';
+                    renderSettingPage();
+                });
+            }
+
+            if (activeSettingsTab === 'theme') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Chủ đề</h3>
+                        <div class="settings-theme-grid">
+                            <button class="theme-option ${settings.theme === 'light' ? 'selected' : ''}" data-theme="light">
+                                <div class="theme-preview"></div>
+                                <strong>☀️ Sáng</strong>
+                                <small>Giao diện sáng mặc định</small>
+                            </button>
+                            <button class="theme-option ${settings.theme === 'dark' ? 'selected' : ''}" data-theme="dark">
+                                <div class="theme-preview"></div>
+                                <strong>🌙 Tối</strong>
+                                <small>Giao diện tối</small>
+                            </button>
+                            <button class="theme-option ${settings.theme === 'system' ? 'selected' : ''}" data-theme="system">
+                                <div class="theme-preview"></div>
+                                <strong>🖥 Theo máy</strong>
+                                <small>Tự động theo thiết bị</small>
+                            </button>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Mật độ hiển thị</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Tiêu chuẩn</strong>
+                                <small>Độ rộng nội dung tối ưu cho hệ thống.</small>
+                            </div>
+                            <input type="radio" checked>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                content.querySelectorAll('.theme-option').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const nextSettings = { ...settings, theme: button.dataset.theme };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        showSettingsToast('Giao diện đã được lưu.', 'success');
+                        renderSettingPage();
+                    });
+                });
+            }
+
+            if (activeSettingsTab === 'language') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Ngôn ngữ</h3>
+                        <div class="settings-field"><label>Ngôn ngữ</label><select id="settingsLanguage">
+                            <option value="vi" ${settings.language === 'vi' ? 'selected' : ''}>Tiếng Việt</option>
+                            <option value="en" ${settings.language === 'en' ? 'selected' : ''}>English</option>
+                        </select></div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Múi giờ & định dạng</h3>
+                        <div class="settings-grid">
+                            <div class="settings-field"><label>Múi giờ</label><input type="text" value="${escapeHtml(settings.timezone)}" readonly></div>
+                            <div class="settings-field"><label>Định dạng ngày</label><input type="text" value="${escapeHtml(settings.dateFormat)}" readonly></div>
+                            <div class="settings-field"><label>Tiền tệ</label><input type="text" value="${escapeHtml(settings.currency)}" readonly></div>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('settingsLanguage')?.addEventListener('change', function () {
+                    const nextSettings = { ...settings, language: this.value };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    showSettingsToast('Ngôn ngữ đã được cập nhật.', 'success');
+                });
+            }
+
+            if (activeSettingsTab === 'privacy') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Quyền hiển thị</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Số điện thoại</strong>
+                                <small>Cho phép ban quản lý xem số điện thoại của bạn.</small>
+                            </div>
+                            <label class="toggle-wrap"><input type="checkbox" ${settings.privacy.phone ? 'checked' : ''} data-privacy-field="phone"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Email</strong>
+                                <small>Cho phép ban quản lý liên hệ qua email.</small>
+                            </div>
+                            <label class="toggle-wrap"><input type="checkbox" ${settings.privacy.email ? 'checked' : ''} data-privacy-field="email"><span class="toggle-slider"></span></label>
+                        </div>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Thông tin căn hộ</strong>
+                                <small>Thông tin này được dùng để cung cấp dịch vụ cư dân.</small>
+                            </div>
+                            <span class="device-badge">Được quản lý</span>
+                        </div>
+                    </div>
+                    <div class="settings-card">
+                        <h3>Dữ liệu cá nhân</h3>
+                        <p class="device-private-note">Bạn có thể tải xuống bản sao dữ liệu được lưu trong hệ thống ResidentHub.</p>
+                        <div class="settings-card-actions">
+                            <button class="btn-primary" id="downloadPrivacyDataBtn">Tải xuống dữ liệu</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                content.querySelectorAll('[data-privacy-field]').forEach(toggle => {
+                    toggle.addEventListener('change', function () {
+                        const nextSettings = { ...settings, privacy: { ...settings.privacy, [this.dataset.privacyField]: this.checked } };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        showSettingsToast('Cài đặt quyền riêng tư đã được cập nhật.', 'success');
+                    });
+                });
+                document.getElementById('downloadPrivacyDataBtn')?.addEventListener('click', () => {
+                    const data = JSON.stringify({ profile: settings.user, settings }, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'residenthub-data.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showSettingsToast('Bản sao dữ liệu đang được tải xuống.', 'success');
+                });
+            }
+
+            if (activeSettingsTab === 'devices') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Thiết bị đang hoạt động</h3>
+                        <div class="settings-device-list">
+                            ${settings.devices.map(device => `
+                                <div class="device-item">
+                                    <div class="device-meta">
+                                        <div class="device-icon"><i class="${device.type.includes('iPhone') ? 'fas fa-mobile-alt' : device.type.includes('Chrome') ? 'fas fa-laptop' : 'fas fa-desktop'}"></i></div>
+                                        <div>
+                                            <strong>${escapeHtml(device.type)}</strong>
+                                            <small>${escapeHtml(device.os)} • ${escapeHtml(device.lastSeen)}</small>
+                                        </div>
+                                    </div>
+                                    ${device.current ? '<span class="device-badge">Thiết bị hiện tại</span>' : '<button class="btn-ghost" data-device-logout="'+escapeHtml(device.id)+'">Đăng xuất</button>'}
+                                </div>
+                            `).join('')}
+                        </div>
+                        <div class="settings-card-actions">
+                            <button class="btn-danger" id="logoutAllOtherDevicesBtn">Đăng xuất khỏi tất cả thiết bị khác</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                content.querySelectorAll('[data-device-logout]').forEach(button => {
+                    button.addEventListener('click', () => {
+                        const deviceId = button.dataset.deviceLogout;
+                        const nextDevices = settings.devices.filter(device => device.id !== deviceId);
+                        const nextSettings = { ...settings, devices: nextDevices };
+                        localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        renderSettingPage();
+                        showSettingsToast('Thiết bị đã được đăng xuất.', 'success');
+                    });
+                });
+                document.getElementById('logoutAllOtherDevicesBtn')?.addEventListener('click', () => {
+                    const nextSettings = { ...settings, devices: settings.devices.filter(device => device.current) };
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    renderSettingPage();
+                    showSettingsToast('Đã đăng xuất các thiết bị khác.', 'success');
+                });
+            }
+
+            if (activeSettingsTab === 'data') {
+                markup = `
+                    <div class="settings-card">
+                        <h3>Tải dữ liệu</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Tải xuống dữ liệu</strong>
+                                <small>Nhận bản sao dữ liệu cá nhân và tùy chọn cài đặt.</small>
+                            </div>
+                            <button class="btn-primary" id="downloadResidentDataBtn">Tải xuống</button>
+                        </div>
+                    </div>
+                    <div class="settings-card" style="border-color:#fecaca; background:#fff7f8;">
+                        <h3 style="color:#b91c1c;">Xóa tài khoản</h3>
+                        <div class="settings-compact-row">
+                            <div>
+                                <strong>Xóa tài khoản</strong>
+                                <small>Xóa tài khoản sẽ mất quyền truy cập vào ResidentHub và dữ liệu liên quan.</small>
+                            </div>
+                            <button class="btn-danger" id="deleteAccountBtn">Xóa tài khoản</button>
+                        </div>
+                    </div>
+                `;
+                content.innerHTML = markup;
+                document.getElementById('downloadResidentDataBtn')?.addEventListener('click', () => {
+                    const data = JSON.stringify({ profile: settings.user, settings }, null, 2);
+                    const blob = new Blob([data], { type: 'application/json' });
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.href = url;
+                    link.download = 'residenthub-account-data.json';
+                    link.click();
+                    URL.revokeObjectURL(url);
+                    showSettingsToast('Đã bắt đầu tải xuống dữ liệu.', 'success');
+                });
+                document.getElementById('deleteAccountBtn')?.addEventListener('click', () => {
+                    document.getElementById('settingsDeleteModal')?.classList.add('open');
+                });
+            }
+
+            renderSettingsSaveBar();
+        }
+
+        const settingsDeleteModalHtml = `
+            <div id="settingsDeleteModal" class="confirm-modal" aria-modal="true">
+                <div class="confirm-panel">
+                    <h3>Xóa tài khoản?</h3>
+                    <p>Bạn có chắc chắn muốn xóa tài khoản này không? Hành động này không thể hoàn tác và bạn sẽ mất quyền truy cập vào tất cả dữ liệu liên quan.</p>
+                    <div class="confirm-actions">
+                        <button class="btn-ghost" id="cancelDeleteAccountBtn">Hủy</button>
+                        <button class="btn-danger" id="confirmDeleteAccountBtn">Xóa tài khoản</button>
+                    </div>
+                </div>
+            </div>
+        `;
+        document.body.insertAdjacentHTML('beforeend', settingsDeleteModalHtml);
+        document.getElementById('cancelDeleteAccountBtn')?.addEventListener('click', () => document.getElementById('settingsDeleteModal')?.classList.remove('open'));
+        document.getElementById('confirmDeleteAccountBtn')?.addEventListener('click', () => {
+            const session = RH.getSession();
+            if (!session) return;
+            const deleteResult = RH.deleteUser(session.id);
+            if (!deleteResult.ok) {
+                showSettingsToast(deleteResult.error || 'Không thể xóa tài khoản.', 'error');
+                document.getElementById('settingsDeleteModal')?.classList.remove('open');
+                return;
+            }
+            RH.logout();
+            window.location.href = 'index.html';
+        });
+
+        document.getElementById('resetSettingsBtn')?.addEventListener('click', () => {
+            const defaults = {
+                theme: 'light',
+                language: 'vi',
+                timezone: 'GMT+07:00',
+                dateFormat: 'DD/MM/YYYY',
+                currency: 'VNĐ (₫)',
+                security: { twoFactor: true, lastPasswordChange: '30 ngày trước' },
+                privacy: { phone: true, email: true, apartment: 'Được quản lý bởi hệ thống' },
+                devices: [
+                    { id: 'device-iphone', type: 'iPhone 15 Pro', os: 'iOS', lastSeen: 'Hoạt động 2 giờ trước', current: true },
+                    { id: 'device-chrome', type: 'Chrome trên Windows', os: 'Windows 11', lastSeen: 'Hoạt động hôm qua', current: false },
+                    { id: 'device-edge', type: 'Microsoft Edge', os: 'Windows', lastSeen: 'Hoạt động 3 ngày trước', current: false }
+                ],
+                user: {
+                    name: RH.getSession() ? RH.getSession().name : 'Nguyễn Văn Hùng',
+                    email: RH.getSession() ? RH.getSession().email : 'resident@residenthub.vn',
+                    phone: '0908 123 456',
+                    apartment: RH.getSession() ? RH.getSession().unit : 'A-1208',
+                    building: 'ResidentHub Tower A',
+                    floor: '12',
+                    status: 'Đang sinh sống'
+                }
+            };
+            localStorage.setItem(getResidentSettingsKey(), JSON.stringify(defaults));
+            settingsDirty = false;
+            renderSettingPage();
+            showSettingsToast('Cài đặt đã được khôi phục mặc định.', 'success');
+        });
+
+        document.getElementById('settingsSaveBtn')?.addEventListener('click', () => {
+            const currentSettings = getResidentSettings();
+            const accountName = document.getElementById('accountName')?.value.trim();
+            const accountEmail = document.getElementById('accountEmail')?.value.trim();
+            const accountPhone = document.getElementById('accountPhone')?.value.trim();
+            if (activeSettingsTab === 'account' && (!accountName || !accountEmail)) {
+                showSettingsToast('Họ tên và email không được để trống.', 'error');
+                return;
+            }
+            if (activeSettingsTab === 'account') {
+                const session = RH.getSession();
+                const user = RH.getUsers().find(item => item.id === session.id);
+                if (user) {
+                    const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '' });
+                    if (!updateResult.ok) {
+                        showSettingsToast(updateResult.error || 'Không thể lưu thông tin.', 'error');
+                        return;
+                    }
+                }
+                localStorage.setItem(getResidentSettingsKey(), JSON.stringify({
+                    ...currentSettings,
+                    user: {
+                        ...currentSettings.user,
+                        name: accountName,
+                        email: accountEmail,
+                        phone: accountPhone || currentSettings.user.phone
+                    }
+                }));
+            }
+            settingsDirty = false;
+            renderSettingsSaveBar();
+            renderSettingPage();
+            showSettingsToast('Cài đặt đã được lưu.', 'success');
+        });
+
+        document.getElementById('settingsDiscardBtn')?.addEventListener('click', () => {
+            settingsDirty = false;
+            renderSettingsSaveBar();
+            renderSettingPage();
+        });
+
+        renderSettingPage();
+
+        const requestData = [
+            { id: 'YCD-019', title: 'Sửa điều hòa phòng khách', type: 'Sửa chữa căn hộ', subType: 'Điều hòa', priority: 'needed', status: 'processing', date: '16/09/2026', time: '09:15', description: 'Điều hòa không làm lạnh, cần kiểm tra kỹ trong ngày.', location: 'Phòng khách, A502', assignee: 'Nguyễn Văn A', expected: '16/09/2026 • 16:00', step: 4, attachments: 2, messages: [{ from: 'Cư dân', text: 'Máy lạnh vẫn chưa hoạt động, anh/chị có thể kiểm tra giúp tôi chiều nay không?', time: '16/09 • 13:20' }, { from: 'Ban quản lý', text: 'Kỹ thuật viên sẽ đến kiểm tra lúc 15:00 hôm nay.', time: '16/09 • 13:35' }] },
+            { id: 'YCD-018', title: 'Rò rỉ nước vòi bếp', type: 'Sửa chữa căn hộ', subType: 'Nước', priority: 'normal', status: 'waiting', date: '15/09/2026', time: '14:30', description: 'Vòi nước bị rò rỉ, cần kiểm tra và sửa chữa sớm.', location: 'Bếp, A502', assignee: 'Trần Minh Khoa', expected: '15/09/2026 • 17:00', step: 5, attachments: 2, messages: [{ from: 'Ban quản lý', text: 'Yêu cầu đã xử lý xong. Chị kiểm tra và xác nhận giúp ban quản lý nhé.', time: '15/09 • 16:40' }] },
+            { id: 'YCD-017', title: 'Thang máy có tiếng kêu lạ', type: 'Cơ sở vật chất chung', subType: 'Thang máy', priority: 'needed', status: 'completed', date: '14/09/2026', time: '11:20', description: 'Thang máy phát ra tiếng kêu khi di chuyển tầng 5.', location: 'Thang máy tòa nhà', assignee: 'Lê Quốc Bình', expected: '14/09/2026 • 15:30', step: 6, attachments: 1, messages: [], cost: '450.000đ' },
+            { id: 'YCD-016', title: 'Rác thải khu vực chung', type: 'Vệ sinh', subType: 'Rác thải', priority: 'normal', status: 'completed', date: '13/09/2026', time: '16:45', description: 'Khu vực thùng rác tầng 3 bị tràn.', location: 'Tầng 3', assignee: 'Tổ vệ sinh', expected: '13/09/2026 • 18:00', step: 6, attachments: 0, messages: [] },
+            { id: 'YCD-015', title: 'Mất đồ cá nhân', type: 'An ninh', subType: 'Mất đồ', priority: 'urgent', status: 'completed', date: '12/09/2026', time: '08:10', description: 'Tôi bị mất ví khi đi thang máy vào buổi sáng.', location: 'Thang máy, sảnh A', assignee: 'Bộ phận an ninh', expected: '12/09/2026 • 10:00', step: 6, attachments: 1, messages: [] },
+            { id: 'YCD-014', title: 'Đèn hành lang chập chờn', type: 'Cơ sở vật chất chung', subType: 'Đèn', priority: 'normal', status: 'completed', date: '10/09/2026', time: '09:40', description: 'Đèn hành lang tầng 5 hoạt động không ổn định.', location: 'Hành lang tầng 5', assignee: 'Tổ kỹ thuật', expected: '10/09/2026 • 12:00', step: 6, attachments: 0, messages: [] },
+            { id: 'YCD-013', title: 'Đăng ký thẻ khách', type: 'Cơ sở vật chất chung', subType: 'Cửa ra vào', priority: 'normal', status: 'completed', date: '08/09/2026', time: '15:15', description: 'Đăng ký thẻ khách cho người thân trong tuần.', location: 'Sảnh A', assignee: 'Lễ tân', expected: '08/09/2026 • 16:00', step: 6, attachments: 0, messages: [] },
+            { id: 'YCD-010', title: 'Kiểm tra khóa cửa', type: 'Sửa chữa căn hộ', subType: 'Thiết bị', priority: 'normal', status: 'processing', date: '02/09/2026', time: '08:50', description: 'Khóa cửa đôi lúc khó xoay, cần kiểm tra.', location: 'Cửa chính, A502', assignee: 'Nguyễn Văn A', expected: '02/09/2026 • 14:00', step: 4, attachments: 0, messages: [] }
+        ];
+        const statusLabels = { processing: 'Đang xử lý', waiting: 'Chờ xác nhận', completed: 'Hoàn tất', cancelled: 'Đã hủy' };
+        const priorityLabels = { normal: 'Bình thường', needed: 'Cần xử lý', urgent: 'Khẩn cấp' };
+        const modal = document.getElementById('requestModal');
+        const modalBody = document.getElementById('modalBody');
+        let modalStep = 1;
+        let selectedType = '';
+        let activeHistory = 'active';
+        let newRequestDraft = null;
+
+        function openModal() { modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
+        function closeModal() { modal.classList.remove('open'); document.body.style.overflow = ''; }
+        function setModalHeader(title, subtitle) { document.getElementById('modalTitle').textContent = title; document.getElementById('modalSubtitle').textContent = subtitle; }
+
+        function renderCreateStep() {
+            openModal();
+            if (modalStep === 1) {
+                setModalHeader('Tạo yêu cầu mới', 'Chọn nhóm vấn đề để được hỗ trợ nhanh hơn');
+                const categories = [['🔧', 'Sửa chữa căn hộ', 'Điện • Nước • Điều hòa • Thiết bị • Nội thất'], ['🏢', 'Cơ sở vật chất chung', 'Thang máy • Hành lang • Đèn • Cửa ra vào • Bãi xe'], ['🛡️', 'An ninh', 'Mất đồ • Người lạ • Kiểm soát ra vào • Camera'], ['🧹', 'Vệ sinh', 'Rác thải • Khu vực chung • Vệ sinh căn hộ'], ['💳', 'Phí & thanh toán', 'Hóa đơn • Phí quản lý • Thanh toán'], ['📢', 'Phản ánh / góp ý', 'Gửi góp ý đến ban quản lý'], ['📦', 'Khác', 'Các vấn đề chưa thuộc nhóm trên']];
+                modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span></span><span></span></div><div class="category-grid">' + categories.map(item => '<button class="category-card' + (selectedType === item[1] ? ' selected' : '') + '" data-type="' + item[1] + '"><strong>' + item[0] + ' ' + item[1] + '</strong><small>' + item[2] + '</small></button>').join('') + '</div><div class="modal-actions"><span></span><button class="btn-primary" id="categoryNext" disabled>Tiếp tục <i class="fas fa-arrow-right"></i></button></div>';
+                modalBody.querySelectorAll('[data-type]').forEach(button => button.addEventListener('click', () => { selectedType = button.dataset.type; modalBody.querySelectorAll('[data-type]').forEach(el => el.classList.remove('selected')); button.classList.add('selected'); document.getElementById('categoryNext').disabled = false; }));
+                document.getElementById('categoryNext').addEventListener('click', () => { modalStep = 2; renderCreateStep(); });
+                return;
+            }
+            setModalHeader('Thông tin yêu cầu', selectedType);
+            modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span class="active"></span><span></span></div><div class="form-grid"><div class="form-field full"><label>Tiêu đề</label><input id="newTitle" placeholder="Ví dụ: Máy lạnh phòng khách không hoạt động"></div><div class="form-field"><label>Vị trí</label><input id="newLocation" value="Phòng A502" placeholder="Căn hộ, khu vực"></div><div class="form-field"><label>Mức độ</label><select id="newPriority"><option value="normal">🟢 Bình thường</option><option value="needed">🟡 Cần xử lý</option><option value="urgent">🔴 Khẩn cấp</option></select></div><div class="form-field full"><label>Mô tả vấn đề</label><textarea id="newDescription" rows="4" placeholder="Vui lòng mô tả chi tiết vấn đề bạn đang gặp phải..."></textarea></div><div class="form-field full"><label>Đính kèm</label><div class="file-drop"><i class="fas fa-paperclip"></i> Chụp ảnh, tải ảnh, video hoặc file <input id="newFiles" type="file" multiple style="display:block; margin:.7rem auto 0; max-width:100%;"></div></div><div class="form-field full"><label>Thời gian thuận tiện để nhân viên đến</label><div class="time-options"><label class="choice-pill"><input type="radio" name="visitTime" value="Bất kỳ thời gian nào" checked> Bất kỳ thời gian nào</label><label class="choice-pill"><input type="radio" name="visitTime" value="Buổi sáng"> Buổi sáng <small>08:00 – 12:00</small></label><label class="choice-pill"><input type="radio" name="visitTime" value="Buổi chiều"> Buổi chiều <small>13:00 – 17:00</small></label><label class="choice-pill"><input type="radio" name="visitTime" value="Thời gian cụ thể"> Chọn thời gian cụ thể</label></div></div></div><div class="modal-actions"><button class="btn-secondary" id="backToType"><i class="fas fa-arrow-left"></i> Quay lại</button><button class="btn-primary" id="reviewRequest">Kiểm tra yêu cầu <i class="fas fa-arrow-right"></i></button></div>';
+            document.getElementById('backToType').addEventListener('click', () => { modalStep = 1; renderCreateStep(); });
+            document.getElementById('reviewRequest').addEventListener('click', reviewNewRequest);
+        }
+
+        function reviewNewRequest() {
+            const title = document.getElementById('newTitle').value.trim();
+            const description = document.getElementById('newDescription').value.trim();
+            if (!title || !description) { alert('Vui lòng nhập tiêu đề và mô tả vấn đề.'); return; }
+            newRequestDraft = { title, location: document.getElementById('newLocation').value, priority: document.getElementById('newPriority').value, description, time: document.querySelector('input[name="visitTime"]:checked').value, files: document.getElementById('newFiles').files.length };
+            setModalHeader('Kiểm tra yêu cầu', 'Xem lại thông tin trước khi gửi');
+            modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span class="active"></span><span class="active"></span></div><div class="support-card"><div><strong>Loại:</strong> ' + selectedType + '</div><div><strong>Vấn đề:</strong> ' + newRequestDraft.title + '</div><div><strong>Căn hộ:</strong> ' + newRequestDraft.location + '</div><div><strong>Mức độ:</strong> ' + priorityLabels[newRequestDraft.priority] + '</div><div><strong>Thời gian:</strong> ' + newRequestDraft.time + '</div><div><strong>Tệp đính kèm:</strong> ' + newRequestDraft.files + ' tệp</div><p style="margin-bottom:0; color:#475569;">' + newRequestDraft.description + '</p></div><div class="modal-actions"><button class="btn-secondary" id="editRequest"><i class="fas fa-arrow-left"></i> Chỉnh sửa</button><button class="btn-primary" id="sendRequest">Gửi yêu cầu <i class="fas fa-paper-plane"></i></button></div>';
+            document.getElementById('editRequest').addEventListener('click', () => { modalStep = 2; renderCreateStep(); });
+            document.getElementById('sendRequest').addEventListener('click', submitRequest);
+        }
+
+        function submitRequest() {
+            const nextId = 'YCD-' + String(15 + requestData.length).padStart(3, '0');
+            requestData.unshift({ id: nextId, title: newRequestDraft.title, type: selectedType, priority: newRequestDraft.priority, status: 'processing', date: '16/09/2026', description: newRequestDraft.description, location: newRequestDraft.location, assignee: 'Đang phân công', expected: newRequestDraft.time, step: 2, attachments: newRequestDraft.files, messages: [] });
+            renderRequests();
+            setModalHeader('Yêu cầu đã được gửi thành công!', 'Ban quản lý sẽ phản hồi ngay khi tiếp nhận');
+            modalBody.innerHTML = '<div class="success-state"><i class="fas fa-circle-check"></i><h3 style="margin:.3rem 0;">Yêu cầu của bạn đã được gửi</h3><p style="color:#64748b;">Mã yêu cầu</p><strong style="font-size:1.5rem; color:#0d65d5;">' + nextId + '</strong><div class="modal-actions"><span></span><button class="btn-primary" data-close-modal>Đóng</button></div></div>';
+            modalBody.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+        }
+
+        function renderStats() { const counts = { processing: requestData.filter(r => r.status === 'processing').length, waiting: requestData.filter(r => r.status === 'waiting').length, completed: requestData.filter(r => r.status === 'completed').length, all: requestData.length }; document.getElementById('requestStats').innerHTML = [['processing', 'Đang xử lý'], ['waiting', 'Chờ xác nhận'], ['completed', 'Hoàn tất'], ['all', 'Tổng yêu cầu']].map(item => '<div class="request-stat"><div style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:#64748b; margin-bottom:.5rem;">' + item[1] + '</div><div style="font-size:2rem; font-weight:800; color:#0f172a;">' + counts[item[0]] + '</div></div>').join(''); }
+
+        function renderRequests() { renderStats(); const query = document.getElementById('requestSearch').value.toLowerCase(); const status = document.getElementById('requestStatus').value; const type = document.getElementById('requestType').value; const priority = document.getElementById('requestPriority').value; const items = requestData.filter(r => (activeHistory === 'all' || r.status !== 'completed') && (status === 'all' || r.status === status) && (type === 'all' || r.type === type) && (priority === 'all' || r.priority === priority) && (r.title + r.id + r.description).toLowerCase().includes(query)); document.getElementById('requestList').innerHTML = items.length ? items.map(r => '<div class="request-box request-item" data-request="' + r.id + '"><div class="request-item-head"><div><strong style="color:#0f172a;">' + r.title + '</strong><div style="font-size:.8rem; color:#64748b; margin-top:.35rem;">' + r.id + ' • ' + r.date + ' • ' + r.type + '</div></div><span class="badge ' + (r.status === 'completed' ? 'badge-paid' : r.status === 'waiting' ? 'badge-pending' : 'badge-info') + '">' + statusLabels[r.status] + '</span></div><div style="color:#475569; margin-top:.6rem;">' + r.description + '</div><div class="request-progress">' + ['Đã gửi', 'Tiếp nhận', 'Phân công', 'Đang xử lý', 'Xác nhận'].map((label, i) => '<span class="' + (i < r.step ? 'done' : '') + '" title="' + label + '"></span>').join('') + '</div><div style="display:flex; justify-content:space-between; align-items:center; margin-top:.65rem; font-size:.78rem; color:#64748b;"><span>' + priorityLabels[r.priority] + ' • ' + (r.attachments ? r.attachments + ' tệp đính kèm' : 'Không có tệp') + '</span><strong style="color:#0d65d5;">Xem chi tiết <i class="fas fa-arrow-right"></i></strong></div></div>').join('') : '<div class="request-empty"><i class="fas fa-inbox" style="font-size:2rem; color:#9bb8dc;"></i><p>Không tìm thấy yêu cầu phù hợp.</p></div>'; document.querySelectorAll('[data-request]').forEach(item => item.addEventListener('click', () => openRequestDetail(item.dataset.request))); }
+
+        function openRequestDetail(id) {
+            const request = requestData.find(item => item.id === id);
+            setModalHeader(request.title, request.id + ' • ' + statusLabels[request.status]);
+            const steps = [['Đã gửi yêu cầu', request.date + ' • 09:20'], ['Ban quản lý đã tiếp nhận', request.date + ' • 09:35'], ['Đã phân công nhân viên', request.assignee], ['Đang xử lý', 'Dự kiến: ' + request.expected], ['Chờ cư dân xác nhận', ''], ['Hoàn tất', '']];
+            const messages = request.messages.length ? request.messages.map(message => '<div class="message ' + (message.from === 'Cư dân' ? 'resident' : '') + '"><small>' + message.from + ' • ' + message.time + '</small>' + message.text + '</div>').join('') : '<div style="color:#64748b; font-size:.85rem;">Chưa có trao đổi.</div>';
+            const resolution = request.status === 'waiting' ? '<div class="support-card" style="margin-top:1rem;"><strong>Yêu cầu đã được xử lý</strong><p style="margin:.4rem 0; color:#475569;">Vui lòng kiểm tra kết quả và xác nhận.</p><button class="btn-primary" id="confirmDone">✓ Đã giải quyết</button> <button class="btn-secondary" id="notDone">⚠ Chưa giải quyết</button></div>' : '';
+            const review = request.status === 'completed' ? '<div class="support-card" style="margin-top:1rem;"><strong>Đánh giá dịch vụ</strong><p style="margin:.4rem 0; color:#475569;">Bạn hài lòng với cách xử lý yêu cầu?</p><div class="star-rating" id="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><textarea id="reviewText" rows="2" placeholder="Góp ý thêm" style="margin-top:.6rem;"></textarea><button class="btn-primary" id="sendReview" style="margin-top:.6rem;">Gửi đánh giá</button></div>' : '';
+            modalBody.innerHTML = '<div class="detail-grid"><div><div class="detail-meta"><div class="meta-box"><small>Loại yêu cầu</small><strong>' + request.type + '</strong></div><div class="meta-box"><small>Vị trí</small><strong>' + request.location + '</strong></div><div class="meta-box"><small>Mức độ</small><strong>' + priorityLabels[request.priority] + '</strong></div><div class="meta-box"><small>Người xử lý</small><strong>' + request.assignee + '</strong></div></div><p style="color:#475569; margin:1rem 0;">' + request.description + '</p><h4 style="margin-bottom:.8rem;">Tiến trình xử lý</h4><div class="timeline">' + steps.map((step, index) => '<div class="timeline-item ' + (index < request.step ? 'done' : index === request.step ? 'current' : '') + '"><strong>' + step[0] + '</strong><br><small>' + step[1] + '</small></div>').join('') + '</div></div><div><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="margin:0;">💬 Trao đổi</h4><span class="badge badge-info">Thông báo bật</span></div><div class="chat-box">' + messages + '</div><div class="chat-compose" style="display:flex; gap:.5rem; margin-top:.8rem;"><input id="chatMessage" placeholder="Nhắn tin cho ban quản lý..."><button class="btn-primary" id="sendChat" title="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div>' + resolution + review + '</div></div>';
+            openModal();
+            modalBody.insertAdjacentHTML('afterbegin', '<div class="detail-meta" style="margin-bottom:1.2rem;"><div class="meta-box"><small>Tệp đính kèm</small><strong><i class="fas fa-paperclip" style="color:#1769e8;"></i> ' + request.attachments + ' tệp</strong></div><div class="meta-box"><small>Chi phí dự kiến</small><strong>' + (request.cost || 'Chưa phát sinh') + '</strong></div></div>');
+            document.getElementById('sendChat').addEventListener('click', () => { const input = document.getElementById('chatMessage'); if (input.value.trim()) { request.messages.push({ from: 'Cư dân', text: input.value.trim(), time: 'Vừa xong' }); openRequestDetail(request.id); } });
+            document.getElementById('confirmDone')?.addEventListener('click', () => { request.status = 'completed'; request.step = 6; renderRequests(); openRequestDetail(request.id); });
+            document.getElementById('notDone')?.addEventListener('click', () => { alert('Phản hồi của bạn đã được gửi đến ban quản lý.'); });
+            document.querySelectorAll('#stars span').forEach((star, index, stars) => star.addEventListener('click', () => stars.forEach((item, itemIndex) => item.classList.toggle('chosen', itemIndex <= index))));
+            document.getElementById('sendReview')?.addEventListener('click', () => { alert('Cảm ơn bạn đã đánh giá dịch vụ.'); closeModal(); });
+        }
+
+        let requestPage = 1;
+        function renderRequests() {
+            renderStats();
+            const query = document.getElementById('requestSearch').value.toLowerCase();
+            const status = document.getElementById('requestStatus').value;
+            const type = document.getElementById('requestType').value;
+            const priority = document.getElementById('requestPriority').value;
+            const period = document.getElementById('requestPeriod').value;
+            const iconByType = { 'Sửa chữa căn hộ': 'fa-wrench', 'Cơ sở vật chất chung': 'fa-building', 'An ninh': 'fa-shield-alt', 'Vệ sinh': 'fa-broom', 'Phí & thanh toán': 'fa-credit-card' };
+            const filtered = requestData.filter(request => {
+                const matchesHistory = activeHistory === 'all' || request.status !== 'completed';
+                const matchesText = (request.title + request.id + request.description).toLowerCase().includes(query);
+                const matchesDate = period === 'all' || Number(period) >= (request.id === 'YCD-014' ? 30 : 90);
+                return matchesHistory && matchesText && (status === 'all' || request.status === status) && (type === 'all' || request.type === type) && (priority === 'all' || request.priority === priority) && matchesDate;
+            });
+            const pageSize = 5;
+            const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+            requestPage = Math.min(requestPage, totalPages);
+            const pageItems = filtered.slice((requestPage - 1) * pageSize, requestPage * pageSize);
+            const rows = pageItems.map(request => '<tr data-request="' + request.id + '"><td><strong style="color:#526174; font-size:.8rem;">' + request.id + '</strong></td><td><div class="request-title-cell"><div class="request-thumb"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '"></i></div><div><strong>' + request.title + '</strong><small>' + request.description + '</small></div></div></td><td><span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + request.type + '</span></td><td><span class="badge priority-' + request.priority + '">' + priorityLabels[request.priority] + '</span></td><td><span class="badge ' + (request.status === 'completed' ? 'badge-paid' : request.status === 'waiting' ? 'badge-pending' : 'badge-info') + '">' + statusLabels[request.status] + '</span></td><td style="white-space:nowrap; color:#526174; font-size:.82rem;">' + request.date + '</td><td><button class="request-action" data-open-request="' + request.id + '">Xem chi tiết <i class="fas fa-arrow-right"></i></button></td></tr>').join('');
+            document.getElementById('requestList').innerHTML = '<div class="request-table-wrap"><table class="request-table"><thead><tr><th>Mã yêu cầu</th><th>Nội dung</th><th>Loại yêu cầu</th><th>Mức độ</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody>' + (rows || '<tr><td colspan="7"><div class="request-empty"><i class="fas fa-inbox" style="font-size:2rem; color:#9bb8dc;"></i><p>Không tìm thấy yêu cầu phù hợp.</p></div></td></tr>') + '</tbody></table></div><div class="request-pagination"><span>Hiển thị ' + (filtered.length ? ((requestPage - 1) * pageSize + 1) : 0) + '–' + Math.min(requestPage * pageSize, filtered.length) + ' trong ' + filtered.length + ' yêu cầu</span><div class="pagination-buttons"><button class="page-button" data-page="prev" ' + (requestPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>' + Array.from({ length: totalPages }, (_, index) => '<button class="page-button ' + (requestPage === index + 1 ? 'active' : '') + '" data-page="' + (index + 1) + '">' + (index + 1) + '</button>').join('') + '<button class="page-button" data-page="next" ' + (requestPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button></div></div>';
+            document.querySelectorAll('.request-table tbody tr[data-request]').forEach(row => { const request = requestData.find(item => item.id === row.dataset.request); row.children[0].innerHTML = '<strong style="color:#526174; font-size:.8rem;">' + request.id + '</strong>' + (request.id === 'YCD-019' ? '<span class="new-badge">Mới</span>' : '') + '<small style="display:block;color:#8a99ac;margin-top:.25rem;">Căn hộ A502</small>'; row.children[2].innerHTML = '<span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + request.type + '<small style="display:block;color:#8a99ac;margin:.2rem 0 0 18px;">' + (request.subType || 'Hỗ trợ cư dân') + '</small></span>'; row.children[5].innerHTML = '<span style="white-space:nowrap;color:#526174;font-size:.82rem;">' + request.date + '<small style="display:block;color:#8a99ac;margin-top:.2rem;">' + (request.time || '09:00') + '</small></span>'; });
+            document.querySelectorAll('[data-request], [data-open-request]').forEach(item => item.addEventListener('click', event => { event.stopPropagation(); openRequestDetail(item.dataset.request || item.dataset.openRequest); }));
+            document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => { if (button.disabled) return; const page = button.dataset.page; requestPage = page === 'prev' ? requestPage - 1 : page === 'next' ? requestPage + 1 : Number(page); renderRequests(); }));
+        }
+
+        document.querySelectorAll('.js-new-request').forEach(button => button.addEventListener('click', () => { modalStep = 1; selectedType = ''; renderCreateStep(); }));
+        document.querySelector('[data-close-modal]').addEventListener('click', closeModal);
+        modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+        ['requestSearch', 'requestStatus', 'requestType', 'requestPriority', 'requestPeriod'].forEach(id => document.getElementById(id).addEventListener('input', () => { requestPage = 1; renderRequests(); }));
+        document.querySelectorAll('[data-history]').forEach(tab => tab.addEventListener('click', () => { activeHistory = tab.dataset.history; document.querySelectorAll('[data-history]').forEach(item => item.classList.toggle('active', item === tab)); renderRequests(); }));
+        renderNotifications();
+        document.querySelector('.topbar-actions .icon-btn[title="Thông báo"]')?.addEventListener('click', () => document.querySelector('.nav-item[data-target="notifications"]')?.click());
+        renderRequests();
 
         navItems.forEach(item => {
             item.addEventListener('click', function () {
                 const target = this.dataset.target;
                 if (target === 'logout') {
                     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
+                        RH.logout();
                         window.location.href = 'index.html';
                     }
                     return;
@@ -908,6 +2288,90 @@
                 document.getElementById('pageTitle').textContent = pageTitles[target] || 'Tổng quan';
             });
         });
+
+        (function renderResidentIdentity() {
+            if (!RH_SESSION) return;
+            const initial = RH_SESSION.name.trim().charAt(0).toUpperCase();
+            const firstName = RH_SESSION.name.trim().split(' ').pop();
+            document.getElementById('residentGreeting').textContent = 'Xin chào, ' + firstName;
+            document.getElementById('residentAvatar').textContent = initial;
+            document.getElementById('residentName').textContent = firstName;
+            document.getElementById('residentUnit').textContent = RH_SESSION.unit ? ('Phòng ' + RH_SESSION.unit) : 'Chưa gán phòng';
+            document.getElementById('profileAvatar').textContent = initial;
+            document.getElementById('profileName').textContent = RH_SESSION.name;
+            document.getElementById('profileUnit').textContent = RH_SESSION.unit ? ('Phòng ' + RH_SESSION.unit) : 'Chưa gán phòng';
+            document.getElementById('profileEmail').textContent = RH_SESSION.email;
+        })();
+        (function residentBillingFeature() {
+            const modal = document.getElementById('residentFeatureModal');
+            const title = document.getElementById('residentFeatureTitle');
+            const content = document.getElementById('residentFeatureContent');
+            const rows = Array.from(document.querySelectorAll('#billingRows tr'));
+            const search = document.getElementById('billingSearch');
+            const count = document.getElementById('billingCount');
+            const normalizeUnit = value => String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+            const residentUnit = normalizeUnit(RH_SESSION && RH_SESSION.unit);
+            const residentRows = rows.filter(row => normalizeUnit(row.children[2].innerText) === residentUnit);
+            let filter = 'all'; let selectedInvoices = [];
+            const open = (heading, html) => { title.textContent = heading; content.innerHTML = html; modal.classList.add('open'); };
+            const contractDetails = document.querySelector('#contractsSection .contract-detail-grid');
+            if (contractDetails) contractDetails.insertAdjacentHTML('beforeend', '<div class="meta-box"><small>Kỳ thu tiếp theo</small><strong>28/09–05/10/2026</strong><button class="contract-inline-link contract-invoice-link">Xem hóa đơn <i class="fas fa-arrow-right"></i></button></div>');
+            document.querySelectorAll('#contractsSection strong, #contractsSection p').forEach(element => { element.textContent = element.textContent.replace(/17\.000\.000 ₫/g, '8.500.000 ₫'); });
+            const close = () => modal.classList.remove('open');
+            const amount = row => Number(row.children[5].innerText.replace(/[^0-9]/g, ''));
+            const money = value => new Intl.NumberFormat('vi-VN').format(value) + 'đ';
+            const refresh = () => { const term = search.value.toLowerCase(); let shown = 0; rows.forEach(row => { const belongsToResident = residentRows.includes(row); const visible = belongsToResident && (filter === 'all' || row.dataset.billingStatus === filter) && row.innerText.toLowerCase().includes(term); row.style.display = visible ? '' : 'none'; if (visible) shown++; }); count.textContent = `Hiển thị ${shown} hóa đơn`; const pending = residentRows.filter(row => row.dataset.billingStatus === 'pending'); document.getElementById('billingDue').textContent = money(pending.reduce((sum,row) => sum + amount(row),0)); document.getElementById('billingDueNote').textContent = pending.length ? `${pending.length} hóa đơn, hạn thanh toán 05/09/2026` : 'Bạn không có hóa đơn cần thanh toán'; const payAll = document.querySelector('.billing-pay-all'); if (payAll) payAll.innerHTML = `<i class="fas fa-credit-card"></i> Thanh toán ${pending.length} hóa đơn`; };
+            document.querySelectorAll('[data-billing-filter]').forEach(button => button.addEventListener('click', () => { filter = button.dataset.billingFilter; document.querySelectorAll('[data-billing-filter]').forEach(item => item.classList.toggle('active', item === button)); refresh(); }));
+            search.addEventListener('input', refresh);
+            document.querySelectorAll('.billing-detail').forEach(button => button.addEventListener('click', () => { const row = button.closest('tr'); const paid = row.dataset.billingStatus === 'paid'; const breakdown = row.dataset.billingBreakdown.split('|').map(item => `<div style="display:flex;justify-content:space-between;gap:1rem;margin-top:.5rem"><span>${item.split(': ')[0]}</span><strong>${item.split(': ')[1]}</strong></div>`).join(''); open('Chi tiết hóa đơn phòng', `<div class="support-card"><div style="display:flex;justify-content:space-between"><span>Tòa nhà</span><strong>${row.children[1].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.5rem"><span>Phòng</span><strong>${row.children[2].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.75rem"><span>Kỳ thu</span><strong>${row.children[0].innerText.replace('Kỳ thu ', '')}</strong></div><div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><strong>Các khoản cấu thành</strong>${breakdown}</div><div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><span>Tổng thanh toán</span><strong style="color:#1683ff">${row.children[5].innerText}</strong></div></div><p style="color:#64748b;font-size:.84rem;line-height:1.55">${paid ? 'Giao dịch đã được ghi nhận. Bạn có thể tải chứng từ điện tử.' : 'Hóa đơn được thu một lần trong khoảng từ ngày 28 đến ngày 05 tháng sau. Vui lòng thanh toán trước ngày 05.'}</p><button class="btn-primary resident-feature-close" style="width:100%">${paid ? 'Đóng' : 'Đã hiểu'}</button>`); }));
+            const choosePayment = invoiceIds => { selectedInvoices = invoiceIds; const total = residentRows.filter(row => invoiceIds.includes(row.children[3].innerText)).reduce((sum,row) => sum + amount(row),0); open('Chọn phương thức thanh toán', `<p style="color:#64748b;font-size:.84rem">Tổng cần thanh toán: <strong style="color:#10213c">${money(total)}</strong></p><button class="payment-method" data-method="Chuyển khoản ngân hàng"><i class="fas fa-building-columns" style="color:#1683ff"></i> Chuyển khoản ngân hàng</button><button class="payment-method" data-method="Quét mã QR"><i class="fas fa-qrcode" style="color:#1683ff"></i> Quét mã QR thanh toán</button><button class="payment-method" data-method="Ví điện tử"><i class="fas fa-wallet" style="color:#1683ff"></i> Ví điện tử</button>`); };
+            document.querySelectorAll('.billing-pay').forEach(button => button.addEventListener('click', () => choosePayment([button.closest('tr').children[3].innerText])));
+            document.querySelector('.billing-pay-all').addEventListener('click', () => choosePayment(residentRows.filter(row => row.dataset.billingStatus === 'pending').map(row => row.children[3].innerText)));
+            const renewalSteps = ['Đã gửi yêu cầu', 'Ban quản lý đang xem xét', 'Chờ ký phụ lục', 'Hoàn tất'];
+            const renewalStep = () => ({ draft: -1, submitted: 0, reviewing: 1, signing: 2, completed: 3 }[contractData.renewalStatus]);
+            const renewalStatusText = () => ({ draft: 'Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và gửi phụ lục để ký nếu được duyệt.', submitted: 'Yêu cầu đã được gửi. Ban quản lý sẽ tiếp nhận và phản hồi trong 2 ngày làm việc.', reviewing: 'Ban quản lý đang xem xét điều kiện gia hạn của hợp đồng.', signing: 'Yêu cầu đã được duyệt. Vui lòng ký phụ lục khi nhận được thông báo.', completed: 'Phụ lục gia hạn đã hoàn tất và được lưu trong hồ sơ hợp đồng.' }[contractData.renewalStatus]);
+            function renderContractRenewal() {
+                const countdown = document.getElementById('contractCountdown');
+                const deadline = document.getElementById('contractDeadline');
+                const status = document.getElementById('contractRenewalStatus');
+                const progress = document.getElementById('contractProgress');
+                if (!countdown || !deadline || !status || !progress) return;
+                const days = contractDaysRemaining();
+                countdown.textContent = days > 0 ? 'Còn ' + days + ' ngày' : days === 0 ? 'Đến hạn hôm nay' : 'Đã quá hạn ' + Math.abs(days) + ' ngày';
+                deadline.textContent = 'Hạn chót gửi xác nhận: ' + contractFormatDate(contractDeadline().toISOString().slice(0, 10)) + ' (ngày kết thúc ' + contractFormatDate(contractData.endDate) + ' trừ ' + contractData.noticeDays + ' ngày báo trước).';
+                status.textContent = renewalStatusText();
+                status.className = 'contract-status ' + (contractData.renewalStatus === 'draft' ? '' : contractData.renewalStatus === 'submitted' ? 'pending' : contractData.renewalStatus === 'reviewing' || contractData.renewalStatus === 'signing' ? 'review' : '');
+                const activeStep = renewalStep();
+                progress.innerHTML = renewalSteps.map((label, index) => '<div class="contract-progress-step ' + (index < activeStep ? 'done' : index === activeStep ? 'current' : '') + '">' + label + '</div>').join('');
+            }
+            document.querySelector('.contract-terms').addEventListener('click', () => open('Điều khoản hợp đồng · 2 trong số 14 điều khoản', '<div class="notice-list"><div class="notice-item"><strong>Thanh toán và đặt cọc</strong><p style="color:#64748b;font-size:.84rem">Tiền đặt cọc 17.000.000 ₫ được hoàn trả sau khi đối soát hiện trạng và công nợ.</p></div><div class="notice-item"><strong>Chấm dứt sớm</strong><p style="color:#64748b;font-size:.84rem">Báo trước 30 ngày; chấm dứt không đủ báo trước có thể bị khấu trừ tối đa một tháng tiền thuê.</p></div><div class="notice-item"><strong>Sửa chữa, thú cưng, cho thuê lại</strong><p style="color:#64748b;font-size:.84rem">Cần có chấp thuận bằng văn bản đối với sửa chữa kết cấu, nuôi thú cưng và cho thuê lại.</p></div></div><button class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đã hiểu</button>'));
+            document.querySelector('.contract-renew').addEventListener('click', () => {
+                if (contractData.renewalStatus !== 'draft') { open('Theo dõi yêu cầu gia hạn', '<p style="color:#64748b;line-height:1.55">Yêu cầu gia hạn của bạn đang ở trạng thái <strong>' + renewalStatusText() + '</strong></p><button class="btn-primary resident-feature-close go-to-requests" style="width:100%">Mở mục Yêu cầu</button>'); return; }
+                open('Xác nhận yêu cầu gia hạn', '<p style="color:#64748b;line-height:1.55">Bạn đang gửi yêu cầu gia hạn hợp đồng RES-PA-205 đến Ban quản lý. Hạn chót theo hợp đồng là <strong>' + contractFormatDate(contractDeadline().toISOString().slice(0, 10)) + '</strong>. Sau khi được duyệt, bạn sẽ nhận phụ lục để ký.</p><button class="btn-primary submit-renewal" style="width:100%">Gửi yêu cầu</button>');
+            });
+            document.querySelectorAll('.contract-file').forEach(button => button.addEventListener('click', () => open('Tải tài liệu hợp đồng', '<p style="color:#64748b;line-height:1.55">Tài liệu PDF đã được xác thực chữ ký và mã toàn vẹn. Bản tải xuống sẽ được lưu vào thiết bị của bạn.</p><button class="btn-primary resident-feature-close" style="width:100%">Đóng</button>')));
+            document.querySelectorAll('.contract-preview-file').forEach((button, index) => button.addEventListener('click', () => {
+                const contractPreview = '<div class="contract-preview"><strong>HỢP ĐỒNG THUÊ NHÀ RES-PA-205</strong><p><strong>Bên cho thuê:</strong> Công ty TNHH Tòa A</p><p><strong>Bên thuê:</strong> Cư dân căn hộ A502</p><p><strong>Địa điểm:</strong> Căn hộ A502, Tòa A</p><p><strong>Thời hạn:</strong> 01/01/2026 — 31/12/2026</p><p><strong>Giá thuê:</strong> 8.500.000 ₫/tháng</p><p><strong>Tiền đặt cọc:</strong> 8.500.000 ₫, tương đương một tháng tiền thuê</p><p><strong>Thanh toán:</strong> Thu một lần từ ngày 28 đến ngày 05 tháng sau.</p><p><strong>Gia hạn:</strong> Gửi xác nhận trước tối thiểu 30 ngày; hạn chót của hợp đồng này là 01/12/2026.</p><p><strong>Chấm dứt sớm:</strong> Báo trước 30 ngày; trường hợp vi phạm có thể bị khấu trừ tối đa một tháng tiền thuê.</p><p><strong>Trạng thái xác thực:</strong> Hợp lệ · Mã kiểm tra RH-RES-PA-205-2026</p></div>';
+                const handoverPreview = '<div class="contract-preview"><strong>BIÊN BẢN BÀN GIAO CĂN HỘ A502</strong><p><strong>Ngày bàn giao:</strong> 01/01/2026</p><p><strong>Địa điểm:</strong> Căn hộ A502, Tòa A</p><p><strong>Bên giao:</strong> Công ty TNHH Tòa A</p><p><strong>Bên nhận:</strong> Cư dân căn hộ A502</p><p><strong>Phạm vi bàn giao:</strong> Căn hộ, chìa khóa cửa chính, thẻ cư dân và các thiết bị được liệt kê trong danh mục bàn giao.</p><p><strong>Hiện trạng:</strong> Hai bên đã kiểm tra và ghi nhận hiện trạng căn hộ, thiết bị, chỉ số điện nước tại thời điểm bàn giao.</p><p><strong>Cam kết:</strong> Các bên xác nhận thông tin trong biên bản là đúng và phối hợp xử lý sai lệch được phát hiện sau bàn giao theo hợp đồng.</p><p><strong>Chữ ký:</strong> Đã ký điện tử ngày 01/01/2026 · Trạng thái toàn vẹn: Hợp lệ</p><p><strong>Mã kiểm tra:</strong> RH-HO- A502-2026</p></div>';
+                open(index === 0 ? 'Xem nhanh hợp đồng thuê RES-PA-205' : 'Xem nhanh biên bản bàn giao căn hộ', (index === 0 ? contractPreview : handoverPreview) + '<button class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đóng</button>');
+            }));
+            document.querySelector('.contract-download-all').addEventListener('click', () => open('Tải tất cả tài liệu', '<p style="color:#64748b;line-height:1.55">Đã chuẩn bị 2 tài liệu PDF của hợp đồng RES-PA-205, tổng dung lượng 4,2 MB.</p><button class="btn-primary resident-feature-close" style="width:100%">Tải xuống</button>'));
+            document.addEventListener('click', event => {
+                if (event.target.closest('.submit-renewal')) {
+                    contractData.renewalStatus = 'submitted';
+                    localStorage.setItem('residenthub_contract_renewal_status', contractData.renewalStatus);
+                    renderContractRenewal();
+                    close();
+                    notificationToast('Đã gửi yêu cầu gia hạn. Bạn có thể theo dõi trong mục Yêu cầu.');
+                }
+                if (event.target.closest('.go-to-requests')) { close(); document.querySelector('.nav-item[data-target="requests"]')?.click(); }
+            });
+            renderContractRenewal();
+            document.querySelector('.contract-invoice-link')?.addEventListener('click', () => document.querySelector('.nav-item[data-target="invoices"]')?.click());
+            document.addEventListener('click', event => { if (event.target.closest('.resident-feature-close')) { close(); return; } const option = event.target.closest('.payment-method'); if (!option) return; residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText)).forEach(row => { row.dataset.billingStatus = 'paid'; row.children[6].innerHTML = '<span class="badge badge-paid">Đã thanh toán</span>'; row.children[7].innerHTML = '<button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button>'; }); refresh(); open('Thanh toán thành công', '<div style="text-align:center;padding:.5rem"><i class="fas fa-circle-check" style="font-size:3rem;color:#18a878"></i><p style="color:#64748b;line-height:1.55">Giao dịch đã được ghi nhận. Hóa đơn điện tử sẽ được lưu trong lịch sử thanh toán.</p><button class="btn-primary resident-feature-close" style="width:100%">Hoàn tất</button></div>'); });
+            modal.addEventListener('click', event => { if (event.target === modal) close(); });
+            refresh();
+        })();
     </script>
 </body>
 </html>
