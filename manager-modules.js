@@ -593,6 +593,7 @@
         };
         var res = RHUI.drawerId ? RHD.update('customers', RHUI.drawerId, data) : RHD.create('customers', data);
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
+        if (window.RH && RH.syncManagerRecord) RH.syncManagerRecord(res.item, 'contract');
         closeDrawer();
         renderCustomersTab();
         renderDashboardCounts();
@@ -1078,6 +1079,7 @@
             res = RHD.create('invoices', data);
         }
         if (!res.ok) { byId('ifError').textContent = res.error; return; }
+        if (window.RH && RH.syncManagerRecord) RH.syncManagerRecord(res.item, 'invoice');
         closeDrawer();
         renderInvoicesTab();
         renderDashboardCounts();
@@ -1088,7 +1090,8 @@
     };
 
     RHUI.markInvoicePaid = function (id) {
-        RHD.update('invoices', id, { status: 'paid', paidAt: Date.now() });
+        var result = RHD.update('invoices', id, { status: 'paid', paidAt: Date.now() });
+        if (result.ok && window.RH && RH.syncManagerRecord) RH.syncManagerRecord(result.item, 'invoice');
         renderInvoicesTab();
     };
 
@@ -1097,7 +1100,10 @@
         if (!ids.length) { alert('Vui lòng chọn ít nhất một hóa đơn để gửi.'); return; }
         ids.forEach(function (id) {
             var inv = RHD.get('invoices', id);
-            if (inv && inv.status === 'unpaid') RHD.update('invoices', id, { status: 'sent', sentAt: Date.now() });
+            if (inv && inv.status === 'unpaid') {
+                var result = RHD.update('invoices', id, { status: 'sent', sentAt: Date.now() });
+                if (result.ok && window.RH && RH.syncManagerRecord) RH.syncManagerRecord(result.item, 'invoice');
+            }
         });
         alert('Đã gửi ' + ids.length + ' hóa đơn tới thông tin liên hệ của khách hàng.');
         renderInvoicesTab();
@@ -1133,7 +1139,8 @@
     };
 
     RHUI.sendOneInvoice = function (id) {
-        RHD.update('invoices', id, { status: 'sent', sentAt: Date.now() });
+        var result = RHD.update('invoices', id, { status: 'sent', sentAt: Date.now() });
+        if (result.ok && window.RH && RH.syncManagerRecord) RH.syncManagerRecord(result.item, 'invoice');
         closeDrawer();
         renderInvoicesTab();
     };

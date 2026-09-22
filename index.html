@@ -63,6 +63,8 @@
 <p class="modal-footer">Đây là bản demo — không có giao dịch thật nào được thực hiện.</p>
 </div></div>
 <script>
+document.getElementById('loginEmail').type='text';
+document.getElementById('loginEmail').setAttribute('autocomplete','username');
 function toggleMenu(){document.querySelector('.site-header').classList.toggle('mobile-open')}
 function showLoginModal(){document.getElementById('loginModal').classList.add('show')}
 function closeLoginModal(){document.getElementById('loginModal').classList.remove('show');document.getElementById('loginMessage').innerHTML=''}
