@@ -11,6 +11,10 @@
     var SESSION_KEY = 'residenthub_session';
     var CURRENT_USER_KEY = 'residenthub_currentUserId';
     var DATA_KEY = 'residenthub_internal_data';
+    var RECOVERY_KEY = 'residenthub_password_recovery';
+    var LOGIN_GUARD_KEY = 'residenthub_login_guard';
+    var MAX_LOGIN_ATTEMPTS = 5;
+    var LOCKOUT_MS = 5 * 60 * 1000;
     var ROLES = { MANAGER: 'manager', RESIDENT: 'resident' };
 
     function readDataStore() {
@@ -369,6 +373,7 @@
         if (!normalized.password && normalized.pass) normalized.password = normalized.pass;
         normalized.role = normalized.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
         normalized.unit = String(normalized.unit || '').trim();
+        normalized.status = ['inactive', 'locked'].indexOf(normalized.status) !== -1 ? normalized.status : 'active';
         return normalized.id && normalized.email && normalized.password ? normalized : null;
     }
 
@@ -437,6 +442,7 @@
             email: email,
             password: password,
             role: role,
+            status: 'active',
             unit: data.unit ? String(data.unit).trim() : '',
             plan: data.plan || null,
             planStatus: data.plan ? 'active' : null,
@@ -503,11 +509,66 @@
     }
 
     function authenticate(email, password) {
-        var candidates = usersForLogin(email);
+        var result = authenticateDetailed(email, password);
+        return result.ok ? result.user : null;
+    }
+
+    function readLoginGuard() {
+        try { return JSON.parse(localStorage.getItem(LOGIN_GUARD_KEY) || '{}'); } catch (e) { return {}; }
+    }
+
+    function writeLoginGuard(guard) {
+        localStorage.setItem(LOGIN_GUARD_KEY, JSON.stringify(guard));
+    }
+
+    function authenticateDetailed(identifier, password) {
+        var candidates = usersForLogin(identifier);
+        var guard = readLoginGuard();
+        var guardKey = normalizeEmail(identifier);
+        var lockedUntil = Number(guard[guardKey] && guard[guardKey].lockedUntil || 0);
+        if (lockedUntil > Date.now()) return { ok: false, reason: 'rate_limited', retryAfter: lockedUntil };
+        if (lockedUntil) delete guard[guardKey];
+        var user = null;
         for (var i = 0; i < candidates.length; i++) {
-            if (String(candidates[i].password) === String(password || '')) return candidates[i];
+            if (String(candidates[i].password) === String(password || '')) { user = candidates[i]; break; }
         }
-        return null;
+        if (!user) {
+            var attempt = guard[guardKey] || { count: 0 };
+            attempt.count += 1;
+            if (attempt.count >= MAX_LOGIN_ATTEMPTS) {
+                attempt.count = 0;
+                attempt.lockedUntil = Date.now() + LOCKOUT_MS;
+            }
+            guard[guardKey] = attempt;
+            writeLoginGuard(guard);
+            return { ok: false, reason: attempt.lockedUntil ? 'rate_limited' : 'invalid' };
+        }
+        delete guard[guardKey];
+        writeLoginGuard(guard);
+        if (user.status === 'locked') return { ok: false, reason: 'locked' };
+        if (user.status === 'inactive') return { ok: false, reason: 'inactive' };
+        return { ok: true, user: user };
+    }
+
+    function requestPasswordRecovery(email) {
+        var user = findUserByEmail(email);
+        if (!user) return { ok: false, error: 'Không tìm thấy tài khoản phù hợp.' };
+        var token = Math.random().toString(36).slice(2, 8).toUpperCase() + '-' + Date.now().toString(36).toUpperCase();
+        var recovery = { userId: user.id, token: token, expiresAt: Date.now() + 15 * 60 * 1000 };
+        localStorage.setItem(RECOVERY_KEY, JSON.stringify(recovery));
+        return { ok: true, token: token, expiresAt: recovery.expiresAt, localOnly: true };
+    }
+
+    function resetPassword(token, password) {
+        var recovery;
+        try { recovery = JSON.parse(localStorage.getItem(RECOVERY_KEY) || 'null'); } catch (e) { recovery = null; }
+        if (!recovery || recovery.token !== String(token || '').trim().toUpperCase() || recovery.expiresAt < Date.now()) {
+            return { ok: false, error: 'Mã khôi phục không hợp lệ hoặc đã hết hạn.' };
+        }
+        if (String(password || '').length < 6) return { ok: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
+        var result = updateUser(recovery.userId, { password: String(password) });
+        if (result.ok) localStorage.removeItem(RECOVERY_KEY);
+        return result;
     }
 
     function isRemembered() {
@@ -588,6 +649,9 @@
         updateUser: updateUser,
         deleteUser: deleteUser,
         authenticate: authenticate,
+        authenticateDetailed: authenticateDetailed,
+        requestPasswordRecovery: requestPasswordRecovery,
+        resetPassword: resetPassword,
         login: login,
         logout: logout,
         getSession: getSession,
