@@ -35,6 +35,14 @@
             background: linear-gradient(180deg, #f7f9fc 0%, #edf3fb 100%);
             color: var(--ink);
         }
+        body.resident-theme-dark {
+            --bg-soft:#101827; --surface:#172235; --surface-alt:#22324a; --ink:#e8eef8; --muted:#aab8cb; --line:#304158;
+            background:linear-gradient(180deg,#0e1726 0%,#162235 100%);
+        }
+        body.resident-theme-dark .card, body.resident-theme-dark .topbar, body.resident-theme-dark .settings-card, body.resident-theme-dark .settings-content-panel { background:#172235; border-color:#304158; }
+        body.resident-theme-dark input, body.resident-theme-dark select, body.resident-theme-dark textarea { background:#111b2b; color:#e8eef8; border-color:#3b4b64; }
+        body.resident-theme-dark h1, body.resident-theme-dark h2, body.resident-theme-dark h3, body.resident-theme-dark h4, body.resident-theme-dark strong, body.resident-theme-dark label { color:#e8eef8 !important; }
+        body.resident-theme-dark .notice-item, body.resident-theme-dark .support-card { background:#1d2b40; border-color:#304158; }
 
         .sidebar {
             position: fixed;
@@ -1586,6 +1594,8 @@
         }
 
         function getResidentSettings() {
+            const session = RH.getSession();
+            const account = session ? RH.getUsers().find(item => item.id === session.id) : null;
             const defaults = {
                 theme: 'light',
                 language: 'vi',
@@ -1600,12 +1610,13 @@
                     { id: 'device-edge', type: 'Microsoft Edge', os: 'Windows', lastSeen: 'Hoạt động 3 ngày trước', current: false }
                 ],
                 user: {
-                    name: RH.getSession() ? RH.getSession().name : 'Nguyễn Văn Hùng',
-                    email: RH.getSession() ? RH.getSession().email : 'resident@residenthub.vn',
-                    phone: '0908 123 456',
-                    apartment: RH.getSession() ? RH.getSession().unit : 'A-1208',
-                    building: 'ResidentHub Tower A',
-                    floor: '12',
+                    name: account ? account.name : '',
+                    email: account ? account.email : '',
+                    phone: account ? account.phone : '',
+                    avatar: account ? account.avatar : '',
+                    apartment: account ? account.unit : '',
+                    building: account && account.building ? account.building : '',
+                    floor: account && account.floor ? account.floor : '',
                     status: 'Đang sinh sống'
                 }
             };
@@ -1617,7 +1628,19 @@
                 return {
                     ...defaults,
                     ...parsed,
-                    user: { ...defaults.user, ...(parsed.user || {}) },
+                    user: {
+                        ...defaults.user,
+                        ...(parsed.user || {}),
+                        ...(account ? {
+                            name: account.name,
+                            email: account.email,
+                            phone: account.phone || '',
+                            avatar: account.avatar || '',
+                            apartment: account.unit || '',
+                            building: account.building || '',
+                            floor: account.floor || ''
+                        } : {})
+                    },
                     security: { ...defaults.security, ...(parsed.security || {}) },
                     privacy: { ...defaults.privacy, ...(parsed.privacy || {}) },
                     devices: Array.isArray(parsed.devices) ? parsed.devices : defaults.devices
@@ -1641,6 +1664,19 @@
             showSettingsToast.timer = setTimeout(() => {
                 toast.className = 'settings-toast';
             }, 2200);
+        }
+
+        function applyResidentTheme(theme) {
+            const resolved = theme === 'system' ? (window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light') : theme;
+            document.body.classList.toggle('resident-theme-dark', resolved === 'dark');
+            document.documentElement.dataset.residentTheme = theme;
+        }
+
+        function applyResidentLanguage(language) {
+            document.documentElement.lang = language === 'en' ? 'en' : 'vi';
+            document.body.dataset.residentLanguage = language;
+            const title = document.getElementById('pageTitle');
+            if (title && language === 'en' && title.textContent === 'Tổng quan') title.textContent = 'Overview';
         }
 
         function escapeHtml(value) {
@@ -1680,6 +1716,8 @@
             renderSettingsNav();
 
             const settings = getResidentSettings();
+            applyResidentTheme(settings.theme);
+            applyResidentLanguage(settings.language);
             let markup = '';
 
             if (activeSettingsTab === 'account') {
@@ -1697,17 +1735,17 @@
                             <div class="settings-field"><label>Họ và tên</label><input type="text" value="${escapeHtml(settings.user.name)}" id="accountName"></div>
                             <div class="settings-field"><label>Email</label><input type="email" value="${escapeHtml(settings.user.email)}" id="accountEmail"></div>
                             <div class="settings-field"><label>Số điện thoại</label><input type="tel" value="${escapeHtml(settings.user.phone)}" id="accountPhone"></div>
-                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" readonly></div>
-                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" readonly></div>
-                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" readonly></div>
+                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" id="accountApartment"></div>
+                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" id="accountBuilding"></div>
+                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" id="accountFloor"></div>
                         </div>
                     </div>
                     <div class="settings-card">
                         <h3>Thông tin căn hộ</h3>
                         <div class="settings-grid">
-                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" readonly></div>
-                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" readonly></div>
-                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" readonly></div>
+                            <div class="settings-field"><label>Tòa nhà</label><input type="text" value="${escapeHtml(settings.user.building)}" id="accountBuildingDetails"></div>
+                            <div class="settings-field"><label>Căn hộ</label><input type="text" value="${escapeHtml(settings.user.apartment)}" id="accountApartmentDetails"></div>
+                            <div class="settings-field"><label>Tầng</label><input type="text" value="${escapeHtml(settings.user.floor)}" id="accountFloorDetails"></div>
                             <div class="settings-field"><label>Trạng thái</label><input type="text" value="${escapeHtml(settings.user.status)}" readonly></div>
                         </div>
                         <p class="device-private-note" style="margin-top: 1rem;">Thông tin căn hộ được quản lý bởi ban quản lý.</p>
@@ -1721,6 +1759,8 @@
                     reader.onload = () => {
                         const nextSettings = { ...settings, user: { ...settings.user, avatar: reader.result } };
                         localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        const session = RH.getSession();
+                        if (session) RH.updateUser(session.id, { avatar: reader.result });
                         settingsDirty = false;
                         renderSettingsSaveBar();
                         renderSettingPage();
@@ -1734,6 +1774,7 @@
                         renderSettingsSaveBar();
                     });
                 });
+                document.querySelectorAll('#accountApartment, #accountBuilding, #accountFloor').forEach(input => input.addEventListener('input', () => { settingsDirty = true; renderSettingsSaveBar(); }));
             }
 
             if (activeSettingsTab === 'security') {
@@ -1857,6 +1898,7 @@
                     button.addEventListener('click', () => {
                         const nextSettings = { ...settings, theme: button.dataset.theme };
                         localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                        applyResidentTheme(nextSettings.theme);
                         showSettingsToast('Giao diện đã được lưu.', 'success');
                         renderSettingPage();
                     });
@@ -1885,6 +1927,7 @@
                 document.getElementById('settingsLanguage')?.addEventListener('change', function () {
                     const nextSettings = { ...settings, language: this.value };
                     localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
+                    applyResidentLanguage(nextSettings.language);
                     showSettingsToast('Ngôn ngữ đã được cập nhật.', 'success');
                 });
             }
@@ -2057,6 +2100,8 @@
         });
 
         document.getElementById('resetSettingsBtn')?.addEventListener('click', () => {
+            const session = RH.getSession();
+            const account = session ? RH.getUsers().find(item => item.id === session.id) : null;
             const defaults = {
                 theme: 'light',
                 language: 'vi',
@@ -2071,12 +2116,13 @@
                     { id: 'device-edge', type: 'Microsoft Edge', os: 'Windows', lastSeen: 'Hoạt động 3 ngày trước', current: false }
                 ],
                 user: {
-                    name: RH.getSession() ? RH.getSession().name : 'Nguyễn Văn Hùng',
-                    email: RH.getSession() ? RH.getSession().email : 'resident@residenthub.vn',
-                    phone: '0908 123 456',
-                    apartment: RH.getSession() ? RH.getSession().unit : 'A-1208',
-                    building: 'ResidentHub Tower A',
-                    floor: '12',
+                    name: account ? account.name : '',
+                    email: account ? account.email : '',
+                    phone: account ? account.phone : '',
+                    avatar: account ? account.avatar : '',
+                    apartment: account ? account.unit : '',
+                    building: account && account.building ? account.building : '',
+                    floor: account && account.floor ? account.floor : '',
                     status: 'Đang sinh sống'
                 }
             };
@@ -2091,6 +2137,9 @@
             const accountName = document.getElementById('accountName')?.value.trim();
             const accountEmail = document.getElementById('accountEmail')?.value.trim();
             const accountPhone = document.getElementById('accountPhone')?.value.trim();
+            const accountApartment = document.getElementById('accountApartment')?.value.trim();
+            const accountBuilding = document.getElementById('accountBuilding')?.value.trim();
+            const accountFloor = document.getElementById('accountFloor')?.value.trim();
             if (activeSettingsTab === 'account' && (!accountName || !accountEmail)) {
                 showSettingsToast('Họ tên và email không được để trống.', 'error');
                 return;
@@ -2099,7 +2148,7 @@
                 const session = RH.getSession();
                 const user = RH.getUsers().find(item => item.id === session.id);
                 if (user) {
-                    const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '' });
+                    const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '', avatar: currentSettings.user.avatar || '', unit: accountApartment || '', building: accountBuilding || '', floor: accountFloor || '' });
                     if (!updateResult.ok) {
                         showSettingsToast(updateResult.error || 'Không thể lưu thông tin.', 'error');
                         return;
@@ -2112,8 +2161,15 @@
                         name: accountName,
                         email: accountEmail,
                         phone: accountPhone || currentSettings.user.phone
+                        , apartment: accountApartment || '', building: accountBuilding || '', floor: accountFloor || ''
                     }
                 }));
+                if (session) {
+                    document.getElementById('residentUnit').textContent = accountApartment ? ('Phòng ' + accountApartment) : 'Chưa gán phòng';
+                    document.getElementById('profileUnit').textContent = accountApartment ? ('Phòng ' + accountApartment) : 'Chưa gán phòng';
+                    refreshResidentUserData();
+                    refreshResidentOverview();
+                }
             }
             settingsDirty = false;
             renderSettingsSaveBar();
@@ -2290,6 +2346,20 @@
                 document.getElementById('pageTitle').textContent = pageTitles[target] || 'Tổng quan';
             });
         });
+
+        function openResidentSection(target, settingsTab) {
+            if (target === 'settings' && settingsTab && settingsMeta[settingsTab]) {
+                activeSettingsTab = settingsTab;
+                renderSettingPage();
+            }
+            document.querySelector('.nav-item[data-target="' + target + '"]')?.click();
+        }
+
+        document.querySelector('.user-card')?.addEventListener('click', () => openResidentSection('settings', 'account'));
+        document.querySelector('#overviewSection .layout-grid .card:first-child button')?.addEventListener('click', () => openResidentSection('invoices'));
+        document.querySelector('#overviewSection .bottom-grid .card:nth-child(2)')?.addEventListener('click', event => { if (!event.target.closest('button, a, input')) openResidentSection('notifications'); });
+        document.querySelector('#overviewSection > .card button')?.addEventListener('click', () => openResidentSection('contracts'));
+        document.querySelector('.topbar-actions .icon-btn[title="Tìm kiếm"]')?.addEventListener('click', () => document.querySelector('.topbar-search input')?.focus());
 
         document.querySelector('.nav-item[data-target="overview"]')?.click();
 

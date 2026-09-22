@@ -373,6 +373,10 @@
         if (!normalized.password && normalized.pass) normalized.password = normalized.pass;
         normalized.role = normalized.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
         normalized.unit = String(normalized.unit || '').trim();
+        normalized.building = String(normalized.building || '').trim();
+        normalized.floor = String(normalized.floor || '').trim();
+        normalized.phone = String(normalized.phone || '').trim();
+        normalized.avatar = normalized.avatar || '';
         normalized.status = ['inactive', 'locked'].indexOf(normalized.status) !== -1 ? normalized.status : 'active';
         return normalized.id && normalized.email && normalized.password ? normalized : null;
     }
@@ -444,6 +448,8 @@
             role: role,
             status: 'active',
             unit: data.unit ? String(data.unit).trim() : '',
+            building: data.building ? String(data.building).trim() : '',
+            floor: data.floor ? String(data.floor).trim() : '',
             plan: data.plan || null,
             planStatus: data.plan ? 'active' : null,
             createdAt: Date.now()
@@ -477,6 +483,10 @@
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
         if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
+        if (patch.building !== undefined) user.building = String(patch.building).trim();
+        if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
+        if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
+        if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
