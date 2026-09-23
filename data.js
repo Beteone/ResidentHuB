@@ -225,17 +225,31 @@
         if (!session) return null;
         // The login session is a point-in-time snapshot (auth.js RH.login) and can be
         // stale — e.g. a manager links the account to an apartment after the resident
-        // already has a session open. Re-read the live user record for apartmentId/unit
-        // instead of trusting the snapshot, and only fall back to it if the user record
-        // is unavailable for some reason.
+        // already has a session open. Re-read the live user record for
+        // apartmentId/unit/residentId instead of trusting the snapshot, and only fall
+        // back to it if the user record is unavailable for some reason.
         var liveUser = global.RH ? global.RH.getUsers().filter(function (u) { return u.id === session.id; })[0] : null;
+        var residentId = (liveUser && liveUser.residentId) || session.residentId || '';
         var apartmentId = (liveUser && liveUser.apartmentId) || session.apartmentId;
         var unit = (liveUser && liveUser.unit) || session.unit;
-        var apartment = (apartmentId && get('apartments', apartmentId)) || findApartmentByUnit(unit);
-        if (!apartment) return { apartment: null, building: null, contract: null, customer: null, invoices: [], supportRequests: [] };
+
+        // Accounts approved through the ResidentAccountRequest flow (auth.js) carry
+        // residentId → this is the authoritative link to the Resident Profile
+        // (customer). Prefer it over the apartment-derived lookup below, which exists
+        // for backward compatibility with accounts only ever linked by apartmentId.
+        var customer = residentId ? get('customers', residentId) : null;
+        var contract = null;
+        if (customer) {
+            var customerContracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id && c.status !== 'ended'; });
+            customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
+            contract = customerContracts[0] || null;
+        }
+
+        var apartment = (apartmentId && get('apartments', apartmentId)) || (contract && get('apartments', contract.apartmentId)) || findApartmentByUnit(unit);
+        if (!apartment) return { apartment: null, building: null, contract: null, customer: customer, invoices: [], supportRequests: [] };
         var building = get('buildings', apartment.buildingId);
-        var contract = activeContractFor(apartment.id);
-        var customer = contract ? get('customers', contract.customerId) : null;
+        if (!contract) contract = activeContractFor(apartment.id);
+        if (!customer && contract) customer = get('customers', contract.customerId);
         var invoices = readAll('invoices').filter(function (inv) { return inv.apartmentId === apartment.id; })
             .sort(function (a, b) { return b.createdAt - a.createdAt; });
         var supportRequests = readAll('supportRequests').filter(function (r) {
@@ -379,17 +393,6 @@
                 createdAt: Date.now() - 3 * 3600000, updatedAt: Date.now() - 1800000
             };
             writeAll('supportRequests', [request1]);
-
-            // Link the default seeded resident login (auth.js) to this apartment, so
-            // signing in with the demo resident account shows this real contract/invoice/
-            // request instead of nothing. Only relevant for the 'live' dataset — login
-            // accounts are global (not split by live/demo) and demo mode needs no login.
-            if (targetMode === 'live' && global.RH) {
-                var residentUser = global.RH.getUsers().filter(function (u) { return u.email === 'resident@residenthub.vn'; })[0];
-                if (residentUser && !residentUser.apartmentId) {
-                    global.RH.updateUser(residentUser.id, { apartmentId: apt1.id, unit: apt1.name });
-                }
-            }
         } finally {
             global.RHD_MODE = prevMode;
         }

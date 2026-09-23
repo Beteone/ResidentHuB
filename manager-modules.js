@@ -1438,11 +1438,20 @@
         setTodo('todoUnpaid', 'todoUnpaidNote', unpaidInvoices.length, 'hóa đơn cần thanh toán', 'Không có hóa đơn cần thanh toán');
         setTodo('todoExpiring', 'todoExpiringNote', expiringContracts.length, 'hợp đồng sắp hết hạn', 'Không có hợp đồng sắp hết hạn');
 
+        // Account requests (auth.js) are a global store, not split by RHD live/demo
+        // mode like everything else here — only surface the real count outside Demo
+        // Mode so the sandboxed demo view never leaks real pending registrations.
+        var pendingAccountRequests = (RHD.mode() !== 'demo' && global.RH && global.RH.listAccountRequests)
+            ? global.RH.listAccountRequests().filter(function (r) { return r.status === 'pending'; })
+            : [];
+        setTodo('todoAccountRequests', 'todoAccountRequestsNote', pendingAccountRequests.length, 'tài khoản chờ phê duyệt', 'Không có tài khoản chờ phê duyệt');
+
         if (typeof updateDashboardCharts === 'function') updateDashboardCharts();
         renderRecentActivity();
     }
 
     global.RHUI = Object.assign(RHUI, {
+        openDrawer: openDrawer,
         closeDrawer: closeDrawer,
         renderBuildingsTab: renderBuildingsTab,
         renderApartmentsTab: renderApartmentsTab,

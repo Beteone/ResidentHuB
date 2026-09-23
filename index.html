@@ -10,6 +10,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css">
     <script src="auth.js"></script>
+    <script src="data.js"></script>
     <style>
         :root{--navy:#0b2447;--navy-2:#102f56;--blue:#1683ff;--blue-dark:#0d65d5;--sky:#dceeff;--ink:#10213c;--muted:#61708a;--line:#e4eaf2;--surface:#fff;--soft:#f5f8fc;--green:#18a878;--shadow:0 24px 70px rgba(11,36,71,.12)}
         *{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}body{background:var(--surface);color:var(--ink);font-family:'Be Vietnam Pro','Segoe UI',sans-serif;line-height:1.5}a{color:inherit;text-decoration:none}button{border:0;cursor:pointer;font:inherit}.container{width:min(1160px,calc(100% - 48px));margin:0 auto}.eyebrow{color:var(--blue);font-size:12px;font-weight:700;letter-spacing:.14em;text-transform:uppercase}.section-heading{max-width:640px}.section-heading h2{color:var(--navy);font:800 clamp(30px,4vw,48px)/1.12 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:14px}.section-heading p{color:var(--muted);font-size:17px;margin-top:18px}.btn{align-items:center;border-radius:12px;display:inline-flex;font-weight:700;gap:10px;justify-content:center;padding:14px 20px;transition:.25s ease}.btn:hover{transform:translateY(-2px)}.btn-primary{background:var(--blue);box-shadow:0 12px 24px rgba(22,131,255,.25);color:#fff}.btn-primary:hover{background:var(--blue-dark);box-shadow:0 16px 30px rgba(22,131,255,.3)}.btn-outline{border:1px solid rgba(255,255,255,.35);color:#fff}.btn-outline:hover{background:rgba(255,255,255,.1)}
@@ -47,7 +48,7 @@
 </main>
 <footer id="footer"><div class="container"><div class="footer-grid"><div class="footer-brand"><a class="brand" href="#top"><span class="brand-mark"><i class="fa-solid fa-house"></i></span><span><strong>ResidentHub</strong><small>Cộng đồng cư dân thông minh</small></span></a><p>Giải pháp quản lý căn hộ và kết nối cộng đồng hiện đại.</p></div><div><h4>Sản phẩm</h4><ul><li><a href="#features">Quản lý căn hộ</a></li><li><a href="#features">Quản lý cư dân</a></li><li><a href="#features">Thanh toán</a></li><li><a href="#features">Dịch vụ</a></li></ul></div><div><h4>Hỗ trợ</h4><ul><li><a href="#footer">Trung tâm trợ giúp</a></li><li><a href="#footer">Liên hệ</a></li><li><a href="#footer">Câu hỏi thường gặp</a></li></ul></div><div><h4>Theo dõi</h4><ul><li><a href="#footer">Facebook</a></li><li><a href="#footer">Zalo</a></li><li><a href="mailto:hello@residenthub.vn">Email</a></li></ul></div></div><div class="footer-bottom"><p>© 2026 ResidentHub. Cộng đồng tốt hơn, mỗi ngày.</p><div class="socials"><a href="#footer" aria-label="Facebook"><i class="fa-brands fa-facebook-f"></i></a><a href="#footer" aria-label="LinkedIn"><i class="fa-brands fa-linkedin-in"></i></a><a href="mailto:hello@residenthub.vn" aria-label="Email"><i class="fa-solid fa-envelope"></i></a></div></div></div></footer>
 <div class="modal" id="loginModal"><div class="modal-content"><button class="close-modal" onclick="closeLoginModal()"><i class="fa-solid fa-xmark"></i></button><div class="modal-brand"><span class="modal-brand-mark"><i class="fa-solid fa-house"></i></span><span><strong>ResidentHub</strong><span>Cộng đồng cư dân thông minh</span></span></div><h2>Chào mừng trở lại</h2><div id="loginMessage"></div><form onsubmit="handleLogin(event)"><div class="form-field"><label for="loginEmail">Tên người dùng hoặc thư điện tử</label><input id="loginEmail" type="text" required autocomplete="username" placeholder="ban@congty.vn"></div><div class="form-field"><label for="loginPassword">Mật khẩu</label><input id="loginPassword" type="password" required autocomplete="current-password" placeholder="Nhập mật khẩu"></div><div class="login-options"><label><input type="checkbox" id="rememberLogin"> Duy trì đăng nhập</label><a href="#" onclick="openRecoveryModal();return false">Quên mật khẩu?</a></div><button class="btn btn-primary" type="submit">Đăng nhập <i class="fa-solid fa-arrow-right"></i></button></form><p class="modal-footer">Chưa có tài khoản? <a href="#" onclick="switchToSignup();return false">Đăng ký ngay</a></p></div></div>
-<div class="modal" id="signupModal"><div class="modal-content"><button class="close-modal" onclick="closeSignupModal()"><i class="fa-solid fa-xmark"></i></button><div class="modal-brand"><span class="modal-brand-mark"><i class="fa-solid fa-house"></i></span><span><strong>ResidentHub</strong><span>Cộng đồng cư dân thông minh</span></span></div><h2>Tạo tài khoản ResidentHub</h2><div id="signupMessage"></div><form id="signupForm" onsubmit="handleSignup(event)"><div class="form-field"><label for="accountType">Bạn là</label><select id="accountType"><option value="company">Ban quản lý / Công ty</option><option value="resident">Cư dân</option></select></div><div class="form-field"><label for="signupName">Tên đầy đủ</label><input id="signupName" type="text" required placeholder="Đào Thanh Thảo"></div><div class="form-field"><label for="signupEmail">Thư điện tử</label><input id="signupEmail" type="email" required placeholder="ban@congty.vn"></div><div class="form-field"><label for="signupPassword">Mật khẩu</label><input id="signupPassword" type="password" required minlength="6" placeholder="Tối thiểu 6 ký tự"></div><button class="btn btn-primary" type="submit">Tạo tài khoản <i class="fa-solid fa-arrow-right"></i></button></form><p class="modal-footer">Đã có tài khoản? <a href="#" onclick="switchToLogin();return false">Đăng nhập</a></p></div></div>
+<div class="modal" id="signupModal"><div class="modal-content"><button class="close-modal" onclick="closeSignupModal()"><i class="fa-solid fa-xmark"></i></button><div class="modal-brand"><span class="modal-brand-mark"><i class="fa-solid fa-house"></i></span><span><strong>ResidentHub</strong><span>Cộng đồng cư dân thông minh</span></span></div><h2>Tạo tài khoản ResidentHub</h2><div id="signupMessage"></div><form id="signupForm" onsubmit="handleSignup(event)"><div class="form-field"><label for="accountType">Bạn là</label><select id="accountType" onchange="toggleSignupRoleFields()"><option value="company">Ban quản lý / Công ty</option><option value="resident">Cư dân</option></select></div><div class="form-field"><label for="signupName">Tên đầy đủ</label><input id="signupName" type="text" required placeholder="Đào Thanh Thảo"></div><div class="form-field"><label for="signupEmail">Thư điện tử</label><input id="signupEmail" type="email" required placeholder="ban@congty.vn"></div><div id="signupResidentFields" style="display:none"><div class="form-field"><label for="signupPhone">Số điện thoại</label><input id="signupPhone" type="tel" placeholder="09xxxxxxxx"></div><div class="form-field"><label for="signupIdNumber">Số CCCD (không bắt buộc)</label><input id="signupIdNumber" type="text" placeholder="0172xxxxxxxx"></div><div class="form-field"><label for="signupBuildingId">Tòa nhà</label><select id="signupBuildingId" onchange="populateSignupApartments()"><option value="">— Chọn tòa nhà —</option></select></div><div class="form-field"><label for="signupApartmentId">Căn hộ</label><select id="signupApartmentId"><option value="">— Chọn căn hộ —</option></select></div></div><div class="form-field"><label for="signupPassword">Mật khẩu</label><input id="signupPassword" type="password" required minlength="6" placeholder="Tối thiểu 6 ký tự"></div><button class="btn btn-primary" type="submit">Tạo tài khoản <i class="fa-solid fa-arrow-right"></i></button></form><p class="modal-footer">Đã có tài khoản? <a href="#" onclick="switchToLogin();return false">Đăng nhập</a></p></div></div>
 <div class="modal" id="checkoutModal"><div class="modal-content" style="max-width:480px;"><button class="close-modal" onclick="closeCheckoutModal()"><i class="fa-solid fa-xmark"></i></button><div class="modal-brand"><span class="modal-brand-mark"><i class="fa-solid fa-credit-card"></i></span><span><strong>Đăng ký gói dịch vụ</strong><span>Thanh toán để tạo tài khoản quản lý chính thức</span></span></div><div id="checkoutMessage"></div>
 <div id="checkoutPlanSummary" style="background:rgba(255,255,255,.06);border:1px solid rgba(255,255,255,.12);border-radius:10px;padding:14px 16px;margin-bottom:18px;">
 <div style="display:flex;justify-content:space-between;align-items:center;"><strong id="checkoutPlanName" style="color:#fff;">Gói Tiêu chuẩn</strong><strong id="checkoutPlanPrice" style="color:#6ed9ee;">3.000.000đ<span style="color:#8d99ae;font-weight:400;font-size:11px;">/tháng</span></strong></div>
@@ -117,11 +118,41 @@ function handleLogin(event){
     const button=event.submitter||document.querySelector('#loginModal button[type="submit"]'); if(button){button.disabled=true;button.innerHTML='<i class="fa-solid fa-spinner fa-spin"></i> Đang đăng nhập...'}
     showMessage('loginMessage','');
     const result=RH.authenticateDetailed(email,password);
-    if(!result.ok){if(button){button.disabled=false;button.innerHTML='Đăng nhập <i class="fa-solid fa-arrow-right"></i>'}const message=result.reason==='locked'||result.reason==='inactive'?'Tài khoản của bạn hiện đang bị khóa. Vui lòng liên hệ ban quản lý để được hỗ trợ.':result.reason==='rate_limited'?'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.':'Email hoặc mật khẩu không chính xác.';showMessage('loginMessage','<div class="error-message">'+message+'</div>');return}
+    if(!result.ok){
+        if(button){button.disabled=false;button.innerHTML='Đăng nhập <i class="fa-solid fa-arrow-right"></i>'}
+        const message=result.reason==='locked'||result.reason==='inactive'?'Tài khoản của bạn hiện đang bị khóa. Vui lòng liên hệ ban quản lý để được hỗ trợ.'
+            :result.reason==='rate_limited'?'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.'
+            :result.reason==='account_pending'?'Yêu cầu đăng ký của bạn đang chờ Quản lý phê duyệt. Vui lòng quay lại sau.'
+            :result.reason==='account_rejected'?('Yêu cầu đăng ký tài khoản của bạn đã bị từ chối.'+(result.rejectionReason?' Lý do: '+result.rejectionReason:' Vui lòng liên hệ ban quản lý để biết thêm chi tiết.'))
+            :'Email hoặc mật khẩu không chính xác.';
+        showMessage('loginMessage','<div class="error-message">'+message+'</div>');return
+    }
     const user=result.user;
     RH.login(user,remember);
     showMessage('loginMessage','<div class="success-message">Đăng nhập thành công. Đang chuyển đến không gian của bạn...</div>');
     setTimeout(()=>{closeLoginModal();window.location.href=user.role==='manager'?'dashboard.html':'resident-web.html'},700)
+}
+RHD.setMode('live');
+function toggleSignupRoleFields(){
+    const isResident=document.getElementById('accountType').value==='resident';
+    document.getElementById('signupResidentFields').style.display=isResident?'block':'none';
+    document.getElementById('signupPhone').required=isResident;
+    document.getElementById('signupBuildingId').required=isResident;
+    document.getElementById('signupApartmentId').required=isResident;
+    if(isResident)populateSignupBuildings();
+}
+function populateSignupBuildings(){
+    const select=document.getElementById('signupBuildingId');
+    const buildings=RHD.list('buildings');
+    const current=select.value;
+    select.innerHTML='<option value="">— Chọn tòa nhà —</option>'+buildings.map(b=>'<option value="'+b.id+'"'+(b.id===current?' selected':'')+'>'+(b.name||b.shortName)+'</option>').join('');
+    populateSignupApartments();
+}
+function populateSignupApartments(){
+    const buildingId=document.getElementById('signupBuildingId').value;
+    const select=document.getElementById('signupApartmentId');
+    const apartments=buildingId?RHD.apartmentsOf(buildingId):[];
+    select.innerHTML='<option value="">— Chọn căn hộ —</option>'+apartments.map(a=>'<option value="'+a.id+'">'+a.name+(a.floor?' • '+a.floor:'')+'</option>').join('');
 }
 function handleSignup(event){
     event.preventDefault();
@@ -138,13 +169,19 @@ function handleSignup(event){
         startCheckout('standard');
         return;
     }
-    const result=RH.createUser({name,email,password,role});
+    // Cư dân KHÔNG được tự tạo tài khoản có hiệu lực ngay — chỉ tạo một yêu cầu
+    // đăng ký (ResidentAccountRequest) chờ Quản lý phê duyệt (xem auth.js).
+    const phone=document.getElementById('signupPhone').value;
+    const idNumber=document.getElementById('signupIdNumber').value;
+    const buildingId=document.getElementById('signupBuildingId').value;
+    const apartmentId=document.getElementById('signupApartmentId').value;
+    const result=RH.submitAccountRequest({fullName:name,phone,email,idNumber,buildingId,apartmentId,password});
     if(!result.ok){
         showMessage('signupMessage','<div class="error-message">'+result.error+'</div>');
         return;
     }
-    showMessage('signupMessage','<div class="success-message">Tạo tài khoản thành công. Bạn có thể đăng nhập ngay.</div>');
-    setTimeout(()=>{closeSignupModal();document.getElementById('signupForm')&&document.getElementById('signupForm').reset()},1800)
+    showMessage('signupMessage','<div class="success-message">Yêu cầu đăng ký của bạn đã được gửi. Vui lòng chờ Quản lý phê duyệt tài khoản trước khi đăng nhập.</div>');
+    setTimeout(()=>{closeSignupModal();document.getElementById('signupForm')&&document.getElementById('signupForm').reset();toggleSignupRoleFields()},2400)
 }
 
 const CHECKOUT_PLANS={
