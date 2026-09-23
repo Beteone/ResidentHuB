@@ -318,13 +318,14 @@
         var rows = apartments.map(function (a) {
             var building = RHD.get('buildings', a.buildingId);
             var st = statusMeta(RHD.APARTMENT_STATUSES, a.status);
+            var isActive = a.active !== false;
             return '<tr>' +
                 '<td><strong>' + escapeHtml(a.name) + '</strong>' + (a.photos && a.photos.length ? ' <i class="fas fa-image" style="color:#94a3b8;" title="Có ảnh"></i>' : '') + '</td>' +
                 '<td>' + escapeHtml(building ? building.shortName || building.name : '—') + '</td>' +
                 '<td>' + escapeHtml(a.floor || '—') + '</td>' +
                 '<td>' + (a.area || '—') + ' m²</td>' +
                 '<td>' + money(a.rentPrice) + '</td>' +
-                '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
+                '<td>' + badge(isActive ? st.label : 'Ngừng hoạt động', isActive ? st.color : '#64748b', isActive ? st.bg : '#f1f5f9') + '</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
                 '<button onclick="RHUI.openApartmentForm(\'' + a.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
                 '<button onclick="RHUI.deleteApartment(\'' + a.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
@@ -347,21 +348,34 @@
         RHUI.drawerEntity = 'apartments';
         RHUI.drawerId = id || null;
         var buildings = RHD.list('buildings');
-        var photoData = a && a.photos && a.photos[0] ? a.photos[0] : '';
+        var selectedInvoiceTemplate = a ? a.invoiceTemplateId : (RHT.getDefault('INVOICE') || {}).id;
+        var selectedContractTemplate = a ? a.contractTemplateId : (RHT.getDefault('CONTRACT') || {}).id;
+        var selectedBuildingId = a ? a.buildingId : buildings[0].id;
+        var selectedFloor = a ? String(a.floor || '').replace(/^Tầng /, '') : '';
+        var floorOptions = function (buildingId, selected) {
+            var building = RHD.get('buildings', buildingId);
+            var count = building && Number(building.floorCount) > 0 ? Number(building.floorCount) : 20;
+            var floors = [];
+            for (var i = 1; i <= count; i++) floors.push({ id: String(i), label: 'Tầng ' + i });
+            return selectOptions(floors, 'id', 'label', selected, 'Chọn tầng');
+        };
 
         var html = '<form onsubmit="RHUI.submitApartmentForm(event)">' +
+            '<div class="rh-section-title">THÔNG TIN CĂN HỘ</div>' +
             '<div class="rh-grid-2">' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Chọn tòa nhà *</label><select id="afBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name + ' (' + (b.shortName || b.code) + ')'; }, a ? a.buildingId : buildings[0].id) + '</select></div>' +
-            '<div class="rh-field"><label>Tên / Số căn *</label><input id="afName" required value="' + escapeHtml(a ? a.name : '') + '" placeholder="VD: 501"></div>' +
-            '<div class="rh-field"><label>Tầng</label><input id="afFloor" value="' + escapeHtml(a ? a.floor : '') + '" placeholder="VD: Tầng 5"></div>' +
-            '<div class="rh-field"><label>Diện tích (m²)</label><input id="afArea" type="number" min="0" value="' + (a ? a.area : '') + '"></div>' +
-            '<div class="rh-field"><label>Trạng thái *</label><select id="afStatus">' + selectOptions(RHD.APARTMENT_STATUSES, 'id', 'label', a ? a.status : 'vacant') + '</select></div>' +
-            '<div class="rh-field"><label>Giá thuê (đ) *</label><input id="afRent" type="number" min="0" required value="' + (a ? a.rentPrice : '') + '"></div>' +
-            '<div class="rh-field"><label>Tiền cọc (đ) *</label><input id="afDeposit" type="number" min="0" required value="' + (a ? a.depositPrice : '') + '"></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Địa chỉ</label><input id="afAddress" value="' + escapeHtml(a ? a.address : '') + '"></div>' +
-            '<div class="rh-field"><label>Ảnh căn hộ</label><input id="afPhoto" type="file" accept="image/*"><input type="hidden" id="afPhotoData" value="' + escapeHtml(photoData) + '"></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú</label><textarea id="afNote" rows="2">' + escapeHtml(a ? a.note : '') + '</textarea></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Chọn tòa nhà *</label><select id="afBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name + ' (' + (b.shortName || b.code) + ')'; }, selectedBuildingId, 'Chọn tòa nhà') + '</select></div>' +
+            '<div class="rh-field"><label>Chọn tầng *</label><select id="afFloor" required>' + floorOptions(selectedBuildingId, selectedFloor) + '</select></div>' +
+            '<div class="rh-field"><label>Tên căn hộ *</label><input id="afName" required value="' + escapeHtml(a ? a.name : '') + '" placeholder="Tên căn hộ"></div>' +
+            '<div class="rh-field"><label>Giá thuê *</label><input id="afRent" type="number" min="0" required value="' + (a ? a.rentPrice : '') + '" placeholder="Giá thuê"></div>' +
+            '<div class="rh-field"><label>Cọc *</label><input id="afDeposit" type="number" min="0" required value="' + (a ? a.depositPrice : '') + '" placeholder="Cọc"></div>' +
+            '<div class="rh-field"><label>Diện tích *</label><input id="afArea" type="number" min="0" required value="' + (a ? a.area : '') + '" placeholder="Diện tích"></div>' +
+            '<div class="rh-field"><label>Số khách tối đa *</label><input id="afMaxGuests" type="number" min="1" required value="' + (a ? a.maxGuests || '' : '') + '" placeholder="Số khách tối đa"></div>' +
             '</div>' +
+            '<div class="rh-section"><div class="rh-section-title">CẤU HÌNH</div><div class="rh-grid-2">' +
+            templatePickerHtml('afInvoiceTpl', 'INVOICE', selectedInvoiceTemplate) +
+            templatePickerHtml('afContractTpl', 'CONTRACT', selectedContractTemplate) +
+            '</div></div>' +
+            '<div class="rh-section"><div class="rh-section-title">TRẠNG THÁI</div><label style="display:flex;align-items:center;gap:.6rem;font-weight:600;color:#10213c;cursor:pointer;"><input type="checkbox" id="afActive" ' + (a && a.active === false ? '' : 'checked') + ' style="width:18px;height:18px;"> Hoạt động <span id="afActiveLabel" style="color:' + (a && a.active === false ? '#64748b' : '#18a878') + ';font-size:.82rem;">' + (a && a.active === false ? 'Ngừng hoạt động' : 'Đang hoạt động') + '</span></label></div>' +
             '<div id="afError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
             '<button type="submit" class="btn-primary">Lưu căn hộ</button>' +
@@ -370,12 +384,11 @@
 
         openDrawer(a ? 'Sửa căn hộ' : 'Thêm căn hộ', html);
         byId('afBuilding').addEventListener('change', function () {
-            var b = RHD.get('buildings', this.value);
-            if (b) byId('afAddress').value = RHD.buildingFullAddress(b);
+            byId('afFloor').innerHTML = floorOptions(this.value, '');
         });
-        if (!a) { var b0 = RHD.get('buildings', byId('afBuilding').value); if (b0) byId('afAddress').value = RHD.buildingFullAddress(b0); }
-        byId('afPhoto').addEventListener('change', function () {
-            readFileAsDataUrl(this, function (dataUrl) { byId('afPhotoData').value = dataUrl; });
+        byId('afActive').addEventListener('change', function () {
+            byId('afActiveLabel').textContent = this.checked ? 'Đang hoạt động' : 'Ngừng hoạt động';
+            byId('afActiveLabel').style.color = this.checked ? '#18a878' : '#64748b';
         });
     };
 
@@ -384,14 +397,15 @@
         var data = {
             buildingId: byId('afBuilding').value,
             name: byId('afName').value.trim(),
-            floor: byId('afFloor').value.trim(),
-            area: Number(byId('afArea').value) || 0,
-            status: byId('afStatus').value,
+            floor: 'Tầng ' + byId('afFloor').value,
+            area: Number(byId('afArea').value),
+            maxGuests: Number(byId('afMaxGuests').value),
+            active: byId('afActive').checked,
+            status: byId('afActive').checked ? 'vacant' : 'maintenance',
             rentPrice: Number(byId('afRent').value) || 0,
             depositPrice: Number(byId('afDeposit').value) || 0,
-            address: byId('afAddress').value.trim(),
-            note: byId('afNote').value.trim(),
-            photos: byId('afPhotoData').value ? [byId('afPhotoData').value] : []
+            invoiceTemplateId: byId('afInvoiceTpl').value,
+            contractTemplateId: byId('afContractTpl').value
         };
         var res = RHUI.drawerId ? RHD.update('apartments', RHUI.drawerId, data) : RHD.create('apartments', data);
         if (!res.ok) { byId('afError').textContent = res.error; return; }
