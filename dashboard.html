@@ -12,6 +12,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
+    <script src="templates.js"></script>
     <script src="data.js"></script>
     <script src="manager-modules.js"></script>
     <style>
@@ -1540,6 +1541,13 @@
         .rh-service-row{background:#f8fafc;border:1px solid var(--line);border-radius:12px;margin-bottom:.75rem;padding:1rem}
         .rh-choice{align-items:center;border:1px solid var(--line);border-radius:8px;cursor:pointer;display:flex;flex:1;font-size:.9rem;font-weight:600;gap:.5rem;padding:.6rem .75rem}
         .rh-choice input{accent-color:#1683ff}
+        .rh-print-area{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.75rem}
+        @media print{
+            body *{visibility:hidden}
+            .rh-print-area,.rh-print-area *{visibility:visible}
+            .rh-print-area{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}
+            @page{size:A4;margin:15mm}
+        }
     </style>
 </head>
 <body>
@@ -1629,6 +1637,10 @@
 
             <div style="padding: 1.5rem 1rem 1rem; border-top: 1px solid var(--line); margin-top: 1rem;">
                 <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Cài đặt</div>
+                <div class="sidebar-menu-item" onclick="openTemplatesPage()">
+                    <i class="fas fa-file-lines"></i>
+                    <span>Biểu mẫu</span>
+                </div>
                 <div class="sidebar-menu-item" id="rhSettingsMenuItem" onclick="switchTab('settings')">
                     <i class="fas fa-cog"></i>
                     <span>Cấu hình</span>
@@ -3649,6 +3661,10 @@
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
             document.querySelector('.sidebar').classList.remove('active');
             window.scrollTo(0, 0);
+        }
+
+        function openTemplatesPage() {
+            window.open('templates.html' + (RH_IS_DEMO ? '#demo=1' : ''), '_blank');
         }
 
         // Dropdown Toggle
