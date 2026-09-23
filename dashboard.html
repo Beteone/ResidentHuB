@@ -116,6 +116,13 @@
             padding: 1.5rem;
         }
 
+        #meters-tab.is-visible {
+            display: block !important;
+            min-height: 420px;
+            position: relative;
+            z-index: 5;
+        }
+
         .topbar {
             background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
             padding: 1.5rem;
@@ -2104,6 +2111,56 @@
             height: 300px;
             margin-top: 1rem;
         }
+        .apartment-modal {
+            align-items: center;
+            background: rgba(5, 21, 42, .58);
+            display: none;
+            inset: 0;
+            justify-content: center;
+            padding: 1rem;
+            position: fixed;
+            z-index: 200;
+        }
+        .apartment-modal.active { display: flex; }
+        .apartment-modal-content {
+            background: #fff;
+            border: 1px solid #e1eaf4;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(11, 36, 71, .2);
+            max-width: 520px;
+            padding: 1.5rem;
+            width: 100%;
+        }
+        .apartment-form { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+        .apartment-form-section { border-top: 1px solid #e8eef5; padding-top: 1.1rem; }
+        .apartment-form-section:first-of-type { border-top: 0; padding-top: 0; }
+        .apartment-form-section h3 { color: #10213c; font-size: .76rem; letter-spacing: .08em; margin: 0 0 .85rem; }
+        .apartment-form-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .apartment-form-field-full { grid-column: 1 / -1; }
+        .apartment-form label { color: #61708a; display: grid; font-size: .82rem; font-weight: 600; gap: .4rem; }
+        .apartment-form input, .apartment-form select { border: 1px solid #dbe5f0; border-radius: .65rem; color: #10213c; font: inherit; padding: .7rem .75rem; }
+        .apartment-form input:focus, .apartment-form select:focus { border-color: #1683ff; box-shadow: 0 0 0 3px rgba(22, 131, 255, .12); outline: none; }
+        .apartment-form-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: .25rem; }
+        .btn-secondary { background: #eef4fb; border: 1px solid #e2ebf5; border-radius: .65rem; color: #536275; cursor: pointer; font-weight: 600; padding: .7rem 1rem; }
+        .apartment-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+        .apartment-action { align-items: center; background: #fff; border: 1px solid #dbe5f0; border-radius: .55rem; cursor: pointer; display: inline-flex; height: 36px; justify-content: center; width: 38px; }
+        .apartment-action.edit { color: #1683ff; }
+        .apartment-action.edit:hover { background: #eaf3ff; border-color: #9ccaff; }
+        .apartment-action.delete { color: #ef4444; }
+        .apartment-action.delete:hover { background: #fff1f2; border-color: #fca5a5; }
+        .apartment-switch { align-items: center; display: flex; gap: .7rem; }
+        .apartment-switch input { height: 0; opacity: 0; position: absolute; width: 0; }
+        .apartment-switch-slider { background: #cbd5e1; border-radius: 999px; cursor: pointer; height: 24px; position: relative; transition: .2s ease; width: 44px; }
+        .apartment-switch-slider:before { background: #fff; border-radius: 50%; content: ''; height: 18px; left: 3px; position: absolute; top: 3px; transition: .2s ease; width: 18px; }
+        .apartment-switch input:checked + .apartment-switch-slider { background: #1683ff; }
+        .apartment-switch input:checked + .apartment-switch-slider:before { transform: translateX(20px); }
+        .apartment-switch-status { color: #18a878; font-size: .82rem; font-weight: 600; }
+        .apartment-table-wrap { overflow-x: auto; }
+        .apartment-table { min-width: 760px; }
+        .apartment-table th { background: #eef5fc; color: #536b88; font-size: .8rem; white-space: nowrap; }
+        .apartment-table td { color: #526275; vertical-align: middle; }
+        .apartment-table td strong { color: #10213c; }
+        .apartment-table .apartment-actions { margin-top: 0; }
         .mobile-menu-button { display: none; }
         .meter-page { max-width: 1120px; margin: 0 auto; }
         .meter-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
@@ -2217,6 +2274,11 @@
             .data-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .data-editor .btn-primary { width: 100%; }
         }
+        @media (max-width: 600px) {
+            .apartment-form-grid { grid-template-columns: 1fr; }
+            .apartment-form-field-full { grid-column: auto; }
+            .apartment-modal-content { max-height: 92vh; overflow-y: auto; padding: 1.2rem; }
+        }
         .sidebar-header{padding:1.25rem 1.5rem;border-bottom-color:rgba(255,255,255,.1)}.sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.sidebar-menu-item{border:1px solid transparent;color:#b8cce1}.sidebar-menu-item:hover{background:rgba(22,131,255,.16);color:#fff}.sidebar-menu-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.sidebar-menu>div[style*="border-top"]{border-top-color:rgba(255,255,255,.1)!important}.sidebar-menu>div[style*="border-top"]>div[style*="text-transform"]{color:#8fb0d0!important}.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em}.topbar,.card{border-radius:16px}.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 12px 24px rgba(22,131,255,.18)}.btn-primary:hover{box-shadow:0 16px 28px rgba(22,131,255,.26)}[style*="#667eea"],[style*="rgba(102, 126, 234"]{color:#1683ff!important;border-left-color:#1683ff!important;background:#eaf3ff!important}[style*="#764ba2"]{color:#0d65d5!important}.main-content{background:transparent}.chart-container canvas{filter:drop-shadow(0 8px 12px rgba(22,131,255,.08))}
         .workflow-hero{background:linear-gradient(135deg,#0b2447 0%,#174775 100%);border-radius:16px;color:#fff;margin-bottom:1.5rem;padding:28px 32px;position:relative;overflow:hidden}.workflow-hero:after{border:1px solid rgba(255,255,255,.12);border-radius:50%;content:'';height:260px;position:absolute;right:-70px;top:-120px;width:260px}.workflow-hero h2{font:800 26px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0 0 8px}.workflow-hero p{color:#b9cce3;margin:0;max-width:650px}.workflow-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-card{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid #e4eaf2;border-radius:16px;padding:22px;transition:.25s ease}.workflow-card:hover{border-color:#9ccaff;box-shadow:0 18px 36px rgba(22,131,255,.12);transform:translateY(-3px)}.workflow-card-head{align-items:flex-start;display:flex;gap:14px}.workflow-number{align-items:center;background:#eaf3ff;border-radius:12px;color:#1683ff;display:flex;flex:0 0 42px;font-weight:800;height:42px;justify-content:center}.workflow-card h3{color:#10213c;font:700 17px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:1px 0 4px}.workflow-card-head p{color:#61708a;font-size:12px;margin:0}.workflow-steps{display:grid;gap:0;list-style:none;margin:22px 0 0;padding:0}.workflow-steps li{align-items:flex-start;display:flex;gap:12px;min-height:42px;position:relative}.workflow-steps li:not(:last-child):after{background:#c9e2fb;content:'';height:calc(100% - 16px);left:10px;position:absolute;top:23px;width:2px}.workflow-steps li span{align-items:center;background:#1683ff;border:3px solid #eaf3ff;border-radius:50%;color:#fff;display:flex;flex:0 0 22px;font-size:10px;font-weight:700;height:22px;justify-content:center;position:relative;z-index:1}.workflow-steps li p{color:#526275;font-size:13px;margin:1px 0 14px}.workflow-footer{align-items:center;border-top:1px solid #e8eef5;display:flex;justify-content:space-between;margin-top:5px;padding-top:14px}.workflow-role{color:#61708a;font-size:11px}.workflow-status{background:#e6f8ef;border-radius:999px;color:#11804f;font-size:11px;font-weight:700;padding:6px 9px}.workflow-status.blue{background:#eaf3ff;color:#0d65d5}.workflow-status.orange{background:#fff4df;color:#a5680c}@media(max-width:850px){.workflow-grid{grid-template-columns:1fr}}
         .main-content{padding:1.25rem 1.5rem 2.5rem}.topbar{align-items:center;background:rgba(255,255,255,.88);border:1px solid rgba(211,224,239,.9);border-radius:20px;box-shadow:0 14px 34px rgba(11,36,71,.06);margin-bottom:1.25rem;padding:1.15rem 1.4rem}.topbar-title{font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em}.topbar-actions{gap:.7rem}.btn-icon{background:#eef4fb;border:1px solid #e2ebf5;box-shadow:none;height:42px;position:relative;width:42px}.btn-icon:hover{background:#dceeff;color:#0d65d5}.grid-2{display:grid;gap:1rem;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-2>.card{border-radius:18px;min-height:148px;padding:1.25rem 1.3rem}.stat-card{align-items:stretch}.stat-label{font-size:.78rem;font-weight:600;letter-spacing:.02em}.stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:.35rem}.stat-icon{border-radius:14px;height:46px;width:46px}.grid-3{display:grid;gap:1rem;grid-template-columns:1.25fr 1fr 1fr}.grid-3>.card{border-radius:18px;min-height:365px;padding:1.2rem 1.25rem}.grid-3>.card h3{align-items:center;display:flex;font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;justify-content:space-between;letter-spacing:-.015em}.chart-container{height:285px;margin-top:1.25rem}.card{background:rgba(255,255,255,.95);border:1px solid #e1eaf4;border-radius:18px;box-shadow:0 12px 30px rgba(11,36,71,.055)}.card:hover{border-color:#b8d8f6;box-shadow:0 18px 38px rgba(22,131,255,.1);transform:translateY(-2px)}#dashboard-tab>.card[style*="margin-top: 1.5rem"]{border-radius:18px;padding:1.25rem 1.35rem}#dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3{font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif!important}#dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div{border:1px solid #e5edf5!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(11,36,71,.04);padding:1.1rem!important}.table-container{border:1px solid #e4eaf2;border-radius:14px;overflow:auto}.table-container table{min-width:640px}.table-container th{background:#f1f7fd;font-size:.7rem;letter-spacing:.08em}.table-container td,.table-container th{border-bottom-color:#e7eef6;padding:.85rem 1rem}@media(max-width:1100px){.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:first-child{grid-column:1/-1}}@media(max-width:700px){.main-content{padding:1rem}.grid-2,.grid-3{grid-template-columns:1fr}.grid-3>.card:first-child{grid-column:auto}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{align-self:flex-end}.grid-2>.card{min-height:132px}}
@@ -2297,7 +2359,7 @@
             <div>
                 <div style="font-weight: bold; color: #1e293b;">ResidentHub</div>
                 <div style="font-size: 0.75rem; color: #94a3b8;">Giao diện Quản lý
-                
+
                 </div>
             </div>
         </div>
@@ -2320,7 +2382,7 @@
                 <span>Khách hàng</span>
 
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('meters')">
+            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').classList.add('is-visible');">
                 <i class="fas fa-gauge-high"></i>
                 <span>Ghi chỉ số</span>
             </div>
@@ -2541,6 +2603,7 @@
 
         <!-- Buildings -->
         <div id="buildings-tab" style="display: none;"></div>
+        <div id="apartments-tab" style="display: none;"></div>
 
         <div id="residents-tab" style="display: none;">
             <div class="resident-shell">
@@ -3166,8 +3229,20 @@
                 </div>
             </div>
         </div>
+        </div>
 
-        <div id="meters-tab" style="display: none;"></div>
+        <div id="meters-tab" style="display: none;">
+            <div class="meter-page">
+                <header class="meter-header">
+                    <div class="meter-title">
+                        <button class="back-button" type="button" onclick="switchTab('dashboard')" title="Quay lại"><i class="fas fa-arrow-left"></i></button>
+                        <div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;margin-top:.2rem;">Quản lý chỉ số điện và nước theo từng kỳ</p></div>
+                    </div>
+                    <button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button>
+                </header>
+                <div class="card meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới, hoặc chỉnh bộ lọc.</p></div>
+            </div>
+        </div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
@@ -3860,12 +3935,25 @@
             }
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
-            tabs.forEach(tab => tab.style.display = 'none');
+            tabs.forEach(tab => {
+                tab.style.display = 'none';
+                if (tab.id === 'meters-tab') tab.classList.remove('is-visible');
+            });
 
-            // Show selected tab
-            const selectedTab = document.getElementById(tabName + '-tab');
-            if (selectedTab) selectedTab.style.display = 'block';
-            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName](filter || null);
+            // Show selected tab (auto-creates the container if a tab was never wired into the HTML)
+            const selectedTab = ensureTab(tabName);
+            selectedTab.style.display = 'block';
+            if (tabName === 'meters') selectedTab.classList.add('is-visible');
+            if (TAB_RENDERERS[tabName]) {
+                try {
+                    TAB_RENDERERS[tabName](filter || null);
+                } catch (error) {
+                    console.error('Không thể render tab ' + tabName, error);
+                    if (tabName === 'meters') renderMetersFallback(selectedTab);
+                    else selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
+                }
+            }
+            if (tabName === 'meters' && !selectedTab.innerHTML.trim()) renderMetersFallback(selectedTab);
 
             // Update active menu item (only when the click came from the sidebar)
             const source = (evt || window.event);
@@ -3881,6 +3969,7 @@
                 'buildings': 'Tòa nhà',
                 'apartments': 'Căn hộ',
                 'customers': 'Khách hàng',
+                'residents': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
                 'support': 'Yêu cầu hỗ trợ',
@@ -4260,6 +4349,36 @@
 
         function escapeBuildingText(value) {
             return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
+        }
+
+        function ensureTab(tabName) {
+            const tabId = tabName + '-tab';
+            let tab = document.getElementById(tabId);
+            if (!tab) {
+                tab = document.createElement('div');
+                tab.id = tabId;
+                tab.style.display = 'none';
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.appendChild(tab);
+                } else {
+                    document.body.appendChild(tab);
+                }
+            }
+            return tab;
+        }
+
+        function renderMetersFallback(tab) {
+            const readings = window.RHD && Array.isArray(RHD.list('meters')) ? RHD.list('meters') : [];
+            const rows = readings.map(function (reading) {
+                const building = RHD.get('buildings', reading.buildingId);
+                const apartment = RHD.get('apartments', reading.apartmentId);
+                return '<tr><td>' + (building ? (building.shortName || building.name || '—') : '—') + ' / ' + (apartment ? apartment.name : '—') + '</td>' +
+                    '<td>' + (reading.meterType === 'water' ? 'Công tơ nước' : 'Công tơ điện') + '</td><td>' + (reading.previousIndex || 0) + '</td><td>' +
+                    (reading.latestIndex || 0) + '</td><td><strong>' + (reading.consumption || 0) + '</strong></td></tr>';
+            }).join('');
+            tab.innerHTML = '<div class="meter-page"><div class="meter-header"><div class="meter-title"><button class="back-button" type="button" onclick="switchTab(\'dashboard\')"><i class="fas fa-arrow-left"></i></button><div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;">Quản lý chỉ số điện và nước</p></div></div><button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button></div><div class="card"><h2 style="font-size:1rem;color:#10213c;margin-bottom:1rem;">Danh sách bản ghi</h2>' +
+                (rows ? '<div class="table-container"><table><thead><tr><th>Tòa nhà / Căn hộ</th><th>Loại công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới.</p></div>') + '</div></div>';
         }
 
         // Dropdown Toggle

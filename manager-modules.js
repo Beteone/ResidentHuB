@@ -318,13 +318,14 @@
         var rows = apartments.map(function (a) {
             var building = RHD.get('buildings', a.buildingId);
             var st = statusMeta(RHD.APARTMENT_STATUSES, a.status);
+            var isActive = a.active !== false;
             return '<tr>' +
                 '<td><strong>' + escapeHtml(a.name) + '</strong>' + (a.photos && a.photos.length ? ' <i class="fas fa-image" style="color:#94a3b8;" title="Có ảnh"></i>' : '') + '</td>' +
                 '<td>' + escapeHtml(building ? building.shortName || building.name : '—') + '</td>' +
                 '<td>' + escapeHtml(a.floor || '—') + '</td>' +
                 '<td>' + (a.area || '—') + ' m²</td>' +
                 '<td>' + money(a.rentPrice) + '</td>' +
-                '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
+                '<td>' + badge(isActive ? st.label : 'Ngừng hoạt động', isActive ? st.color : '#64748b', isActive ? st.bg : '#f1f5f9') + '</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
                 '<button onclick="RHUI.openApartmentForm(\'' + a.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
                 '<button onclick="RHUI.deleteApartment(\'' + a.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
@@ -347,21 +348,34 @@
         RHUI.drawerEntity = 'apartments';
         RHUI.drawerId = id || null;
         var buildings = RHD.list('buildings');
-        var photoData = a && a.photos && a.photos[0] ? a.photos[0] : '';
+        var selectedInvoiceTemplate = a ? a.invoiceTemplateId : (RHT.getDefault('INVOICE') || {}).id;
+        var selectedContractTemplate = a ? a.contractTemplateId : (RHT.getDefault('CONTRACT') || {}).id;
+        var selectedBuildingId = a ? a.buildingId : buildings[0].id;
+        var selectedFloor = a ? String(a.floor || '').replace(/^Tầng /, '') : '';
+        var floorOptions = function (buildingId, selected) {
+            var building = RHD.get('buildings', buildingId);
+            var count = building && Number(building.floorCount) > 0 ? Number(building.floorCount) : 20;
+            var floors = [];
+            for (var i = 1; i <= count; i++) floors.push({ id: String(i), label: 'Tầng ' + i });
+            return selectOptions(floors, 'id', 'label', selected, 'Chọn tầng');
+        };
 
         var html = '<form onsubmit="RHUI.submitApartmentForm(event)">' +
+            '<div class="rh-section-title">THÔNG TIN CĂN HỘ</div>' +
             '<div class="rh-grid-2">' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Chọn tòa nhà *</label><select id="afBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name + ' (' + (b.shortName || b.code) + ')'; }, a ? a.buildingId : buildings[0].id) + '</select></div>' +
-            '<div class="rh-field"><label>Tên / Số căn *</label><input id="afName" required value="' + escapeHtml(a ? a.name : '') + '" placeholder="VD: 501"></div>' +
-            '<div class="rh-field"><label>Tầng</label><input id="afFloor" value="' + escapeHtml(a ? a.floor : '') + '" placeholder="VD: Tầng 5"></div>' +
-            '<div class="rh-field"><label>Diện tích (m²)</label><input id="afArea" type="number" min="0" value="' + (a ? a.area : '') + '"></div>' +
-            '<div class="rh-field"><label>Trạng thái *</label><select id="afStatus">' + selectOptions(RHD.APARTMENT_STATUSES, 'id', 'label', a ? a.status : 'vacant') + '</select></div>' +
-            '<div class="rh-field"><label>Giá thuê (đ) *</label><input id="afRent" type="number" min="0" required value="' + (a ? a.rentPrice : '') + '"></div>' +
-            '<div class="rh-field"><label>Tiền cọc (đ) *</label><input id="afDeposit" type="number" min="0" required value="' + (a ? a.depositPrice : '') + '"></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Địa chỉ</label><input id="afAddress" value="' + escapeHtml(a ? a.address : '') + '"></div>' +
-            '<div class="rh-field"><label>Ảnh căn hộ</label><input id="afPhoto" type="file" accept="image/*"><input type="hidden" id="afPhotoData" value="' + escapeHtml(photoData) + '"></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú</label><textarea id="afNote" rows="2">' + escapeHtml(a ? a.note : '') + '</textarea></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Chọn tòa nhà *</label><select id="afBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name + ' (' + (b.shortName || b.code) + ')'; }, selectedBuildingId, 'Chọn tòa nhà') + '</select></div>' +
+            '<div class="rh-field"><label>Chọn tầng *</label><select id="afFloor" required>' + floorOptions(selectedBuildingId, selectedFloor) + '</select></div>' +
+            '<div class="rh-field"><label>Tên căn hộ *</label><input id="afName" required value="' + escapeHtml(a ? a.name : '') + '" placeholder="Tên căn hộ"></div>' +
+            '<div class="rh-field"><label>Giá thuê *</label><input id="afRent" type="number" min="0" required value="' + (a ? a.rentPrice : '') + '" placeholder="Giá thuê"></div>' +
+            '<div class="rh-field"><label>Cọc *</label><input id="afDeposit" type="number" min="0" required value="' + (a ? a.depositPrice : '') + '" placeholder="Cọc"></div>' +
+            '<div class="rh-field"><label>Diện tích *</label><input id="afArea" type="number" min="0" required value="' + (a ? a.area : '') + '" placeholder="Diện tích"></div>' +
+            '<div class="rh-field"><label>Số khách tối đa *</label><input id="afMaxGuests" type="number" min="1" required value="' + (a ? a.maxGuests || '' : '') + '" placeholder="Số khách tối đa"></div>' +
             '</div>' +
+            '<div class="rh-section"><div class="rh-section-title">CẤU HÌNH</div><div class="rh-grid-2">' +
+            templatePickerHtml('afInvoiceTpl', 'INVOICE', selectedInvoiceTemplate) +
+            templatePickerHtml('afContractTpl', 'CONTRACT', selectedContractTemplate) +
+            '</div></div>' +
+            '<div class="rh-section"><div class="rh-section-title">TRẠNG THÁI</div><label style="display:flex;align-items:center;gap:.6rem;font-weight:600;color:#10213c;cursor:pointer;"><input type="checkbox" id="afActive" ' + (a && a.active === false ? '' : 'checked') + ' style="width:18px;height:18px;"> Hoạt động <span id="afActiveLabel" style="color:' + (a && a.active === false ? '#64748b' : '#18a878') + ';font-size:.82rem;">' + (a && a.active === false ? 'Ngừng hoạt động' : 'Đang hoạt động') + '</span></label></div>' +
             '<div id="afError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
             '<button type="submit" class="btn-primary">Lưu căn hộ</button>' +
@@ -370,12 +384,11 @@
 
         openDrawer(a ? 'Sửa căn hộ' : 'Thêm căn hộ', html);
         byId('afBuilding').addEventListener('change', function () {
-            var b = RHD.get('buildings', this.value);
-            if (b) byId('afAddress').value = RHD.buildingFullAddress(b);
+            byId('afFloor').innerHTML = floorOptions(this.value, '');
         });
-        if (!a) { var b0 = RHD.get('buildings', byId('afBuilding').value); if (b0) byId('afAddress').value = RHD.buildingFullAddress(b0); }
-        byId('afPhoto').addEventListener('change', function () {
-            readFileAsDataUrl(this, function (dataUrl) { byId('afPhotoData').value = dataUrl; });
+        byId('afActive').addEventListener('change', function () {
+            byId('afActiveLabel').textContent = this.checked ? 'Đang hoạt động' : 'Ngừng hoạt động';
+            byId('afActiveLabel').style.color = this.checked ? '#18a878' : '#64748b';
         });
     };
 
@@ -384,14 +397,15 @@
         var data = {
             buildingId: byId('afBuilding').value,
             name: byId('afName').value.trim(),
-            floor: byId('afFloor').value.trim(),
-            area: Number(byId('afArea').value) || 0,
-            status: byId('afStatus').value,
+            floor: 'Tầng ' + byId('afFloor').value,
+            area: Number(byId('afArea').value),
+            maxGuests: Number(byId('afMaxGuests').value),
+            active: byId('afActive').checked,
+            status: byId('afActive').checked ? 'vacant' : 'maintenance',
             rentPrice: Number(byId('afRent').value) || 0,
             depositPrice: Number(byId('afDeposit').value) || 0,
-            address: byId('afAddress').value.trim(),
-            note: byId('afNote').value.trim(),
-            photos: byId('afPhotoData').value ? [byId('afPhotoData').value] : []
+            invoiceTemplateId: byId('afInvoiceTpl').value,
+            contractTemplateId: byId('afContractTpl').value
         };
         var res = RHUI.drawerId ? RHD.update('apartments', RHUI.drawerId, data) : RHD.create('apartments', data);
         if (!res.ok) { byId('afError').textContent = res.error; return; }
@@ -580,56 +594,98 @@
 
     // =============================================================== METERS
 
-    function renderMetersTab() {
-        var tab = byId('meters-tab');
-        if (!tab) return;
-        var buildings = RHD.list('buildings');
-        if (!buildings.length) {
-            tab.innerHTML = renderDemoBanner('meters') + '<div class="card">' + emptyState('fa-gauge', 'Hãy tạo tòa nhà và căn hộ trước khi ghi chỉ số.') + '</div>';
-            return;
-        }
-        var readings = RHD.list('meters').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var rows = readings.map(function (m) {
-            var apt = RHD.get('apartments', m.apartmentId);
-            var building = RHD.get('buildings', m.buildingId);
-            var typeLabel = m.meterType === 'electricity' ? 'Điện' : 'Nước';
-            var typeColor = m.meterType === 'electricity' ? ['#a5680c', '#fff4df'] : ['#0d65d5', '#eaf3ff'];
-            return '<tr>' +
-                '<td>' + escapeHtml(building ? building.shortName : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</td>' +
-                '<td>' + badge(typeLabel, typeColor[0], typeColor[1]) + '</td>' +
-                '<td>' + escapeHtml(m.meterCode || '—') + '</td>' +
-                '<td>' + m.previousIndex + '</td>' +
-                '<td>' + m.latestIndex + '</td>' +
-                '<td><strong>' + m.consumption + '</strong></td>' +
-                '<td>' + escapeHtml(m.periodMonth || '—') + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
-                '<button onclick="RHUI.openMeterForm(\'' + m.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
-                '<button onclick="RHUI.deleteMeter(\'' + m.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
-                '</td></tr>';
-        }).join('');
+    var meterViewState = {
+        selectedMonth: new Date().toISOString().slice(0, 7),
+        selectedDate: new Date().toISOString().slice(0, 10),
+        meterType: 'all',
+        showUnclosedOnly: false
+    };
 
-        tab.innerHTML = renderDemoBanner('meters') +
-            '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Ghi chỉ số điện / nước</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Tiêu thụ được dùng để tự tính tiền điện/nước khi lập hóa đơn.</p></div>' +
-            addButton('Thêm bản ghi', "RHUI.openMeterForm()", 'meters') +
-            '</div>' +
-            (readings.length ? '<div class="table-container"><table><thead><tr><th>Căn hộ</th><th>Loại</th><th>Mã công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th><th>Kỳ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-gauge', 'Chưa có bản ghi chỉ số nào.')) +
-            '</div>';
+    function meterMonthLabel(value) {
+        var parts = String(value || '').split('-');
+        return parts.length === 2 ? parts[1] + '/' + parts[0] : value || '—';
     }
 
+    function meterIsClosed(reading) {
+        return reading && (reading.status === 'closed' || reading.status === 'approved' || reading.isClosed === true);
+    }
+
+    function renderMeterRows(readings) {
+        return readings.map(function (m) {
+            var apt = RHD.get('apartments', m.apartmentId);
+            var building = RHD.get('buildings', m.buildingId);
+            var typeLabel = m.meterType === 'electricity' ? 'Công tơ điện' : 'Công tơ nước';
+            var typeColor = m.meterType === 'electricity' ? ['#a5680c', '#fff4df'] : ['#0d65d5', '#eaf3ff'];
+            return '<tr><td><strong>' + escapeHtml(building ? (building.shortName || building.name) : '—') + '</strong><br><span style="color:#94a3b8;font-size:.78rem;">' + escapeHtml(apt ? apt.name : '—') + '</span></td>' +
+                '<td>' + badge(typeLabel, typeColor[0], typeColor[1]) + '</td>' +
+                '<td>' + escapeHtml(m.meterCode || '—') + '</td><td>' + (m.previousIndex || 0) + '</td><td>' + (m.latestIndex || 0) + '</td>' +
+                '<td><strong>' + (m.consumption || 0) + '</strong></td><td>' + escapeHtml(meterMonthLabel(m.periodMonth)) + '</td>' +
+                '<td style="text-align:right;white-space:nowrap;"><button onclick="RHUI.openMeterForm(\'' + m.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
+                '<button onclick="RHUI.deleteMeter(\'' + m.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button></td></tr>';
+        }).join('');
+    }
+
+    function renderMetersTab() {
+        var tab = byId('meters-tab') || (typeof window.ensureTab === 'function' ? window.ensureTab('meters') : null);
+        if (!tab) return;
+        var buildings = RHD.list('buildings');
+        if (!Array.isArray(buildings)) buildings = [];
+        var readings = RHD.list('meters');
+        if (!Array.isArray(readings)) readings = [];
+        var periodReadings = readings.filter(function (m) { return !m.periodMonth || m.periodMonth === meterViewState.selectedMonth; });
+        var filtered = periodReadings.filter(function (m) {
+            return (meterViewState.meterType === 'all' || m.meterType === meterViewState.meterType) &&
+                (!meterViewState.showUnclosedOnly || !meterIsClosed(m));
+        }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        var closed = periodReadings.filter(meterIsClosed).length;
+        var pending = periodReadings.filter(function (m) { return m.status === 'pending' || m.status === 'review'; }).length;
+        var unclosed = Math.max(0, periodReadings.length - closed - pending);
+        var progress = periodReadings.length ? Math.round(closed / periodReadings.length * 100) : 0;
+        var typeButton = function (value, icon, label) { return '<button type="button" class="segment-button ' + (meterViewState.meterType === value ? 'active' : '') + '" data-meter-type="' + value + '"><i class="fas ' + icon + '"></i> ' + label + '</button>'; };
+        tab.innerHTML = renderDemoBanner('meters') + '<div class="meter-page">' +
+            '<header class="meter-header"><div class="meter-title"><button class="back-button" type="button" onclick="switchTab(\'dashboard\')" title="Quay lại"><i class="fas fa-arrow-left"></i></button><div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;margin-top:.2rem;">Quản lý chỉ số điện và nước theo từng kỳ</p></div></div>' +
+            '<div class="meter-actions"><button class="btn-icon" type="button" title="Tìm kiếm"><i class="fas fa-search"></i></button><button class="btn-icon notification-button" type="button" title="Bộ lọc"><i class="fas fa-sliders"></i><span class="notification-dot"></span></button>' + addButton('Thêm mới', "RHUI.openMeterForm()", 'meters') + '</div></header>' +
+            '<div class="filter-row"><div class="filter-label"><i class="fas fa-filter"></i> Đang lọc theo:</div><button type="button" class="clear-filter" onclick="RHUI.clearMeterFilters()">Xoá lọc</button></div>' +
+            '<button type="button" class="month-chip" onclick="RHUI.openMeterMonthPicker()"><i class="fas fa-check-circle"></i> Tháng: ' + escapeHtml(meterMonthLabel(meterViewState.selectedMonth)) + '</button>' +
+            '<section class="card overview-card"><div class="overview-head"><h2>Tổng quan chốt chỉ số <i class="fas fa-circle-info" style="color:#94a3b8;font-size:.85rem;"></i></h2><span class="period-label">Kỳ ' + escapeHtml(meterMonthLabel(meterViewState.selectedMonth)) + '</span></div>' +
+            '<div class="overview-stats"><div class="overview-stat stat-done"><span>Đã chốt</span><strong>' + closed + '/' + periodReadings.length + '</strong></div><div class="overview-stat stat-pending"><span>Chưa duyệt</span><strong>' + pending + '</strong></div><div class="overview-stat stat-unclosed"><span>Chưa chốt</span><strong>' + unclosed + '</strong></div></div><div class="progress-track"><div class="progress-value" style="width:' + progress + '%"></div></div></section>' +
+            '<section class="card" style="margin-top:1.25rem;"><div style="display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;"><div><h2 style="font-size:1rem;color:#10213c;">Danh sách bản ghi</h2><p style="color:#94a3b8;font-size:.82rem;margin-top:.25rem;">' + filtered.length + ' bản ghi trong kỳ đang chọn</p></div><div class="segmented-control" style="max-width:430px;min-width:280px;">' + typeButton('all', 'fa-layer-group', 'Tất cả') + typeButton('electricity', 'fa-bolt', 'Công tơ điện') + typeButton('water', 'fa-droplet', 'Công tơ nước') + '</div></div>' +
+            (filtered.length ? '<div class="table-container"><table><thead><tr><th>Tòa nhà / Căn hộ</th><th>Loại công tơ</th><th>Mã công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th><th>Kỳ</th><th></th></tr></thead><tbody>' + renderMeterRows(filtered) + '</tbody></table></div>' : '<div class="meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới, hoặc chỉnh bộ lọc.</p></div>') + '</section>' +
+            '<button class="fab-add" type="button" onclick="RHUI.openMeterForm()" title="Thêm chỉ số"><i class="fas fa-plus"></i></button>' +
+            '</div>';
+        tab.querySelectorAll('[data-meter-type]').forEach(function (button) { button.addEventListener('click', function () { meterViewState.meterType = this.getAttribute('data-meter-type'); renderMetersTab(); }); });
+    }
+
+    RHUI.clearMeterFilters = function () { meterViewState.selectedMonth = new Date().toISOString().slice(0, 7); meterViewState.meterType = 'all'; meterViewState.showUnclosedOnly = false; renderMetersTab(); };
+
+    RHUI.openMeterMonthPicker = function () {
+        var existing = byId('rhMeterMonthModal');
+        if (existing) existing.remove();
+        var modal = document.createElement('div');
+        modal.id = 'rhMeterMonthModal'; modal.className = 'meter-modal open date-modal';
+        modal.innerHTML = '<div class="meter-form"><div class="form-header"><h2>Chọn kỳ ghi chỉ số</h2><button class="plain-button" type="button" title="Đóng"><i class="fas fa-xmark"></i></button></div><div class="form-section"><div class="form-field"><label>Tháng và năm</label><input id="rhMeterMonthInput" type="month" value="' + escapeHtml(meterViewState.selectedMonth) + '"></div></div><div class="date-actions"><button class="secondary-button" type="button">Huỷ</button><button class="btn-primary" type="button">Áp dụng</button></div></div>';
+        document.body.appendChild(modal);
+        var close = function () { modal.remove(); };
+        modal.querySelector('.plain-button').onclick = close; modal.querySelector('.secondary-button').onclick = close;
+        modal.querySelector('.btn-primary').onclick = function () { meterViewState.selectedMonth = byId('rhMeterMonthInput').value || meterViewState.selectedMonth; close(); renderMetersTab(); };
+    };
+
     function refreshMeterAutofill() {
-        var buildingId = byId('mfBuilding').value;
-        var apartmentId = byId('mfApartment').value;
-        var meterType = byId('mfType').value;
+        var building = byId('mfBuilding');
+        var apartment = byId('mfApartment');
+        var previous = byId('mfPrevious');
+        if (!building || !apartment || !previous) return;
+        var apartmentId = apartment.value;
+        var selectedType = document.querySelector('input[name="mfType"]:checked');
+        var meterType = selectedType && selectedType.value !== 'all' ? selectedType.value : 'electricity';
         if (!apartmentId) return;
         var last = RHD.latestMeter(apartmentId, meterType);
-        byId('mfPrevious').value = last ? last.latestIndex : 0;
+        previous.value = last ? last.latestIndex : 0;
         computeConsumption();
     }
 
     function computeConsumption() {
+        if (!byId('mfPrevious') || !byId('mfLatest') || !byId('mfConsumption')) return;
         var prev = Number(byId('mfPrevious').value) || 0;
         var latest = Number(byId('mfLatest').value) || 0;
         byId('mfConsumption').textContent = Math.max(0, latest - prev);
@@ -640,31 +696,26 @@
         RHUI.drawerEntity = 'meters';
         RHUI.drawerId = id || null;
         var buildings = RHD.list('buildings');
-        var defaultBuildingId = m ? m.buildingId : buildings[0].id;
+        if (!Array.isArray(buildings)) buildings = [];
+        var defaultBuildingId = m ? m.buildingId : (buildings[0] && buildings[0].id);
         var apartments = RHD.apartmentsOf(defaultBuildingId);
+        var meterType = m ? m.meterType : 'electricity';
+        var hasApartments = apartments.length > 0;
 
-        var html = '<form onsubmit="RHUI.submitMeterForm(event)">' +
-            '<div class="rh-grid-2">' +
-            '<div class="rh-field"><label>Tòa nhà *</label><select id="mfBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name; }, defaultBuildingId) + '</select></div>' +
-            '<div class="rh-field"><label>Căn hộ *</label><select id="mfApartment" required>' + selectOptions(apartments, 'id', 'name', m ? m.apartmentId : (apartments[0] && apartments[0].id)) + '</select></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Loại công tơ *</label>' +
-            '<div style="display:flex;gap:.6rem;">' +
-            '<label class="rh-choice"><input type="radio" name="mfType" id="mfType" value="electricity" ' + (!m || m.meterType === 'electricity' ? 'checked' : '') + '> <i class="fas fa-bolt"></i> Điện</label>' +
-            '<label class="rh-choice"><input type="radio" name="mfType" value="water" ' + (m && m.meterType === 'water' ? 'checked' : '') + '> <i class="fas fa-droplet"></i> Nước</label>' +
-            '</div></div>' +
-            '<div class="rh-field"><label>Mã / số công tơ</label><input id="mfCode" value="' + escapeHtml(m ? m.meterCode : '') + '"></div>' +
-            '<div class="rh-field"><label>Tháng chốt</label><input id="mfPeriod" type="month" value="' + escapeHtml(m ? m.periodMonth : '') + '"></div>' +
-            '<div class="rh-field"><label>Ngày chốt</label><input id="mfClosingDate" type="date" value="' + escapeHtml(m ? m.closingDate : '') + '"></div>' +
-            '<div class="rh-field"><label>Chỉ số kỳ trước (tự động)</label><input id="mfPrevious" type="number" value="' + (m ? m.previousIndex : 0) + '" oninput="RHUI.recalcMeter()"></div>' +
-            '<div class="rh-field"><label>Chỉ số kỳ này *</label><input id="mfLatest" type="number" required value="' + (m ? m.latestIndex : '') + '" oninput="RHUI.recalcMeter()"></div>' +
-            '<div class="rh-field"><label>Tiêu thụ</label><div id="mfConsumption" style="padding:.65rem 0;font-weight:800;font-size:1.1rem;color:#0d65d5;">' + (m ? m.consumption : 0) + '</div></div>' +
-            '<div class="rh-field"><label>Ảnh chỉ số công tơ</label><input id="mfPhoto" type="file" accept="image/*"><input type="hidden" id="mfPhotoData" value="' + escapeHtml(m ? m.photo : '') + '"></div>' +
-            '</div>' +
-            '<div id="mfError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
-            '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
-            '<button type="submit" class="btn-primary">Lưu bản ghi</button>' +
-            '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Huỷ</button>' +
-            '</div></form>';
+        var typeOption = function (value, icon, label) {
+            return '<label class="segment-button ' + (meterType === value ? 'active' : '') + '" style="display:flex;align-items:center;justify-content:center;gap:.3rem;"><input type="radio" name="mfType" value="' + value + '" ' + (meterType === value ? 'checked' : '') + ' style="position:absolute;opacity:0;"> <i class="fas ' + icon + '"></i> ' + label + '</label>';
+        };
+        var html = '<form onsubmit="RHUI.submitMeterForm(event)"><div class="form-header"><button type="button" class="plain-button" onclick="RHUI.closeDrawer()" title="Đóng"><i class="fas fa-xmark"></i></button><h2>' + (m ? 'Chỉnh sửa chỉ số' : 'Thêm chỉ số') + '</h2><button type="button" class="plain-button" title="Lịch sử"><i class="fas fa-clock-rotate-left"></i></button></div>' +
+            '<div class="form-section"><div class="form-section-title">THÔNG TIN CHUNG</div><div class="form-grid">' +
+            '<div class="form-field"><label for="mfPeriod">Tháng chốt *</label><input id="mfPeriod" type="month" required value="' + escapeHtml(m ? m.periodMonth : meterViewState.selectedMonth) + '"></div>' +
+            '<div class="form-field"><label for="mfClosingDate">Ngày chốt *</label><input id="mfClosingDate" type="date" required value="' + escapeHtml(m ? m.closingDate : meterViewState.selectedDate) + '"></div>' +
+            '<div class="form-field"><label for="mfBuilding">Toà nhà *</label><select id="mfBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name; }, defaultBuildingId, 'Chọn toà nhà') + '</select></div>' +
+            '<div class="form-field"><label for="mfApartment">Căn hộ</label><select id="mfApartment" required>' + selectOptions(apartments, 'id', 'name', m ? m.apartmentId : (apartments[0] && apartments[0].id), 'Chọn căn hộ') + '</select></div>' +
+            '<div class="form-field" style="grid-column:1/-1;"><label>Loại công tơ *</label><div class="segmented-control" id="mfTypeControl">' + typeOption('all', 'fa-layer-group', 'Tất cả') + typeOption('electricity', 'fa-bolt', 'Công tơ điện') + typeOption('water', 'fa-droplet', 'Công tơ nước') + '</div><input type="hidden" id="mfCode" value="' + escapeHtml(m ? m.meterCode : '') + '"></div>' +
+            '<label class="toggle-row" style="grid-column:1/-1;"><input class="toggle-input" id="mfUnclosedOnly" type="checkbox"> <span>Chỉ hiện công tơ chưa chốt trong tháng</span></label></div></div>' +
+            '<div class="form-section"><div class="form-section-title">CHỈ SỐ</div>' +
+            (hasApartments ? '<div class="form-grid"><div class="form-field"><label for="mfPrevious">Chỉ số kỳ trước</label><input id="mfPrevious" type="number" min="0" value="' + (m ? m.previousIndex : 0) + '" oninput="RHUI.recalcMeter()"></div><div class="form-field"><label for="mfLatest">Chỉ số kỳ này *</label><input id="mfLatest" type="number" min="0" required value="' + (m ? m.latestIndex : '') + '" oninput="RHUI.recalcMeter()"></div><div class="form-field"><label>Tiêu thụ</label><div id="mfConsumption" style="padding:.7rem 0;font-weight:800;font-size:1.1rem;color:#0d65d5;">' + (m ? m.consumption : 0) + '</div></div><div class="form-field"><label>Ảnh chỉ số công tơ</label><input id="mfPhoto" type="file" accept="image/*"><input type="hidden" id="mfPhotoData" value="' + escapeHtml(m ? m.photo : '') + '"></div></div>' : '<div class="form-empty"><i class="fas fa-gauge-high"></i><strong>Không có dữ liệu trả về</strong><p>Vui lòng kiểm tra lại dữ liệu toà nhà và căn hộ.</p></div>') +
+            '</div><div id="mfError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div><div style="display:flex;gap:.6rem;justify-content:flex-end;margin-top:1.25rem;"><button type="button" class="secondary-button" onclick="RHUI.closeDrawer()">Huỷ</button><button type="submit" class="btn-primary"' + (hasApartments ? '' : ' disabled') + '>Lưu chỉ số</button></div></form>';
 
         openDrawer(m ? 'Sửa bản ghi chỉ số' : 'Thêm bản ghi chỉ số', html);
         byId('mfBuilding').addEventListener('change', function () {
@@ -673,8 +724,12 @@
             refreshMeterAutofill();
         });
         byId('mfApartment').addEventListener('change', refreshMeterAutofill);
-        document.querySelectorAll('input[name="mfType"]').forEach(function (r) { r.addEventListener('change', refreshMeterAutofill); });
-        byId('mfPhoto').addEventListener('change', function () { readFileAsDataUrl(this, function (d) { byId('mfPhotoData').value = d; }); });
+        document.querySelectorAll('input[name="mfType"]').forEach(function (r) { r.addEventListener('change', function () { document.querySelectorAll('#mfTypeControl .segment-button').forEach(function (el) { el.classList.toggle('active', el.querySelector('input').checked); }); refreshMeterAutofill(); }); });
+        var photo = byId('mfPhoto');
+        if (photo) photo.addEventListener('change', function () { readFileAsDataUrl(this, function (d) { byId('mfPhotoData').value = d; }); });
+        byId('mfPeriod').addEventListener('change', function () { meterViewState.selectedMonth = this.value || meterViewState.selectedMonth; });
+        byId('mfClosingDate').addEventListener('change', function () { meterViewState.selectedDate = this.value || meterViewState.selectedDate; });
+        byId('mfUnclosedOnly').addEventListener('change', function () { meterViewState.showUnclosedOnly = this.checked; });
         if (!m) refreshMeterAutofill();
     };
 
@@ -682,7 +737,8 @@
 
     RHUI.submitMeterForm = function (ev) {
         ev.preventDefault();
-        var meterType = document.querySelector('input[name="mfType"]:checked').value;
+        var selectedType = document.querySelector('input[name="mfType"]:checked');
+        var meterType = selectedType && selectedType.value !== 'all' ? selectedType.value : 'electricity';
         var previous = Number(byId('mfPrevious').value) || 0;
         var latest = Number(byId('mfLatest').value) || 0;
         var data = {

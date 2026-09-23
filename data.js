@@ -324,9 +324,11 @@
             writeAll('buildings', [building]);
 
             var fullAddress = buildingFullAddress(building);
-            var apt1 = { id: genId('apartment'), buildingId: building.id, name: '501', floor: 'Tầng 5', area: 20, rentPrice: 2000000, depositPrice: 2000000, status: 'occupied', address: fullAddress, photos: [], note: '', createdAt: Date.now() };
-            var apt2 = { id: genId('apartment'), buildingId: building.id, name: '502', floor: 'Tầng 5', area: 22, rentPrice: 2200000, depositPrice: 2200000, status: 'deposited', address: fullAddress, photos: [], note: '', createdAt: Date.now() };
-            var apt3 = { id: genId('apartment'), buildingId: building.id, name: '503', floor: 'Tầng 5', area: 18, rentPrice: 1800000, depositPrice: 1800000, status: 'vacant', address: fullAddress, photos: [], note: '', createdAt: Date.now() };
+            var invoiceTemplateId = global.RHT ? (global.RHT.getDefault('INVOICE') || {}).id : '';
+            var contractTemplateId = global.RHT ? (global.RHT.getDefault('CONTRACT') || {}).id : '';
+            var apt1 = { id: genId('apartment'), buildingId: building.id, name: '501', floor: 'Tầng 5', area: 20, maxGuests: 2, rentPrice: 2000000, depositPrice: 2000000, status: 'occupied', active: true, invoiceTemplateId: invoiceTemplateId, contractTemplateId: contractTemplateId, address: fullAddress, photos: [], note: '', createdAt: Date.now() };
+            var apt2 = { id: genId('apartment'), buildingId: building.id, name: '502', floor: 'Tầng 5', area: 22, maxGuests: 3, rentPrice: 2200000, depositPrice: 2200000, status: 'deposited', active: true, invoiceTemplateId: invoiceTemplateId, contractTemplateId: contractTemplateId, address: fullAddress, photos: [], note: '', createdAt: Date.now() };
+            var apt3 = { id: genId('apartment'), buildingId: building.id, name: '503', floor: 'Tầng 5', area: 18, maxGuests: 2, rentPrice: 1800000, depositPrice: 1800000, status: 'vacant', active: true, invoiceTemplateId: invoiceTemplateId, contractTemplateId: contractTemplateId, address: fullAddress, photos: [], note: '', createdAt: Date.now() };
             writeAll('apartments', [apt1, apt2, apt3]);
 
             var cus1 = { id: genId('customer'), fullName: 'Nguyễn Thị Hoa', phone: '0984646471', email: 'hoa.nguyen@email.vn', dob: '1996-03-12', gender: 'Nữ', idNumber: '017296001234', idIssueDate: '2020-05-10', idFrontPhoto: '', idBackPhoto: '', province: 'Thái Nguyên', ward: 'Phường Tích Lương', addressDetail: 'Tổ 14', customerType: 'Cá nhân', note: '', consultantName: 'Trần Văn Bình', consultantPhone: '0912345678', doorFingerprintCode: 'VT-0231', isForeigner: false, nationality: '', passportNumber: '', passportType: '', passportExpiry: '', passportPhoto: '', vehicles: [{ id: genId('veh'), type: 'Xe máy', model: 'Honda Vision', plate: '20-H1 123.45', color: 'Trắng', photo: '', ticket: 'VX-0501' }], createdAt: Date.now() };
