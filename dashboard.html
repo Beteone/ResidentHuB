@@ -3416,7 +3416,18 @@
         </div>
         </div>
 
-        <div id="meters-tab" style="display: none;"></div>
+        <div id="meters-tab" style="display: none;">
+            <div class="meter-page">
+                <header class="meter-header">
+                    <div class="meter-title">
+                        <button class="back-button" type="button" onclick="switchTab('dashboard')" title="Quay lại"><i class="fas fa-arrow-left"></i></button>
+                        <div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;margin-top:.2rem;">Quản lý chỉ số điện và nước theo từng kỳ</p></div>
+                    </div>
+                    <button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button>
+                </header>
+                <div class="card meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới, hoặc chỉnh bộ lọc.</p></div>
+            </div>
+        </div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
