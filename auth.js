@@ -448,6 +448,11 @@
             role: role,
             status: 'active',
             unit: data.unit ? String(data.unit).trim() : '',
+            // Links this login account to a real Apartment record in RHD (data.js), so
+            // resident-web.html can look up the actual contracts/invoices/requests that
+            // belong to this account instead of showing mock data. Set from the manager's
+            // "Quản lý tài khoản" apartment picker; unit stays as a display fallback.
+            apartmentId: data.apartmentId || '',
             building: data.building ? String(data.building).trim() : '',
             floor: data.floor ? String(data.floor).trim() : '',
             plan: data.plan || null,
@@ -483,6 +488,7 @@
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
         if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
+        if (patch.apartmentId !== undefined) user.apartmentId = patch.apartmentId;
         if (patch.building !== undefined) user.building = String(patch.building).trim();
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
@@ -586,7 +592,7 @@
     }
 
     function login(user, remember) {
-        var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', loginAt: Date.now(), currentUserId: user.id };
+        var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', apartmentId: user.apartmentId || '', loginAt: Date.now(), currentUserId: user.id };
         var data = JSON.stringify(session);
         if (remember) {
             localStorage.setItem(SESSION_KEY, data);

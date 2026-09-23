@@ -766,7 +766,7 @@
 
     // ============================================================= CONTRACTS
 
-    function renderContractsTab() {
+    function renderContractsTab(filter) {
         var tab = byId('contracts-tab');
         if (!tab) return;
         var buildings = RHD.list('buildings');
@@ -776,6 +776,14 @@
             return;
         }
         var contracts = RHD.list('contracts').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var filterLabel = '';
+        if (filter === 'expiring') {
+            var todayStr = new Date().toISOString().slice(0, 10);
+            var in30 = new Date(); in30.setDate(in30.getDate() + 30);
+            var in30Str = in30.toISOString().slice(0, 10);
+            filterLabel = 'Đang lọc: Sắp hết hạn (trong 30 ngày)';
+            contracts = contracts.filter(function (c) { return c.status === 'active' && c.endDate && c.endDate >= todayStr && c.endDate <= in30Str; });
+        }
         var rows = contracts.map(function (c) {
             var building = RHD.get('buildings', c.buildingId);
             var apt = RHD.get('apartments', c.apartmentId);
@@ -794,13 +802,14 @@
         }).join('');
 
         tab.innerHTML = renderDemoBanner('contracts') +
+            (filterLabel ? '<div style="align-items:center;background:#eaf3ff;border:1px solid #9ccaff;border-radius:10px;color:#0d65d5;display:flex;font-size:.85rem;font-weight:600;gap:.6rem;margin-bottom:1rem;padding:.6rem 1rem;">' + filterLabel + '<button onclick="RHUI.renderContractsTab()" style="background:none;border:0;color:#0d65d5;cursor:pointer;font:inherit;font-weight:700;margin-left:auto;">Xoá lọc ×</button></div>' : '') +
             '<div class="card">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hợp đồng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Chọn Tòa nhà → Căn hộ → Khách hàng để tự động điền thông tin.</p></div>' +
             addButton('Thêm hợp đồng', "RHUI.openContractForm()", 'contracts') +
             '</div>' +
             (contracts.length ? '<div class="table-container"><table><thead><tr><th>Mã HĐ</th><th>Căn hộ</th><th>Khách hàng</th><th>Thời hạn</th><th>Tiền thuê</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-file-contract', 'Chưa có hợp đồng nào.')) +
+                : emptyState('fa-file-contract', filter ? 'Không có hợp đồng phù hợp bộ lọc.' : 'Chưa có hợp đồng nào.')) +
             '</div>';
     }
 
@@ -937,7 +946,7 @@
 
     // ============================================================== INVOICES
 
-    function renderInvoicesTab() {
+    function renderInvoicesTab(filter) {
         var tab = byId('invoices-tab');
         if (!tab) return;
         var contracts = RHD.list('contracts');
@@ -945,7 +954,16 @@
             tab.innerHTML = renderDemoBanner('invoices') + '<div class="card">' + emptyState('fa-receipt', 'Cần có Hợp đồng trước khi lập hóa đơn.') + '</div>';
             return;
         }
+        var todayStr = new Date().toISOString().slice(0, 10);
         var invoices = RHD.list('invoices').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var filterLabel = '';
+        if (filter === 'overdue') {
+            filterLabel = 'Đang lọc: Quá hạn';
+            invoices = invoices.filter(function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); });
+        } else if (filter === 'unpaid') {
+            filterLabel = 'Đang lọc: Chưa thanh toán';
+            invoices = invoices.filter(function (i) { return i.status !== 'paid'; });
+        }
         var rows = invoices.map(function (inv) {
             var apt = RHD.get('apartments', inv.apartmentId);
             var cus = RHD.get('customers', inv.customerId);
@@ -967,6 +985,7 @@
         }).join('');
 
         tab.innerHTML = renderDemoBanner('invoices') +
+            (filterLabel ? '<div style="align-items:center;background:#eaf3ff;border:1px solid #9ccaff;border-radius:10px;color:#0d65d5;display:flex;font-size:.85rem;font-weight:600;gap:.6rem;margin-bottom:1rem;padding:.6rem 1rem;">' + filterLabel + '<button onclick="RHUI.renderInvoicesTab()" style="background:none;border:0;color:#0d65d5;cursor:pointer;font:inherit;font-weight:700;margin-left:auto;">Xoá lọc ×</button></div>' : '') +
             '<div class="card">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hóa đơn</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Chọn Hợp đồng để tự động điền dịch vụ, phí và chỉ số điện/nước.</p></div>' +
@@ -975,7 +994,7 @@
             addButton('Thêm hóa đơn', "RHUI.openInvoiceForm()", 'invoices') +
             '</div></div>' +
             (invoices.length ? '<div class="table-container"><table><thead><tr><th style="width:36px;"></th><th>Mã HĐ</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-receipt', 'Chưa có hóa đơn nào.')) +
+                : emptyState('fa-receipt', filter ? 'Không có hóa đơn phù hợp bộ lọc.' : 'Chưa có hóa đơn nào.')) +
             '</div>';
     }
 
@@ -1245,20 +1264,182 @@
         renderInvoicesTab();
     };
 
+    // ======================================================= SUPPORT REQUESTS
+    // Shared with the resident app: a request submitted in resident-web.html
+    // (RHD.create('supportRequests', ...)) lands here untouched, and a status
+    // change made here is what the resident sees reflected on their side.
+
+    function renderSupportTab() {
+        var tab = byId('support-tab');
+        if (!tab) return;
+        var requests = RHD.list('supportRequests').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var rows = requests.map(function (r) {
+            var apt = RHD.get('apartments', r.apartmentId);
+            var building = RHD.get('buildings', r.buildingId);
+            var st = statusMeta(RHD.SUPPORT_STATUSES, r.status);
+            var pr = statusMeta(RHD.SUPPORT_PRIORITIES, r.priority);
+            return '<tr>' +
+                '<td><strong>' + escapeHtml(r.code) + '</strong></td>' +
+                '<td>' + escapeHtml(r.residentName || '—') + '</td>' +
+                '<td>' + escapeHtml(building ? building.shortName : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</td>' +
+                '<td>' + escapeHtml(r.title) + '<div style="font-size:.72rem;color:#94a3b8;">' + escapeHtml(r.category) + '</div></td>' +
+                '<td>' + badge(pr.label || r.priority, '#61708a', '#f1f5f9') + '</td>' +
+                '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
+                '<td>' + escapeHtml(r.assignee || '—') + '</td>' +
+                '<td style="white-space:nowrap;">' + new Date(r.createdAt).toLocaleString('vi-VN') + '</td>' +
+                '<td style="text-align:right;white-space:nowrap;">' +
+                '<button onclick="RHUI.openSupportForm(\'' + r.id + '\')" class="rh-row-btn" title="Xử lý"><i class="fas fa-pen"></i></button>' +
+                '</td></tr>';
+        }).join('');
+
+        tab.innerHTML = '<div class="card">' +
+            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
+            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Yêu cầu hỗ trợ</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Yêu cầu do cư dân gửi từ ứng dụng — cập nhật trạng thái tại đây sẽ phản ánh ngay bên cư dân.</p></div>' +
+            '</div>' +
+            (requests.length ? '<div class="table-container"><table><thead><tr><th>Mã YC</th><th>Người gửi</th><th>Căn hộ</th><th>Nội dung</th><th>Mức độ</th><th>Trạng thái</th><th>Người phụ trách</th><th>Thời gian gửi</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+                : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.')) +
+            '</div>';
+    }
+
+    RHUI.openSupportForm = function (id) {
+        var r = RHD.get('supportRequests', id);
+        if (!r) return;
+        RHUI.drawerEntity = 'supportRequests';
+        RHUI.drawerId = id;
+        var apt = RHD.get('apartments', r.apartmentId);
+        var building = RHD.get('buildings', r.buildingId);
+        var html = '<form onsubmit="RHUI.submitSupportForm(event)">' +
+            '<div class="rh-grid-2">' +
+            '<div><label style="font-size:.8rem;color:#94a3b8;">Người gửi</label><div style="font-weight:600;">' + escapeHtml(r.residentName || '—') + '</div></div>' +
+            '<div><label style="font-size:.8rem;color:#94a3b8;">Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</div></div>' +
+            '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
+            '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
+            '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || '') + '" placeholder="Tên nhân viên xử lý"></div>' +
+            '</div>' +
+            '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
+            '<button type="submit" class="btn-primary">Cập nhật</button>' +
+            '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Đóng</button>' +
+            '</div></form>';
+        openDrawer('Yêu cầu ' + r.code, html);
+    };
+
+    RHUI.submitSupportForm = function (ev) {
+        ev.preventDefault();
+        RHD.update('supportRequests', RHUI.drawerId, {
+            status: byId('srStatus').value,
+            assignee: byId('srAssignee').value.trim(),
+            updatedAt: Date.now()
+        });
+        closeDrawer();
+        renderSupportTab();
+        renderDashboardCounts();
+    };
+
     // ============================================================ DASHBOARD
+    // Pure READ -> CALCULATE -> DISPLAY: every figure below comes from RHD.list(),
+    // the same store every CRUD module (buildings/apartments/.../supportRequests)
+    // writes to. No mock arrays, no dashboard-only data source — so creating a
+    // record anywhere and then calling renderDashboardCounts() again (every module
+    // does this after save) is the only thing that keeps this in sync.
+
+    function setTodo(valueId, noteId, count, unitLabel, emptyLabel) {
+        var valueEl = byId(valueId);
+        if (valueEl) valueEl.textContent = count;
+        var noteEl = byId(noteId);
+        if (noteEl) noteEl.textContent = count > 0 ? count + ' ' + unitLabel : emptyLabel;
+        var card = valueEl ? valueEl.closest('.kpi-card') : null;
+        if (card) card.classList.toggle('has-items', count > 0);
+    }
+
+    function timeAgo(ts) {
+        var diff = Date.now() - ts;
+        if (diff < 60000) return 'Vừa xong';
+        if (diff < 3600000) return Math.floor(diff / 60000) + ' phút trước';
+        if (diff < 86400000) return Math.floor(diff / 3600000) + ' giờ trước';
+        return Math.floor(diff / 86400000) + ' ngày trước';
+    }
+
+    function renderRecentActivity() {
+        var body = byId('dashActivityBody');
+        if (!body) return;
+        var events = [];
+        RHD.list('buildings').forEach(function (b) { events.push({ t: b.createdAt, icon: 'fa-building', color: '#667eea', label: 'Tạo tòa nhà', detail: b.name }); });
+        RHD.list('apartments').forEach(function (a) { events.push({ t: a.createdAt, icon: 'fa-door-open', color: '#1683ff', label: 'Tạo căn hộ', detail: a.name }); });
+        RHD.list('customers').forEach(function (c) { events.push({ t: c.createdAt, icon: 'fa-user-plus', color: '#f59e0b', label: 'Thêm cư dân', detail: c.fullName }); });
+        RHD.list('contracts').forEach(function (c) {
+            var cus = RHD.get('customers', c.customerId);
+            events.push({ t: c.createdAt, icon: 'fa-file-signature', color: '#10b981', label: 'Lập hợp đồng', detail: c.code + (cus ? ' — ' + cus.fullName : '') });
+        });
+        RHD.list('meters').forEach(function (m) { events.push({ t: m.createdAt, icon: 'fa-gauge', color: '#0284c7', label: 'Ghi chỉ số', detail: (m.meterType === 'electricity' ? 'Điện' : 'Nước') + ' ' + (m.meterCode || '') }); });
+        RHD.list('invoices').forEach(function (inv) { events.push({ t: inv.createdAt, icon: 'fa-receipt', color: '#7c3aed', label: 'Tạo hóa đơn', detail: inv.code + ' — ' + money(inv.total) }); });
+        RHD.list('supportRequests').forEach(function (r) {
+            events.push({ t: r.createdAt, icon: 'fa-headset', color: '#f59e0b', label: 'Cư dân gửi yêu cầu', detail: r.code + ' — ' + r.title });
+            if (r.updatedAt && r.updatedAt !== r.createdAt) events.push({ t: r.updatedAt, icon: 'fa-check-circle', color: '#10b981', label: 'Xử lý yêu cầu', detail: r.code + ' — ' + statusMeta(RHD.SUPPORT_STATUSES, r.status).label });
+        });
+        events.sort(function (a, b) { return b.t - a.t; });
+        var top = events.slice(0, 10);
+        body.innerHTML = top.length ? top.map(function (e) {
+            return '<tr><td><i class="fas ' + e.icon + '" style="color:' + e.color + ';margin-right:.5rem;"></i>' + escapeHtml(e.label) + '</td><td>' + escapeHtml(e.detail) + '</td><td>' + timeAgo(e.t) + '</td></tr>';
+        }).join('') : '<tr class="activity-empty"><td colspan="3">Chưa có hoạt động</td></tr>';
+    }
 
     function renderDashboardCounts() {
-        var elBuildings = byId('rhCountBuildings');
-        if (!elBuildings) return;
-        byId('rhCountBuildings').textContent = RHD.list('buildings').length;
-        byId('rhCountApartments').textContent = RHD.list('apartments').length;
-        byId('rhCountCustomers').textContent = RHD.list('customers').length;
-        byId('rhCountContracts').textContent = RHD.list('contracts').length;
+        var anchor = byId('kpiBuildings');
+        if (!anchor) return;
+
+        var buildings = RHD.list('buildings');
+        var apartments = RHD.list('apartments');
+        var customers = RHD.list('customers');
+        var contracts = RHD.list('contracts');
+        var meters = RHD.list('meters');
         var invoices = RHD.list('invoices');
-        var revenue = invoices.filter(function (i) { return i.status === 'paid'; }).reduce(function (s, i) { return s + i.total; }, 0);
-        var overdue = invoices.filter(function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < new Date().toISOString().slice(0, 10)); }).length;
-        byId('rhCountRevenue').textContent = money(revenue);
-        byId('rhCountOverdue').textContent = overdue;
+        var requests = RHD.list('supportRequests');
+
+        var todayStr = new Date().toISOString().slice(0, 10);
+        var now = new Date();
+        var curMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+
+        // Row 1 — Tổng quan
+        byId('kpiBuildings').textContent = buildings.length;
+        byId('kpiApartments').textContent = apartments.length;
+        byId('kpiCustomers').textContent = customers.length;
+        byId('kpiVacant').textContent = apartments.filter(function (a) { return a.status === 'vacant'; }).length;
+
+        // Row 2 — Tài chính
+        var revenueMonth = invoices.filter(function (i) {
+            if (i.status !== 'paid' || !i.paidAt) return false;
+            var d = new Date(i.paidAt);
+            return (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')) === curMonthKey;
+        }).reduce(function (s, i) { return s + i.total; }, 0);
+        var collected = invoices.filter(function (i) { return i.status === 'paid'; }).reduce(function (s, i) { return s + i.total; }, 0);
+        var overdueInvoices = invoices.filter(function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); });
+        var debt = invoices.filter(function (i) { return i.status !== 'paid'; }).reduce(function (s, i) { return s + i.total; }, 0);
+        byId('kpiRevenueMonth').textContent = money(revenueMonth);
+        byId('kpiCollected').textContent = money(collected);
+        byId('kpiDebt').textContent = money(debt);
+        byId('kpiOverdueCount').textContent = overdueInvoices.length;
+
+        // Row 3 — Dữ liệu hệ thống
+        byId('sysBuildings').textContent = buildings.length;
+        byId('sysApartments').textContent = apartments.length;
+        byId('sysCustomers').textContent = customers.length;
+        byId('sysContracts').textContent = contracts.length;
+        byId('sysMeters').textContent = meters.length;
+        byId('sysInvoices').textContent = invoices.length;
+
+        // Row 4 — Cần xử lý
+        var openRequests = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; });
+        var unpaidInvoices = invoices.filter(function (i) { return i.status !== 'paid'; });
+        var in30 = new Date(); in30.setDate(in30.getDate() + 30);
+        var in30Str = in30.toISOString().slice(0, 10);
+        var expiringContracts = contracts.filter(function (c) { return c.status === 'active' && c.endDate && c.endDate >= todayStr && c.endDate <= in30Str; });
+
+        setTodo('todoRequests', 'todoRequestsNote', openRequests.length, 'yêu cầu cần xử lý', 'Không có yêu cầu cần xử lý');
+        setTodo('todoUnpaid', 'todoUnpaidNote', unpaidInvoices.length, 'hóa đơn cần thanh toán', 'Không có hóa đơn cần thanh toán');
+        setTodo('todoExpiring', 'todoExpiringNote', expiringContracts.length, 'hợp đồng sắp hết hạn', 'Không có hợp đồng sắp hết hạn');
+
+        if (typeof updateDashboardCharts === 'function') updateDashboardCharts();
+        renderRecentActivity();
     }
 
     global.RHUI = Object.assign(RHUI, {
@@ -1269,6 +1450,7 @@
         renderMetersTab: renderMetersTab,
         renderContractsTab: renderContractsTab,
         renderInvoicesTab: renderInvoicesTab,
+        renderSupportTab: renderSupportTab,
         renderDashboardCounts: renderDashboardCounts,
         renderDemoBanner: renderDemoBanner
     });

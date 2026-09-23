@@ -2316,6 +2316,25 @@
             .rh-print-area{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}
             @page{size:A4;margin:15mm}
         }
+        .dash-hero{margin-bottom:1.25rem}
+        .dash-hero h2{color:#10213c;font:800 1.6rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.02em}
+        .dash-hero p{color:#61708a;font-size:.9rem;margin-top:.35rem;max-width:640px}
+        .dash-row-label{color:#94a3b8;font-size:.72rem;font-weight:700;letter-spacing:.08em;margin:1.5rem 0 .6rem;text-transform:uppercase}
+        .dash-row-label:first-of-type{margin-top:0}
+        .kpi-card{cursor:pointer;transition:.2s ease}
+        .kpi-card:hover{border-color:#9ccaff;box-shadow:0 14px 30px rgba(22,131,255,.12);transform:translateY(-2px)}
+        .kpi-card.mini{padding:1rem 1.1rem}
+        .kpi-card.mini .stat-value{font:800 1.6rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin-top:.3rem}
+        .kpi-card.mini .stat-sub{color:#94a3b8;font-size:.72rem;margin-top:.25rem}
+        .kpi-card.todo{padding:1.1rem 1.25rem}
+        .kpi-card.todo .stat-label{color:#61708a;font-size:.82rem;font-weight:600}
+        .kpi-card.todo .stat-label i{color:#1683ff;margin-right:.4rem}
+        .kpi-card.todo .stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin-top:.4rem}
+        .kpi-card.todo .stat-sub{color:#94a3b8;font-size:.78rem;margin-top:.3rem}
+        .kpi-card.todo.has-items .stat-value{color:#ef4444}
+        #dashActivityBody .activity-empty td{color:#94a3b8;padding:2rem 1rem;text-align:center}
+        @media(max-width:1100px){#dashRowSystem{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+        @media(max-width:700px){#dashRowSystem{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
     </style>
 </head>
 <body>
@@ -2464,338 +2483,127 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboard-tab">
-            <!-- Stats Cards -->
-            <div class="grid-2">
-                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openBuildingList()" onkeydown="handleBuildingCardKeydown(event)">
+            <div class="dash-hero">
+                <h2>Tổng quan</h2>
+                <p>Một nơi để theo dõi toàn bộ hoạt động quản lý — mọi số liệu dưới đây được tính trực tiếp từ dữ liệu bạn đã nhập, không có số liệu minh họa.</p>
+            </div>
+
+            <div class="dash-row-label">Tổng quan</div>
+            <div class="grid-2" id="dashRowOverview">
+                <div class="card kpi-card" data-goto="buildings">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Tòa nhà</div>
-                            <div class="stat-value" data-stat-value="buildings">0</div>
-                            <div class="stat-label">Tổng phòng</div>
-                            <div class="stat-value" id="totalRoomsValue">245</div>
-                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openBuildingList()"><i class="fas fa-building"></i> Xem danh sách tòa nhà</button>
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
-                            <i class="fas fa-building"></i>
-                        </div>
+                        <div><div class="stat-label">Tòa nhà đang quản lý</div><div class="stat-value" id="kpiBuildings">0</div></div>
+                        <div class="stat-icon" style="background:rgba(102,126,234,.1);color:#667eea;"><i class="fas fa-building"></i></div>
                     </div>
                 </div>
-
-                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('rooms')" onkeydown="handleStatCardKeydown(event, 'rooms')">
+                <div class="card kpi-card" data-goto="apartments">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Tổng phòng</div>
-                            <div class="stat-value" data-stat-value="rooms">245</div>
-                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('rooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
-                            <i class="fas fa-door-open"></i>
-                        </div>
+                        <div><div class="stat-label">Số căn hộ</div><div class="stat-value" id="kpiApartments">0</div></div>
+                        <div class="stat-icon" style="background:rgba(22,131,255,.1);color:#1683ff;"><i class="fas fa-door-open"></i></div>
                     </div>
                 </div>
-
-                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('vacantRooms')" onkeydown="handleStatCardKeydown(event, 'vacantRooms')">
+                <div class="card kpi-card" data-goto="customers">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Phòng trống</div>
-                            <div class="stat-value" data-stat-value="vacantRooms">32</div>
-                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('vacantRooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
-                            <i class="fas fa-user-group"></i>
-                        </div>
+                        <div><div class="stat-label">Cư dân</div><div class="stat-value" id="kpiCustomers">0</div></div>
+                        <div class="stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="fas fa-user-group"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="apartments">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Công nợ</div>
-                            <div class="stat-value">87M</div>
-                            <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 5.2% tăng
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
-                            <i class="fas fa-exclamation-circle"></i>
-                        </div>
+                        <div><div class="stat-label">Căn hộ trống</div><div class="stat-value" id="kpiVacant">0</div></div>
+                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#18a878;"><i class="fas fa-key"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-update-modal" id="statUpdateModal" role="dialog" aria-modal="true" aria-labelledby="statUpdateTitle" onclick="closeStatUpdateOnBackdrop(event)">
-                <form class="stat-update-dialog" onsubmit="saveStatUpdate(event)">
-                    <h2 id="statUpdateTitle">Cập nhật số liệu</h2>
-                    <p>Nhập số liệu mới cho chỉ số đang chọn.</p>
-                    <label for="statUpdateInput">Số liệu</label>
-                    <input id="statUpdateInput" type="number" min="0" step="1" required>
-                    <div class="stat-update-actions">
-                        <button class="stat-update-cancel" type="button" onclick="closeStatUpdate()">Hủy</button>
-                        <button class="btn-primary" type="submit">Lưu số liệu</button>
+            <div class="dash-row-label">Tài chính</div>
+            <div class="grid-2" id="dashRowFinance">
+                <div class="card kpi-card" data-goto="invoices">
+                    <div class="stat-card">
+                        <div><div class="stat-label">Doanh thu tháng</div><div class="stat-value" id="kpiRevenueMonth" style="font-size:1.5rem;">0đ</div></div>
+                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-chart-line"></i></div>
                     </div>
-                </form>
+                </div>
+                <div class="card kpi-card" data-goto="invoices">
+                    <div class="stat-card">
+                        <div><div class="stat-label">Đã thu</div><div class="stat-value" id="kpiCollected" style="font-size:1.5rem;">0đ</div></div>
+                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#18a878;"><i class="fas fa-circle-check"></i></div>
+                    </div>
+                </div>
+                <div class="card kpi-card" data-goto="invoices">
+                    <div class="stat-card">
+                        <div><div class="stat-label">Công nợ</div><div class="stat-value" id="kpiDebt" style="font-size:1.5rem;">0đ</div></div>
+                        <div class="stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="fas fa-sack-dollar"></i></div>
+                    </div>
+                </div>
+                <div class="card kpi-card" data-goto="invoices" data-filter="overdue">
+                    <div class="stat-card">
+                        <div><div class="stat-label">Hóa đơn quá hạn</div><div class="stat-value" id="kpiOverdueCount">0</div></div>
+                        <div class="stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="fas fa-triangle-exclamation"></i></div>
+                    </div>
+                </div>
             </div>
 
-            <!-- Charts Section -->
+            <!-- Charts — computed from real invoices/apartments, not manually editable placeholder numbers -->
             <div class="grid-3" style="margin-top: 1.5rem;">
                 <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Doanh thu 12 tháng</h3>
-                    <div class="chart-container">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Doanh thu 12 tháng (đã thu)</h3>
+                    <div class="chart-container"><canvas id="revenueChart"></canvas></div>
                 </div>
-
                 <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Tình trạng phòng</h3>
-                    <div class="chart-container">
-                        <canvas id="roomStatusChart"></canvas>
-                    </div>
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Tình trạng căn hộ</h3>
+                    <div class="chart-container"><canvas id="roomStatusChart"></canvas></div>
                 </div>
-
                 <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Thanh toán tháng này</h3>
-                    <div class="chart-container">
-                        <canvas id="paymentChart"></canvas>
-                    </div>
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Trạng thái hóa đơn</h3>
+                    <div class="chart-container"><canvas id="paymentChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- Priority Actions - Cần xử lý hôm nay -->
-            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%); border-left: 4px solid #ef4444;">
-                <h3 style="font-weight: 600; color: #ef4444; margin-bottom: 1rem;">
-                    <i class="fas fa-exclamation-circle"></i> Cần xử lý hôm nay
-                </h3>
-                <div class="grid-3">
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #ef4444;">
-                        <div style="font-size: 0.875rem; color: #64748b;">Hóa đơn quá hạn</div>
-                        <div style="font-size: 2rem; font-weight: bold; color: #ef4444; margin: 0.5rem 0;">8</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Tổng nợ: 45M</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem;">
-                            Xem chi tiết
-                        </button>
-                    </div>
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
-                        <div style="font-size: 0.875rem; color: #64748b;">Yêu cầu quá 24h</div>
-                        <div style="font-size: 2rem; font-weight: bold; color: #f59e0b; margin: 0.5rem 0;">5</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Cần xử lý ngay</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                            Xem chi tiết
-                        </button>
-                    </div>
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
-                        <div style="font-size: 0.875rem; color: #64748b;">Hợp đồng sắp hết</div>
-                        <div style="font-size: 2rem; font-weight: bold; color: #0284c7; margin: 0.5rem 0;">6</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Còn dưới 30 ngày</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-                            Xem chi tiết
-                        </button>
-                    </div>
+            <div class="dash-row-label">Dữ liệu hệ thống</div>
+            <div class="grid-3" id="dashRowSystem" style="grid-template-columns:repeat(6,minmax(0,1fr));">
+                <div class="card kpi-card mini" data-goto="buildings"><div class="stat-label">Tòa nhà</div><div class="stat-value" id="sysBuildings">0</div><div class="stat-sub">Tòa nhà đang quản lý</div></div>
+                <div class="card kpi-card mini" data-goto="apartments"><div class="stat-label">Căn hộ</div><div class="stat-value" id="sysApartments">0</div><div class="stat-sub">Căn hộ đã tạo</div></div>
+                <div class="card kpi-card mini" data-goto="customers"><div class="stat-label">Cư dân</div><div class="stat-value" id="sysCustomers">0</div><div class="stat-sub">Hồ sơ cư dân</div></div>
+                <div class="card kpi-card mini" data-goto="contracts"><div class="stat-label">Hợp đồng</div><div class="stat-value" id="sysContracts">0</div><div class="stat-sub">Hợp đồng đã lập</div></div>
+                <div class="card kpi-card mini" data-goto="meters"><div class="stat-label">Chỉ số</div><div class="stat-value" id="sysMeters">0</div><div class="stat-sub">Chỉ số đã ghi</div></div>
+                <div class="card kpi-card mini" data-goto="invoices"><div class="stat-label">Hóa đơn</div><div class="stat-value" id="sysInvoices">0</div><div class="stat-sub">Hóa đơn đã lập</div></div>
+            </div>
+
+            <div class="dash-row-label">Cần xử lý</div>
+            <div class="grid-3" id="dashRowTodo">
+                <div class="card kpi-card todo" data-goto="support">
+                    <div class="stat-label"><i class="fas fa-headset"></i> Yêu cầu hỗ trợ</div>
+                    <div class="stat-value" id="todoRequests">0</div>
+                    <div class="stat-sub" id="todoRequestsNote">Không có yêu cầu cần xử lý</div>
+                </div>
+                <div class="card kpi-card todo" data-goto="invoices" data-filter="unpaid">
+                    <div class="stat-label"><i class="fas fa-file-invoice-dollar"></i> Hóa đơn cần thanh toán</div>
+                    <div class="stat-value" id="todoUnpaid">0</div>
+                    <div class="stat-sub" id="todoUnpaidNote">Không có hóa đơn cần thanh toán</div>
+                </div>
+                <div class="card kpi-card todo" data-goto="contracts" data-filter="expiring">
+                    <div class="stat-label"><i class="fas fa-file-contract"></i> Hợp đồng sắp hết hạn</div>
+                    <div class="stat-value" id="todoExpiring">0</div>
+                    <div class="stat-sub" id="todoExpiringNote">Không có hợp đồng sắp hết hạn</div>
                 </div>
             </div>
 
-            <!-- Recent Activity -->
+            <!-- Recent Activity — synthesized from real createdAt timestamps across modules -->
             <div class="card" style="margin-top: 1.5rem;">
                 <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Hoạt động gần đây</h3>
                 <div class="table-container">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Sự kiện</th>
-                                <th>Chi tiết</th>
-                                <th>Thời gian</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Thanh toán</td>
-                                <td>Nguyễn Văn A thanh toán 8.5M</td>
-                                <td>10 phút trước</td>
-                                <td><span class="badge badge-success">Thành công</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class="fas fa-wrench" style="color: #0284c7; margin-right: 0.5rem;"></i> Hỗ trợ</td>
-                                <td>Yêu cầu sửa chữa phòng 312</td>
-                                <td>1 giờ trước</td>
-                                <td><span class="badge badge-info">Đang xử lý</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class="fas fa-envelope" style="color: #7c3aed; margin-right: 0.5rem;"></i> Thông báo</td>
-                                <td>Gửi hóa đơn tháng 8 cho 245 cư dân</td>
-                                <td>3 giờ trước</td>
-                                <td><span class="badge badge-success">Hoàn thành</span></td>
-                            </tr>
-                        </tbody>
+                        <thead><tr><th>Sự kiện</th><th>Chi tiết</th><th>Thời gian</th></tr></thead>
+                        <tbody id="dashActivityBody"></tbody>
                     </table>
                 </div>
             </div>
         </div>
 
         <!-- Buildings -->
-        <div id="buildings-tab" style="display: none;">
-            <div class="card">
-                <div class="building-page-header">
-                    <div>
-                        <h2>Tòa nhà</h2>
-                        <p>Danh sách các tòa nhà đã đăng ký</p>
-                    </div>
-                    <button class="btn-primary building-add-button" type="button" onclick="openBuildingForm()">
-                        <i class="fas fa-plus"></i> Thêm tòa nhà
-                    </button>
-                </div>
-                <div class="building-list" id="buildingList"></div>
-            </div>
-        </div>
-
-        <div id="apartments-tab" style="display: none;">
-            <div class="card" style="margin-bottom: 1.5rem; padding: 2rem 2.25rem;">
-                <div style="align-items: center; display: flex; justify-content: space-between; gap: 1.5rem;">
-                    <div>
-                        <h2 style="color: #10213c; font: 800 2rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Căn hộ</h2>
-                        <p style="color: #8aa0bc; font-size: 1.05rem; margin-top: 0.45rem;">Thông tin căn hộ và cư dân sẽ được sử dụng khi lập hợp đồng và hóa đơn.</p>
-                    </div>
-                    <button class="btn-primary" onclick="openApartmentModal()" style="font-size: 1.05rem; padding: .9rem 1.25rem; white-space: nowrap;" type="button"><i class="fas fa-plus"></i> Thêm căn hộ</button>
-                </div>
-            </div>
-            <div class="card" style="padding: 0;">
-                <div class="apartment-table-wrap">
-                    <table class="apartment-table">
-                        <thead>
-                            <tr><th>Căn hộ</th><th>Tòa nhà</th><th>Tầng</th><th>Trạng thái</th><th>Thao tác</th></tr>
-                        </thead>
-                        <tbody id="apartments-list"></tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-
-        <div class="apartment-modal" id="apartment-modal" role="dialog" aria-labelledby="apartment-modal-title" aria-modal="true">
-            <div class="apartment-modal-content">
-                <div style="align-items: center; display: flex; justify-content: space-between;">
-                    <h2 id="apartment-modal-title" style="color: #10213c; font: 700 1.25rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Thêm căn hộ</h2>
-                    <button class="btn-secondary" onclick="closeApartmentModal()" title="Đóng" type="button"><i class="fas fa-xmark"></i></button>
-                </div>
-                <form class="apartment-form" id="apartment-form">
-                    <section class="apartment-form-section">
-                        <h3>THÔNG TIN CĂN HỘ</h3>
-                        <div class="apartment-form-grid">
-                            <label class="apartment-form-field-full">Chọn tòa nhà <span style="color: #ef4444;">*</span><select id="apartment-building" required><option value="">Chọn tòa nhà</option></select></label>
-                            <label>Chọn tầng <span style="color: #ef4444;">*</span><select id="apartment-floor" required><option value="">Chọn tầng</option></select></label>
-                            <label>Tên căn hộ <span style="color: #ef4444;">*</span><input id="apartment-code" required placeholder="Tên căn hộ" type="text"></label>
-                            <label>Giá thuê <span style="color: #ef4444;">*</span><input id="apartment-rent" min="0" required placeholder="Giá thuê" type="number"></label>
-                            <label>Cọc <span style="color: #ef4444;">*</span><input id="apartment-deposit" min="0" required placeholder="Cọc" type="number"></label>
-                            <label>Diện tích <span style="color: #ef4444;">*</span><input id="apartment-area" min="0" required placeholder="Diện tích" type="number"></label>
-                            <label>Số khách tối đa <span style="color: #ef4444;">*</span><input id="apartment-max-guests" min="1" required placeholder="Số khách tối đa" type="number"></label>
-                        </div>
-                    </section>
-                    <section class="apartment-form-section">
-                        <h3>CẤU HÌNH</h3>
-                        <div class="apartment-form-grid">
-                            <label class="apartment-form-field-full">Mẫu in hóa đơn<select id="apartment-invoice-template"><option value="">Mẫu in hóa đơn</option></select></label>
-                            <label class="apartment-form-field-full">Mẫu hợp đồng<select id="apartment-contract-template"><option value="">Mẫu hợp đồng</option></select></label>
-                        </div>
-                    </section>
-                    <section class="apartment-form-section">
-                        <h3>TRẠNG THÁI</h3>
-                        <label class="apartment-switch"><input checked id="apartment-active" type="checkbox"><span class="apartment-switch-slider"></span><span class="apartment-switch-status" id="apartment-active-label">Đang hoạt động</span></label>
-                    </section>
-                    <div class="apartment-form-actions">
-                        <button class="btn-secondary" onclick="closeApartmentModal()" type="button">Hủy</button>
-                        <button class="btn-primary" type="submit"><i class="fas fa-save"></i> Lưu căn hộ</button>
-                    </div>
-                </form>
-            </div>
-        <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true" aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
-            <form class="stat-update-dialog building-form-dialog" onsubmit="saveBuilding(event)">
-                <h2 id="buildingFormTitle">Thêm thông tin tòa nhà</h2>
-                <p>Nhập thông tin để quản lý tòa nhà trên hệ thống.</p>
-
-                <div class="building-form-section" style="border-top: 0; margin-top: 0; padding-top: 0;">
-                    <h3>Thông tin tòa nhà</h3>
-                    <div class="building-form-grid">
-                        <div class="building-form-field">
-                            <label for="buildingName">Tên tòa nhà *</label>
-                            <input id="buildingName" name="buildingName" required>
-                        </div>
-                        <div class="building-form-field">
-                            <label for="buildingCode">Tên viết tắt/Mã tòa *</label>
-                            <input id="buildingCode" name="buildingCode" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="building-form-section">
-                    <h3>Địa chỉ</h3>
-                    <div class="building-form-grid">
-                        <div class="building-form-field">
-                            <label for="buildingProvince">Tỉnh/Thành phố *</label>
-                            <input id="buildingProvince" name="buildingProvince" required>
-                        </div>
-                        <div class="building-form-field">
-                            <label for="buildingWard">Xã/Phường *</label>
-                            <input id="buildingWard" name="buildingWard" required>
-                        </div>
-                        <div class="building-form-field full-width">
-                            <label for="buildingAddress">Địa chỉ chi tiết *</label>
-                            <input id="buildingAddress" name="buildingAddress" required>
-                        </div>
-                    </div>
-                </div>
-
-                <div class="building-form-section">
-                    <h3>Dịch vụ</h3>
-                    <div class="building-form-grid">
-                        <div class="building-form-field full-width">
-                            <label for="buildingService">Dịch vụ quản lý</label>
-                            <input id="buildingService" name="buildingService" placeholder="Ví dụ: Quản lý vận hành, vệ sinh, bảo vệ">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="building-form-section">
-                    <h3>Cấu hình</h3>
-                    <div class="building-form-grid">
-                        <div class="building-form-field">
-                            <label for="buildingDebtAccount">Tài khoản gạch nợ tự động</label>
-                            <input id="buildingDebtAccount" name="buildingDebtAccount">
-                        </div>
-                        <div class="building-form-field">
-                            <label for="buildingInvoiceTemplate">Mẫu in hóa đơn</label>
-                            <input id="buildingInvoiceTemplate" name="buildingInvoiceTemplate">
-                        </div>
-                        <div class="building-form-field">
-                            <label for="buildingContractTemplate">Mẫu hợp đồng</label>
-                            <input id="buildingContractTemplate" name="buildingContractTemplate">
-                        </div>
-                        <div class="building-form-field">
-                            <label for="buildingAccount">Tài khoản</label>
-                            <input id="buildingAccount" name="buildingAccount">
-                        </div>
-                    </div>
-                </div>
-
-                <div class="building-form-section">
-                    <div class="building-toggle-row">
-                        <div>
-                            <h3 style="margin-bottom: 0.25rem;">Trạng thái</h3>
-                            <span class="building-active-label" id="buildingActiveLabel">Đang hoạt động</span>
-                        </div>
-                        <input class="building-toggle" id="buildingActive" name="buildingActive" type="checkbox" checked onchange="updateBuildingActiveLabel()">
-                    </div>
-                </div>
-
-                <div class="stat-update-actions">
-                    <button class="stat-update-cancel" type="button" onclick="closeBuildingForm()">Hủy</button>
-                    <button class="btn-primary" type="submit">Xác nhận</button>
-                </div>
-            </form>
-        </div>
+        <div id="buildings-tab" style="display: none;"></div>
+        <div id="apartments-tab" style="display: none;"></div>
 
         <div id="residents-tab" style="display: none;">
             <div class="resident-shell">
@@ -3443,12 +3251,7 @@
             </div>
         </div>
 
-        <div id="support-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Yêu cầu Hỗ trợ</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung yêu cầu hỗ trợ sẽ hiển thị ở đây</p>
-            </div>
-        </div>
+        <div id="support-tab" style="display: none;"></div>
 
         <div id="contracts-tab" style="display: none;"></div>
 
@@ -3496,7 +3299,8 @@
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Căn hộ (nếu là Cư dân)</label>
-                            <input id="accountUnit" type="text" placeholder="VD: A-1208" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <select id="accountApartmentId" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;"></select>
+                            <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;">Gán đúng căn hộ để tài khoản này thấy được hợp đồng/hóa đơn thật của căn hộ đó.</p>
                         </div>
                     </div>
                     <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
@@ -3931,84 +3735,21 @@
     </div>
 
     <script>
-        const dashboardDataDefaults = {
-            totalRooms: 245,
-            emptyRooms: 32,
-            revenue: 543,
-            debt: 87
-        };
-        let dashboardData = loadDashboardData();
-        let roomStatusChart;
-        let revenueChart;
+        let roomStatusChart, revenueChart, paymentChart;
 
-        function loadDashboardData() {
-            try {
-                return { ...dashboardDataDefaults, ...JSON.parse(localStorage.getItem('residentHubDashboardData') || '{}') };
-            } catch (error) {
-                return { ...dashboardDataDefaults };
-            }
-        }
-
-        function formatMillion(value) {
-            return `${Number(value).toLocaleString('vi-VN')}M`;
-        }
-
-        function renderDashboardData() {
-            document.getElementById('totalRoomsValue').textContent = dashboardData.totalRooms.toLocaleString('vi-VN');
-            document.getElementById('emptyRoomsValue').textContent = dashboardData.emptyRooms.toLocaleString('vi-VN');
-            document.getElementById('revenueValue').textContent = formatMillion(dashboardData.revenue);
-            document.getElementById('debtValue').textContent = formatMillion(dashboardData.debt);
-            document.getElementById('totalRoomsInput').value = dashboardData.totalRooms;
-            document.getElementById('emptyRoomsInput').value = dashboardData.emptyRooms;
-            document.getElementById('revenueInput').value = dashboardData.revenue;
-            document.getElementById('debtInput').value = dashboardData.debt;
-
-            if (roomStatusChart) {
-                const maintenanceRooms = Math.min(7, dashboardData.totalRooms);
-                const occupiedRooms = Math.max(0, dashboardData.totalRooms - dashboardData.emptyRooms - maintenanceRooms);
-                roomStatusChart.data.datasets[0].data = [occupiedRooms, dashboardData.emptyRooms, maintenanceRooms];
-                roomStatusChart.update();
-            }
-            if (revenueChart) {
-                revenueChart.data.datasets[0].data[11] = dashboardData.revenue;
-                revenueChart.update();
-            }
-        }
-
-        function saveDashboardData(event) {
-            event.preventDefault();
-            const formData = new FormData(event.currentTarget);
-            const totalRooms = Number(formData.get('totalRooms'));
-            const emptyRooms = Number(formData.get('emptyRooms'));
-            const message = document.getElementById('dataEditorMessage');
-            if (emptyRooms > totalRooms) {
-                message.textContent = 'Phòng trống không được lớn hơn tổng phòng.';
-                message.style.color = '#ef4444';
-                return;
-            }
-            dashboardData = {
-                totalRooms,
-                emptyRooms,
-                revenue: Number(formData.get('revenue')),
-                debt: Number(formData.get('debt'))
-            };
-            localStorage.setItem('residentHubDashboardData', JSON.stringify(dashboardData));
-            renderDashboardData();
-            message.style.color = '#18a878';
-            message.textContent = 'Đã lưu số liệu trên trình duyệt này.';
-        }
-
-        // Initialize Charts
+        // Charts read straight from RHD (data.js) — no manually-editable / mock
+        // dataset backing them. Called from RHUI.renderDashboardCounts() on load
+        // and after every create/update in any module, so they always match
+        // what's actually been entered into the system.
         function initCharts() {
-            // Revenue Chart
             const revenueCtx = document.getElementById('revenueChart').getContext('2d');
             revenueChart = new Chart(revenueCtx, {
                 type: 'line',
                 data: {
                     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
                     datasets: [{
-                        label: 'Doanh thu (Triệu)',
-                        data: [380, 410, 450, 480, 520, 550, 580, 543, 600, 620, 590, 543],
+                        label: 'Doanh thu (đã thu)',
+                        data: new Array(12).fill(0),
                         borderColor: '#1683ff',
                         backgroundColor: 'rgba(22, 131, 255, 0.12)',
                         tension: 0.35,
@@ -4026,17 +3767,12 @@
                 }
             });
 
-            // Room Status Chart
             const roomCtx = document.getElementById('roomStatusChart').getContext('2d');
             roomStatusChart = new Chart(roomCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Có người', 'Trống', 'Bảo trì'],
-                    datasets: [{
-                        data: [213, 25, 7],
-                        backgroundColor: ['#18a878', '#1683ff', '#f0a34a'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Đang ở', 'Đã đặt cọc', 'Trống', 'Bảo trì'],
+                    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#18a878', '#a5680c', '#1683ff', '#ef4444'], borderWidth: 0 }]
                 },
                 options: {
                     responsive: true,
@@ -4045,31 +3781,57 @@
                 }
             });
 
-            // Payment Chart
             const paymentCtx = document.getElementById('paymentChart').getContext('2d');
-            new Chart(paymentCtx, {
+            paymentChart = new Chart(paymentCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Đã thanh toán', 'Chờ thanh toán', 'Quá hạn'],
-                    datasets: [{
-                        label: 'Số lượng',
-                        data: [195, 35, 15],
-                        backgroundColor: ['#18a878', '#f0a34a', '#e45b68'],
-                        borderRadius: 8,
-                        borderSkipped: false,
-                        barPercentage: 0.58,
-                        categoryPercentage: 0.7
-                    }]
+                    datasets: [{ label: 'Số lượng', data: [0, 0, 0], backgroundColor: ['#18a878', '#f0a34a', '#e45b68'], borderRadius: 8, borderSkipped: false, barPercentage: 0.58, categoryPercentage: 0.7 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } },
-                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } } }
+                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 }, precision: 0 } } }
                 }
             });
         }
 
+        function updateDashboardCharts() {
+            if (!revenueChart || !roomStatusChart || !paymentChart) return;
+            const apartments = RHD.list('apartments');
+            const invoices = RHD.list('invoices');
+
+            const now = new Date();
+            const months = [];
+            for (let i = 11; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+            const revenueByMonth = months.map(m => {
+                const key = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0');
+                return invoices.filter(inv => inv.status === 'paid' && inv.paidAt && new Date(inv.paidAt).getFullYear() + '-' + String(new Date(inv.paidAt).getMonth() + 1).padStart(2, '0') === key)
+                    .reduce((s, inv) => s + inv.total, 0);
+            });
+            revenueChart.data.labels = months.map(m => 'T' + (m.getMonth() + 1));
+            revenueChart.data.datasets[0].data = revenueByMonth;
+            revenueChart.update();
+
+            const statusCount = id => apartments.filter(a => a.status === id).length;
+            roomStatusChart.data.datasets[0].data = [statusCount('occupied'), statusCount('deposited'), statusCount('vacant'), statusCount('maintenance')];
+            roomStatusChart.update();
+
+            const todayStr = now.toISOString().slice(0, 10);
+            const paidCount = invoices.filter(i => i.status === 'paid').length;
+            const overdueCount = invoices.filter(i => i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr)).length;
+            const pendingCount = invoices.length - paidCount - overdueCount;
+            paymentChart.data.datasets[0].data = [paidCount, Math.max(0, pendingCount), overdueCount];
+            paymentChart.update();
+        }
+
+        // NOTE: the functions below (meterState/openMeterForm/etc.) drive the
+        // meterFormModal / monthPickerModal markup further down this file, but
+        // nothing currently calls openMeterForm() — the "Ghi chỉ số" tab is
+        // rendered by RHUI.renderMetersTab() (manager-modules.js) instead. Left
+        // in place rather than deleted since it looks like in-progress work from
+        // another branch; harmless while unused.
         const meterState = {
             selectedMonth: new Date().toISOString().slice(0, 7),
             selectedDate: new Date().toISOString().slice(0, 10),
@@ -4156,304 +3918,74 @@
         function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('active'); }
 
         // Switch Tab Function
-        let editingApartmentIndex = null;
-
-        function readStoredArray(keys) {
-            for (const key of keys) {
-                const value = localStorage.getItem(key);
-                if (!value) continue;
-                try {
-                    const parsed = JSON.parse(value);
-                    if (Array.isArray(parsed)) return parsed;
-                } catch (error) {
-                    return [];
-                }
-            }
-            return [];
-        }
-
-        function getBuildingOptions() {
-            const buildings = readStoredArray(['residenthub-buildings', 'buildings']);
-            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
-            const names = buildings.map(building => typeof building === 'string' ? building : building.name || building.title || building.buildingName).filter(Boolean);
-            apartments.forEach(apartment => { if (apartment.building) names.push(apartment.building); });
-            return [...new Set(names.length ? names : ['Riverside'])];
-        }
-
-        function getFloorsForBuilding(buildingName) {
-            const buildings = readStoredArray(['residenthub-buildings', 'buildings']);
-            const building = buildings.find(item => item && typeof item !== 'string' && (item.name === buildingName || item.title === buildingName || item.buildingName === buildingName));
-            if (building && Array.isArray(building.floors) && building.floors.length) return building.floors.map(floor => typeof floor === 'string' ? floor : floor.name || floor.number).filter(Boolean);
-            const floorCount = building && Number(building.floorCount);
-            return Array.from({ length: floorCount > 0 ? floorCount : 20 }, (_, index) => String(index + 1));
-        }
-
-        function populateApartmentSelects(apartment = {}) {
-            const buildingSelect = document.getElementById('apartment-building');
-            const floorSelect = document.getElementById('apartment-floor');
-            const invoiceSelect = document.getElementById('apartment-invoice-template');
-            const contractSelect = document.getElementById('apartment-contract-template');
-            buildingSelect.replaceChildren(new Option('Chọn tòa nhà', ''));
-            getBuildingOptions().forEach(name => buildingSelect.add(new Option(name, name)));
-            buildingSelect.value = apartment.building || '';
-            floorSelect.replaceChildren(new Option('Chọn tầng', ''));
-            getFloorsForBuilding(buildingSelect.value).forEach(floor => floorSelect.add(new Option(`Tầng ${floor}`, floor)));
-            floorSelect.value = apartment.floor || '';
-            const invoiceTemplates = readStoredArray(['residenthub-invoice-templates', 'invoice-templates']);
-            const contractTemplates = readStoredArray(['residenthub-contract-templates', 'contract-templates']);
-            invoiceSelect.replaceChildren(new Option('Mẫu in hóa đơn', ''));
-            contractSelect.replaceChildren(new Option('Mẫu hợp đồng', ''));
-            invoiceTemplates.forEach(template => invoiceSelect.add(new Option(typeof template === 'string' ? template : template.name || template.title, typeof template === 'string' ? template : template.id || template.name)));
-            contractTemplates.forEach(template => contractSelect.add(new Option(typeof template === 'string' ? template : template.name || template.title, typeof template === 'string' ? template : template.id || template.name)));
-            invoiceSelect.value = apartment.invoiceTemplate || '';
-            contractSelect.value = apartment.contractTemplate || '';
-        }
-
-        function updateActiveLabel() {
-            document.getElementById('apartment-active-label').textContent = document.getElementById('apartment-active').checked ? 'Đang hoạt động' : 'Ngừng hoạt động';
-        }
-
-        function openApartmentModal() {
-            editingApartmentIndex = null;
-            document.getElementById('apartment-modal-title').textContent = 'Thêm căn hộ';
-            document.getElementById('apartment-form').reset();
-            populateApartmentSelects();
-            document.getElementById('apartment-active').checked = true;
-            updateActiveLabel();
-            document.getElementById('apartment-modal').classList.add('active');
-            document.getElementById('apartment-building').focus();
-        }
-
-        function closeApartmentModal() {
-            document.getElementById('apartment-modal').classList.remove('active');
-            document.getElementById('apartment-form').reset();
-            updateActiveLabel();
-            editingApartmentIndex = null;
-        }
-
-        function createApartmentRow(apartment, index) {
-            const row = document.createElement('tr');
-            const isActive = apartment.active !== false;
-            const statusClass = isActive ? 'badge-success' : 'badge-warning';
-            row.dataset.apartmentIndex = index;
-            row.innerHTML = `<td><strong></strong></td><td></td><td></td><td><span class="badge ${statusClass}"></span></td><td><div class="apartment-actions"><button class="apartment-action edit" title="Chỉnh sửa" type="button"><i class="fas fa-pen"></i></button><button class="apartment-action delete" title="Xóa" type="button"><i class="fas fa-trash"></i></button></div></td>`;
-            row.querySelector('strong').textContent = apartment.code;
-            row.querySelector('td:nth-child(2)').textContent = apartment.building;
-            row.querySelector('td:nth-child(3)').textContent = apartment.floor ? `Tầng ${apartment.floor}` : '-';
-            row.querySelector('.badge').textContent = isActive ? 'Đang hoạt động' : 'Ngừng hoạt động';
-            row.querySelector('.edit').addEventListener('click', () => editApartment(index));
-            row.querySelector('.delete').addEventListener('click', () => deleteApartment(index));
-            return row;
-        }
-
-        function renderSavedApartments() {
-            const list = document.getElementById('apartments-list');
-            if (!list) return;
-            const storedApartments = localStorage.getItem('residenthub-apartments');
-            const apartments = storedApartments ? JSON.parse(storedApartments) : [{ code: 'A-1208', building: 'Riverside', owner: 'Nguyễn Thị Hoa', status: 'Đang ở' }];
-            if (!storedApartments) localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
-            list.replaceChildren(...apartments.map((apartment, index) => createApartmentRow(apartment, index)));
-        }
-
-        function saveApartment(event) {
-            event.preventDefault();
-            const apartment = {
-                code: document.getElementById('apartment-code').value.trim(),
-                building: document.getElementById('apartment-building').value.trim(),
-                floor: document.getElementById('apartment-floor').value,
-                rent: Number(document.getElementById('apartment-rent').value),
-                deposit: Number(document.getElementById('apartment-deposit').value),
-                area: Number(document.getElementById('apartment-area').value),
-                maxGuests: Number(document.getElementById('apartment-max-guests').value),
-                invoiceTemplate: document.getElementById('apartment-invoice-template').value,
-                contractTemplate: document.getElementById('apartment-contract-template').value,
-                active: document.getElementById('apartment-active').checked
-            };
-            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
-            if (editingApartmentIndex === null) {
-                apartments.push(apartment);
-            } else {
-                apartments[editingApartmentIndex] = apartment;
-            }
-            localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
-            const list = document.getElementById('apartments-list');
-            if (editingApartmentIndex === null) {
-                list.appendChild(createApartmentRow(apartment, apartments.length - 1));
-            } else {
-                renderSavedApartments();
-            }
-            closeApartmentModal();
-        }
-
-        function editApartment(index) {
-            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
-            const apartment = apartments[index];
-            if (!apartment) return;
-            editingApartmentIndex = index;
-            document.getElementById('apartment-modal-title').textContent = 'Chỉnh sửa căn hộ';
-            document.getElementById('apartment-form').reset();
-            populateApartmentSelects(apartment);
-            document.getElementById('apartment-code').value = apartment.code;
-            document.getElementById('apartment-floor').value = apartment.floor || '';
-            document.getElementById('apartment-rent').value = apartment.rent ?? '';
-            document.getElementById('apartment-deposit').value = apartment.deposit ?? '';
-            document.getElementById('apartment-area').value = apartment.area ?? '';
-            document.getElementById('apartment-max-guests').value = apartment.maxGuests ?? '';
-            document.getElementById('apartment-active').checked = apartment.active !== false;
-            updateActiveLabel();
-            document.getElementById('apartment-modal').classList.add('active');
-            document.getElementById('apartment-building').focus();
-        }
-
-        function deleteApartment(index) {
-            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
-            if (!apartments[index] || !confirm(`Bạn có chắc muốn xóa căn hộ ${apartments[index].code}?`)) return;
-            apartments.splice(index, 1);
-            localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
-            renderSavedApartments();
-        }
-
         const TAB_RENDERERS = {
-            buildings: () => RHUI.renderBuildingsTab(),
-            apartments: () => RHUI.renderApartmentsTab(),
-            customers: () => RHUI.renderCustomersTab(),
-            meters: () => RHUI.renderMetersTab(),
-            contracts: () => RHUI.renderContractsTab(),
-            invoices: () => RHUI.renderInvoicesTab()
+            buildings: (f) => RHUI.renderBuildingsTab(f),
+            apartments: (f) => RHUI.renderApartmentsTab(f),
+            customers: (f) => RHUI.renderCustomersTab(f),
+            meters: (f) => RHUI.renderMetersTab(f),
+            contracts: (f) => RHUI.renderContractsTab(f),
+            invoices: (f) => RHUI.renderInvoicesTab(f),
+            support: (f) => RHUI.renderSupportTab(f)
         };
 
-        const editableStats = {
-            buildings: { label: 'Tòa nhà' },
-            rooms: { label: 'Tổng phòng' },
-            vacantRooms: { label: 'Phòng trống' }
-        };
-        let activeStatKey = null;
-        let activeBuildingId = null;
-
-        function getBuildings() {
-            return JSON.parse(localStorage.getItem('residentHubBuildings') || '[]');
-        }
-
-        function saveBuildings(buildings) {
-            localStorage.setItem('residentHubBuildings', JSON.stringify(buildings));
-        }
-
-        function openBuildingList() {
-            switchTab('buildings');
-            renderBuildings();
-        }
-
-        function handleBuildingCardKeydown(event) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openBuildingList();
-            }
-        }
-
-        function openBuildingForm() {
-            activeBuildingId = null;
-            document.getElementById('buildingFormTitle').textContent = 'Thêm thông tin tòa nhà';
-            document.querySelector('#buildingFormModal form').reset();
-            document.getElementById('buildingActive').checked = true;
-            updateBuildingActiveLabel();
-            document.getElementById('buildingFormModal').classList.add('is-open');
-            document.getElementById('buildingName').focus();
-        }
-
-        function openBuildingEdit(buildingId) {
-            const building = getBuildings().find(item => item.id === buildingId);
-            if (!building) return;
-
-            activeBuildingId = buildingId;
-            document.getElementById('buildingFormTitle').textContent = 'Chỉnh sửa thông tin tòa nhà';
-            document.getElementById('buildingName').value = building.name || '';
-            document.getElementById('buildingCode').value = building.code || '';
-            document.getElementById('buildingProvince').value = building.province || '';
-            document.getElementById('buildingWard').value = building.ward || '';
-            document.getElementById('buildingAddress').value = building.address || '';
-            document.getElementById('buildingService').value = building.service || '';
-            document.getElementById('buildingDebtAccount').value = building.debtAccount || '';
-            document.getElementById('buildingInvoiceTemplate').value = building.invoiceTemplate || '';
-            document.getElementById('buildingContractTemplate').value = building.contractTemplate || '';
-            document.getElementById('buildingAccount').value = building.account || '';
-            document.getElementById('buildingActive').checked = building.active !== false;
-            updateBuildingActiveLabel();
-            document.getElementById('buildingFormModal').classList.add('is-open');
-            document.getElementById('buildingName').focus();
-        }
-
-        function handleBuildingItemKeydown(event, buildingId) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openBuildingEdit(buildingId);
-            }
-        }
-
-        function closeBuildingForm() {
-            document.getElementById('buildingFormModal').classList.remove('is-open');
-            activeBuildingId = null;
-        }
-
-        function closeBuildingFormOnBackdrop(event) {
-            if (event.target.id === 'buildingFormModal') closeBuildingForm();
-        }
-
-        function deleteBuilding(event, buildingId, buildingName) {
-            event.stopPropagation();
-            if (!confirm(`Bạn có chắc chắn muốn xóa tòa nhà "${buildingName}"?`)) return;
-
-            const buildings = getBuildings().filter(building => building.id !== buildingId);
-            saveBuildings(buildings);
-            renderBuildings();
-            updateBuildingCount();
-        }
-
-        function updateBuildingActiveLabel() {
-            const active = document.getElementById('buildingActive').checked;
-            const label = document.getElementById('buildingActiveLabel');
-            label.textContent = active ? 'Đang hoạt động' : 'Không hoạt động';
-            label.style.color = active ? 'var(--success)' : '#64748b';
-        }
-
-        function saveBuilding(event) {
-            event.preventDefault();
-            const formData = new FormData(event.target);
-            const building = {
-                id: activeBuildingId || Date.now(),
-                name: formData.get('buildingName').trim(),
-                code: formData.get('buildingCode').trim(),
-                province: formData.get('buildingProvince').trim(),
-                ward: formData.get('buildingWard').trim(),
-                address: formData.get('buildingAddress').trim(),
-                service: formData.get('buildingService').trim(),
-                debtAccount: formData.get('buildingDebtAccount').trim(),
-                invoiceTemplate: formData.get('buildingInvoiceTemplate').trim(),
-                contractTemplate: formData.get('buildingContractTemplate').trim(),
-                account: formData.get('buildingAccount').trim(),
-                active: document.getElementById('buildingActive').checked
-            };
-            const buildings = getBuildings();
-            const existingIndex = buildings.findIndex(item => item.id === activeBuildingId);
-            if (existingIndex >= 0) {
-                buildings[existingIndex] = building;
-            } else {
-                buildings.push(building);
-            }
-            saveBuildings(buildings);
-            closeBuildingForm();
-            renderBuildings();
-            updateBuildingCount();
-        }
-
-        function renderBuildings() {
-            const list = document.getElementById('buildingList');
-            if (!list) return;
-            const buildings = getBuildings();
-            if (!buildings.length) {
-                list.innerHTML = '<div class="building-empty"><i class="fas fa-building"></i><h3>Chưa có tòa nhà nào</h3><p>Nhấn nút Thêm tòa nhà để đăng ký tòa nhà đầu tiên.</p></div>';
+        function switchTab(tabName, evt, filter) {
+            if (tabName === 'settings' && RH_IS_DEMO) {
+                alert('Cấu hình tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
                 return;
             }
-            list.innerHTML = buildings.map(building => `<article class="building-item" role="button" tabindex="0" onclick="openBuildingEdit(${building.id})" onkeydown="handleBuildingItemKeydown(event, ${building.id})"><div><h3>${escapeBuildingText(building.name)} <span style="color: #94a3b8; font-size: 0.75rem;">(${escapeBuildingText(building.code)})</span></h3><p>${escapeBuildingText(building.address)}, ${escapeBuildingText(building.ward)}, ${escapeBuildingText(building.province)}</p></div><div class="building-item-actions"><span class="building-status ${building.active ? 'active' : 'inactive'}">${building.active ? 'Đang hoạt động' : 'Không hoạt động'}</span><button class="building-delete-button" type="button" title="Xóa tòa nhà" aria-label="Xóa ${escapeBuildingText(building.name)}" onclick="deleteBuilding(event, ${building.id}, '${escapeBuildingText(building.name)}')"><i class="fas fa-trash"></i></button></div></article>`).join('');
+            // Hide all tabs
+            const tabs = document.querySelectorAll('[id$="-tab"]');
+            tabs.forEach(tab => {
+                tab.style.display = 'none';
+                if (tab.id === 'meters-tab') tab.classList.remove('is-visible');
+            });
+
+            // Show selected tab (auto-creates the container if a tab was never wired into the HTML)
+            const selectedTab = ensureTab(tabName);
+            selectedTab.style.display = 'block';
+            if (tabName === 'meters') selectedTab.classList.add('is-visible');
+            if (TAB_RENDERERS[tabName]) {
+                try {
+                    TAB_RENDERERS[tabName](filter || null);
+                } catch (error) {
+                    console.error('Không thể render tab ' + tabName, error);
+                    if (tabName === 'meters') renderMetersFallback(selectedTab);
+                    else selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
+                }
+            }
+            if (tabName === 'meters' && !selectedTab.innerHTML.trim()) renderMetersFallback(selectedTab);
+
+            // Update active menu item (only when the click came from the sidebar)
+            const source = (evt || window.event);
+            const sidebarItem = source && source.target && source.target.closest ? source.target.closest('.sidebar-menu-item') : null;
+            if (sidebarItem) {
+                document.querySelectorAll('.sidebar-menu-item').forEach(item => item.classList.remove('active'));
+                sidebarItem.classList.add('active');
+            }
+            document.querySelector('.sidebar').classList.remove('active');
+
+            const titles = {
+                'dashboard': 'Quản lý',
+                'buildings': 'Tòa nhà',
+                'apartments': 'Căn hộ',
+                'customers': 'Khách hàng',
+                'residents': 'Khách hàng',
+                'meters': 'Ghi chỉ số',
+                'invoices': 'Hóa đơn',
+                'support': 'Yêu cầu hỗ trợ',
+                'contracts': 'Hợp đồng',
+                'reports': 'Báo cáo',
+                'workflows': 'Quy trình làm việc',
+                'features': 'Chi tiết tính năng',
+                'architecture': 'Kiến trúc hệ thống',
+                'settings': 'Cài đặt'
+            };
+            document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
+            window.scrollTo(0, 0);
+        }
+
+        function openTemplatesPage() {
+            window.open('templates.html' + (RH_IS_DEMO ? '#demo=1' : ''), '_blank');
         }
 
         function getResidents() {
@@ -4819,71 +4351,6 @@
             return String(value).replace(/[&<>'"]/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' })[character]);
         }
 
-        function updateBuildingCount() {
-            const count = getBuildings().length;
-            document.querySelectorAll('[data-stat-value="buildings"]').forEach(element => {
-                element.textContent = count.toLocaleString('vi-VN');
-            });
-        }
-
-        function openStatUpdate(statKey) {
-            const stat = editableStats[statKey];
-            const valueElement = document.querySelector(`[data-stat-value="${statKey}"]`);
-            if (!stat || !valueElement) return;
-
-            activeStatKey = statKey;
-            document.getElementById('statUpdateTitle').textContent = `Cập nhật ${stat.label.toLowerCase()}`;
-            document.getElementById('statUpdateInput').value = valueElement.textContent.trim();
-            document.getElementById('statUpdateModal').classList.add('is-open');
-            document.getElementById('statUpdateInput').focus();
-        }
-
-        function saveStatUpdate(event) {
-            event.preventDefault();
-            if (!activeStatKey) return;
-
-            const input = document.getElementById('statUpdateInput');
-            const value = Number(input.value);
-            if (!Number.isInteger(value) || value < 0) return;
-
-            document.querySelectorAll(`[data-stat-value="${activeStatKey}"]`).forEach(element => {
-                element.textContent = value.toLocaleString('vi-VN');
-            });
-            const savedStats = JSON.parse(localStorage.getItem('residentHubStats') || '{}');
-            savedStats[activeStatKey] = value;
-            localStorage.setItem('residentHubStats', JSON.stringify(savedStats));
-            closeStatUpdate();
-        }
-
-        function closeStatUpdate() {
-            document.getElementById('statUpdateModal').classList.remove('is-open');
-            activeStatKey = null;
-        }
-
-        function closeStatUpdateOnBackdrop(event) {
-            if (event.target.id === 'statUpdateModal') closeStatUpdate();
-        }
-
-        function handleStatCardKeydown(event, statKey) {
-            if (event.key === 'Enter' || event.key === ' ') {
-                event.preventDefault();
-                openStatUpdate(statKey);
-            }
-        }
-
-        function loadSavedStats() {
-            const savedStats = JSON.parse(localStorage.getItem('residentHubStats') || '{}');
-            Object.keys(editableStats).forEach(statKey => {
-                if (statKey !== 'buildings' && Number.isInteger(savedStats[statKey]) && savedStats[statKey] >= 0) {
-                    document.querySelectorAll(`[data-stat-value="${statKey}"]`).forEach(element => {
-                        element.textContent = savedStats[statKey].toLocaleString('vi-VN');
-                    });
-                }
-            });
-            updateBuildingCount();
-            renderBuildings();
-        }
-
         function ensureTab(tabName) {
             const tabId = tabName + '-tab';
             let tab = document.getElementById(tabId);
@@ -4912,61 +4379,6 @@
             }).join('');
             tab.innerHTML = '<div class="meter-page"><div class="meter-header"><div class="meter-title"><button class="back-button" type="button" onclick="switchTab(\'dashboard\')"><i class="fas fa-arrow-left"></i></button><div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;">Quản lý chỉ số điện và nước</p></div></div><button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button></div><div class="card"><h2 style="font-size:1rem;color:#10213c;margin-bottom:1rem;">Danh sách bản ghi</h2>' +
                 (rows ? '<div class="table-container"><table><thead><tr><th>Tòa nhà / Căn hộ</th><th>Loại công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới.</p></div>') + '</div></div>';
-        }
-
-        // Switch Tab Function
-        function switchTab(tabName, sourceEvent) {
-            // Hide all tabs
-            const tabs = document.querySelectorAll('[id$="-tab"]');
-            tabs.forEach(tab => {
-                tab.style.display = 'none';
-                if (tab.id === 'meters-tab') tab.classList.remove('is-visible');
-            });
-
-            // Show selected tab
-            const selectedTab = ensureTab(tabName);
-            selectedTab.style.display = 'block';
-            if (tabName === 'meters') selectedTab.classList.add('is-visible');
-            if (TAB_RENDERERS[tabName]) {
-                try {
-                    TAB_RENDERERS[tabName]();
-                } catch (error) {
-                    console.error('Không thể render tab ' + tabName, error);
-                        if (tabName === 'meters') renderMetersFallback(selectedTab);
-                        else selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
-                }
-            }
-                    if (tabName === 'meters' && !selectedTab.innerHTML.trim()) renderMetersFallback(selectedTab);
-
-            const menuItems = document.querySelectorAll('.sidebar-menu-item');
-            menuItems.forEach(item => item.classList.remove('active'));
-            const navigationEvent = sourceEvent || window.event;
-            const clickedMenuItem = navigationEvent && navigationEvent.target ? navigationEvent.target.closest('.sidebar-menu-item') : null;
-            if (clickedMenuItem) clickedMenuItem.classList.add('active');
-
-            const titles = {
-                'dashboard': 'Quản lý',
-                'buildings': 'Tòa nhà',
-                'apartments': 'Căn hộ',
-                'customers': 'Khách hàng',
-                'meters': 'Ghi chỉ số',
-                'invoices': 'Hóa đơn',
-                'residents': 'Khách hàng',
-                'support': 'Yêu cầu hỗ trợ',
-                'contracts': 'Hợp đồng',
-                'reports': 'Báo cáo',
-                'workflows': 'Quy trình làm việc',
-                'features': 'Chi tiết tính năng',
-                'architecture': 'Kiến trúc hệ thống',
-                'settings': 'Cài đặt'
-            };
-            document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
-            document.querySelector('.sidebar').classList.remove('active');
-            window.scrollTo(0, 0);
-        }
-
-        function openTemplatesPage() {
-            window.open('templates.html' + (RH_IS_DEMO ? '#demo=1' : ''), '_blank');
         }
 
         // Dropdown Toggle
@@ -5064,6 +4476,16 @@
             });
         }
 
+        function populateAccountApartmentOptions(selectedId) {
+            const select = document.getElementById('accountApartmentId');
+            const apartments = RHD.list('apartments');
+            select.innerHTML = '<option value="">— Chưa gán căn hộ —</option>' + apartments.map(function (a) {
+                const building = RHD.get('buildings', a.buildingId);
+                const label = (building ? (building.shortName || building.name) + ' - ' : '') + a.name;
+                return '<option value="' + a.id + '"' + (a.id === selectedId ? ' selected' : '') + '>' + label + '</option>';
+            }).join('');
+        }
+
         function openAccountForm(id) {
             const form = document.getElementById('accountForm');
             document.getElementById('accountFormError').textContent = '';
@@ -5076,11 +4498,12 @@
                 document.getElementById('accountPassword').value = '';
                 document.getElementById('accountPasswordHint').textContent = 'Để trống nếu không đổi mật khẩu.';
                 document.getElementById('accountRole').value = user.role;
-                document.getElementById('accountUnit').value = user.unit || '';
+                populateAccountApartmentOptions(user.apartmentId || '');
             } else {
                 document.getElementById('accountId').value = '';
                 document.getElementById('accountForm').reset();
                 document.getElementById('accountPasswordHint').textContent = 'Tài khoản mới bắt buộc có mật khẩu (tối thiểu 6 ký tự).';
+                populateAccountApartmentOptions('');
             }
             form.style.display = 'block';
             form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -5097,18 +4520,20 @@
             const email = document.getElementById('accountEmail').value;
             const password = document.getElementById('accountPassword').value;
             const role = document.getElementById('accountRole').value;
-            const unit = document.getElementById('accountUnit').value;
+            const apartmentId = document.getElementById('accountApartmentId').value;
+            const apartment = apartmentId ? RHD.get('apartments', apartmentId) : null;
+            const unit = apartment ? apartment.name : '';
             const errorEl = document.getElementById('accountFormError');
 
             let result;
             if (id) {
-                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, password: password });
+                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, apartmentId: apartmentId, password: password });
             } else {
                 if (!password) {
                     errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
                     return;
                 }
-                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit });
+                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit, apartmentId: apartmentId });
             }
 
             if (!result.ok) {
@@ -5132,22 +4557,16 @@
 
         // Initialize on load
         window.addEventListener('load', function() {
-            loadSavedStats();
             initCharts();
-            document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
-            document.getElementById('apartment-form').addEventListener('submit', saveApartment);
-            document.getElementById('apartment-building').addEventListener('change', () => {
-                const floorSelect = document.getElementById('apartment-floor');
-                floorSelect.replaceChildren(new Option('Chọn tầng', ''));
-                getFloorsForBuilding(document.getElementById('apartment-building').value).forEach(floor => floorSelect.add(new Option(`Tầng ${floor}`, floor)));
-            });
-            document.getElementById('apartment-active').addEventListener('change', updateActiveLabel);
-            renderSavedApartments();
-            renderDashboardData();
             renderWorkflows();
             renderCurrentUser();
             if (!RH_IS_DEMO) renderAccountsTable();
             RHUI.renderDashboardCounts();
+            document.addEventListener('click', function (ev) {
+                const card = ev.target.closest('.kpi-card[data-goto]');
+                if (!card) return;
+                switchTab(card.dataset.goto, ev, card.dataset.filter || null);
+            });
         });
 
         function renderWorkflows() {
