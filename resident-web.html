@@ -765,6 +765,14 @@
             align-items: center;
             gap: 0.7rem;
         }
+        #settingsSaveBtn:disabled {
+            cursor: wait;
+            opacity: 0.8;
+        }
+
+        #settingsSaveBtn.is-saving {
+            min-width: 135px;
+        }
 
         .settings-toast {
             position: fixed;
@@ -789,6 +797,10 @@
 
         .settings-toast.error {
             background: #b91c1c;
+        }
+
+        .settings-toast.success {
+            background: #15803d;
         }
 
         .device-private-note {
@@ -1352,7 +1364,7 @@
                 <span>Bạn có thay đổi chưa được lưu.</span>
                 <div class="settings-actions-row">
                     <button class="btn-ghost" id="settingsDiscardBtn">Hủy</button>
-                    <button class="btn-primary" id="settingsSaveBtn">Lưu thay đổi</button>
+                    <button class="btn-primary" id="settingsSaveBtn" type="button">Lưu thay đổi</button>
                 </div>
             </div>
 
@@ -1667,6 +1679,16 @@
             if (bar) bar.classList.toggle('hidden', !settingsDirty);
         }
 
+        function setSettingsSaveState(isSaving) {
+            const button = document.getElementById('settingsSaveBtn');
+            if (!button) return;
+            button.disabled = isSaving;
+            button.classList.toggle('is-saving', isSaving);
+            button.innerHTML = isSaving
+                ? '<i class="fas fa-spinner fa-spin"></i> Đang lưu...'
+                : 'Lưu thay đổi';
+        }
+
         function showSettingsToast(message, type) {
             const toast = document.getElementById('settingsToast');
             if (!toast) return;
@@ -1780,13 +1802,23 @@
                     };
                     reader.readAsDataURL(file);
                 });
-                document.querySelectorAll('#accountName, #accountEmail, #accountPhone').forEach(input => {
-                    input.addEventListener('input', () => {
-                        settingsDirty = true;
-                        renderSettingsSaveBar();
-                    });
+                const markSettingsDirty = () => {
+                    settingsDirty = true;
+                    renderSettingsSaveBar();
+                };
+                document.querySelectorAll('#accountName, #accountEmail, #accountPhone').forEach(input => input.addEventListener('input', markSettingsDirty));
+                [['accountApartment', 'accountApartmentDetails'], ['accountBuilding', 'accountBuildingDetails'], ['accountFloor', 'accountFloorDetails']].forEach(([primaryId, detailsId]) => {
+                    const primary = document.getElementById(primaryId);
+                    const details = document.getElementById(detailsId);
+                    const syncFields = (source, target) => {
+                        source.addEventListener('input', () => {
+                            target.value = source.value;
+                            markSettingsDirty();
+                        });
+                    };
+                    syncFields(primary, details);
+                    syncFields(details, primary);
                 });
-                document.querySelectorAll('#accountApartment, #accountBuilding, #accountFloor').forEach(input => input.addEventListener('input', () => { settingsDirty = true; renderSettingsSaveBar(); }));
             }
 
             if (activeSettingsTab === 'security') {
@@ -2145,6 +2177,7 @@
         });
 
         document.getElementById('settingsSaveBtn')?.addEventListener('click', () => {
+            if (document.getElementById('settingsSaveBtn')?.disabled) return;
             const currentSettings = getResidentSettings();
             const accountName = document.getElementById('accountName')?.value.trim();
             const accountEmail = document.getElementById('accountEmail')?.value.trim();
@@ -2156,37 +2189,56 @@
                 showSettingsToast('Họ tên và email không được để trống.', 'error');
                 return;
             }
-            if (activeSettingsTab === 'account') {
-                const session = RH.getSession();
-                const user = RH.getUsers().find(item => item.id === session.id);
-                if (user) {
-                    const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '', avatar: currentSettings.user.avatar || '', unit: accountApartment || '', building: accountBuilding || '', floor: accountFloor || '' });
-                    if (!updateResult.ok) {
-                        showSettingsToast(updateResult.error || 'Không thể lưu thông tin.', 'error');
-                        return;
-                    }
-                }
-                localStorage.setItem(getResidentSettingsKey(), JSON.stringify({
-                    ...currentSettings,
-                    user: {
-                        ...currentSettings.user,
-                        name: accountName,
-                        email: accountEmail,
-                        phone: accountPhone || currentSettings.user.phone
-                        , apartment: accountApartment || '', building: accountBuilding || '', floor: accountFloor || ''
-                    }
-                }));
-                if (session) {
-                    document.getElementById('residentUnit').textContent = accountApartment ? ('Phòng ' + accountApartment) : 'Chưa gán phòng';
-                    document.getElementById('profileUnit').textContent = accountApartment ? ('Phòng ' + accountApartment) : 'Chưa gán phòng';
-                    refreshResidentUserData();
-                    refreshResidentOverview();
-                }
-            }
+            setSettingsSaveState(true);
+            showSettingsToast('Đã cập nhật thay đổi', 'success');
             settingsDirty = false;
             renderSettingsSaveBar();
-            renderSettingPage();
-            showSettingsToast('Cài đặt đã được lưu.', 'success');
+            window.setTimeout(() => {
+                if (activeSettingsTab === 'account') {
+                    const session = RH.getSession();
+                    const user = session ? RH.getUsers().find(item => item.id === session.id) : null;
+                    if (user) {
+                        const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '', avatar: currentSettings.user.avatar || '', unit: accountApartment || '', building: accountBuilding || '', floor: accountFloor || '' });
+                        if (!updateResult.ok) {
+                            settingsDirty = true;
+                            renderSettingsSaveBar();
+                            setSettingsSaveState(false);
+                            showSettingsToast(updateResult.error || 'Không thể lưu thông tin.', 'error');
+                            return;
+                        }
+                    }
+                    localStorage.setItem(getResidentSettingsKey(), JSON.stringify({
+                        ...currentSettings,
+                        user: {
+                            ...currentSettings.user,
+                            name: accountName,
+                            email: accountEmail,
+                            phone: accountPhone || currentSettings.user.phone,
+                            apartment: accountApartment || '', building: accountBuilding || '', floor: accountFloor || ''
+                        }
+                    }));
+                    if (session) {
+                        const updatedSession = RH.getSession() || session;
+                        const updatedName = updatedSession.name || accountName;
+                        const updatedInitial = updatedName.trim().charAt(0).toUpperCase();
+                        const updatedFirstName = updatedName.trim().split(' ').pop();
+                        document.getElementById('residentGreeting').textContent = 'Xin chào, ' + updatedFirstName;
+                        document.getElementById('residentAvatar').textContent = updatedInitial;
+                        document.getElementById('residentName').textContent = updatedFirstName;
+                        document.getElementById('residentUnit').textContent = accountApartment ? ('Phòng ' + accountApartment) : 'Chưa gán phòng';
+                        document.getElementById('profileAvatar').textContent = updatedInitial;
+                        document.getElementById('profileName').textContent = updatedName;
+                        document.getElementById('profileUnit').textContent = accountApartment ? ('Phòng ' + accountApartment) : 'Chưa gán phòng';
+                        document.getElementById('profileEmail').textContent = updatedSession.email || accountEmail;
+                        refreshResidentUserData();
+                        refreshResidentOverview();
+                    }
+                }
+                renderSettingsSaveBar();
+                setSettingsSaveState(false);
+                renderSettingPage();
+                showSettingsToast('Cài đặt đã được lưu thành công.', 'success');
+            }, 250);
         });
 
         document.getElementById('settingsDiscardBtn')?.addEventListener('click', () => {
