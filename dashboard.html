@@ -4865,14 +4865,32 @@
             renderBuildings();
         }
 
+        function ensureTab(tabName) {
+            const tabId = tabName + '-tab';
+            let tab = document.getElementById(tabId);
+            if (!tab) {
+                tab = document.createElement('div');
+                tab.id = tabId;
+                tab.style.display = 'none';
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.appendChild(tab);
+                } else {
+                    document.body.appendChild(tab);
+                }
+            }
+            return tab;
+        }
+
         // Switch Tab Function
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
             tabs.forEach(tab => tab.style.display = 'none');
 
-            const selectedTab = document.getElementById(tabName + '-tab');
-            if (selectedTab) selectedTab.style.display = 'block';
+            // Show selected tab
+            const selectedTab = ensureTab(tabName);
+            selectedTab.style.display = 'block';
             if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName]();
 
             const menuItems = document.querySelectorAll('.sidebar-menu-item');

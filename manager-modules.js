@@ -581,7 +581,7 @@
     // =============================================================== METERS
 
     function renderMetersTab() {
-        var tab = byId('meters-tab');
+        var tab = byId('meters-tab') || (typeof window.ensureTab === 'function' ? window.ensureTab('meters') : null);
         if (!tab) return;
         var buildings = RHD.list('buildings');
         if (!buildings.length) {
