@@ -4891,7 +4891,16 @@
             // Show selected tab
             const selectedTab = ensureTab(tabName);
             selectedTab.style.display = 'block';
-            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName]();
+            if (TAB_RENDERERS[tabName]) {
+                try {
+                    TAB_RENDERERS[tabName]();
+                } catch (error) {
+                    console.error('Không thể render tab ' + tabName, error);
+                    selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">' +
+                        (tabName === 'meters' ? 'Ghi chỉ số điện / nước' : 'Không thể tải nội dung') +
+                        '</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
+                }
+            }
 
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));

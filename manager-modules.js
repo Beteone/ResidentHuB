@@ -584,11 +584,14 @@
         var tab = byId('meters-tab') || (typeof window.ensureTab === 'function' ? window.ensureTab('meters') : null);
         if (!tab) return;
         var buildings = RHD.list('buildings');
+        if (!Array.isArray(buildings)) buildings = [];
         if (!buildings.length) {
             tab.innerHTML = renderDemoBanner('meters') + '<div class="card">' + emptyState('fa-gauge', 'Hãy tạo tòa nhà và căn hộ trước khi ghi chỉ số.') + '</div>';
             return;
         }
-        var readings = RHD.list('meters').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var readings = RHD.list('meters');
+        if (!Array.isArray(readings)) readings = [];
+        readings = readings.slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
         var rows = readings.map(function (m) {
             var apt = RHD.get('apartments', m.apartmentId);
             var building = RHD.get('buildings', m.buildingId);
