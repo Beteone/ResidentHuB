@@ -12,7 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -78,6 +78,22 @@
         { id: 'paid', label: 'Đã thanh toán', color: '#18a878', bg: '#e6f8ef' },
         { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
     ];
+
+    // Canonical status vocabulary shared by both roles: manager's Yêu cầu hỗ trợ tab
+    // uses these ids directly; resident-web.html maps its own legacy status words
+    // (processing/waiting/completed) to these at the point it reads/writes RHD.
+    var SUPPORT_STATUSES = [
+        { id: 'new', label: 'Mới', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'in_progress', label: 'Đang xử lý', color: '#a5680c', bg: '#fff4df' },
+        { id: 'resolved', label: 'Đã xử lý', color: '#18a878', bg: '#e6f8ef' },
+        { id: 'closed', label: 'Đã đóng', color: '#61708a', bg: '#f1f5f9' }
+    ];
+    var SUPPORT_PRIORITIES = [
+        { id: 'normal', label: 'Bình thường' },
+        { id: 'needed', label: 'Cần xử lý' },
+        { id: 'urgent', label: 'Khẩn cấp' }
+    ];
+    var SUPPORT_CATEGORIES = ['Sửa chữa căn hộ', 'Cơ sở vật chất chung', 'An ninh', 'Vệ sinh', 'Phí & thanh toán', 'Phản ánh / góp ý', 'Khác'];
 
     // Small reference list — not the full VN administrative dataset (out of scope for a
     // demo/pitch app). Wards are free-typed with suggestions instead of a full mapping.
@@ -191,6 +207,43 @@
         return readings[0] || null;
     }
 
+    function findApartmentByUnit(unitText) {
+        var norm = String(unitText || '').trim().toLowerCase();
+        if (!norm) return null;
+        var apartments = readAll('apartments');
+        for (var i = 0; i < apartments.length; i++) {
+            if (String(apartments[i].name || '').trim().toLowerCase() === norm) return apartments[i];
+        }
+        return null;
+    }
+
+    // Resolves everything a logged-in resident session is allowed to see, purely
+    // from RH_SESSION (auth.js) + this module's own records — the single place
+    // resident-web.html asks "which apartment/contract/customer am I?" instead of
+    // keeping its own copy of that logic.
+    function residentContext(session) {
+        if (!session) return null;
+        // The login session is a point-in-time snapshot (auth.js RH.login) and can be
+        // stale — e.g. a manager links the account to an apartment after the resident
+        // already has a session open. Re-read the live user record for apartmentId/unit
+        // instead of trusting the snapshot, and only fall back to it if the user record
+        // is unavailable for some reason.
+        var liveUser = global.RH ? global.RH.getUsers().filter(function (u) { return u.id === session.id; })[0] : null;
+        var apartmentId = (liveUser && liveUser.apartmentId) || session.apartmentId;
+        var unit = (liveUser && liveUser.unit) || session.unit;
+        var apartment = (apartmentId && get('apartments', apartmentId)) || findApartmentByUnit(unit);
+        if (!apartment) return { apartment: null, building: null, contract: null, customer: null, invoices: [], supportRequests: [] };
+        var building = get('buildings', apartment.buildingId);
+        var contract = activeContractFor(apartment.id);
+        var customer = contract ? get('customers', contract.customerId) : null;
+        var invoices = readAll('invoices').filter(function (inv) { return inv.apartmentId === apartment.id; })
+            .sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var supportRequests = readAll('supportRequests').filter(function (r) {
+            return r.apartmentId === apartment.id || r.residentEmail === session.email;
+        }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+        return { apartment: apartment, building: building, contract: contract, customer: customer, invoices: invoices, supportRequests: supportRequests };
+    }
+
     // ---- code generators ---------------------------------------------------
 
     function nextBuildingCode() {
@@ -210,6 +263,11 @@
         var year = new Date().getFullYear();
         var seq = readAll('invoices').length + 1;
         return 'HD' + year + '-' + pad(seq, 4);
+    }
+
+    function nextSupportCode() {
+        var seq = readAll('supportRequests').length + 1;
+        return 'YC-' + pad(seq, 4);
     }
 
     // ---- fee calculation ----------------------------------------------------
@@ -302,12 +360,34 @@
             var taxTotal = items.reduce(function (s, it) { return s + it.tax; }, 0);
             var invoice1 = {
                 id: genId('invoice'), code: 'HD' + new Date().getFullYear() + '-0001', contractId: contract1.id,
-                buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id,
+                buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id, invoiceTemplateId: contract1.invoiceTemplateId,
                 period: '2026-09', issueDate: '2026-09-30', dueDate: '2026-10-10',
                 items: items, subtotal: subtotal, tax: taxTotal, total: subtotal + taxTotal,
                 status: 'unpaid', sentAt: null, paidAt: null, createdAt: Date.now()
             };
             writeAll('invoices', [invoice1]);
+
+            var request1 = {
+                id: genId('support'), code: 'YC-0001', buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id,
+                residentEmail: 'resident@residenthub.vn', residentName: cus1.fullName,
+                category: 'Sửa chữa căn hộ', title: 'Điều hòa phòng khách không lạnh',
+                description: 'Điều hòa bật lên nhưng không làm lạnh, nhờ kỹ thuật kiểm tra giúp.',
+                location: 'Phòng khách, căn ' + apt1.name, priority: 'needed', status: 'in_progress',
+                assignee: 'Nguyễn Văn A', attachments: 0, messages: [],
+                createdAt: Date.now() - 3 * 3600000, updatedAt: Date.now() - 1800000
+            };
+            writeAll('supportRequests', [request1]);
+
+            // Link the default seeded resident login (auth.js) to this apartment, so
+            // signing in with the demo resident account shows this real contract/invoice/
+            // request instead of nothing. Only relevant for the 'live' dataset — login
+            // accounts are global (not split by live/demo) and demo mode needs no login.
+            if (targetMode === 'live' && global.RH) {
+                var residentUser = global.RH.getUsers().filter(function (u) { return u.email === 'resident@residenthub.vn'; })[0];
+                if (residentUser && !residentUser.apartmentId) {
+                    global.RH.updateUser(residentUser.id, { apartmentId: apt1.id, unit: apt1.name });
+                }
+            }
         } finally {
             global.RHD_MODE = prevMode;
         }
@@ -343,6 +423,9 @@
         VEHICLE_TYPES: VEHICLE_TYPES,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,
+        SUPPORT_STATUSES: SUPPORT_STATUSES,
+        SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
+        SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,
         PROVINCES: PROVINCES,
         WARD_SUGGESTIONS: WARD_SUGGESTIONS,
         setMode: setMode,
@@ -357,9 +440,12 @@
         contractsOf: contractsOf,
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
+        findApartmentByUnit: findApartmentByUnit,
+        residentContext: residentContext,
         nextBuildingCode: nextBuildingCode,
         nextContractCode: nextContractCode,
         nextInvoiceCode: nextInvoiceCode,
+        nextSupportCode: nextSupportCode,
         buildingFullAddress: buildingFullAddress,
         calcServiceAmount: calcServiceAmount,
         resetDemo: resetDemo

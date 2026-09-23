@@ -439,6 +439,25 @@
             .rh-print-area{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}
             @page{size:A4;margin:15mm}
         }
+        .dash-hero{margin-bottom:1.25rem}
+        .dash-hero h2{color:#10213c;font:800 1.6rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.02em}
+        .dash-hero p{color:#61708a;font-size:.9rem;margin-top:.35rem;max-width:640px}
+        .dash-row-label{color:#94a3b8;font-size:.72rem;font-weight:700;letter-spacing:.08em;margin:1.5rem 0 .6rem;text-transform:uppercase}
+        .dash-row-label:first-of-type{margin-top:0}
+        .kpi-card{cursor:pointer;transition:.2s ease}
+        .kpi-card:hover{border-color:#9ccaff;box-shadow:0 14px 30px rgba(22,131,255,.12);transform:translateY(-2px)}
+        .kpi-card.mini{padding:1rem 1.1rem}
+        .kpi-card.mini .stat-value{font:800 1.6rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin-top:.3rem}
+        .kpi-card.mini .stat-sub{color:#94a3b8;font-size:.72rem;margin-top:.25rem}
+        .kpi-card.todo{padding:1.1rem 1.25rem}
+        .kpi-card.todo .stat-label{color:#61708a;font-size:.82rem;font-weight:600}
+        .kpi-card.todo .stat-label i{color:#1683ff;margin-right:.4rem}
+        .kpi-card.todo .stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin-top:.4rem}
+        .kpi-card.todo .stat-sub{color:#94a3b8;font-size:.78rem;margin-top:.3rem}
+        .kpi-card.todo.has-items .stat-value{color:#ef4444}
+        #dashActivityBody .activity-empty td{color:#94a3b8;padding:2rem 1rem;text-align:center}
+        @media(max-width:1100px){#dashRowSystem{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
+        @media(max-width:700px){#dashRowSystem{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
     </style>
 </head>
 <body>
@@ -585,244 +604,119 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboard-tab">
-            <!-- Stats Cards -->
-            <div class="grid-2">
-                <div class="card">
+            <div class="dash-hero">
+                <h2>Tổng quan</h2>
+                <p>Một nơi để theo dõi toàn bộ hoạt động quản lý — mọi số liệu dưới đây được tính trực tiếp từ dữ liệu bạn đã nhập, không có số liệu minh họa.</p>
+            </div>
+
+            <div class="dash-row-label">Tổng quan</div>
+            <div class="grid-2" id="dashRowOverview">
+                <div class="card kpi-card" data-goto="buildings">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Tổng phòng</div>
-                            <div class="stat-value" id="totalRoomsValue">245</div>
-                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 8.5% so với tháng trước
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
-                            <i class="fas fa-door-open"></i>
-                        </div>
+                        <div><div class="stat-label">Tòa nhà đang quản lý</div><div class="stat-value" id="kpiBuildings">0</div></div>
+                        <div class="stat-icon" style="background:rgba(102,126,234,.1);color:#667eea;"><i class="fas fa-building"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="apartments">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Phòng trống</div>
-                            <div class="stat-value" id="emptyRoomsValue">32</div>
-                            <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-down"></i> 2.1% lấp đầy
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
-                            <i class="fas fa-user-group"></i>
-                        </div>
+                        <div><div class="stat-label">Số căn hộ</div><div class="stat-value" id="kpiApartments">0</div></div>
+                        <div class="stat-icon" style="background:rgba(22,131,255,.1);color:#1683ff;"><i class="fas fa-door-open"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="customers">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Doanh thu tháng</div>
-                            <div class="stat-value" id="revenueValue">543M</div>
-                            <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 12.3% tăng trưởng
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
-                            <i class="fas fa-file-signature"></i>
-                        </div>
+                        <div><div class="stat-label">Cư dân</div><div class="stat-value" id="kpiCustomers">0</div></div>
+                        <div class="stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="fas fa-user-group"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="apartments">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Công nợ</div>
-                            <div class="stat-value" id="debtValue">87M</div>
-                            <div style="color: #ef4444; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-arrow-up"></i> 5.2% tăng
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
-                            <i class="fas fa-sack-dollar"></i>
-                        </div>
+                        <div><div class="stat-label">Căn hộ trống</div><div class="stat-value" id="kpiVacant">0</div></div>
+                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#18a878;"><i class="fas fa-key"></i></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Workflow module counts: Tòa nhà -> Căn hộ -> Khách hàng -> Hợp đồng -> Hóa đơn (data.js / manager-modules.js) -->
-            <div style="align-items: center; display: flex; gap: .5rem; margin: 1.25rem 0 .6rem;">
-                <span style="color: #94a3b8; font-size: .72rem; font-weight: 700; letter-spacing: .06em; text-transform: uppercase;">Số liệu từ module quản lý</span>
-                <span style="background: #e4eaf2; flex: 1; height: 1px;"></span>
-            </div>
-            <div class="grid-2">
-                <div class="card">
+            <div class="dash-row-label">Tài chính</div>
+            <div class="grid-2" id="dashRowFinance">
+                <div class="card kpi-card" data-goto="invoices">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Tòa nhà / Căn hộ</div>
-                            <div class="stat-value"><span id="rhCountBuildings">0</span> / <span id="rhCountApartments">0</span></div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-building"></i> Tòa nhà và căn hộ đang quản lý
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
-                            <i class="fas fa-door-open"></i>
-                        </div>
+                        <div><div class="stat-label">Doanh thu tháng</div><div class="stat-value" id="kpiRevenueMonth" style="font-size:1.5rem;">0đ</div></div>
+                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-chart-line"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="invoices">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Khách hàng</div>
-                            <div class="stat-value" id="rhCountCustomers">0</div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-users"></i> Hồ sơ khách hàng đã lưu
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
-                            <i class="fas fa-user-group"></i>
-                        </div>
+                        <div><div class="stat-label">Đã thu</div><div class="stat-value" id="kpiCollected" style="font-size:1.5rem;">0đ</div></div>
+                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#18a878;"><i class="fas fa-circle-check"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="invoices">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Hợp đồng</div>
-                            <div class="stat-value" id="rhCountContracts">0</div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-file-contract"></i> Hợp đồng đã lập
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(16, 185, 129, 0.1) 0%, rgba(5, 150, 105, 0.1) 100%); color: #10b981;">
-                            <i class="fas fa-file-signature"></i>
-                        </div>
+                        <div><div class="stat-label">Công nợ</div><div class="stat-value" id="kpiDebt" style="font-size:1.5rem;">0đ</div></div>
+                        <div class="stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="fas fa-sack-dollar"></i></div>
                     </div>
                 </div>
-
-                <div class="card">
+                <div class="card kpi-card" data-goto="invoices" data-filter="overdue">
                     <div class="stat-card">
-                        <div>
-                            <div class="stat-label">Doanh thu đã thu</div>
-                            <div class="stat-value" id="rhCountRevenue" style="font-size: 1.5rem;">0đ</div>
-                            <div style="color: #61708a; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <i class="fas fa-receipt"></i> <span id="rhCountOverdue">0</span> hóa đơn quá hạn
-                            </div>
-                        </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
-                            <i class="fas fa-sack-dollar"></i>
-                        </div>
+                        <div><div class="stat-label">Hóa đơn quá hạn</div><div class="stat-value" id="kpiOverdueCount">0</div></div>
+                        <div class="stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="fas fa-triangle-exclamation"></i></div>
                     </div>
                 </div>
             </div>
 
-            <div class="card" style="margin-top: 1rem;">
-                <div style="align-items: center; display: flex; gap: .75rem; justify-content: space-between; margin-bottom: 1rem;">
-                    <div>
-                        <h3 style="color: #10213c; font: 700 1rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Cập nhật số liệu</h3>
-                        <p style="color: #61708a; font-size: .8rem; margin-top: .25rem;">Thay đổi số liệu hiển thị trên dashboard</p>
-                    </div>
-                    <i class="fas fa-pen-to-square" style="color: #1683ff;"></i>
-                </div>
-                <form class="data-editor" id="dashboardDataForm">
-                    <label>Tổng phòng<input id="totalRoomsInput" name="totalRooms" min="0" required type="number"></label>
-                    <label>Phòng trống<input id="emptyRoomsInput" name="emptyRooms" min="0" required type="number"></label>
-                    <label>Doanh thu tháng (triệu)<input id="revenueInput" name="revenue" min="0" required type="number"></label>
-                    <label>Công nợ (triệu)<input id="debtInput" name="debt" min="0" required type="number"></label>
-                    <button class="btn-primary" type="submit"><i class="fas fa-save"></i> Lưu số liệu</button>
-                </form>
-                <div class="data-editor-message" id="dataEditorMessage" role="status"></div>
-            </div>
-
-            <!-- Charts Section -->
+            <!-- Charts — computed from real invoices/apartments, not manually editable placeholder numbers -->
             <div class="grid-3" style="margin-top: 1.5rem;">
                 <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Doanh thu 12 tháng</h3>
-                    <div class="chart-container">
-                        <canvas id="revenueChart"></canvas>
-                    </div>
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Doanh thu 12 tháng (đã thu)</h3>
+                    <div class="chart-container"><canvas id="revenueChart"></canvas></div>
                 </div>
-
                 <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Tình trạng phòng</h3>
-                    <div class="chart-container">
-                        <canvas id="roomStatusChart"></canvas>
-                    </div>
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Tình trạng căn hộ</h3>
+                    <div class="chart-container"><canvas id="roomStatusChart"></canvas></div>
                 </div>
-
                 <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Thanh toán tháng này</h3>
-                    <div class="chart-container">
-                        <canvas id="paymentChart"></canvas>
-                    </div>
+                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Trạng thái hóa đơn</h3>
+                    <div class="chart-container"><canvas id="paymentChart"></canvas></div>
                 </div>
             </div>
 
-            <!-- Priority Actions - Cần xử lý hôm nay -->
-            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%); border-left: 4px solid #ef4444;">
-                <h3 style="font-weight: 600; color: #ef4444; margin-bottom: 1rem;">
-                    <i class="fas fa-exclamation-circle"></i> Cần xử lý hôm nay
-                </h3>
-                <div class="grid-3">
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #ef4444;">
-                        <div style="font-size: 0.875rem; color: #64748b;">Hóa đơn quá hạn</div>
-                        <div style="font-size: 2rem; font-weight: bold; color: #ef4444; margin: 0.5rem 0;">8</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Tổng nợ: 45M</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem;">
-                            Xem chi tiết
-                        </button>
-                    </div>
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
-                        <div style="font-size: 0.875rem; color: #64748b;">Yêu cầu quá 24h</div>
-                        <div style="font-size: 2rem; font-weight: bold; color: #f59e0b; margin: 0.5rem 0;">5</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Cần xử lý ngay</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
-                            Xem chi tiết
-                        </button>
-                    </div>
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
-                        <div style="font-size: 0.875rem; color: #64748b;">Hợp đồng sắp hết</div>
-                        <div style="font-size: 2rem; font-weight: bold; color: #0284c7; margin: 0.5rem 0;">6</div>
-                        <div style="font-size: 0.75rem; color: #94a3b8;">Còn dưới 30 ngày</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
-                            Xem chi tiết
-                        </button>
-                    </div>
+            <div class="dash-row-label">Dữ liệu hệ thống</div>
+            <div class="grid-3" id="dashRowSystem" style="grid-template-columns:repeat(6,minmax(0,1fr));">
+                <div class="card kpi-card mini" data-goto="buildings"><div class="stat-label">Tòa nhà</div><div class="stat-value" id="sysBuildings">0</div><div class="stat-sub">Tòa nhà đang quản lý</div></div>
+                <div class="card kpi-card mini" data-goto="apartments"><div class="stat-label">Căn hộ</div><div class="stat-value" id="sysApartments">0</div><div class="stat-sub">Căn hộ đã tạo</div></div>
+                <div class="card kpi-card mini" data-goto="customers"><div class="stat-label">Cư dân</div><div class="stat-value" id="sysCustomers">0</div><div class="stat-sub">Hồ sơ cư dân</div></div>
+                <div class="card kpi-card mini" data-goto="contracts"><div class="stat-label">Hợp đồng</div><div class="stat-value" id="sysContracts">0</div><div class="stat-sub">Hợp đồng đã lập</div></div>
+                <div class="card kpi-card mini" data-goto="meters"><div class="stat-label">Chỉ số</div><div class="stat-value" id="sysMeters">0</div><div class="stat-sub">Chỉ số đã ghi</div></div>
+                <div class="card kpi-card mini" data-goto="invoices"><div class="stat-label">Hóa đơn</div><div class="stat-value" id="sysInvoices">0</div><div class="stat-sub">Hóa đơn đã lập</div></div>
+            </div>
+
+            <div class="dash-row-label">Cần xử lý</div>
+            <div class="grid-3" id="dashRowTodo">
+                <div class="card kpi-card todo" data-goto="support">
+                    <div class="stat-label"><i class="fas fa-headset"></i> Yêu cầu hỗ trợ</div>
+                    <div class="stat-value" id="todoRequests">0</div>
+                    <div class="stat-sub" id="todoRequestsNote">Không có yêu cầu cần xử lý</div>
+                </div>
+                <div class="card kpi-card todo" data-goto="invoices" data-filter="unpaid">
+                    <div class="stat-label"><i class="fas fa-file-invoice-dollar"></i> Hóa đơn cần thanh toán</div>
+                    <div class="stat-value" id="todoUnpaid">0</div>
+                    <div class="stat-sub" id="todoUnpaidNote">Không có hóa đơn cần thanh toán</div>
+                </div>
+                <div class="card kpi-card todo" data-goto="contracts" data-filter="expiring">
+                    <div class="stat-label"><i class="fas fa-file-contract"></i> Hợp đồng sắp hết hạn</div>
+                    <div class="stat-value" id="todoExpiring">0</div>
+                    <div class="stat-sub" id="todoExpiringNote">Không có hợp đồng sắp hết hạn</div>
                 </div>
             </div>
 
-            <!-- Recent Activity -->
+            <!-- Recent Activity — synthesized from real createdAt timestamps across modules -->
             <div class="card" style="margin-top: 1.5rem;">
                 <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Hoạt động gần đây</h3>
                 <div class="table-container">
                     <table>
-                        <thead>
-                            <tr>
-                                <th>Sự kiện</th>
-                                <th>Chi tiết</th>
-                                <th>Thời gian</th>
-                                <th>Trạng thái</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Thanh toán</td>
-                                <td>Nguyễn Văn A thanh toán 8.5M</td>
-                                <td>10 phút trước</td>
-                                <td><span class="badge badge-success">Thành công</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class="fas fa-wrench" style="color: #0284c7; margin-right: 0.5rem;"></i> Hỗ trợ</td>
-                                <td>Yêu cầu sửa chữa phòng 312</td>
-                                <td>1 giờ trước</td>
-                                <td><span class="badge badge-info">Đang xử lý</span></td>
-                            </tr>
-                            <tr>
-                                <td><i class="fas fa-envelope" style="color: #7c3aed; margin-right: 0.5rem;"></i> Thông báo</td>
-                                <td>Gửi hóa đơn tháng 8 cho 245 cư dân</td>
-                                <td>3 giờ trước</td>
-                                <td><span class="badge badge-success">Hoàn thành</span></td>
-                            </tr>
-                        </tbody>
+                        <thead><tr><th>Sự kiện</th><th>Chi tiết</th><th>Thời gian</th></tr></thead>
+                        <tbody id="dashActivityBody"></tbody>
                     </table>
                 </div>
             </div>
@@ -835,12 +729,7 @@
         <div id="meters-tab" style="display: none;"></div>
         <div id="invoices-tab" style="display: none;"></div>
 
-        <div id="support-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Yêu cầu Hỗ trợ</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung yêu cầu hỗ trợ sẽ hiển thị ở đây</p>
-            </div>
-        </div>
+        <div id="support-tab" style="display: none;"></div>
 
         <div id="contracts-tab" style="display: none;"></div>
 
@@ -888,7 +777,8 @@
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Căn hộ (nếu là Cư dân)</label>
-                            <input id="accountUnit" type="text" placeholder="VD: A-1208" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <select id="accountApartmentId" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;"></select>
+                            <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;">Gán đúng căn hộ để tài khoản này thấy được hợp đồng/hóa đơn thật của căn hộ đó.</p>
                         </div>
                     </div>
                     <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
@@ -1268,84 +1158,21 @@
     </div>
 
     <script>
-        const dashboardDataDefaults = {
-            totalRooms: 245,
-            emptyRooms: 32,
-            revenue: 543,
-            debt: 87
-        };
-        let dashboardData = loadDashboardData();
-        let roomStatusChart;
-        let revenueChart;
+        let roomStatusChart, revenueChart, paymentChart;
 
-        function loadDashboardData() {
-            try {
-                return { ...dashboardDataDefaults, ...JSON.parse(localStorage.getItem('residentHubDashboardData') || '{}') };
-            } catch (error) {
-                return { ...dashboardDataDefaults };
-            }
-        }
-
-        function formatMillion(value) {
-            return `${Number(value).toLocaleString('vi-VN')}M`;
-        }
-
-        function renderDashboardData() {
-            document.getElementById('totalRoomsValue').textContent = dashboardData.totalRooms.toLocaleString('vi-VN');
-            document.getElementById('emptyRoomsValue').textContent = dashboardData.emptyRooms.toLocaleString('vi-VN');
-            document.getElementById('revenueValue').textContent = formatMillion(dashboardData.revenue);
-            document.getElementById('debtValue').textContent = formatMillion(dashboardData.debt);
-            document.getElementById('totalRoomsInput').value = dashboardData.totalRooms;
-            document.getElementById('emptyRoomsInput').value = dashboardData.emptyRooms;
-            document.getElementById('revenueInput').value = dashboardData.revenue;
-            document.getElementById('debtInput').value = dashboardData.debt;
-
-            if (roomStatusChart) {
-                const maintenanceRooms = Math.min(7, dashboardData.totalRooms);
-                const occupiedRooms = Math.max(0, dashboardData.totalRooms - dashboardData.emptyRooms - maintenanceRooms);
-                roomStatusChart.data.datasets[0].data = [occupiedRooms, dashboardData.emptyRooms, maintenanceRooms];
-                roomStatusChart.update();
-            }
-            if (revenueChart) {
-                revenueChart.data.datasets[0].data[11] = dashboardData.revenue;
-                revenueChart.update();
-            }
-        }
-
-        function saveDashboardData(event) {
-            event.preventDefault();
-            const formData = new FormData(event.currentTarget);
-            const totalRooms = Number(formData.get('totalRooms'));
-            const emptyRooms = Number(formData.get('emptyRooms'));
-            const message = document.getElementById('dataEditorMessage');
-            if (emptyRooms > totalRooms) {
-                message.textContent = 'Phòng trống không được lớn hơn tổng phòng.';
-                message.style.color = '#ef4444';
-                return;
-            }
-            dashboardData = {
-                totalRooms,
-                emptyRooms,
-                revenue: Number(formData.get('revenue')),
-                debt: Number(formData.get('debt'))
-            };
-            localStorage.setItem('residentHubDashboardData', JSON.stringify(dashboardData));
-            renderDashboardData();
-            message.style.color = '#18a878';
-            message.textContent = 'Đã lưu số liệu trên trình duyệt này.';
-        }
-
-        // Initialize Charts
+        // Charts read straight from RHD (data.js) — no manually-editable / mock
+        // dataset backing them. Called from RHUI.renderDashboardCounts() on load
+        // and after every create/update in any module, so they always match
+        // what's actually been entered into the system.
         function initCharts() {
-            // Revenue Chart
             const revenueCtx = document.getElementById('revenueChart').getContext('2d');
             revenueChart = new Chart(revenueCtx, {
                 type: 'line',
                 data: {
                     labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
                     datasets: [{
-                        label: 'Doanh thu (Triệu)',
-                        data: [380, 410, 450, 480, 520, 550, 580, 543, 600, 620, 590, 543],
+                        label: 'Doanh thu (đã thu)',
+                        data: new Array(12).fill(0),
                         borderColor: '#1683ff',
                         backgroundColor: 'rgba(22, 131, 255, 0.12)',
                         tension: 0.35,
@@ -1363,17 +1190,12 @@
                 }
             });
 
-            // Room Status Chart
             const roomCtx = document.getElementById('roomStatusChart').getContext('2d');
             roomStatusChart = new Chart(roomCtx, {
                 type: 'doughnut',
                 data: {
-                    labels: ['Có người', 'Trống', 'Bảo trì'],
-                    datasets: [{
-                        data: [213, 25, 7],
-                        backgroundColor: ['#18a878', '#1683ff', '#f0a34a'],
-                        borderWidth: 0
-                    }]
+                    labels: ['Đang ở', 'Đã đặt cọc', 'Trống', 'Bảo trì'],
+                    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#18a878', '#a5680c', '#1683ff', '#ef4444'], borderWidth: 0 }]
                 },
                 options: {
                     responsive: true,
@@ -1382,42 +1204,63 @@
                 }
             });
 
-            // Payment Chart
             const paymentCtx = document.getElementById('paymentChart').getContext('2d');
-            new Chart(paymentCtx, {
+            paymentChart = new Chart(paymentCtx, {
                 type: 'bar',
                 data: {
                     labels: ['Đã thanh toán', 'Chờ thanh toán', 'Quá hạn'],
-                    datasets: [{
-                        label: 'Số lượng',
-                        data: [195, 35, 15],
-                        backgroundColor: ['#18a878', '#f0a34a', '#e45b68'],
-                        borderRadius: 8,
-                        borderSkipped: false,
-                        barPercentage: 0.58,
-                        categoryPercentage: 0.7
-                    }]
+                    datasets: [{ label: 'Số lượng', data: [0, 0, 0], backgroundColor: ['#18a878', '#f0a34a', '#e45b68'], borderRadius: 8, borderSkipped: false, barPercentage: 0.58, categoryPercentage: 0.7 }]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
                     plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } },
-                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } } }
+                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 }, precision: 0 } } }
                 }
             });
         }
 
+        function updateDashboardCharts() {
+            if (!revenueChart || !roomStatusChart || !paymentChart) return;
+            const apartments = RHD.list('apartments');
+            const invoices = RHD.list('invoices');
+
+            const now = new Date();
+            const months = [];
+            for (let i = 11; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
+            const revenueByMonth = months.map(m => {
+                const key = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0');
+                return invoices.filter(inv => inv.status === 'paid' && inv.paidAt && new Date(inv.paidAt).getFullYear() + '-' + String(new Date(inv.paidAt).getMonth() + 1).padStart(2, '0') === key)
+                    .reduce((s, inv) => s + inv.total, 0);
+            });
+            revenueChart.data.labels = months.map(m => 'T' + (m.getMonth() + 1));
+            revenueChart.data.datasets[0].data = revenueByMonth;
+            revenueChart.update();
+
+            const statusCount = id => apartments.filter(a => a.status === id).length;
+            roomStatusChart.data.datasets[0].data = [statusCount('occupied'), statusCount('deposited'), statusCount('vacant'), statusCount('maintenance')];
+            roomStatusChart.update();
+
+            const todayStr = now.toISOString().slice(0, 10);
+            const paidCount = invoices.filter(i => i.status === 'paid').length;
+            const overdueCount = invoices.filter(i => i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr)).length;
+            const pendingCount = invoices.length - paidCount - overdueCount;
+            paymentChart.data.datasets[0].data = [paidCount, Math.max(0, pendingCount), overdueCount];
+            paymentChart.update();
+        }
+
         // Switch Tab Function
         const TAB_RENDERERS = {
-            buildings: () => RHUI.renderBuildingsTab(),
-            apartments: () => RHUI.renderApartmentsTab(),
-            customers: () => RHUI.renderCustomersTab(),
-            meters: () => RHUI.renderMetersTab(),
-            contracts: () => RHUI.renderContractsTab(),
-            invoices: () => RHUI.renderInvoicesTab()
+            buildings: (f) => RHUI.renderBuildingsTab(f),
+            apartments: (f) => RHUI.renderApartmentsTab(f),
+            customers: (f) => RHUI.renderCustomersTab(f),
+            meters: (f) => RHUI.renderMetersTab(f),
+            contracts: (f) => RHUI.renderContractsTab(f),
+            invoices: (f) => RHUI.renderInvoicesTab(f),
+            support: (f) => RHUI.renderSupportTab(f)
         };
 
-        function switchTab(tabName, evt) {
+        function switchTab(tabName, evt, filter) {
             if (tabName === 'settings' && RH_IS_DEMO) {
                 alert('Cấu hình tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
                 return;
@@ -1429,13 +1272,15 @@
             // Show selected tab
             const selectedTab = document.getElementById(tabName + '-tab');
             if (selectedTab) selectedTab.style.display = 'block';
-            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName]();
+            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName](filter || null);
 
-            // Update active menu item
-            const menuItems = document.querySelectorAll('.sidebar-menu-item');
-            menuItems.forEach(item => item.classList.remove('active'));
+            // Update active menu item (only when the click came from the sidebar)
             const source = (evt || window.event);
-            if (source && source.target) source.target.closest('.sidebar-menu-item').classList.add('active');
+            const sidebarItem = source && source.target && source.target.closest ? source.target.closest('.sidebar-menu-item') : null;
+            if (sidebarItem) {
+                document.querySelectorAll('.sidebar-menu-item').forEach(item => item.classList.remove('active'));
+                sidebarItem.classList.add('active');
+            }
 
             // Update page title
             const titles = {
@@ -1532,6 +1377,16 @@
             });
         }
 
+        function populateAccountApartmentOptions(selectedId) {
+            const select = document.getElementById('accountApartmentId');
+            const apartments = RHD.list('apartments');
+            select.innerHTML = '<option value="">— Chưa gán căn hộ —</option>' + apartments.map(function (a) {
+                const building = RHD.get('buildings', a.buildingId);
+                const label = (building ? (building.shortName || building.name) + ' - ' : '') + a.name;
+                return '<option value="' + a.id + '"' + (a.id === selectedId ? ' selected' : '') + '>' + label + '</option>';
+            }).join('');
+        }
+
         function openAccountForm(id) {
             const form = document.getElementById('accountForm');
             document.getElementById('accountFormError').textContent = '';
@@ -1544,11 +1399,12 @@
                 document.getElementById('accountPassword').value = '';
                 document.getElementById('accountPasswordHint').textContent = 'Để trống nếu không đổi mật khẩu.';
                 document.getElementById('accountRole').value = user.role;
-                document.getElementById('accountUnit').value = user.unit || '';
+                populateAccountApartmentOptions(user.apartmentId || '');
             } else {
                 document.getElementById('accountId').value = '';
                 document.getElementById('accountForm').reset();
                 document.getElementById('accountPasswordHint').textContent = 'Tài khoản mới bắt buộc có mật khẩu (tối thiểu 6 ký tự).';
+                populateAccountApartmentOptions('');
             }
             form.style.display = 'block';
             form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -1565,18 +1421,20 @@
             const email = document.getElementById('accountEmail').value;
             const password = document.getElementById('accountPassword').value;
             const role = document.getElementById('accountRole').value;
-            const unit = document.getElementById('accountUnit').value;
+            const apartmentId = document.getElementById('accountApartmentId').value;
+            const apartment = apartmentId ? RHD.get('apartments', apartmentId) : null;
+            const unit = apartment ? apartment.name : '';
             const errorEl = document.getElementById('accountFormError');
 
             let result;
             if (id) {
-                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, password: password });
+                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, apartmentId: apartmentId, password: password });
             } else {
                 if (!password) {
                     errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
                     return;
                 }
-                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit });
+                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit, apartmentId: apartmentId });
             }
 
             if (!result.ok) {
@@ -1601,12 +1459,15 @@
         // Initialize on load
         window.addEventListener('load', function() {
             initCharts();
-            document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
-            renderDashboardData();
             renderWorkflows();
             renderCurrentUser();
             if (!RH_IS_DEMO) renderAccountsTable();
             RHUI.renderDashboardCounts();
+            document.addEventListener('click', function (ev) {
+                const card = ev.target.closest('.kpi-card[data-goto]');
+                if (!card) return;
+                switchTab(card.dataset.goto, ev, card.dataset.filter || null);
+            });
         });
 
         function renderWorkflows() {

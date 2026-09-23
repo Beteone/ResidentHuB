@@ -82,6 +82,11 @@
             password: password,
             role: role,
             unit: data.unit ? String(data.unit).trim() : '',
+            // Links this login account to a real Apartment record in RHD (data.js), so
+            // resident-web.html can look up the actual contracts/invoices/requests that
+            // belong to this account instead of showing mock data. Set from the manager's
+            // "Quản lý tài khoản" apartment picker; unit stays as a display fallback.
+            apartmentId: data.apartmentId || '',
             plan: data.plan || null,
             planStatus: data.plan ? 'active' : null,
             createdAt: Date.now()
@@ -115,6 +120,7 @@
         if (patch.email !== undefined) user.email = String(patch.email).trim();
         if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
+        if (patch.apartmentId !== undefined) user.apartmentId = patch.apartmentId;
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
@@ -157,7 +163,7 @@
     }
 
     function login(user, remember) {
-        var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', loginAt: Date.now() };
+        var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', apartmentId: user.apartmentId || '', loginAt: Date.now() };
         var data = JSON.stringify(session);
         if (remember) {
             localStorage.setItem(SESSION_KEY, data);
