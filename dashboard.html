@@ -1397,6 +1397,84 @@
             height: 300px;
             margin-top: 1rem;
         }
+        .mobile-menu-button { display: none; }
+        .meter-page { max-width: 1120px; margin: 0 auto; }
+        .meter-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
+        .meter-title { align-items: center; display: flex; gap: .85rem; }
+        .back-button { align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 12px; color: var(--ink); cursor: pointer; display: flex; height: 42px; justify-content: center; width: 42px; }
+        .meter-title h1 { color: var(--ink); font: 800 1.8rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; }
+        .meter-actions { align-items: center; display: flex; gap: .65rem; }
+        .notification-button { position: relative; }
+        .notification-dot { background: var(--danger); border: 2px solid var(--bg-soft); border-radius: 999px; height: 9px; position: absolute; right: 5px; top: 5px; width: 9px; }
+        .filter-row { align-items: center; display: flex; justify-content: space-between; margin-bottom: .8rem; }
+        .filter-label { color: var(--primary-strong); font-weight: 700; }
+        .clear-filter { background: none; border: 0; color: var(--danger); cursor: pointer; font: inherit; font-size: .85rem; }
+        .month-chip { align-items: center; background: #fff; border: 1px solid #8cc3ff; border-radius: 999px; color: var(--primary-strong); cursor: pointer; display: inline-flex; font-size: .85rem; gap: .45rem; padding: .55rem .8rem; }
+        .overview-card { margin-top: 1.25rem; overflow: hidden; padding-bottom: 0; }
+        .overview-head { align-items: center; display: flex; justify-content: space-between; margin-bottom: 1.25rem; }
+        .overview-head h2 { color: var(--ink); font: 700 1rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; }
+        .period-label { color: var(--muted); font-size: .85rem; }
+        .overview-stats { display: grid; grid-template-columns: repeat(3, 1fr); }
+        .overview-stat { padding: .2rem 1.25rem 1.3rem; }
+        .overview-stat + .overview-stat { border-left: 1px solid var(--line); }
+        .overview-stat strong { display: block; font: 800 1.35rem 'Plus Jakarta Sans', sans-serif; margin-top: .35rem; }
+        .overview-stat span { color: var(--muted); font-size: .82rem; }
+        .stat-done strong { color: var(--success); }
+        .stat-pending strong { color: #e59a23; }
+        .stat-unclosed strong { color: var(--danger); }
+        .progress-track { background: #ffe6ec; height: 5px; }
+        .progress-value { background: #ef7b96; height: 100%; width: 0%; }
+        .meter-empty { align-items: center; display: flex; flex-direction: column; justify-content: center; min-height: 350px; text-align: center; }
+        .meter-empty i { color: #b9c8d9; font-size: 4.5rem; margin-bottom: 1.25rem; }
+        .meter-empty h2 { color: var(--ink); font: 700 1.1rem 'Plus Jakarta Sans', sans-serif; }
+        .meter-empty p { color: var(--muted); font-size: .9rem; margin-top: .5rem; }
+        .add-meter-button { align-items: center; background: #18a878; border: 0; border-radius: 12px; box-shadow: 0 10px 20px rgba(24,168,120,.2); color: #fff; cursor: pointer; display: flex; font-weight: 700; gap: .45rem; padding: .75rem 1rem; }
+        .meter-modal { align-items: center; background: rgba(11,36,71,.48); display: none; inset: 0; justify-content: center; padding: 1.25rem; position: fixed; z-index: 200; }
+        .meter-modal.open { display: flex; }
+        .meter-form { background: #fff; border-radius: 20px; max-height: 92vh; max-width: 680px; overflow: auto; padding: 1.35rem; width: 100%; }
+        .form-header { align-items: center; border-bottom: 1px solid var(--line); display: flex; justify-content: space-between; padding-bottom: 1rem; }
+        .form-header h2 { font: 800 1.15rem 'Plus Jakarta Sans', sans-serif; }
+        .plain-button { background: none; border: 0; color: var(--muted); cursor: pointer; font-size: 1.05rem; padding: .45rem; }
+        .form-section { padding-top: 1.25rem; }
+        .form-section-title { color: #8390a2; font-size: .75rem; font-weight: 800; letter-spacing: .09em; margin-bottom: .9rem; }
+        .form-grid { display: grid; gap: .85rem; grid-template-columns: repeat(2, 1fr); }
+        .form-field { margin-bottom: .85rem; }
+        .form-field label { color: var(--ink); display: block; font-size: .82rem; font-weight: 700; margin-bottom: .4rem; }
+        .form-field select, .form-field input { background: #fff; border: 1px solid #d9e2ee; border-radius: 10px; color: var(--ink); font: inherit; padding: .7rem .8rem; width: 100%; }
+        .segmented-control { background: #f1f4f8; border-radius: 10px; display: flex; gap: .2rem; padding: .2rem; }
+        .segment-button { background: transparent; border: 0; border-radius: 8px; color: var(--muted); cursor: pointer; flex: 1; font: inherit; font-size: .8rem; padding: .62rem .35rem; }
+        .segment-button.active { background: #162235; color: #fff; }
+        .toggle-row { align-items: center; color: var(--muted); display: flex; font-size: .82rem; gap: .65rem; }
+        .toggle-input { appearance: none; background: #ccd5df; border-radius: 999px; cursor: pointer; height: 22px; position: relative; transition: .2s; width: 40px; }
+        .toggle-input:before { background: #fff; border-radius: 50%; content: ''; height: 18px; left: 2px; position: absolute; top: 2px; transition: .2s; width: 18px; }
+        .toggle-input:checked { background: var(--primary); }
+        .toggle-input:checked:before { transform: translateX(18px); }
+        .form-empty { align-items: center; background: #f8fafc; border-radius: 14px; display: flex; flex-direction: column; margin-top: .4rem; min-height: 190px; justify-content: center; text-align: center; }
+        .form-empty i { color: #b9c8d9; font-size: 3rem; margin-bottom: .75rem; }
+        .form-empty strong { color: var(--ink); font-size: .95rem; }
+        .form-empty p { color: var(--muted); font-size: .8rem; margin-top: .4rem; }
+        .date-modal .meter-form { max-width: 390px; }
+        .date-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1rem; }
+        .secondary-button { background: #f1f4f8; border: 0; border-radius: 10px; color: var(--muted); cursor: pointer; font-weight: 700; padding: .7rem 1rem; }
+        .fab-add { display: none; }
+        @media (max-width: 768px) {
+            .mobile-menu-button { align-items: center; background: #fff; border: 1px solid var(--line); border-radius: 10px; color: var(--ink); display: flex; height: 40px; justify-content: center; width: 40px; }
+            .main-content { padding: 1rem; }
+            .topbar { border-radius: 14px; padding: .85rem 1rem; }
+            .topbar > div:first-child { align-items: center; display: flex; gap: .7rem; }
+            .topbar-title { font-size: 1.25rem; }
+            .meter-header { align-items: flex-start; }
+            .meter-title h1 { font-size: 1.35rem; }
+            .meter-header .add-meter-button { display: none; }
+            .overview-stat { padding-left: .55rem; padding-right: .55rem; }
+            .overview-stat strong { font-size: 1.05rem; }
+            .overview-stat span { font-size: .72rem; }
+            .meter-empty { min-height: 300px; }
+            .fab-add { align-items: center; background: #18a878; border: 0; border-radius: 50%; bottom: 1.25rem; box-shadow: 0 12px 24px rgba(24,168,120,.3); color: #fff; display: flex; font-size: 1.3rem; height: 56px; justify-content: center; position: fixed; right: 1.25rem; width: 56px; z-index: 80; }
+            .form-grid { grid-template-columns: 1fr; gap: 0; }
+            .meter-modal { align-items: flex-end; padding: 0; }
+            .meter-form { border-radius: 20px 20px 0 0; max-height: 94vh; }
+            }
         .data-editor {
             align-items: end;
             display: grid;
@@ -1496,6 +1574,10 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Quản lý</span>
             </div>
+            <div class="sidebar-menu-item" onclick="switchTab('meters')">
+                <i class="fas fa-gauge-high"></i>
+                <span>Ghi chỉ số</span>
+            </div>
             <div class="sidebar-menu-item" onclick="switchTab('buildings')">
                 <i class="fas fa-building"></i>
                 <span>Tòa nhà</span>
@@ -1564,6 +1646,7 @@
         <!-- Topbar -->
         <div class="topbar">
             <div>
+                <button class="mobile-menu-button" onclick="toggleSidebar()" title="Mở menu"><i class="fas fa-bars"></i></button>
                 <div style="display:flex;align-items:center;">
                     <div class="topbar-title" id="pageTitle">Quản lý</div>
                     <span class="rh-demo-tag" id="rhDemoBadge" style="display:none;margin-left:.6rem;">DEMO</span>
@@ -2677,6 +2760,61 @@
         </div>
     </div>
 
+    <div class="meter-modal" id="meterFormModal" onclick="closeOnOverlay(event, 'meterFormModal')">
+        <div class="meter-form" role="dialog" aria-modal="true" aria-labelledby="meterFormTitle">
+            <div class="form-header">
+                <button class="plain-button" onclick="closeMeterForm()" title="Đóng"><i class="fas fa-xmark"></i></button>
+                <h2 id="meterFormTitle">Thêm chỉ số</h2>
+                <button class="plain-button" title="Lịch sử"><i class="fas fa-clock-rotate-left"></i></button>
+            </div>
+            <section class="form-section">
+                <div class="form-section-title">THÔNG TIN CHUNG</div>
+                <div class="form-grid">
+                    <div class="form-field">
+                        <label for="formMonth">Tháng chốt *</label>
+                        <select id="formMonth" onchange="updateMonthFromForm(this.value)"></select>
+                    </div>
+                    <div class="form-field">
+                        <label for="formDate">Ngày chốt *</label>
+                        <input id="formDate" type="date" onchange="updateSelectedDate(this.value)">
+                    </div>
+                </div>
+                <div class="form-field">
+                    <label for="buildingSelect">Toà nhà *</label>
+                    <select id="buildingSelect"><option value="">Chọn toà nhà</option><option>Toà nhà Riverside</option><option>Toà nhà Central</option></select>
+                </div>
+                <div class="form-field">
+                    <label for="apartmentSelect">Căn hộ</label>
+                    <select id="apartmentSelect"><option value="">Chọn căn hộ</option><option>A-101</option><option>A-102</option><option>B-201</option></select>
+                </div>
+                <div class="form-field">
+                    <label>Loại công tơ *</label>
+                    <div class="segmented-control" id="meterTypeControl">
+                        <button class="segment-button active" onclick="setMeterType(this, 'all')">Tất cả</button>
+                        <button class="segment-button" onclick="setMeterType(this, 'electric')">Công tơ điện</button>
+                        <button class="segment-button" onclick="setMeterType(this, 'water')">Công tơ nước</button>
+                    </div>
+                </div>
+                <label class="toggle-row"><input class="toggle-input" type="checkbox"> <span>Chỉ hiện công tơ chưa chốt trong tháng</span></label>
+            </section>
+            <section class="form-section">
+                <div class="form-section-title">CHỈ SỐ</div>
+                <div class="form-empty"><i class="fas fa-gauge-high"></i><strong>Không có dữ liệu trả về</strong><p>Vui lòng kiểm tra lại dữ liệu và bộ lọc.</p></div>
+            </section>
+        </div>
+    </div>
+
+    <div class="meter-modal date-modal" id="monthPickerModal" onclick="closeOnOverlay(event, 'monthPickerModal')">
+        <div class="meter-form" role="dialog" aria-modal="true" aria-labelledby="monthPickerTitle">
+            <div class="form-header"><button class="plain-button" onclick="closeMonthPicker()" title="Đóng"><i class="fas fa-xmark"></i></button><h2 id="monthPickerTitle">Chọn kỳ ghi chỉ số</h2><span></span></div>
+            <div class="form-section">
+                <div class="form-field"><label for="pickerMonth">Tháng</label><select id="pickerMonth"></select></div>
+                <div class="form-field"><label for="pickerYear">Năm</label><select id="pickerYear"></select></div>
+                <div class="date-actions"><button class="secondary-button" onclick="closeMonthPicker()">Huỷ</button><button class="add-meter-button" onclick="applyMonthPicker()">Áp dụng</button></div>
+            </div>
+        </div>
+    </div>
+
     <script>
         const dashboardDataDefaults = {
             totalRooms: 245,
@@ -2816,6 +2954,101 @@
                 }
             });
         }
+
+        const meterState = {
+            selectedMonth: new Date().toISOString().slice(0, 7),
+            selectedDate: new Date().toISOString().slice(0, 10),
+            meterType: 'all'
+        };
+
+        function formatSelectedMonth(monthValue) {
+            const [year, month] = monthValue.split('-');
+            return `Tháng ${Number(month)}/${year}`;
+        }
+
+        function renderMeterState() {
+            document.querySelectorAll('[data-selected-month]').forEach(element => {
+                element.textContent = formatSelectedMonth(meterState.selectedMonth);
+            });
+            document.getElementById('formMonth').value = meterState.selectedMonth;
+            document.getElementById('formDate').value = meterState.selectedDate;
+        }
+
+        function initializeMeterState() {
+            const formMonth = document.getElementById('formMonth');
+            const currentYear = new Date().getFullYear();
+            formMonth.innerHTML = Array.from({ length: 36 }, (_, index) => {
+                const date = new Date(currentYear, index - 12, 1);
+                const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
+                return `<option value="${value}">${formatSelectedMonth(value)}</option>`;
+            }).join('');
+            renderMeterState();
+        }
+
+        function populateDatePicker() {
+            const pickerMonth = document.getElementById('pickerMonth');
+            const pickerYear = document.getElementById('pickerYear');
+            const [year, month] = meterState.selectedMonth.split('-');
+            pickerMonth.innerHTML = Array.from({ length: 12 }, (_, index) => `<option value="${String(index + 1).padStart(2, '0')}">Tháng ${index + 1}</option>`).join('');
+            pickerYear.innerHTML = Array.from({ length: 5 }, (_, index) => `<option>${Number(year) - 2 + index}</option>`).join('');
+            pickerMonth.value = month;
+            pickerYear.value = year;
+        }
+
+        function openMonthPicker() {
+            populateDatePicker();
+            document.getElementById('monthPickerModal').classList.add('open');
+        }
+
+        function closeMonthPicker() { document.getElementById('monthPickerModal').classList.remove('open'); }
+
+        function applyMonthPicker() {
+            meterState.selectedMonth = `${document.getElementById('pickerYear').value}-${document.getElementById('pickerMonth').value}`;
+            renderMeterState();
+            closeMonthPicker();
+        }
+
+        function resetMonthFilter() {
+            const today = new Date();
+            meterState.selectedMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
+            renderMeterState();
+        }
+
+        function updateMonthFromForm(monthValue) {
+            meterState.selectedMonth = monthValue;
+            renderMeterState();
+        }
+
+        function updateSelectedDate(dateValue) { meterState.selectedDate = dateValue; }
+
+        function openMeterForm() {
+            renderMeterState();
+            document.getElementById('meterFormModal').classList.add('open');
+        }
+
+        function closeMeterForm() { document.getElementById('meterFormModal').classList.remove('open'); }
+
+        function closeOnOverlay(event, modalId) {
+            if (event.target.id === modalId) document.getElementById(modalId).classList.remove('open');
+        }
+
+        function setMeterType(button, type) {
+            meterState.meterType = type;
+            document.querySelectorAll('#meterTypeControl .segment-button').forEach(segment => segment.classList.remove('active'));
+            button.classList.add('active');
+        }
+
+        function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('active'); }
+
+        // Switch Tab Function
+        const TAB_RENDERERS = {
+            buildings: () => RHUI.renderBuildingsTab(),
+            apartments: () => RHUI.renderApartmentsTab(),
+            customers: () => RHUI.renderCustomersTab(),
+            meters: () => RHUI.renderMetersTab(),
+            contracts: () => RHUI.renderContractsTab(),
+            invoices: () => RHUI.renderInvoicesTab()
+        };
 
         const editableStats = {
             buildings: { label: 'Tòa nhà' },
@@ -3394,9 +3627,8 @@
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
             const navigationEvent = sourceEvent || window.event;
-            if (navigationEvent && navigationEvent.target && navigationEvent.target.closest('.sidebar-menu-item')) {
-                navigationEvent.target.closest('.sidebar-menu-item').classList.add('active');
-            }
+            const clickedMenuItem = navigationEvent && navigationEvent.target ? navigationEvent.target.closest('.sidebar-menu-item') : null;
+            if (clickedMenuItem) clickedMenuItem.classList.add('active');
 
             // Update page title
             const titles = {
@@ -3415,6 +3647,7 @@
                 'settings': 'Cài đặt'
             };
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
+            document.querySelector('.sidebar').classList.remove('active');
             window.scrollTo(0, 0);
         }
 
