@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Biểu mẫu - ResidentHub</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+<script src="auth.js"></script>
+<script src="templates.js"></script>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+:root{--bg-soft:#f5f8fc;--surface:#fff;--ink:#10213c;--muted:#61708a;--primary:#1683ff;--primary-strong:#0d65d5;--line:#e4eaf2;--success:#18a878;--warning:#d6a85f;--danger:#ef4444}
+body{background:linear-gradient(180deg,#f7f9fc 0%,#edf3fb 100%);color:var(--ink);font-family:'Be Vietnam Pro','Segoe UI',sans-serif;min-height:100vh}
+.topbar{align-items:center;background:rgba(255,255,255,.92);border-bottom:1px solid var(--line);display:flex;gap:1rem;justify-content:space-between;padding:1rem 1.5rem;position:sticky;top:0;z-index:50}
+.topbar-brand{align-items:center;display:flex;gap:.7rem}
+.topbar-brand .logo{align-items:center;background:linear-gradient(135deg,#2563eb 0%,#1d4ed8 100%);border-radius:11px;color:#fff;display:flex;font-size:1.1rem;height:38px;justify-content:center;width:38px}
+.topbar-brand h1{font:800 1.15rem 'Plus Jakarta Sans',sans-serif;letter-spacing:-.02em}
+.topbar-brand p{color:var(--muted);font-size:.75rem}
+.rh-demo-tag{background:#94a3b8;border-radius:999px;color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.06em;margin-left:.5rem;padding:.2rem .5rem}
+.back-link{align-items:center;background:#eef4fb;border:1px solid #e2ebf5;border-radius:10px;color:#475569;display:inline-flex;font-size:.85rem;font-weight:600;gap:.5rem;padding:.55rem .9rem;text-decoration:none}
+.back-link:hover{background:#dceeff;color:var(--primary-strong)}
+.main{margin:0 auto;max-width:1160px;padding:1.5rem}
+.tabs{background:#fff;border:1px solid var(--line);border-radius:14px;display:inline-flex;gap:.25rem;margin-bottom:1.5rem;padding:.3rem}
+.tab-btn{background:none;border:0;border-radius:10px;color:var(--muted);cursor:pointer;font:inherit;font-size:.88rem;font-weight:700;padding:.6rem 1.1rem}
+.tab-btn.active{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff}
+.card{background:#fff;border:1px solid var(--line);border-radius:16px;box-shadow:0 10px 24px rgba(11,36,71,.04);padding:1.4rem}
+.section-head{align-items:flex-start;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1.25rem}
+.section-head h2{font:700 1.2rem 'Plus Jakarta Sans',sans-serif}
+.section-head p{color:var(--muted);font-size:.85rem;margin-top:.25rem}
+.filters{display:flex;flex-wrap:wrap;gap:.5rem;margin-bottom:1.25rem}
+.filter-chip{background:#f1f5f9;border:1px solid transparent;border-radius:999px;color:#475569;cursor:pointer;font:inherit;font-size:.8rem;font-weight:600;padding:.45rem .9rem}
+.filter-chip.active{background:#eaf3ff;border-color:#9ccaff;color:var(--primary-strong)}
+.tpl-grid{display:grid;gap:1rem;grid-template-columns:repeat(auto-fill,minmax(280px,1fr))}
+.tpl-card{background:#fbfdff;border:1px solid var(--line);border-radius:14px;display:flex;flex-direction:column;gap:.6rem;padding:1.1rem}
+.tpl-card:hover{border-color:#b8d8f6;box-shadow:0 12px 24px rgba(22,131,255,.08)}
+.tpl-card-top{align-items:flex-start;display:flex;gap:.6rem;justify-content:space-between}
+.tpl-card h3{font:700 .95rem 'Plus Jakarta Sans',sans-serif;line-height:1.35}
+.tpl-badges{display:flex;flex-wrap:wrap;gap:.35rem}
+.badge-pill{border-radius:999px;font-size:.68rem;font-weight:700;padding:.22rem .55rem}
+.badge-category{background:#eaf3ff;color:#0d65d5}
+.badge-default{background:#e6f8ef;color:#11804f}
+.badge-system{background:#f1f5f9;color:#61708a}
+.tpl-actions{display:flex;flex-wrap:wrap;gap:.4rem;margin-top:auto}
+.tpl-actions button,.tpl-actions a{background:#fff;border:1px solid var(--line);border-radius:8px;color:#475569;cursor:pointer;font:inherit;font-size:.75rem;font-weight:600;padding:.4rem .6rem;text-decoration:none}
+.tpl-actions button:hover,.tpl-actions a:hover{background:#f1f7fd;color:var(--primary-strong)}
+.tpl-actions .danger{color:var(--danger)}
+.rh-drawer-overlay{background:rgba(11,36,71,.45);bottom:0;display:none;justify-content:flex-end;left:0;position:fixed;right:0;top:0;z-index:300}
+.rh-drawer-overlay.show{display:flex}
+.rh-drawer{background:#fff;box-shadow:-24px 0 60px rgba(11,36,71,.25);display:flex;flex-direction:column;height:100vh;max-width:100%;width:680px}
+.rh-drawer-header{align-items:center;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;padding:1.15rem 1.5rem;position:sticky;top:0;z-index:2}
+.rh-drawer-body{flex:1;overflow-y:auto;padding:1.5rem}
+.btn-icon{align-items:center;background:#f1f5f9;border:0;border-radius:50%;color:#64748b;cursor:pointer;display:flex;height:38px;justify-content:center;width:38px}
+.btn-icon:hover{background:#e2e8f0}
+.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);border:0;border-radius:10px;box-shadow:0 10px 20px rgba(22,131,255,.2);color:#fff;cursor:pointer;font:inherit;font-weight:700;padding:.65rem 1.1rem}
+.rh-field label{color:#475569;display:block;font-size:.8rem;font-weight:600;margin-bottom:.35rem}
+.rh-field input,.rh-field textarea,.rh-field select{border:1px solid var(--line);border-radius:8px;font:inherit;padding:.6rem .75rem;width:100%}
+.rh-field textarea{font-family:'Consolas',monospace;font-size:.78rem;line-height:1.5}
+.rh-section{border-top:1px solid var(--line);margin-top:1.25rem;padding-top:1.1rem}
+.rh-section-title{color:#94a3b8;font-size:.72rem;font-weight:700;letter-spacing:.08em;margin-bottom:.6rem;text-transform:uppercase}
+.var-chip{background:#f1f5f9;border-radius:6px;color:#475569;display:inline-block;font-family:Consolas,monospace;font-size:.72rem;margin:0 .3rem .3rem 0;padding:.2rem .45rem}
+.rh-print-area{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.75rem}
+.paper-size-toggle{display:flex;gap:.4rem;margin-bottom:1rem}
+.paper-size-toggle button{background:#f1f5f9;border:1px solid transparent;border-radius:8px;color:#475569;cursor:pointer;font:inherit;font-size:.78rem;font-weight:600;padding:.4rem .7rem}
+.paper-size-toggle button.active{background:#eaf3ff;border-color:#9ccaff;color:#0d65d5}
+.empty{color:#94a3b8;padding:3rem 1rem;text-align:center}
+@media print{
+    body *{visibility:hidden}
+    .rh-print-area,.rh-print-area *{visibility:visible}
+    .rh-print-area{position:absolute;left:0;top:0;width:100%;border:0;padding:0;margin:0}
+    @page{size:A4;margin:15mm}
+    .rh-print-area.paper-a5{width:148mm}
+    .rh-print-area.paper-thermal{width:80mm;font-size:11px}
+}
+</style>
+</head>
+<body>
+<script>
+    var RH_IS_DEMO = /(^|[#&])demo=1(&|$)/.test(window.location.hash);
+    var RH_SESSION = RH_IS_DEMO
+        ? { id: 'demo', name: 'Khách demo', email: '', role: 'manager', unit: '', demo: true }
+        : RH.requireRole('manager');
+    window.RHD_MODE = RH_IS_DEMO ? 'demo' : 'live';
+    RHT.seed();
+</script>
+
+<div class="topbar">
+    <div class="topbar-brand">
+        <span class="logo"><i class="fas fa-file-invoice"></i></span>
+        <div><h1>Biểu mẫu Hợp đồng &amp; Hóa đơn<span class="rh-demo-tag" id="rhDemoBadge" style="display:none;">DEMO</span></h1><p>Quản lý mẫu in dùng chung cho toàn hệ thống</p></div>
+    </div>
+    <a class="back-link" href="#" id="backLink"><i class="fas fa-arrow-left"></i> Về Quản lý</a>
+</div>
+
+<div class="main">
+    <div class="tabs">
+        <button class="tab-btn active" id="tabBtnContract" onclick="switchTemplateTab('contract')">Biểu mẫu Hợp đồng</button>
+        <button class="tab-btn" id="tabBtnInvoice" onclick="switchTemplateTab('invoice')">Biểu mẫu Hóa đơn &amp; Chứng từ</button>
+    </div>
+
+    <div id="contractTabPanel"></div>
+    <div id="invoiceTabPanel" style="display:none;"></div>
+</div>
+
+<div class="rh-drawer-overlay" id="rhDrawerOverlay">
+    <div class="rh-drawer">
+        <div class="rh-drawer-header"><h3 id="rhDrawerTitle" style="font:700 1.1rem 'Plus Jakarta Sans',sans-serif;">—</h3>
+        <button class="btn-icon" onclick="closeDrawer()"><i class="fas fa-xmark"></i></button></div>
+        <div class="rh-drawer-body" id="rhDrawerBody"></div>
+    </div>
+</div>
+
+<script>
+function escapeHtml(str) {
+    return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
+        return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
+    });
+}
+function byId(id) { return document.getElementById(id); }
+
+document.getElementById('backLink').href = 'dashboard.html' + (RH_IS_DEMO ? '#demo=1' : '');
+if (RH_IS_DEMO) document.getElementById('rhDemoBadge').style.display = 'inline-block';
+
+var INVOICE_CATEGORIES = ['Tất cả', 'Định kỳ hàng tháng', 'Đặt cọc', 'Thanh lý / Chuyển phòng'];
+var invoiceFilter = 'Tất cả';
+
+function openDrawer(title, bodyHtml) {
+    byId('rhDrawerTitle').textContent = title;
+    byId('rhDrawerBody').innerHTML = bodyHtml;
+    byId('rhDrawerOverlay').classList.add('show');
+}
+function closeDrawer() { byId('rhDrawerOverlay').classList.remove('show'); }
+document.getElementById('rhDrawerOverlay').addEventListener('click', function (ev) { if (ev.target === this) closeDrawer(); });
+
+function switchTemplateTab(tab) {
+    byId('tabBtnContract').classList.toggle('active', tab === 'contract');
+    byId('tabBtnInvoice').classList.toggle('active', tab === 'invoice');
+    byId('contractTabPanel').style.display = tab === 'contract' ? 'block' : 'none';
+    byId('invoiceTabPanel').style.display = tab === 'invoice' ? 'block' : 'none';
+    if (tab === 'contract') renderContractTab(); else renderInvoiceTab();
+}
+
+// ---- deterministic placeholder "QR" — a visual stand-in, not scannable ----
+function qrPlaceholderDataUri(seedText) {
+    var seed = 0;
+    for (var i = 0; i < (seedText || '').length; i++) seed = (seed * 31 + seedText.charCodeAt(i)) >>> 0;
+    function rand() { seed = (seed * 1103515245 + 12345) >>> 0; return (seed >> 8) % 2; }
+    var n = 8, cell = 11, svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + (n * cell) + '" height="' + (n * cell) + '"><rect width="100%" height="100%" fill="#fff"/>';
+    for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (rand()) svg += '<rect x="' + (x * cell) + '" y="' + (y * cell) + '" width="' + cell + '" height="' + cell + '" fill="#10213c"/>';
+    svg += '</svg>';
+    return 'data:image/svg+xml;base64,' + btoa(svg);
+}
+
+function sampleTemplateData() {
+    return {
+        invoice_code: 'HD2026-0099', contract_code: 'CT1-501-2026-001', issue_date: '30/09/2026', due_date: '10/10/2026',
+        payment_period: '2026-09', company_name: 'ResidentHub', manager_name: 'Nguyễn Văn An',
+        building_name: 'Chung cư Riverside Residence', building_address: 'Tổ 14, Phường Tích Lương, Thái Nguyên',
+        room_number: '501', room_area: 20, tenant_name: 'Nguyễn Thị Hoa', tenant_phone: '0984646471', tenant_id_number: '017296001234',
+        rent_price: '2.000.000đ', deposit_price: '2.000.000đ', deposit_amount: '2.000.000đ', first_month_rent: '2.000.000đ',
+        payment_cycle: 'Hàng tháng', start_date: '01/01/2026', end_date: '31/12/2026', old_end_date: '31/12/2026',
+        sign_date: '28/12/2025', nights: 3, rate_per_night: '450.000đ', room_charge: '1.350.000đ', other_fees: '100.000đ',
+        penalty_amount: '1.000.000đ', outstanding_amount: '250.000đ', old_room_number: '410',
+        service_rows_html: '<tr><td colspan="2">Phí quản lý vận hành</td><td class="num">1</td><td class="num">150.000đ</td></tr>',
+        electric_old: 80, electric_new: 100, electric_consumption: 20, electric_amount: '76.000đ',
+        water_old: 10, water_new: 16, water_consumption: 6, water_amount: '108.000đ',
+        total_amount: '2.195.480đ', bank_name: 'Vietcombank', bank_account_number: '0123456789', bank_account_holder: 'CTY TNHH RESIDENTHUB',
+        bank_qr_code: qrPlaceholderDataUri('sample'), einvoice_note: ''
+    };
+}
+
+function paperSizeToggleHtml() {
+    return '<div class="paper-size-toggle">' +
+        '<button class="active" data-size="a4" onclick="setPreviewPaper(this,\'\')">A4</button>' +
+        '<button data-size="a5" onclick="setPreviewPaper(this,\'paper-a5\')">A5</button>' +
+        '<button data-size="thermal" onclick="setPreviewPaper(this,\'paper-thermal\')">Hóa đơn nhiệt 80mm</button>' +
+        '</div>';
+}
+function setPreviewPaper(btn, cls) {
+    document.querySelectorAll('.paper-size-toggle button').forEach(function (b) { b.classList.remove('active'); });
+    btn.classList.add('active');
+    var area = document.querySelector('.rh-print-area');
+    area.className = 'rh-print-area' + (cls ? ' ' + cls : '');
+}
+
+function previewTemplate(id) {
+    var tpl = RHT.get(id);
+    if (!tpl) return;
+    var rendered = RHT.render(tpl.html_template, sampleTemplateData());
+    var html = '<div style="background:#fde68a;color:#78350f;font-size:.75rem;font-weight:700;padding:.4rem .7rem;border-radius:8px;margin-bottom:1rem;display:inline-block;">DỮ LIỆU MẪU MINH HOẠ — không phải dữ liệu thật</div>' +
+        paperSizeToggleHtml() +
+        '<div class="rh-print-area">' + rendered + '</div>' +
+        '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
+        '<button type="button" class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> In / Tải PDF</button>' +
+        (tpl.type === 'INVOICE' ? '<button type="button" onclick="setDefaultTemplate(\'' + tpl.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đặt làm mặc định</button>' : '') +
+        '<button type="button" onclick="closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đóng</button>' +
+        '</div>';
+    openDrawer('Xem trước — ' + tpl.name, html);
+}
+
+function editTemplate(id) {
+    var tpl = RHT.get(id);
+    if (!tpl) return;
+    var varsHtml = tpl.metadata.variables.map(function (v) { return '<span class="var-chip">{{' + v + '}}</span>'; }).join('');
+    var html = '<form onsubmit="saveTemplate(event,\'' + tpl.id + '\')">' +
+        '<div class="rh-field"><label>Tên mẫu</label><input id="tplName" value="' + escapeHtml(tpl.name) + '" required></div>' +
+        '<div class="rh-section"><div class="rh-section-title">Biến khả dụng trong mẫu này</div><div>' + varsHtml + '</div></div>' +
+        '<div class="rh-section"><div class="rh-section-title">Nội dung mẫu (HTML)</div>' +
+        '<textarea id="tplHtml" rows="16">' + escapeHtml(tpl.html_template) + '</textarea>' +
+        '<p style="color:#94a3b8;font-size:.75rem;margin-top:.4rem;">Dùng cú pháp <code>{{ten_bien}}</code> để chèn dữ liệu động. ' + (tpl.is_system ? 'Đây là mẫu hệ thống — lưu thay đổi sẽ tạo bản tuỳ chỉnh riêng, không ảnh hưởng mẫu gốc.' : '') + '</p></div>' +
+        '<div id="tplError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
+        '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
+        '<button type="submit" class="btn-primary">Lưu mẫu</button>' +
+        '<button type="button" onclick="closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Huỷ</button>' +
+        '</div></form>';
+    openDrawer((tpl.is_system ? 'Tuỳ chỉnh mẫu (hệ thống)' : 'Chỉnh sửa mẫu') + ' — ' + tpl.name, html);
+}
+
+function saveTemplate(ev, id) {
+    ev.preventDefault();
+    var tpl = RHT.get(id);
+    var name = byId('tplName').value.trim();
+    var htmlContent = byId('tplHtml').value;
+    var res;
+    if (tpl.is_system) {
+        res = RHT.clone(id);
+        if (res.ok) res = RHT.update(res.item.id, { name: name, html_template: htmlContent, is_system_default: false });
+    } else {
+        res = RHT.update(id, { name: name, html_template: htmlContent });
+    }
+    if (!res.ok) { byId('tplError').textContent = res.error; return; }
+    closeDrawer();
+    renderContractTab(); renderInvoiceTab();
+}
+
+function cloneTemplate(id) {
+    var res = RHT.clone(id);
+    if (!res.ok) { alert(res.error); return; }
+    renderContractTab(); renderInvoiceTab();
+}
+
+function deleteTemplateAction(id) {
+    if (!confirm('Xoá mẫu này? Hành động không thể hoàn tác.')) return;
+    var res = RHT.remove(id);
+    if (!res.ok) { alert(res.error); return; }
+    renderContractTab(); renderInvoiceTab();
+}
+
+function setDefaultTemplate(id) {
+    RHT.setDefault(id);
+    closeDrawer();
+    renderContractTab(); renderInvoiceTab();
+}
+
+function templateCardHtml(tpl) {
+    var badges = '<span class="badge-pill badge-category">' + escapeHtml(tpl.category) + '</span>' +
+        (tpl.is_system_default ? '<span class="badge-pill badge-default"><i class="fas fa-star"></i> Mặc định</span>' : '') +
+        (tpl.is_system ? '<span class="badge-pill badge-system">Hệ thống</span>' : '<span class="badge-pill badge-system">Tuỳ chỉnh</span>');
+    return '<article class="tpl-card">' +
+        '<div class="tpl-card-top"><h3>' + escapeHtml(tpl.name) + '</h3></div>' +
+        '<div class="tpl-badges">' + badges + '</div>' +
+        '<div class="tpl-actions">' +
+        '<button onclick="previewTemplate(\'' + tpl.id + '\')"><i class="fas fa-eye"></i> Xem trước</button>' +
+        '<button onclick="editTemplate(\'' + tpl.id + '\')"><i class="fas fa-pen"></i> ' + (tpl.is_system ? 'Tuỳ chỉnh' : 'Chỉnh sửa') + '</button>' +
+        '<button onclick="cloneTemplate(\'' + tpl.id + '\')"><i class="fas fa-clone"></i> Nhân bản</button>' +
+        (tpl.type === 'INVOICE' && !tpl.is_system_default ? '<button onclick="setDefaultTemplate(\'' + tpl.id + '\')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '') +
+        (!tpl.is_system ? '<button class="danger" onclick="deleteTemplateAction(\'' + tpl.id + '\')"><i class="fas fa-trash"></i> Xoá</button>' : '') +
+        '</div></article>';
+}
+
+function renderContractTab() {
+    var items = RHT.list('CONTRACT');
+    var panel = byId('contractTabPanel');
+    panel.innerHTML = '<div class="card">' +
+        '<div class="section-head"><div><h2>Biểu mẫu Hợp đồng</h2><p>Mẫu hợp đồng và phụ lục dùng khi lập Hợp đồng cho từng tòa nhà.</p></div></div>' +
+        (items.length ? '<div class="tpl-grid">' + items.map(templateCardHtml).join('') + '</div>' : '<div class="empty">Chưa có mẫu hợp đồng nào.</div>') +
+        '</div>';
+}
+
+function renderInvoiceTab() {
+    var all = RHT.list('INVOICE');
+    var items = invoiceFilter === 'Tất cả' ? all : all.filter(function (t) { return t.category === invoiceFilter; });
+    var panel = byId('invoiceTabPanel');
+    var chips = INVOICE_CATEGORIES.map(function (c) {
+        return '<button class="filter-chip' + (c === invoiceFilter ? ' active' : '') + '" onclick="setInvoiceFilter(\'' + c + '\')">' + escapeHtml(c) + '</button>';
+    }).join('');
+    panel.innerHTML = '<div class="card">' +
+        '<div class="section-head"><div><h2>Biểu mẫu Hóa đơn &amp; Chứng từ</h2><p>Phiếu thu / Bảng kê / Biên bản nội bộ — không phải hóa đơn GTGT điện tử. Chọn "Đặt mặc định" để áp dụng khi tạo Tòa nhà mới.</p></div></div>' +
+        '<div class="filters">' + chips + '</div>' +
+        (items.length ? '<div class="tpl-grid">' + items.map(templateCardHtml).join('') + '</div>' : '<div class="empty">Không có mẫu phù hợp bộ lọc.</div>') +
+        '</div>';
+}
+
+function setInvoiceFilter(cat) { invoiceFilter = cat; renderInvoiceTab(); }
+
+renderContractTab();
+</script>
+</body>
+</html>

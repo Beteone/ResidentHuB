@@ -285,7 +285,7 @@
     }
 
     function createNotification(data) {
-        return create('notifications', {
+        var result = create('notifications', {
             title: data.title || 'Thông báo',
             body: data.body || '',
             type: data.type || 'info',
@@ -295,6 +295,10 @@
             isRead: false,
             readAt: null
         });
+        if (result.ok && global.RH && global.RH.syncManagerNotification) {
+            global.RH.syncManagerNotification(result.item);
+        }
+        return result;
     }
 
     /* ==============================================================
