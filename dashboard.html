@@ -2587,6 +2587,11 @@
                     <div class="stat-value" id="todoExpiring">0</div>
                     <div class="stat-sub" id="todoExpiringNote">Không có hợp đồng sắp hết hạn</div>
                 </div>
+                <div class="card kpi-card todo" data-goto="settings">
+                    <div class="stat-label"><i class="fas fa-user-clock"></i> Tài khoản cư dân chờ phê duyệt</div>
+                    <div class="stat-value" id="todoAccountRequests">0</div>
+                    <div class="stat-sub" id="todoAccountRequestsNote">Không có tài khoản chờ phê duyệt</div>
+                </div>
             </div>
 
             <!-- Recent Activity — synthesized from real createdAt timestamps across modules -->
@@ -3263,6 +3268,31 @@
         </div>
 
         <div id="settings-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                    <div>
+                        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Yêu cầu đăng ký tài khoản cư dân</h2>
+                        <p style="color: #94a3b8; margin-top: 0.4rem; font-size: 0.875rem;">Cư dân đăng ký từ trang chủ sẽ xuất hiện ở đây, chờ được phê duyệt trước khi tài khoản có hiệu lực.</p>
+                    </div>
+                </div>
+                <div class="table-container" style="margin-top: 1.25rem;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Người đăng ký</th>
+                                <th style="text-align: left;">Liên hệ</th>
+                                <th style="text-align: left;">Tòa nhà / Căn hộ</th>
+                                <th style="text-align: left;">Hồ sơ cư dân</th>
+                                <th style="text-align: left;">Trạng thái</th>
+                                <th style="text-align: left;">Ngày đăng ký</th>
+                                <th style="text-align: right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountRequestsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                     <div>
@@ -4476,6 +4506,99 @@
             });
         }
 
+        const REQUEST_STATUS_LABELS = { pending: 'Chờ phê duyệt', approved: 'Đã phê duyệt', rejected: 'Đã từ chối' };
+        const REQUEST_STATUS_COLORS = { pending: '#a5680c', approved: '#18a878', rejected: '#ef4444' };
+        const REQUEST_STATUS_BG = { pending: '#fff4df', approved: '#e6f8ef', rejected: '#fee2e2' };
+
+        function renderAccountRequestsTable() {
+            const body = document.getElementById('accountRequestsTableBody');
+            if (!body) return;
+            const requests = RH.listAccountRequests ? RH.listAccountRequests() : [];
+            body.innerHTML = requests.map(function (r) {
+                const building = RHD.get('buildings', r.buildingId);
+                const apartment = RHD.get('apartments', r.apartmentId);
+                const customer = r.residentId ? RHD.get('customers', r.residentId) : null;
+                const submitted = new Date(r.submittedAt).toLocaleString('vi-VN');
+                const actions = r.status === 'pending'
+                    ? '<button onclick="openAccountRequestDrawer(\'' + r.id + '\')" style="background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff;border:0;border-radius:6px;padding:0.35rem 0.75rem;cursor:pointer;" title="Xem & xử lý"><i class="fas fa-eye"></i> Xử lý</button>'
+                    : '<span style="color:#94a3b8;font-size:0.78rem;">' + (r.reviewedAt ? new Date(r.reviewedAt).toLocaleString('vi-VN') : '—') + '</span>';
+                return '<tr>' +
+                    '<td>' + escapeHtml(r.fullName) + '</td>' +
+                    '<td>' + escapeHtml(r.phone || '—') + '<div style="font-size:0.75rem;color:#94a3b8;">' + escapeHtml(r.email) + '</div></td>' +
+                    '<td>' + escapeHtml(building ? (building.shortName || building.name) : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</td>' +
+                    '<td>' + (customer ? escapeHtml(customer.fullName) : '<span style="color:#ef4444;">Chưa liên kết</span>') + '</td>' +
+                    '<td><span style="background:' + REQUEST_STATUS_BG[r.status] + ';color:' + REQUEST_STATUS_COLORS[r.status] + ';font-size:0.72rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;">' + REQUEST_STATUS_LABELS[r.status] + '</span></td>' +
+                    '<td style="white-space:nowrap;">' + submitted + '</td>' +
+                    '<td style="text-align:right;white-space:nowrap;">' + actions + '</td>' +
+                    '</tr>';
+            }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có yêu cầu đăng ký nào</td></tr>';
+        }
+
+        function openAccountRequestDrawer(id) {
+            const r = RH.getAccountRequest(id);
+            if (!r) return;
+            const building = RHD.get('buildings', r.buildingId);
+            const apartment = RHD.get('apartments', r.apartmentId);
+            const customers = RHD.list('customers');
+            const contract = apartment ? RHD.activeContractFor(apartment.id) : null;
+
+            const customerOptions = '<option value="">— Tạo hồ sơ cư dân mới —</option>' + customers.map(function (c) {
+                return '<option value="' + c.id + '"' + (c.id === r.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + '</option>';
+            }).join('');
+
+            const html = '<div style="display:grid;gap:0.9rem;">' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Họ tên đăng ký</label><div style="font-weight:600;">' + escapeHtml(r.fullName) + '</div></div>' +
+                '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;">' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Số điện thoại</label><div style="font-weight:600;">' + escapeHtml(r.phone || '—') + '</div></div>' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Email</label><div style="font-weight:600;">' + escapeHtml(r.email) + '</div></div>' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">CCCD</label><div style="font-weight:600;">' + escapeHtml(r.idNumber || '—') + '</div></div>' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Ngày đăng ký</label><div style="font-weight:600;">' + new Date(r.submittedAt).toLocaleString('vi-VN') + '</div></div>' +
+                '</div>' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Tòa nhà / Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</div></div>' +
+                (contract ? '<div><label style="font-size:0.78rem;color:#94a3b8;">Hợp đồng liên quan</label><div style="font-weight:600;">' + escapeHtml(contract.code) + '</div></div>' : '') +
+                '<div style="border-top:1px solid var(--line);padding-top:0.9rem;">' +
+                (r.residentId
+                    ? '<div style="color:#18a878;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-circle-check"></i> Đã tìm thấy hồ sơ cư dân phù hợp.</div>'
+                    : '<div style="color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-triangle-exclamation"></i> Không tìm thấy hồ sơ cư dân phù hợp. Vui lòng chọn một hồ sơ có sẵn hoặc tạo hồ sơ mới trước khi phê duyệt.</div>') +
+                '<label style="font-size:0.8rem;font-weight:600;color:#475569;">Liên kết hồ sơ cư dân</label>' +
+                '<select id="reqResidentSelect" style="width:100%;margin-top:0.35rem;padding:0.6rem 0.75rem;border:1px solid var(--line);border-radius:8px;font:inherit;">' + customerOptions + '</select>' +
+                '</div>' +
+                '<div id="reqActionError" style="color:#ef4444;font-size:0.85rem;"></div>' +
+                '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;">' +
+                '<button onclick="submitApproveAccountRequest(\'' + r.id + '\')" style="background:linear-gradient(135deg,#18a878 0%,#0f8a63 100%);color:#fff;border:0;border-radius:8px;padding:0.65rem 1.2rem;font:inherit;cursor:pointer;"><i class="fas fa-check"></i> Phê duyệt</button>' +
+                '<button onclick="promptRejectAccountRequest(\'' + r.id + '\')" style="background:#fff;color:#ef4444;border:1px solid #fecaca;border-radius:8px;padding:0.65rem 1.2rem;font:inherit;cursor:pointer;"><i class="fas fa-xmark"></i> Từ chối</button>' +
+                '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;color:#475569;border:1px solid var(--line);border-radius:8px;padding:0.65rem 1.2rem;font:inherit;cursor:pointer;">Đóng</button>' +
+                '</div>' +
+                '</div>';
+            RHUI.openDrawer('Yêu cầu đăng ký — ' + r.fullName, html);
+        }
+
+        function submitApproveAccountRequest(id) {
+            const select = document.getElementById('reqResidentSelect');
+            const residentId = select ? select.value : '';
+            const opts = residentId ? { residentId: residentId } : { createNewProfile: true };
+            const result = RH.approveAccountRequest(id, RH_SESSION ? RH_SESSION.id : null, opts);
+            if (!result.ok) {
+                const errorEl = document.getElementById('reqActionError');
+                if (errorEl) errorEl.textContent = result.error;
+                return;
+            }
+            RHUI.closeDrawer();
+            renderAccountRequestsTable();
+            renderAccountsTable();
+            RHUI.renderDashboardCounts();
+        }
+
+        function promptRejectAccountRequest(id) {
+            const reason = prompt('Lý do từ chối (không bắt buộc):', '');
+            if (reason === null) return;
+            const result = RH.rejectAccountRequest(id, RH_SESSION ? RH_SESSION.id : null, reason);
+            if (!result.ok) { alert(result.error); return; }
+            RHUI.closeDrawer();
+            renderAccountRequestsTable();
+            RHUI.renderDashboardCounts();
+        }
+
         function populateAccountApartmentOptions(selectedId) {
             const select = document.getElementById('accountApartmentId');
             const apartments = RHD.list('apartments');
@@ -4560,7 +4683,7 @@
             initCharts();
             renderWorkflows();
             renderCurrentUser();
-            if (!RH_IS_DEMO) renderAccountsTable();
+            if (!RH_IS_DEMO) { renderAccountsTable(); renderAccountRequestsTable(); }
             RHUI.renderDashboardCounts();
             document.addEventListener('click', function (ev) {
                 const card = ev.target.closest('.kpi-card[data-goto]');
