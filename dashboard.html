@@ -3040,7 +3040,7 @@
                 <span>Khách hàng</span>
 
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('meters')">
+            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').style.display = 'block';">
                 <i class="fas fa-gauge-high"></i>
                 <span>Ghi chỉ số</span>
             </div>
@@ -4143,8 +4143,20 @@
                 </div>
             </div>
         </div>
+        </div>
 
-        <div id="meters-tab" style="display: none;"></div>
+        <div id="meters-tab" style="display: none;">
+            <div class="meter-page">
+                <header class="meter-header">
+                    <div class="meter-title">
+                        <button class="back-button" type="button" onclick="switchTab('dashboard')" title="Quay lại"><i class="fas fa-arrow-left"></i></button>
+                        <div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;margin-top:.2rem;">Quản lý chỉ số điện và nước theo từng kỳ</p></div>
+                    </div>
+                    <button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button>
+                </header>
+                <div class="card meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới, hoặc chỉnh bộ lọc.</p></div>
+            </div>
+        </div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
@@ -5666,6 +5678,36 @@ const editableStats = {
         };
         window.TAB_RENDERERS = TAB_RENDERERS;
 
+function ensureTab(tabName) {
+            const tabId = tabName + '-tab';
+            let tab = document.getElementById(tabId);
+            if (!tab) {
+                tab = document.createElement('div');
+                tab.id = tabId;
+                tab.style.display = 'none';
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.appendChild(tab);
+                } else {
+                    document.body.appendChild(tab);
+                }
+            }
+            return tab;
+        }
+
+        function renderMetersFallback(tab) {
+            const readings = window.RHD && Array.isArray(RHD.list('meters')) ? RHD.list('meters') : [];
+            const rows = readings.map(function (reading) {
+                const building = RHD.get('buildings', reading.buildingId);
+                const apartment = RHD.get('apartments', reading.apartmentId);
+                return '<tr><td>' + (building ? (building.shortName || building.name || '—') : '—') + ' / ' + (apartment ? apartment.name : '—') + '</td>' +
+                    '<td>' + (reading.meterType === 'water' ? 'Công tơ nước' : 'Công tơ điện') + '</td><td>' + (reading.previousIndex || 0) + '</td><td>' +
+                    (reading.latestIndex || 0) + '</td><td><strong>' + (reading.consumption || 0) + '</strong></td></tr>';
+            }).join('');
+            tab.innerHTML = '<div class="meter-page"><div class="meter-header"><div class="meter-title"><button class="back-button" type="button" onclick="switchTab(\'dashboard\')"><i class="fas fa-arrow-left"></i></button><div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;">Quản lý chỉ số điện và nước</p></div></div><button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button></div><div class="card"><h2 style="font-size:1rem;color:#10213c;margin-bottom:1rem;">Danh sách bản ghi</h2>' +
+                (rows ? '<div class="table-container"><table><thead><tr><th>Tòa nhà / Căn hộ</th><th>Loại công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới.</p></div>') + '</div></div>';
+        }
+
         // Switch Tab Function
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
@@ -5677,8 +5719,20 @@ const editableStats = {
             if (!selectedTab && tabName === 'customers') {
                 selectedTab = document.getElementById('residents-tab');
             }
-            if (selectedTab) selectedTab.style.display = 'block';
-            if (window.TAB_RENDERERS && window.TAB_RENDERERS[tabName]) window.TAB_RENDERERS[tabName]();
+            if (!selectedTab) {
+                selectedTab = ensureTab(tabName);
+            }
+            selectedTab.style.display = 'block';
+            if (window.TAB_RENDERERS && window.TAB_RENDERERS[tabName]) {
+                try {
+                    window.TAB_RENDERERS[tabName]();
+                } catch (error) {
+                    console.error('Không thể render tab ' + tabName, error);
+                    if (tabName === 'meters') renderMetersFallback(selectedTab);
+                    else selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
+                }
+            }
+            if (tabName === 'meters' && !selectedTab.innerHTML.trim()) renderMetersFallback(selectedTab);
 
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
