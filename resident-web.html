@@ -2508,6 +2508,29 @@
             });
             modal.addEventListener('click', event => { if (event.target === modal) close(); });
             refresh();
+            const contractStartLabel = contractData.startDate ? contractFormatDate(contractData.startDate) : '01/09/2026';
+            const contractEndLabel = contractData.endDate ? contractFormatDate(contractData.endDate) : '31/08/2027';
+            const contractRentLabel = Number(contractData.rentPrice || 2000000).toLocaleString('vi-VN') + ' ₫/tháng';
+            const contractDepositLabel = Number(contractData.depositPrice || 2000000).toLocaleString('vi-VN') + ' ₫';
+            const contractRoot = document.getElementById('contractsSection');
+            if (contractRoot) {
+                contractRoot.querySelector('#contractTerm').textContent = contractStartLabel + ' — ' + contractEndLabel;
+                const values = contractRoot.querySelectorAll('.contract-values strong');
+                if (values[2]) values[2].textContent = contractRentLabel;
+                const details = contractRoot.querySelectorAll('.contract-detail-grid .meta-box strong');
+                if (details[0]) details[0].textContent = contractData.signDate ? contractFormatDate(contractData.signDate) : contractStartLabel;
+                if (details[2]) details[2].textContent = contractDepositLabel;
+                const walker = document.createTreeWalker(contractRoot, NodeFilter.SHOW_TEXT);
+                const textNodes = [];
+                while (walker.nextNode()) textNodes.push(walker.currentNode);
+                textNodes.forEach(node => {
+                    node.nodeValue = node.nodeValue
+                        .replace(/01\/01\/2026 — 31\/12\/2026/g, contractStartLabel + ' — ' + contractEndLabel)
+                        .replace(/28\/12\/2025/g, contractData.signDate ? contractFormatDate(contractData.signDate) : contractStartLabel)
+                        .replace(/17\.000\.000 ₫/g, contractDepositLabel)
+                        .replace(/8\.500\.000 ₫\/tháng/g, contractRentLabel);
+                });
+            }
         })();
     </script>
 </body>
