@@ -259,8 +259,8 @@
                     autoDebitAccount: '', eInvoiceEnabled: false, eInvoiceProvider: '',
                     bankName: 'Vietcombank', bankAccountNumber: '', bankAccountHolder: ''
                 },
-                invoiceTemplates: [{ id: genId('tpl'), name: 'Mẫu hóa đơn hợp đồng mới', isDefault: true }],
-                contractTemplates: [{ id: genId('tpl'), name: 'Hợp đồng ký mới', isDefault: true }],
+                contractTemplateId: global.RHT ? (global.RHT.getDefault('CONTRACT') || {}).id : '',
+                invoiceTemplateId: global.RHT ? (global.RHT.getDefault('INVOICE') || {}).id : '',
                 createdAt: Date.now()
             };
             writeAll('buildings', [building]);
@@ -279,7 +279,7 @@
                 id: genId('contract'), code: building.shortName + '-501-' + new Date().getFullYear() + '-001',
                 buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id,
                 startDate: '2026-01-01', endDate: '2026-12-31', signDate: '2025-12-28',
-                contractTemplateId: building.contractTemplates[0].id, invoiceTemplateId: building.invoiceTemplates[0].id,
+                contractTemplateId: building.contractTemplateId, invoiceTemplateId: building.invoiceTemplateId,
                 rentPrice: apt1.rentPrice, depositPrice: apt1.depositPrice, paymentCycle: 'monthly',
                 referrer: '', collaborator: 'Trần Văn Bình', note: '', files: [], status: 'active', createdAt: Date.now()
             };
@@ -315,6 +315,9 @@
 
     function setMode(m) {
         global.RHD_MODE = m === 'demo' ? 'demo' : 'live';
+        // Template library seeds first — building seed data below references
+        // RHT.getDefault() to pick its default contract/invoice template.
+        if (global.RHT) global.RHT.seed();
         // Seeds once (seedDataset no-ops once a dataset already has data), so a demo
         // visitor always sees a complete sample system on first visit, and anything
         // they add afterwards persists alongside it instead of being wiped.
@@ -326,6 +329,8 @@
         ENTITIES.forEach(function (entity) {
             localStorage.removeItem('residenthub_demo_' + entity);
         });
+        localStorage.removeItem('residenthub_demo_templates');
+        if (global.RHT) global.RHT.seed();
         seedDataset('demo');
     }
 

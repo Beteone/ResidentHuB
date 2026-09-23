@@ -190,44 +190,27 @@
         container.innerHTML = RHUI.buildingServices.map(function (s, i) { return serviceRowHtml(s, i); }).join('') || '<p style="color:#94a3b8;font-size:.85rem;">Chưa có dịch vụ nào.</p>';
     }
 
-    function templateRowHtml(kind, tpl, idx) {
-        return '<div style="display:flex;align-items:center;gap:.6rem;padding:.5rem 0;border-bottom:1px solid #f1f5f9;">' +
-            '<input type="radio" name="rh' + kind + 'Default" ' + (tpl.isDefault ? 'checked' : '') + ' onchange="RHUI.setDefaultTemplate(\'' + kind + '\',' + idx + ')">' +
-            '<span style="flex:1;">' + escapeHtml(tpl.name) + (tpl.isDefault ? ' <em style="color:#94a3b8;font-size:.75rem;">(mặc định)</em>' : '') + '</span>' +
-            '<button type="button" class="rh-row-btn danger" onclick="RHUI.removeTemplate(\'' + kind + '\',' + idx + ')"><i class="fas fa-trash"></i></button>' +
-            '</div>';
-    }
-
-    function renderTemplateList(kind) {
-        var list = kind === 'Invoice' ? RHUI.buildingInvoiceTemplates : RHUI.buildingContractTemplates;
-        var container = byId('rh' + kind + 'TemplateList');
-        if (!container) return;
-        container.innerHTML = list.map(function (t, i) { return templateRowHtml(kind, t, i); }).join('') || '<p style="color:#94a3b8;font-size:.85rem;">Chưa có mẫu nào.</p>';
-    }
-
     RHUI.addBuildingService = function () {
         RHUI.buildingServices.push({ id: 'svc-' + Date.now() + Math.random().toString(36).slice(2, 6), name: '', feeType: 'service', calcMethod: 'fixed', unitPrice: 0, taxRate: 0 });
         renderBuildingServicesList();
     };
     RHUI.removeBuildingService = function (idx) { RHUI.buildingServices.splice(idx, 1); renderBuildingServicesList(); };
 
-    RHUI.addTemplate = function (kind, inputId) {
-        var input = byId(inputId);
-        var name = (input.value || '').trim();
-        if (!name) return;
-        var list = kind === 'Invoice' ? RHUI.buildingInvoiceTemplates : RHUI.buildingContractTemplates;
-        list.push({ id: 'tpl-' + Date.now() + Math.random().toString(36).slice(2, 6), name: name, isDefault: list.length === 0 });
-        input.value = '';
-        renderTemplateList(kind);
-    };
-    RHUI.removeTemplate = function (kind, idx) {
-        var list = kind === 'Invoice' ? RHUI.buildingInvoiceTemplates : RHUI.buildingContractTemplates;
-        list.splice(idx, 1);
-        renderTemplateList(kind);
-    };
-    RHUI.setDefaultTemplate = function (kind, idx) {
-        var list = kind === 'Invoice' ? RHUI.buildingInvoiceTemplates : RHUI.buildingContractTemplates;
-        list.forEach(function (t, i) { t.isDefault = i === idx; });
+    // Template selection now sources the shared system library (templates.js /
+    // RHT) instead of each building keeping its own ad-hoc name list.
+    function templatePickerHtml(fieldId, type, selectedId) {
+        var options = RHT.list(type);
+        return '<div class="rh-field"><label>' + (type === 'CONTRACT' ? 'Mẫu hợp đồng áp dụng' : 'Mẫu hóa đơn áp dụng') + '</label>' +
+            '<div style="display:flex;gap:.5rem;">' +
+            '<select id="' + fieldId + '" style="flex:1;">' + selectOptions(options, 'id', 'name', selectedId) + '</select>' +
+            '<button type="button" class="rh-row-btn" title="Xem trước mẫu" onclick="RHUI.previewTemplateField(\'' + fieldId + '\')"><i class="fas fa-eye"></i></button>' +
+            '<a href="templates.html' + (RHD.mode() === 'demo' ? '#demo=1' : '') + '" target="_blank" class="rh-row-btn" title="Tùy chỉnh mẫu" style="display:inline-flex;align-items:center;text-decoration:none;"><i class="fas fa-pen-to-square"></i></a>' +
+            '</div></div>';
+    }
+
+    RHUI.previewTemplateField = function (fieldId) {
+        var tplId = byId(fieldId).value;
+        RHUI.previewTemplateById(tplId);
     };
 
     RHUI.openBuildingForm = function (id) {
@@ -235,8 +218,6 @@
         RHUI.drawerEntity = 'buildings';
         RHUI.drawerId = id || null;
         RHUI.buildingServices = b ? JSON.parse(JSON.stringify(b.services || [])) : [];
-        RHUI.buildingInvoiceTemplates = b ? JSON.parse(JSON.stringify(b.invoiceTemplates || [])) : [];
-        RHUI.buildingContractTemplates = b ? JSON.parse(JSON.stringify(b.contractTemplates || [])) : [];
         var cfg = (b && b.config) || {};
 
         var html = '<form onsubmit="RHUI.submitBuildingForm(event)">' +
@@ -264,14 +245,9 @@
             '<div class="rh-field"><label>Chủ tài khoản</label><input id="bfBankHolder" value="' + escapeHtml(cfg.bankAccountHolder || '') + '"></div>' +
             '</div>' +
             '<div class="rh-grid-2" style="margin-top:1rem;">' +
-            '<div><label style="font-size:.8rem;font-weight:600;color:#475569;">Mẫu in hóa đơn</label>' +
-            '<div id="rhInvoiceTemplateList" style="margin-top:.4rem;"></div>' +
-            '<div style="display:flex;gap:.5rem;margin-top:.5rem;"><input id="rhNewInvoiceTpl" placeholder="Tên mẫu mới" style="flex:1;padding:.5rem .6rem;border:1px solid var(--line);border-radius:8px;"><button type="button" class="rh-link-btn" onclick="RHUI.addTemplate(\'Invoice\',\'rhNewInvoiceTpl\')">Thêm</button></div>' +
+            templatePickerHtml('bfInvoiceTpl', 'INVOICE', b ? b.invoiceTemplateId : (RHT.getDefault('INVOICE') || {}).id) +
+            templatePickerHtml('bfContractTpl', 'CONTRACT', b ? b.contractTemplateId : (RHT.getDefault('CONTRACT') || {}).id) +
             '</div>' +
-            '<div><label style="font-size:.8rem;font-weight:600;color:#475569;">Mẫu hợp đồng</label>' +
-            '<div id="rhContractTemplateList" style="margin-top:.4rem;"></div>' +
-            '<div style="display:flex;gap:.5rem;margin-top:.5rem;"><input id="rhNewContractTpl" placeholder="Tên mẫu mới" style="flex:1;padding:.5rem .6rem;border:1px solid var(--line);border-radius:8px;"><button type="button" class="rh-link-btn" onclick="RHUI.addTemplate(\'Contract\',\'rhNewContractTpl\')">Thêm</button></div>' +
-            '</div></div>' +
             '</div>' +
 
             '<div id="bfError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
@@ -282,8 +258,6 @@
 
         openDrawer(b ? 'Sửa tòa nhà' : 'Thêm tòa nhà', html);
         renderBuildingServicesList();
-        renderTemplateList('Invoice');
-        renderTemplateList('Contract');
         byId('bfProvince').addEventListener('change', function () {
             var wards = RHD.WARD_SUGGESTIONS[this.value] || [];
             byId('rhWardSuggestions').innerHTML = wards.map(function (w) { return '<option value="' + escapeHtml(w) + '">'; }).join('');
@@ -299,8 +273,8 @@
             ward: byId('bfWard').value.trim(),
             addressDetail: byId('bfAddress').value.trim(),
             services: RHUI.buildingServices,
-            invoiceTemplates: RHUI.buildingInvoiceTemplates,
-            contractTemplates: RHUI.buildingContractTemplates,
+            invoiceTemplateId: byId('bfInvoiceTpl').value,
+            contractTemplateId: byId('bfContractTpl').value,
             config: {
                 autoDebitAccount: byId('bfAutoDebit').value.trim(),
                 eInvoiceEnabled: !!byId('bfEinvoice').value.trim(),
@@ -815,8 +789,8 @@
             '<div class="rh-field"><label>Ngày bắt đầu *</label><input id="cfStart" type="date" required value="' + escapeHtml(c ? c.startDate : '') + '"></div>' +
             '<div class="rh-field"><label>Ngày kết thúc *</label><input id="cfEnd" type="date" required value="' + escapeHtml(c ? c.endDate : '') + '"></div>' +
             '<div class="rh-field"><label>Ngày ký</label><input id="cfSignDate" type="date" value="' + escapeHtml(c ? c.signDate : '') + '"></div>' +
-            '<div class="rh-field"><label>Mẫu hợp đồng</label><select id="cfContractTpl">' + selectOptions(building.contractTemplates || [], 'id', 'name', c ? c.contractTemplateId : '') + '</select></div>' +
-            '<div class="rh-field"><label>Mẫu hóa đơn</label><select id="cfInvoiceTpl">' + selectOptions(building.invoiceTemplates || [], 'id', 'name', c ? c.invoiceTemplateId : '') + '</select></div>' +
+            '<div class="rh-field"><label>Mẫu hợp đồng</label><select id="cfContractTpl">' + selectOptions(RHT.list('CONTRACT'), 'id', 'name', c ? c.contractTemplateId : building.contractTemplateId) + '</select></div>' +
+            '<div class="rh-field"><label>Mẫu hóa đơn</label><select id="cfInvoiceTpl">' + selectOptions(RHT.list('INVOICE'), 'id', 'name', c ? c.invoiceTemplateId : building.invoiceTemplateId) + '</select></div>' +
             '<div class="rh-field"><label>Tiền thuê (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfRent" type="number" required value="' + (c ? c.rentPrice : '') + '"></div>' +
             '<div class="rh-field"><label>Tiền cọc (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfDeposit" type="number" required value="' + (c ? c.depositPrice : '') + '"></div>' +
             '<div class="rh-field"><label>Người giới thiệu</label><input id="cfReferrer" value="' + escapeHtml(c ? c.referrer : '') + '"></div>' +
@@ -838,8 +812,8 @@
             var apts = RHD.apartmentsOf(this.value);
             byId('cfApartmentSel').innerHTML = selectOptions(apts, 'id', 'name');
             var b = RHD.get('buildings', this.value);
-            byId('cfContractTpl').innerHTML = selectOptions(b.contractTemplates || [], 'id', 'name');
-            byId('cfInvoiceTpl').innerHTML = selectOptions(b.invoiceTemplates || [], 'id', 'name');
+            byId('cfContractTpl').value = b.contractTemplateId;
+            byId('cfInvoiceTpl').value = b.invoiceTemplateId;
             byId('cfServiceRows').innerHTML = contractServiceRows(b, b.services.filter(function (s) { return s.feeType !== 'deposit' && s.feeType !== 'rent'; }).map(function (s) { return s.id; }), {});
             refreshContractApartmentInfo();
         });
@@ -1061,6 +1035,7 @@
             buildingId: contract.buildingId,
             apartmentId: contract.apartmentId,
             customerId: contract.customerId,
+            invoiceTemplateId: contract.invoiceTemplateId,
             period: byId('ifPeriod').value,
             issueDate: byId('ifIssueDate').value,
             dueDate: byId('ifDueDate').value,
@@ -1103,33 +1078,102 @@
         renderInvoicesTab();
     };
 
+    // Deterministic placeholder "QR" (a visual stand-in, not a scannable code) so
+    // print previews don't look broken before a real bank QR provider is wired up.
+    function qrPlaceholderDataUri(seedText) {
+        var seed = 0;
+        for (var i = 0; i < (seedText || '').length; i++) seed = (seed * 31 + seedText.charCodeAt(i)) >>> 0;
+        function rand() { seed = (seed * 1103515245 + 12345) >>> 0; return (seed >> 8) % 2; }
+        var n = 8, cell = 11, svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + (n * cell) + '" height="' + (n * cell) + '"><rect width="100%" height="100%" fill="#fff"/>';
+        for (var y = 0; y < n; y++) for (var x = 0; x < n; x++) if (rand()) svg += '<rect x="' + (x * cell) + '" y="' + (y * cell) + '" width="' + cell + '" height="' + cell + '" fill="#10213c"/>';
+        svg += '</svg>';
+        return 'data:image/svg+xml;base64,' + btoa(svg);
+    }
+
+    function invoiceTemplateData(inv, tpl) {
+        var building = RHD.get('buildings', inv.buildingId) || {};
+        var apt = RHD.get('apartments', inv.apartmentId) || {};
+        var cus = RHD.get('customers', inv.customerId) || {};
+        var contract = RHD.get('contracts', inv.contractId) || {};
+        var cfg = building.config || {};
+        var elecItem = inv.items.filter(function (it) { return /kWh|Tiền điện/i.test(it.label); })[0];
+        var waterItem = inv.items.filter(function (it) { return /m³|Tiền nước/i.test(it.label); })[0];
+        var elecReading = RHD.latestMeter(inv.apartmentId, 'electricity');
+        var waterReading = RHD.latestMeter(inv.apartmentId, 'water');
+        // Only drop electricity/water from the generic rows when the selected
+        // template has its own dedicated {{electric_*}}/{{water_*}} placeholders
+        // (invoice_monthly) — otherwise every item stays listed so nothing is lost.
+        var tplVars = (tpl && tpl.metadata && tpl.metadata.variables) || [];
+        var hasOwnMeterRows = tplVars.indexOf('electric_old') !== -1 || tplVars.indexOf('water_old') !== -1;
+        var serviceRows = inv.items.filter(function (it) {
+            return !hasOwnMeterRows || (it !== elecItem && it !== waterItem);
+        }).map(function (it) {
+            return '<tr><td colspan="2">' + escapeHtml(it.label) + '</td><td class="num">1</td><td class="num">' + money(it.amount) + '</td></tr>';
+        }).join('');
+        return {
+            invoice_code: inv.code, contract_code: contract.code || '', issue_date: fmtDate(inv.issueDate), due_date: fmtDate(inv.dueDate),
+            payment_period: inv.period, company_name: 'ResidentHub', manager_name: (RH_SESSION && RH_SESSION.name) || 'Ban quản lý',
+            building_name: building.name || '', building_address: [building.addressDetail, building.ward, building.province].filter(Boolean).join(', '),
+            room_number: apt.name || '', room_area: apt.area || '', tenant_name: cus.fullName || '', tenant_phone: cus.phone || '', tenant_id_number: cus.idNumber || '',
+            rent_price: money(inv.subtotal ? contract.rentPrice || '' : ''), deposit_price: money(contract.depositPrice || ''), deposit_amount: money(contract.depositPrice || ''),
+            first_month_rent: money(contract.rentPrice || ''), payment_cycle: statusMeta(RHD.PAYMENT_CYCLES, contract.paymentCycle).label || '',
+            start_date: fmtDate(contract.startDate), end_date: fmtDate(contract.endDate),
+            service_rows_html: serviceRows,
+            electric_old: elecReading ? elecReading.previousIndex : '—', electric_new: elecReading ? elecReading.latestIndex : '—',
+            electric_consumption: elecReading ? elecReading.consumption : 0, electric_amount: elecItem ? money(elecItem.amount) : money(0),
+            water_old: waterReading ? waterReading.previousIndex : '—', water_new: waterReading ? waterReading.latestIndex : '—',
+            water_consumption: waterReading ? waterReading.consumption : 0, water_amount: waterItem ? money(waterItem.amount) : money(0),
+            total_amount: money(inv.total), bank_name: cfg.bankName || '—', bank_account_number: cfg.bankAccountNumber || '—',
+            bank_account_holder: cfg.bankAccountHolder || building.name || '—', bank_qr_code: qrPlaceholderDataUri(inv.code),
+            einvoice_note: cfg.eInvoiceEnabled ? 'Hóa đơn điện tử GTGT (nếu áp dụng) sẽ được xuất riêng qua ' + escapeHtml(cfg.eInvoiceProvider || 'nhà cung cấp đã cấu hình') + '.' : ''
+        };
+    }
+
     RHUI.previewInvoice = function (id) {
         var inv = RHD.get('invoices', id);
         if (!inv) return;
-        var building = RHD.get('buildings', inv.buildingId);
-        var apt = RHD.get('apartments', inv.apartmentId);
-        var cus = RHD.get('customers', inv.customerId);
-        var rows = inv.items.map(function (it) {
-            return '<tr><td>' + escapeHtml(it.label) + '</td><td style="text-align:right;">' + money(it.amount) + '</td></tr>';
-        }).join('');
-        var html = '<div style="border:1px solid var(--line);border-radius:12px;padding:1.5rem;">' +
-            '<div style="display:flex;justify-content:space-between;align-items:flex-start;">' +
-            '<div><h2 style="font:800 1.3rem \'Plus Jakarta Sans\',sans-serif;color:#10213c;">HÓA ĐƠN ' + escapeHtml(inv.code) + '</h2>' +
-            '<p style="color:#94a3b8;font-size:.85rem;margin-top:.25rem;">Kỳ ' + escapeHtml(inv.period) + ' · Lập ngày ' + fmtDate(inv.issueDate) + ' · Hạn TT ' + fmtDate(inv.dueDate) + '</p></div>' +
-            badge(statusMeta(RHD.INVOICE_STATUSES, inv.status).label, statusMeta(RHD.INVOICE_STATUSES, inv.status).color, statusMeta(RHD.INVOICE_STATUSES, inv.status).bg) +
-            '</div>' +
-            '<div class="rh-grid-2" style="margin-top:1.25rem;">' +
-            '<div><label style="font-size:.75rem;color:#94a3b8;">Tòa nhà / Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</div></div>' +
-            '<div><label style="font-size:.75rem;color:#94a3b8;">Khách hàng</label><div style="font-weight:600;">' + escapeHtml(cus ? cus.fullName : '—') + ' — ' + escapeHtml(cus ? cus.phone : '') + '</div></div>' +
-            '</div>' +
-            '<table style="width:100%;margin-top:1.25rem;"><thead><tr><th style="text-align:left;">Khoản mục</th><th style="text-align:right;">Thành tiền</th></tr></thead><tbody>' + rows + '</tbody></table>' +
-            '<div style="text-align:right;margin-top:1rem;font-size:1.2rem;">Tổng cộng: <strong style="color:#0d65d5;">' + money(inv.total) + '</strong></div>' +
-            '</div>' +
+        var tpl = inv.invoiceTemplateId ? RHT.get(inv.invoiceTemplateId) : RHT.getDefault('INVOICE');
+        var rendered = tpl ? RHT.render(tpl.html_template, invoiceTemplateData(inv, tpl)) : '<p>Không tìm thấy mẫu hóa đơn.</p>';
+        var html = '<div class="rh-print-area">' + rendered + '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
             '<button type="button" class="btn-primary" onclick="RHUI.sendOneInvoice(\'' + inv.id + '\')">Gửi hóa đơn</button>' +
+            '<button type="button" onclick="RHUI.printCurrentPreview()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;"><i class="fas fa-print"></i> In</button>' +
             '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Đóng</button>' +
             '</div>';
-        openDrawer('Xem trước hóa đơn', html);
+        openDrawer('Xem trước hóa đơn' + (tpl ? ' — ' + tpl.name : ''), html);
+    };
+
+    RHUI.printCurrentPreview = function () { window.print(); };
+
+    function sampleTemplateData() {
+        return {
+            invoice_code: 'HD2026-0099', contract_code: 'CT1-501-2026-001', issue_date: '30/09/2026', due_date: '10/10/2026',
+            payment_period: '2026-09', company_name: 'ResidentHub', manager_name: 'Nguyễn Văn An',
+            building_name: 'Chung cư Riverside Residence', building_address: 'Tổ 14, Phường Tích Lương, Thái Nguyên',
+            room_number: '501', room_area: 20, tenant_name: 'Nguyễn Thị Hoa', tenant_phone: '0984646471', tenant_id_number: '017296001234',
+            rent_price: '2.000.000đ', deposit_price: '2.000.000đ', deposit_amount: '2.000.000đ', first_month_rent: '2.000.000đ',
+            payment_cycle: 'Hàng tháng', start_date: '01/01/2026', end_date: '31/12/2026', old_end_date: '31/12/2026',
+            sign_date: '28/12/2025', nights: 3, rate_per_night: '450.000đ', room_charge: '1.350.000đ', other_fees: '100.000đ',
+            penalty_amount: '1.000.000đ', outstanding_amount: '250.000đ', old_room_number: '410',
+            service_rows_html: '<tr><td colspan="2">Phí quản lý vận hành</td><td class="num">1</td><td class="num">150.000đ</td></tr>',
+            electric_old: 80, electric_new: 100, electric_consumption: 20, electric_amount: '76.000đ',
+            water_old: 10, water_new: 16, water_consumption: 6, water_amount: '108.000đ',
+            total_amount: '2.195.480đ', bank_name: 'Vietcombank', bank_account_number: '0123456789', bank_account_holder: 'CTY TNHH RESIDENTHUB',
+            bank_qr_code: qrPlaceholderDataUri('sample'), einvoice_note: ''
+        };
+    }
+
+    RHUI.previewTemplateById = function (tplId) {
+        var tpl = RHT.get(tplId);
+        if (!tpl) return;
+        var rendered = RHT.render(tpl.html_template, sampleTemplateData());
+        var html = '<div style="background:#fde68a;color:#78350f;font-size:.75rem;font-weight:700;padding:.4rem .7rem;border-radius:8px;margin-bottom:1rem;display:inline-block;">DỮ LIỆU MẪU MINH HOẠ — không phải dữ liệu thật</div>' +
+            '<div class="rh-print-area">' + rendered + '</div>' +
+            '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
+            '<button type="button" onclick="RHUI.printCurrentPreview()" class="btn-primary" style="text-decoration:none;"><i class="fas fa-print"></i> In / Tải PDF</button>' +
+            '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Đóng</button>' +
+            '</div>';
+        openDrawer('Xem trước — ' + tpl.name, html);
     };
 
     RHUI.sendOneInvoice = function (id) {
