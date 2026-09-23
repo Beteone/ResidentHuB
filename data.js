@@ -72,6 +72,16 @@
         { id: 'yearly', label: 'Hàng năm' }
     ];
 
+    var CONTRACT_STATUSES = [
+        { id: 'active', label: 'Đang thuê', color: '#10b981', bg: '#e6f8ef' },
+        { id: 'valid', label: 'Còn hạn', color: '#10b981', bg: '#e6f8ef' },
+        { id: 'expiring', label: 'Sắp hết hạn', color: '#f59e0b', bg: '#fef3c7' },
+        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' },
+        { id: 'moving_out', label: 'Sắp chuyển đi', color: '#8b5cf6', bg: '#f5f3ff' },
+        { id: 'terminated', label: 'Đã thanh lý', color: '#ef4444', bg: '#fee2e2' },
+        { id: 'deposit_cancelled', label: 'Bỏ cọc', color: '#64748b', bg: '#f1f5f9' }
+    ];
+
     var INVOICE_STATUSES = [
         { id: 'unpaid', label: 'Chưa thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'sent', label: 'Đã gửi', color: '#0d65d5', bg: '#eaf3ff' },
@@ -281,9 +291,17 @@
                 startDate: '2026-01-01', endDate: '2026-12-31', signDate: '2025-12-28',
                 contractTemplateId: building.contractTemplates[0].id, invoiceTemplateId: building.invoiceTemplates[0].id,
                 rentPrice: apt1.rentPrice, depositPrice: apt1.depositPrice, paymentCycle: 'monthly',
-                referrer: '', collaborator: 'Trần Văn Bình', note: '', files: [], status: 'active', createdAt: Date.now()
+                referrer: '', collaborator: 'Trần Văn Bình', note: 'Hợp đồng đang thuê', files: [], status: 'active', createdAt: Date.now()
             };
-            writeAll('contracts', [contract1]);
+            var contract2 = {
+                id: genId('contract'), code: building.shortName + '-502-' + (new Date().getFullYear() - 1) + '-002',
+                buildingId: building.id, apartmentId: apt2.id, customerId: cus2.id,
+                startDate: '2025-01-01', endDate: '2025-12-31', signDate: '2024-12-25',
+                contractTemplateId: building.contractTemplates[0].id, invoiceTemplateId: building.invoiceTemplates[0].id,
+                rentPrice: apt2.rentPrice, depositPrice: apt2.depositPrice, paymentCycle: 'monthly',
+                referrer: '', collaborator: '', note: 'Hợp đồng quá hạn cần thanh lý hoặc gia hạn', files: [], status: 'overdue', createdAt: Date.now() - 86400000
+            };
+            writeAll('contracts', [contract1, contract2]);
 
             var meter1 = { id: genId('meter'), buildingId: building.id, apartmentId: apt1.id, meterType: 'electricity', meterCode: 'CTĐ-501', previousIndex: 80, latestIndex: 100, periodMonth: '2026-09', closingDate: '2026-09-30', consumption: 20, photo: '', createdAt: Date.now() };
             var meter2 = { id: genId('meter'), buildingId: building.id, apartmentId: apt1.id, meterType: 'water', meterCode: 'CTN-501', previousIndex: 10, latestIndex: 16, periodMonth: '2026-09', closingDate: '2026-09-30', consumption: 6, photo: '', createdAt: Date.now() };
@@ -335,6 +353,7 @@
         FEE_TYPES: FEE_TYPES,
         CALC_METHODS: CALC_METHODS,
         APARTMENT_STATUSES: APARTMENT_STATUSES,
+        CONTRACT_STATUSES: CONTRACT_STATUSES,
         VEHICLE_TYPES: VEHICLE_TYPES,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,

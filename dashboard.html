@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="vi">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -10,7 +11,9 @@
     <script src="https://cdn.jsdelivr.net/npm/chart.js@3.9.1/dist/chart.min.js"></script>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap"
+        rel="stylesheet">
     <script src="auth.js"></script>
     <script src="data.js"></script>
     <script src="manager-modules.js"></script>
@@ -381,7 +384,7 @@
             justify-content: center;
             text-align: center;
             border-right: 1px solid #e5edf5;
-            background: rgba(255,255,255,0.2);
+            background: rgba(255, 255, 255, 0.2);
         }
 
         .resident-summary-card:last-child {
@@ -636,9 +639,17 @@
             bottom: -8px;
         }
 
-        .resident-empty-illustration .person:nth-child(1) { left: 10px; }
-        .resident-empty-illustration .person:nth-child(2) { left: 58px; }
-        .resident-empty-illustration .person:nth-child(3) { left: 106px; }
+        .resident-empty-illustration .person:nth-child(1) {
+            left: 10px;
+        }
+
+        .resident-empty-illustration .person:nth-child(2) {
+            left: 58px;
+        }
+
+        .resident-empty-illustration .person:nth-child(3) {
+            left: 106px;
+        }
 
         .resident-empty-state h3 {
             margin: 0;
@@ -674,6 +685,216 @@
             box-shadow: 0 16px 28px rgba(14, 110, 231, 0.28);
             cursor: pointer;
             z-index: 50;
+        }
+
+        /* ==================== CONTRACTS STYLES ==================== */
+        .contract-summary-grid {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            background: #ffffff;
+            border: 1px solid #e7edf5;
+            border-radius: 18px;
+            margin-bottom: 1.5rem;
+            overflow: hidden;
+            box-shadow: 0 4px 16px rgba(15, 23, 42, 0.04);
+        }
+
+        .contract-summary-card {
+            padding: 1.25rem 1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            border-right: 1px solid #e5edf5;
+            transition: background 0.15s ease;
+        }
+
+        .contract-summary-card:hover {
+            background: #f8fafc;
+        }
+
+        .contract-summary-card:last-child {
+            border-right: none;
+        }
+
+        @media (max-width: 640px) {
+            .contract-summary-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .contract-summary-card {
+                border-right: none;
+                border-bottom: 1px solid #e5edf5;
+            }
+
+            .contract-summary-card:last-child {
+                border-bottom: none;
+            }
+        }
+
+        .contract-summary-main {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.75rem;
+            font-weight: 800;
+        }
+
+        .contract-summary-main i {
+            font-size: 1.35rem;
+        }
+
+        .contract-summary-icon-contract {
+            color: #1683ff;
+        }
+
+        .contract-summary-icon-renting {
+            color: #10b981;
+        }
+
+        .contract-summary-icon-overdue {
+            color: #ef4444;
+        }
+
+        .contract-summary-value {
+            font-size: 2.1rem;
+            font-family: 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            color: #10213c;
+            line-height: 1;
+            font-weight: 800;
+        }
+
+        .contract-summary-label {
+            color: #5b6a7f;
+            font-size: 0.92rem;
+            font-weight: 600;
+            margin-top: 0.35rem;
+            display: block;
+        }
+
+        /* Filter bar: cuộn ngang mượt mà trên mobile */
+        .contract-filter-bar {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            overflow-x: auto;
+            white-space: nowrap;
+            -webkit-overflow-scrolling: touch;
+            scroll-behavior: smooth;
+            padding: 0.35rem 0.25rem 0.85rem 0.25rem;
+            margin-bottom: 1.25rem;
+            scrollbar-width: thin;
+            scrollbar-color: #cbd5e1 transparent;
+        }
+
+        .contract-filter-bar::-webkit-scrollbar {
+            height: 5px;
+        }
+
+        .contract-filter-bar::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        .contract-filter-bar::-webkit-scrollbar-thumb {
+            background: #cbd5e1;
+            border-radius: 999px;
+        }
+
+        .contract-tab-pill {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.55rem 1rem;
+            border-radius: 999px;
+            border: 1px solid #e2e8f0;
+            background: #ffffff;
+            color: #475569;
+            font-size: 0.86rem;
+            font-weight: 600;
+            cursor: pointer;
+            white-space: nowrap;
+            flex-shrink: 0;
+            transition: all 0.2s ease;
+            user-select: none;
+        }
+
+        .contract-tab-pill:hover {
+            border-color: #cbd5e1;
+            background: #f8fafc;
+            color: #1e293b;
+        }
+
+        .contract-tab-pill.active {
+            background: #10b981;
+            border-color: #10b981;
+            color: #ffffff;
+            box-shadow: 0 4px 14px rgba(16, 185, 129, 0.28);
+        }
+
+        .contract-tab-label {
+            font-size: 0.86rem;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .contract-tab-count {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            min-width: 22px;
+            height: 22px;
+            padding: 0 0.45rem;
+            border-radius: 999px;
+            background: #f1f5f9;
+            color: #475569;
+            font-size: 0.72rem;
+            font-weight: 700;
+        }
+
+        .contract-tab-pill.active .contract-tab-count {
+            background: rgba(255, 255, 255, 0.28);
+            color: #ffffff;
+        }
+
+        /* Nút floating action button (+) màu xanh lá cây */
+        .contract-fab {
+            position: fixed;
+            right: 2rem;
+            bottom: 2rem;
+            width: 62px;
+            height: 62px;
+            border-radius: 50%;
+            border: none;
+            background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+            color: white;
+            font-size: 1.85rem;
+            line-height: 1;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            box-shadow: 0 14px 28px rgba(16, 185, 129, 0.38);
+            cursor: pointer;
+            z-index: 90;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .contract-fab:hover {
+            transform: scale(1.06);
+            box-shadow: 0 18px 32px rgba(16, 185, 129, 0.48);
+        }
+
+        .contract-fab:active {
+            transform: scale(0.96);
+        }
+
+        @media (max-width: 640px) {
+            .contract-fab {
+                right: 1.25rem;
+                bottom: 1.25rem;
+                width: 54px;
+                height: 54px;
+                font-size: 1.6rem;
+            }
         }
 
         .resident-form-modal {
@@ -1397,12 +1618,14 @@
             height: 300px;
             margin-top: 1rem;
         }
+
         .data-editor {
             align-items: end;
             display: grid;
             gap: 1rem;
             grid-template-columns: repeat(4, minmax(0, 1fr)) auto;
         }
+
         .data-editor label {
             color: #61708a;
             display: grid;
@@ -1410,6 +1633,7 @@
             font-weight: 600;
             gap: .4rem;
         }
+
         .data-editor input {
             border: 1px solid #dbe5f0;
             border-radius: .65rem;
@@ -1418,52 +1642,716 @@
             min-width: 0;
             padding: .7rem .75rem;
         }
+
         .data-editor input:focus {
             border-color: #1683ff;
             box-shadow: 0 0 0 3px rgba(22, 131, 255, .12);
             outline: none;
         }
+
         .data-editor-message {
             color: #18a878;
             font-size: .8rem;
             margin-top: .75rem;
         }
+
         @media (max-width: 900px) {
-            .data-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-            .data-editor .btn-primary { width: 100%; }
+            .data-editor {
+                grid-template-columns: repeat(2, minmax(0, 1fr));
+            }
+
+            .data-editor .btn-primary {
+                width: 100%;
+            }
         }
-        .sidebar-header{padding:1.25rem 1.5rem;border-bottom-color:rgba(255,255,255,.1)}.sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.sidebar-menu-item{border:1px solid transparent;color:#b8cce1}.sidebar-menu-item:hover{background:rgba(22,131,255,.16);color:#fff}.sidebar-menu-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.sidebar-menu>div[style*="border-top"]{border-top-color:rgba(255,255,255,.1)!important}.sidebar-menu>div[style*="border-top"]>div[style*="text-transform"]{color:#8fb0d0!important}.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em}.topbar,.card{border-radius:16px}.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 12px 24px rgba(22,131,255,.18)}.btn-primary:hover{box-shadow:0 16px 28px rgba(22,131,255,.26)}[style*="#667eea"],[style*="rgba(102, 126, 234"]{color:#1683ff!important;border-left-color:#1683ff!important;background:#eaf3ff!important}[style*="#764ba2"]{color:#0d65d5!important}.main-content{background:transparent}.chart-container canvas{filter:drop-shadow(0 8px 12px rgba(22,131,255,.08))}
-        .workflow-hero{background:linear-gradient(135deg,#0b2447 0%,#174775 100%);border-radius:16px;color:#fff;margin-bottom:1.5rem;padding:28px 32px;position:relative;overflow:hidden}.workflow-hero:after{border:1px solid rgba(255,255,255,.12);border-radius:50%;content:'';height:260px;position:absolute;right:-70px;top:-120px;width:260px}.workflow-hero h2{font:800 26px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0 0 8px}.workflow-hero p{color:#b9cce3;margin:0;max-width:650px}.workflow-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-card{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid #e4eaf2;border-radius:16px;padding:22px;transition:.25s ease}.workflow-card:hover{border-color:#9ccaff;box-shadow:0 18px 36px rgba(22,131,255,.12);transform:translateY(-3px)}.workflow-card-head{align-items:flex-start;display:flex;gap:14px}.workflow-number{align-items:center;background:#eaf3ff;border-radius:12px;color:#1683ff;display:flex;flex:0 0 42px;font-weight:800;height:42px;justify-content:center}.workflow-card h3{color:#10213c;font:700 17px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:1px 0 4px}.workflow-card-head p{color:#61708a;font-size:12px;margin:0}.workflow-steps{display:grid;gap:0;list-style:none;margin:22px 0 0;padding:0}.workflow-steps li{align-items:flex-start;display:flex;gap:12px;min-height:42px;position:relative}.workflow-steps li:not(:last-child):after{background:#c9e2fb;content:'';height:calc(100% - 16px);left:10px;position:absolute;top:23px;width:2px}.workflow-steps li span{align-items:center;background:#1683ff;border:3px solid #eaf3ff;border-radius:50%;color:#fff;display:flex;flex:0 0 22px;font-size:10px;font-weight:700;height:22px;justify-content:center;position:relative;z-index:1}.workflow-steps li p{color:#526275;font-size:13px;margin:1px 0 14px}.workflow-footer{align-items:center;border-top:1px solid #e8eef5;display:flex;justify-content:space-between;margin-top:5px;padding-top:14px}.workflow-role{color:#61708a;font-size:11px}.workflow-status{background:#e6f8ef;border-radius:999px;color:#11804f;font-size:11px;font-weight:700;padding:6px 9px}.workflow-status.blue{background:#eaf3ff;color:#0d65d5}.workflow-status.orange{background:#fff4df;color:#a5680c}@media(max-width:850px){.workflow-grid{grid-template-columns:1fr}}
-        .main-content{padding:1.25rem 1.5rem 2.5rem}.topbar{align-items:center;background:rgba(255,255,255,.88);border:1px solid rgba(211,224,239,.9);border-radius:20px;box-shadow:0 14px 34px rgba(11,36,71,.06);margin-bottom:1.25rem;padding:1.15rem 1.4rem}.topbar-title{font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em}.topbar-actions{gap:.7rem}.btn-icon{background:#eef4fb;border:1px solid #e2ebf5;box-shadow:none;height:42px;position:relative;width:42px}.btn-icon:hover{background:#dceeff;color:#0d65d5}.grid-2{display:grid;gap:1rem;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-2>.card{border-radius:18px;min-height:148px;padding:1.25rem 1.3rem}.stat-card{align-items:stretch}.stat-label{font-size:.78rem;font-weight:600;letter-spacing:.02em}.stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:.35rem}.stat-icon{border-radius:14px;height:46px;width:46px}.grid-3{display:grid;gap:1rem;grid-template-columns:1.25fr 1fr 1fr}.grid-3>.card{border-radius:18px;min-height:365px;padding:1.2rem 1.25rem}.grid-3>.card h3{align-items:center;display:flex;font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;justify-content:space-between;letter-spacing:-.015em}.chart-container{height:285px;margin-top:1.25rem}.card{background:rgba(255,255,255,.95);border:1px solid #e1eaf4;border-radius:18px;box-shadow:0 12px 30px rgba(11,36,71,.055)}.card:hover{border-color:#b8d8f6;box-shadow:0 18px 38px rgba(22,131,255,.1);transform:translateY(-2px)}#dashboard-tab>.card[style*="margin-top: 1.5rem"]{border-radius:18px;padding:1.25rem 1.35rem}#dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3{font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif!important}#dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div{border:1px solid #e5edf5!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(11,36,71,.04);padding:1.1rem!important}.table-container{border:1px solid #e4eaf2;border-radius:14px;overflow:auto}.table-container table{min-width:640px}.table-container th{background:#f1f7fd;font-size:.7rem;letter-spacing:.08em}.table-container td,.table-container th{border-bottom-color:#e7eef6;padding:.85rem 1rem}@media(max-width:1100px){.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:first-child{grid-column:1/-1}}@media(max-width:700px){.main-content{padding:1rem}.grid-2,.grid-3{grid-template-columns:1fr}.grid-3>.card:first-child{grid-column:auto}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{align-self:flex-end}.grid-2>.card{min-height:132px}}
+
+        .sidebar-header {
+            padding: 1.25rem 1.5rem;
+            border-bottom-color: rgba(255, 255, 255, .1)
+        }
+
+        .sidebar {
+            background: linear-gradient(180deg, #0b2447 0%, #102f56 100%);
+            border-right: 0;
+            box-shadow: 10px 0 28px rgba(11, 36, 71, .12)
+        }
+
+        .sidebar-logo {
+            width: 46px;
+            height: 46px;
+            border-radius: 14px;
+            background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%);
+            box-shadow: 0 10px 22px rgba(22, 131, 255, .25)
+        }
+
+        .sidebar-header h2,
+        .sidebar-header div[style*="font-weight"] {
+            color: #fff !important;
+            font-family: 'Plus Jakarta Sans', sans-serif
+        }
+
+        .sidebar-header p,
+        .sidebar-header div[style*="font-size"] {
+            color: #a9c4df !important
+        }
+
+        .sidebar-menu-item {
+            border: 1px solid transparent;
+            color: #b8cce1
+        }
+
+        .sidebar-menu-item:hover {
+            background: rgba(22, 131, 255, .16);
+            color: #fff
+        }
+
+        .sidebar-menu-item.active {
+            background: linear-gradient(135deg, rgba(22, 131, 255, .34) 0%, rgba(22, 131, 255, .16) 100%);
+            border-left-color: #70bbff;
+            color: #fff
+        }
+
+        .sidebar-menu>div[style*="border-top"] {
+            border-top-color: rgba(255, 255, 255, .1) !important
+        }
+
+        .sidebar-menu>div[style*="border-top"]>div[style*="text-transform"] {
+            color: #8fb0d0 !important
+        }
+
+        .topbar-title {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            letter-spacing: -.03em
+        }
+
+        .topbar,
+        .card {
+            border-radius: 16px
+        }
+
+        .btn-primary {
+            background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%);
+            box-shadow: 0 12px 24px rgba(22, 131, 255, .18)
+        }
+
+        .btn-primary:hover {
+            box-shadow: 0 16px 28px rgba(22, 131, 255, .26)
+        }
+
+        [style*="#667eea"],
+        [style*="rgba(102, 126, 234"] {
+            color: #1683ff !important;
+            border-left-color: #1683ff !important;
+            background: #eaf3ff !important
+        }
+
+        [style*="#764ba2"] {
+            color: #0d65d5 !important
+        }
+
+        .main-content {
+            background: transparent
+        }
+
+        .chart-container canvas {
+            filter: drop-shadow(0 8px 12px rgba(22, 131, 255, .08))
+        }
+
+        .workflow-hero {
+            background: linear-gradient(135deg, #0b2447 0%, #174775 100%);
+            border-radius: 16px;
+            color: #fff;
+            margin-bottom: 1.5rem;
+            padding: 28px 32px;
+            position: relative;
+            overflow: hidden
+        }
+
+        .workflow-hero:after {
+            border: 1px solid rgba(255, 255, 255, .12);
+            border-radius: 50%;
+            content: '';
+            height: 260px;
+            position: absolute;
+            right: -70px;
+            top: -120px;
+            width: 260px
+        }
+
+        .workflow-hero h2 {
+            font: 800 26px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            margin: 0 0 8px
+        }
+
+        .workflow-hero p {
+            color: #b9cce3;
+            margin: 0;
+            max-width: 650px
+        }
+
+        .workflow-grid {
+            display: grid;
+            gap: 18px;
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        .workflow-card {
+            background: linear-gradient(180deg, #fff 0%, #fbfdff 100%);
+            border: 1px solid #e4eaf2;
+            border-radius: 16px;
+            padding: 22px;
+            transition: .25s ease
+        }
+
+        .workflow-card:hover {
+            border-color: #9ccaff;
+            box-shadow: 0 18px 36px rgba(22, 131, 255, .12);
+            transform: translateY(-3px)
+        }
+
+        .workflow-card-head {
+            align-items: flex-start;
+            display: flex;
+            gap: 14px
+        }
+
+        .workflow-number {
+            align-items: center;
+            background: #eaf3ff;
+            border-radius: 12px;
+            color: #1683ff;
+            display: flex;
+            flex: 0 0 42px;
+            font-weight: 800;
+            height: 42px;
+            justify-content: center
+        }
+
+        .workflow-card h3 {
+            color: #10213c;
+            font: 700 17px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            margin: 1px 0 4px
+        }
+
+        .workflow-card-head p {
+            color: #61708a;
+            font-size: 12px;
+            margin: 0
+        }
+
+        .workflow-steps {
+            display: grid;
+            gap: 0;
+            list-style: none;
+            margin: 22px 0 0;
+            padding: 0
+        }
+
+        .workflow-steps li {
+            align-items: flex-start;
+            display: flex;
+            gap: 12px;
+            min-height: 42px;
+            position: relative
+        }
+
+        .workflow-steps li:not(:last-child):after {
+            background: #c9e2fb;
+            content: '';
+            height: calc(100% - 16px);
+            left: 10px;
+            position: absolute;
+            top: 23px;
+            width: 2px
+        }
+
+        .workflow-steps li span {
+            align-items: center;
+            background: #1683ff;
+            border: 3px solid #eaf3ff;
+            border-radius: 50%;
+            color: #fff;
+            display: flex;
+            flex: 0 0 22px;
+            font-size: 10px;
+            font-weight: 700;
+            height: 22px;
+            justify-content: center;
+            position: relative;
+            z-index: 1
+        }
+
+        .workflow-steps li p {
+            color: #526275;
+            font-size: 13px;
+            margin: 1px 0 14px
+        }
+
+        .workflow-footer {
+            align-items: center;
+            border-top: 1px solid #e8eef5;
+            display: flex;
+            justify-content: space-between;
+            margin-top: 5px;
+            padding-top: 14px
+        }
+
+        .workflow-role {
+            color: #61708a;
+            font-size: 11px
+        }
+
+        .workflow-status {
+            background: #e6f8ef;
+            border-radius: 999px;
+            color: #11804f;
+            font-size: 11px;
+            font-weight: 700;
+            padding: 6px 9px
+        }
+
+        .workflow-status.blue {
+            background: #eaf3ff;
+            color: #0d65d5
+        }
+
+        .workflow-status.orange {
+            background: #fff4df;
+            color: #a5680c
+        }
+
+        @media(max-width:850px) {
+            .workflow-grid {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .main-content {
+            padding: 1.25rem 1.5rem 2.5rem
+        }
+
+        .topbar {
+            align-items: center;
+            background: rgba(255, 255, 255, .88);
+            border: 1px solid rgba(211, 224, 239, .9);
+            border-radius: 20px;
+            box-shadow: 0 14px 34px rgba(11, 36, 71, .06);
+            margin-bottom: 1.25rem;
+            padding: 1.15rem 1.4rem
+        }
+
+        .topbar-title {
+            font: 800 1.75rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            letter-spacing: -.04em
+        }
+
+        .topbar-actions {
+            gap: .7rem
+        }
+
+        .btn-icon {
+            background: #eef4fb;
+            border: 1px solid #e2ebf5;
+            box-shadow: none;
+            height: 42px;
+            position: relative;
+            width: 42px
+        }
+
+        .btn-icon:hover {
+            background: #dceeff;
+            color: #0d65d5
+        }
+
+        .grid-2 {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(4, minmax(0, 1fr))
+        }
+
+        .grid-2>.card {
+            border-radius: 18px;
+            min-height: 148px;
+            padding: 1.25rem 1.3rem
+        }
+
+        .stat-card {
+            align-items: stretch
+        }
+
+        .stat-label {
+            font-size: .78rem;
+            font-weight: 600;
+            letter-spacing: .02em
+        }
+
+        .stat-value {
+            font: 800 2rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            letter-spacing: -.04em;
+            margin-top: .35rem
+        }
+
+        .stat-icon {
+            border-radius: 14px;
+            height: 46px;
+            width: 46px
+        }
+
+        .grid-3 {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: 1.25fr 1fr 1fr
+        }
+
+        .grid-3>.card {
+            border-radius: 18px;
+            min-height: 365px;
+            padding: 1.2rem 1.25rem
+        }
+
+        .grid-3>.card h3 {
+            align-items: center;
+            display: flex;
+            font: 700 1rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;
+            justify-content: space-between;
+            letter-spacing: -.015em
+        }
+
+        .chart-container {
+            height: 285px;
+            margin-top: 1.25rem
+        }
+
+        .card {
+            background: rgba(255, 255, 255, .95);
+            border: 1px solid #e1eaf4;
+            border-radius: 18px;
+            box-shadow: 0 12px 30px rgba(11, 36, 71, .055)
+        }
+
+        .card:hover {
+            border-color: #b8d8f6;
+            box-shadow: 0 18px 38px rgba(22, 131, 255, .1);
+            transform: translateY(-2px)
+        }
+
+        #dashboard-tab>.card[style*="margin-top: 1.5rem"] {
+            border-radius: 18px;
+            padding: 1.25rem 1.35rem
+        }
+
+        #dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3 {
+            font: 700 1rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif !important
+        }
+
+        #dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div {
+            border: 1px solid #e5edf5 !important;
+            border-radius: 14px !important;
+            box-shadow: 0 8px 18px rgba(11, 36, 71, .04);
+            padding: 1.1rem !important
+        }
+
+        .table-container {
+            border: 1px solid #e4eaf2;
+            border-radius: 14px;
+            overflow: auto
+        }
+
+        .table-container table {
+            min-width: 640px
+        }
+
+        .table-container th {
+            background: #f1f7fd;
+            font-size: .7rem;
+            letter-spacing: .08em
+        }
+
+        .table-container td,
+        .table-container th {
+            border-bottom-color: #e7eef6;
+            padding: .85rem 1rem
+        }
+
+        @media(max-width:1100px) {
+            .grid-2 {
+                grid-template-columns: repeat(2, minmax(0, 1fr))
+            }
+
+            .grid-3 {
+                grid-template-columns: 1fr 1fr
+            }
+
+            .grid-3>.card:first-child {
+                grid-column: 1/-1
+            }
+        }
+
+        @media(max-width:700px) {
+            .main-content {
+                padding: 1rem
+            }
+
+            .grid-2,
+            .grid-3 {
+                grid-template-columns: 1fr
+            }
+
+            .grid-3>.card:first-child {
+                grid-column: auto
+            }
+
+            .topbar {
+                align-items: flex-start;
+                flex-direction: column
+            }
+
+            .topbar-actions {
+                align-self: flex-end
+            }
+
+            .grid-2>.card {
+                min-height: 132px
+            }
+        }
 
         /* --- Manager workflow modules: Buildings -> Apartments -> Customers -> Meters -> Contracts -> Invoices --- */
-        .rh-demo-banner{align-items:center;background:#f1f5f9;border:1px solid #e2e8f0;border-radius:12px;color:#61708a;display:flex;flex-wrap:wrap;font-size:.8rem;gap:1rem;justify-content:space-between;margin-bottom:1.25rem;padding:.6rem 1rem;transition:.2s ease}
-        .rh-demo-banner.warn{background:linear-gradient(135deg,#fff4df,#ffe9c2);border-color:#f3d9a4;color:#7a5410;font-size:.85rem;padding:.9rem 1.25rem}
-        .rh-demo-banner.blocked{background:linear-gradient(135deg,#fee2e2,#fecaca);border-color:#f3a8a8;color:#8a1c1c;font-size:.85rem;padding:.9rem 1.25rem}
-        .rh-demo-tag{background:#94a3b8;border-radius:999px;color:#fff;font-size:.65rem;font-weight:800;letter-spacing:.06em;margin-right:.5rem;padding:.2rem .5rem}
-        .rh-demo-banner.warn .rh-demo-tag{background:#a5680c}
-        .rh-demo-banner.blocked .rh-demo-tag{background:#c0392b}
-        .rh-empty{color:#94a3b8;padding:3rem 1rem;text-align:center}.rh-empty i{font-size:2rem;margin-bottom:.75rem;opacity:.6}
-        .rh-row-btn{background:none;border:1px solid var(--line);border-radius:6px;color:#475569;cursor:pointer;margin-right:.35rem;padding:.35rem .55rem}.rh-row-btn:hover{background:#f1f7fd}.rh-row-btn.danger{border-color:#fecaca;color:#ef4444}.rh-row-btn.danger:hover{background:#fee2e2}
-        .rh-link-btn{background:none;border:0;color:#1683ff;cursor:pointer;font:inherit;font-weight:700;font-size:.82rem}.rh-link-btn:hover{color:#0d65d5}
-        .rh-drawer-overlay{background:rgba(11,36,71,.45);bottom:0;display:none;justify-content:flex-end;left:0;position:fixed;right:0;top:0;z-index:300}
-        .rh-drawer-overlay.show{display:flex}
-        .rh-drawer{animation:rhDrawerIn .25s ease;background:#fff;box-shadow:-24px 0 60px rgba(11,36,71,.25);display:flex;flex-direction:column;height:100vh;max-width:100%;width:600px}
-        @keyframes rhDrawerIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
-        .rh-drawer-header{align-items:center;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;padding:1.15rem 1.5rem;position:sticky;top:0;z-index:2}
-        .rh-drawer-body{flex:1;overflow-y:auto;padding:1.5rem}
-        .rh-section{border-top:1px solid var(--line);margin-top:1.5rem;padding-top:1.25rem}
-        .rh-section-title{color:#94a3b8;font-size:.75rem;font-weight:700;letter-spacing:.08em;margin-bottom:.75rem;text-transform:uppercase}
-        .rh-grid-2{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr))}
-        @media(max-width:560px){.rh-grid-2{grid-template-columns:1fr}}
-        .rh-field label{color:#475569;display:block;font-size:.8rem;font-weight:600;margin-bottom:.35rem}
-        .rh-field input,.rh-field select,.rh-field textarea{border:1px solid var(--line);border-radius:8px;font:inherit;padding:.6rem .75rem;width:100%}
-        .rh-field input:focus,.rh-field select:focus,.rh-field textarea:focus{border-color:#1683ff;outline:none}
-        .rh-service-row{background:#f8fafc;border:1px solid var(--line);border-radius:12px;margin-bottom:.75rem;padding:1rem}
-        .rh-choice{align-items:center;border:1px solid var(--line);border-radius:8px;cursor:pointer;display:flex;flex:1;font-size:.9rem;font-weight:600;gap:.5rem;padding:.6rem .75rem}
-        .rh-choice input{accent-color:#1683ff}
+        .rh-demo-banner {
+            align-items: center;
+            background: #f1f5f9;
+            border: 1px solid #e2e8f0;
+            border-radius: 12px;
+            color: #61708a;
+            display: flex;
+            flex-wrap: wrap;
+            font-size: .8rem;
+            gap: 1rem;
+            justify-content: space-between;
+            margin-bottom: 1.25rem;
+            padding: .6rem 1rem;
+            transition: .2s ease
+        }
+
+        .rh-demo-banner.warn {
+            background: linear-gradient(135deg, #fff4df, #ffe9c2);
+            border-color: #f3d9a4;
+            color: #7a5410;
+            font-size: .85rem;
+            padding: .9rem 1.25rem
+        }
+
+        .rh-demo-banner.blocked {
+            background: linear-gradient(135deg, #fee2e2, #fecaca);
+            border-color: #f3a8a8;
+            color: #8a1c1c;
+            font-size: .85rem;
+            padding: .9rem 1.25rem
+        }
+
+        .rh-demo-tag {
+            background: #94a3b8;
+            border-radius: 999px;
+            color: #fff;
+            font-size: .65rem;
+            font-weight: 800;
+            letter-spacing: .06em;
+            margin-right: .5rem;
+            padding: .2rem .5rem
+        }
+
+        .rh-demo-banner.warn .rh-demo-tag {
+            background: #a5680c
+        }
+
+        .rh-demo-banner.blocked .rh-demo-tag {
+            background: #c0392b
+        }
+
+        .rh-empty {
+            color: #94a3b8;
+            padding: 3rem 1rem;
+            text-align: center
+        }
+
+        .rh-empty i {
+            font-size: 2rem;
+            margin-bottom: .75rem;
+            opacity: .6
+        }
+
+        .rh-row-btn {
+            background: none;
+            border: 1px solid var(--line);
+            border-radius: 6px;
+            color: #475569;
+            cursor: pointer;
+            margin-right: .35rem;
+            padding: .35rem .55rem
+        }
+
+        .rh-row-btn:hover {
+            background: #f1f7fd
+        }
+
+        .rh-row-btn.danger {
+            border-color: #fecaca;
+            color: #ef4444
+        }
+
+        .rh-row-btn.danger:hover {
+            background: #fee2e2
+        }
+
+        .rh-link-btn {
+            background: none;
+            border: 0;
+            color: #1683ff;
+            cursor: pointer;
+            font: inherit;
+            font-weight: 700;
+            font-size: .82rem
+        }
+
+        .rh-link-btn:hover {
+            color: #0d65d5
+        }
+
+        .rh-drawer-overlay {
+            background: rgba(11, 36, 71, .45);
+            bottom: 0;
+            display: none;
+            justify-content: flex-end;
+            left: 0;
+            position: fixed;
+            right: 0;
+            top: 0;
+            z-index: 300
+        }
+
+        .rh-drawer-overlay.show {
+            display: flex
+        }
+
+        .rh-drawer {
+            animation: rhDrawerIn .25s ease;
+            background: #fff;
+            box-shadow: -24px 0 60px rgba(11, 36, 71, .25);
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            max-width: 100%;
+            width: 600px
+        }
+
+        @keyframes rhDrawerIn {
+            from {
+                transform: translateX(24px);
+                opacity: 0
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1
+            }
+        }
+
+        .rh-drawer-header {
+            align-items: center;
+            background: #fff;
+            border-bottom: 1px solid var(--line);
+            display: flex;
+            justify-content: space-between;
+            padding: 1.15rem 1.5rem;
+            position: sticky;
+            top: 0;
+            z-index: 2
+        }
+
+        .rh-drawer-body {
+            flex: 1;
+            overflow-y: auto;
+            padding: 1.5rem
+        }
+
+        .rh-section {
+            border-top: 1px solid var(--line);
+            margin-top: 1.5rem;
+            padding-top: 1.25rem
+        }
+
+        .rh-section-title {
+            color: #94a3b8;
+            font-size: .75rem;
+            font-weight: 700;
+            letter-spacing: .08em;
+            margin-bottom: .75rem;
+            text-transform: uppercase
+        }
+
+        .rh-grid-2 {
+            display: grid;
+            gap: 1rem;
+            grid-template-columns: repeat(2, minmax(0, 1fr))
+        }
+
+        @media(max-width:560px) {
+            .rh-grid-2 {
+                grid-template-columns: 1fr
+            }
+        }
+
+        .rh-field label {
+            color: #475569;
+            display: block;
+            font-size: .8rem;
+            font-weight: 600;
+            margin-bottom: .35rem
+        }
+
+        .rh-field input,
+        .rh-field select,
+        .rh-field textarea {
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            font: inherit;
+            padding: .6rem .75rem;
+            width: 100%
+        }
+
+        .rh-field input:focus,
+        .rh-field select:focus,
+        .rh-field textarea:focus {
+            border-color: #1683ff;
+            outline: none
+        }
+
+        .rh-service-row {
+            background: #f8fafc;
+            border: 1px solid var(--line);
+            border-radius: 12px;
+            margin-bottom: .75rem;
+            padding: 1rem
+        }
+
+        .rh-choice {
+            align-items: center;
+            border: 1px solid var(--line);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            flex: 1;
+            font-size: .9rem;
+            font-weight: 600;
+            gap: .5rem;
+            padding: .6rem .75rem
+        }
+
+        .rh-choice input {
+            accent-color: #1683ff
+        }
     </style>
 </head>
+
 <body>
     <script>
         // Demo Mode: dashboard.html#demo=1 opens the manager workspace without login,
@@ -1486,7 +2374,7 @@
             <div>
                 <div style="font-weight: bold; color: #1e293b;">ResidentHub</div>
                 <div style="font-size: 0.75rem; color: #94a3b8;">Giao diện Quản lý
-                
+
                 </div>
             </div>
         </div>
@@ -1530,7 +2418,9 @@
             </div>
 
             <div style="padding: 1.5rem 1rem 0.5rem; border-top: 1px solid var(--line); margin-top: 1rem;">
-                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Quản lý</div>
+                <div
+                    style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">
+                    Quản lý</div>
                 <div class="sidebar-menu-item" onclick="switchTab('workflows')">
                     <i class="fas fa-project-diagram"></i>
                     <span>Quy trình làm việc</span>
@@ -1546,7 +2436,9 @@
             </div>
 
             <div style="padding: 1.5rem 1rem 1rem; border-top: 1px solid var(--line); margin-top: 1rem;">
-                <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Cài đặt</div>
+                <div
+                    style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">
+                    Cài đặt</div>
                 <div class="sidebar-menu-item" id="rhSettingsMenuItem" onclick="switchTab('settings')">
                     <i class="fas fa-cog"></i>
                     <span>Cấu hình</span>
@@ -1576,7 +2468,8 @@
                 </button>
                 <button class="btn-icon" title="Thông báo">
                     <i class="fas fa-bell"></i>
-                    <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">3</span>
+                    <span
+                        style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">3</span>
                 </button>
                 <div class="dropdown">
                     <button class="btn-icon" onclick="toggleDropdown()" title="Tài khoản">
@@ -1606,7 +2499,8 @@
         <div id="dashboard-tab">
             <!-- Stats Cards -->
             <div class="grid-2">
-                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openBuildingList()" onkeydown="handleBuildingCardKeydown(event)">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openBuildingList()"
+                    onkeydown="handleBuildingCardKeydown(event)">
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Tòa nhà</div>
@@ -1614,40 +2508,51 @@
                             <div class="stat-label">Tổng phòng</div>
                             <div class="stat-value" id="totalRoomsValue">245</div>
                             <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openBuildingList()"><i class="fas fa-building"></i> Xem danh sách tòa nhà</button>
+                                <button class="stat-update-trigger" type="button"
+                                    onclick="event.stopPropagation(); openBuildingList()"><i
+                                        class="fas fa-building"></i> Xem danh sách tòa nhà</button>
                             </div>
                         </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
+                        <div class="stat-icon"
+                            style="background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); color: #667eea;">
                             <i class="fas fa-building"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('rooms')" onkeydown="handleStatCardKeydown(event, 'rooms')">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('rooms')"
+                    onkeydown="handleStatCardKeydown(event, 'rooms')">
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Tổng phòng</div>
                             <div class="stat-value" data-stat-value="rooms">245</div>
                             <div style="color: #f59e0b; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('rooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
+                                <button class="stat-update-trigger" type="button"
+                                    onclick="event.stopPropagation(); openStatUpdate('rooms')"><i
+                                        class="fas fa-edit"></i> Cập nhật số liệu</button>
                             </div>
                         </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
+                        <div class="stat-icon"
+                            style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
                             <i class="fas fa-door-open"></i>
                         </div>
                     </div>
                 </div>
 
-                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('vacantRooms')" onkeydown="handleStatCardKeydown(event, 'vacantRooms')">
+                <div class="card stat-card-editable" role="button" tabindex="0" onclick="openStatUpdate('vacantRooms')"
+                    onkeydown="handleStatCardKeydown(event, 'vacantRooms')">
                     <div class="stat-card">
                         <div>
                             <div class="stat-label">Phòng trống</div>
                             <div class="stat-value" data-stat-value="vacantRooms">32</div>
                             <div style="color: #10b981; font-size: 0.875rem; margin-top: 0.5rem;">
-                                <button class="stat-update-trigger" type="button" onclick="event.stopPropagation(); openStatUpdate('vacantRooms')"><i class="fas fa-edit"></i> Cập nhật số liệu</button>
+                                <button class="stat-update-trigger" type="button"
+                                    onclick="event.stopPropagation(); openStatUpdate('vacantRooms')"><i
+                                        class="fas fa-edit"></i> Cập nhật số liệu</button>
                             </div>
                         </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
+                        <div class="stat-icon"
+                            style="background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(217, 119, 6, 0.1) 100%); color: #f59e0b;">
                             <i class="fas fa-user-group"></i>
                         </div>
                     </div>
@@ -1662,14 +2567,16 @@
                                 <i class="fas fa-arrow-up"></i> 5.2% tăng
                             </div>
                         </div>
-                        <div class="stat-icon" style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
+                        <div class="stat-icon"
+                            style="background: linear-gradient(135deg, rgba(239, 68, 68, 0.1) 0%, rgba(220, 38, 38, 0.1) 100%); color: #ef4444;">
                             <i class="fas fa-exclamation-circle"></i>
                         </div>
                     </div>
                 </div>
             </div>
 
-            <div class="stat-update-modal" id="statUpdateModal" role="dialog" aria-modal="true" aria-labelledby="statUpdateTitle" onclick="closeStatUpdateOnBackdrop(event)">
+            <div class="stat-update-modal" id="statUpdateModal" role="dialog" aria-modal="true"
+                aria-labelledby="statUpdateTitle" onclick="closeStatUpdateOnBackdrop(event)">
                 <form class="stat-update-dialog" onsubmit="saveStatUpdate(event)">
                     <h2 id="statUpdateTitle">Cập nhật số liệu</h2>
                     <p>Nhập số liệu mới cho chỉ số đang chọn.</p>
@@ -1707,32 +2614,39 @@
             </div>
 
             <!-- Priority Actions - Cần xử lý hôm nay -->
-            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%); border-left: 4px solid #ef4444;">
+            <div class="card"
+                style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(239, 68, 68, 0.05) 0%, rgba(220, 38, 38, 0.05) 100%); border-left: 4px solid #ef4444;">
                 <h3 style="font-weight: 600; color: #ef4444; margin-bottom: 1rem;">
                     <i class="fas fa-exclamation-circle"></i> Cần xử lý hôm nay
                 </h3>
                 <div class="grid-3">
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #ef4444;">
+                    <div
+                        style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #ef4444;">
                         <div style="font-size: 0.875rem; color: #64748b;">Hóa đơn quá hạn</div>
                         <div style="font-size: 2rem; font-weight: bold; color: #ef4444; margin: 0.5rem 0;">8</div>
                         <div style="font-size: 0.75rem; color: #94a3b8;">Tổng nợ: 45M</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem;">
+                        <button class="btn-primary"
+                            style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem;">
                             Xem chi tiết
                         </button>
                     </div>
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
+                    <div
+                        style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
                         <div style="font-size: 0.875rem; color: #64748b;">Yêu cầu quá 24h</div>
                         <div style="font-size: 2rem; font-weight: bold; color: #f59e0b; margin: 0.5rem 0;">5</div>
                         <div style="font-size: 0.75rem; color: #94a3b8;">Cần xử lý ngay</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
+                        <button class="btn-primary"
+                            style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);">
                             Xem chi tiết
                         </button>
                     </div>
-                    <div style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
+                    <div
+                        style="background: white; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
                         <div style="font-size: 0.875rem; color: #64748b;">Hợp đồng sắp hết</div>
                         <div style="font-size: 2rem; font-weight: bold; color: #0284c7; margin: 0.5rem 0;">6</div>
                         <div style="font-size: 0.75rem; color: #94a3b8;">Còn dưới 30 ngày</div>
-                        <button class="btn-primary" style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
+                        <button class="btn-primary"
+                            style="width: 100%; margin-top: 0.75rem; font-size: 0.875rem; padding: 0.5rem; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%);">
                             Xem chi tiết
                         </button>
                     </div>
@@ -1754,19 +2668,22 @@
                         </thead>
                         <tbody>
                             <tr>
-                                <td><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i> Thanh toán</td>
+                                <td><i class="fas fa-check-circle" style="color: #10b981; margin-right: 0.5rem;"></i>
+                                    Thanh toán</td>
                                 <td>Nguyễn Văn A thanh toán 8.5M</td>
                                 <td>10 phút trước</td>
                                 <td><span class="badge badge-success">Thành công</span></td>
                             </tr>
                             <tr>
-                                <td><i class="fas fa-wrench" style="color: #0284c7; margin-right: 0.5rem;"></i> Hỗ trợ</td>
+                                <td><i class="fas fa-wrench" style="color: #0284c7; margin-right: 0.5rem;"></i> Hỗ trợ
+                                </td>
                                 <td>Yêu cầu sửa chữa phòng 312</td>
                                 <td>1 giờ trước</td>
                                 <td><span class="badge badge-info">Đang xử lý</span></td>
                             </tr>
                             <tr>
-                                <td><i class="fas fa-envelope" style="color: #7c3aed; margin-right: 0.5rem;"></i> Thông báo</td>
+                                <td><i class="fas fa-envelope" style="color: #7c3aed; margin-right: 0.5rem;"></i> Thông
+                                    báo</td>
                                 <td>Gửi hóa đơn tháng 8 cho 245 cư dân</td>
                                 <td>3 giờ trước</td>
                                 <td><span class="badge badge-success">Hoàn thành</span></td>
@@ -1793,7 +2710,8 @@
             </div>
         </div>
 
-        <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true" aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
+        <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true"
+            aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
             <form class="stat-update-dialog building-form-dialog" onsubmit="saveBuilding(event)">
                 <h2 id="buildingFormTitle">Thêm thông tin tòa nhà</h2>
                 <p>Nhập thông tin để quản lý tòa nhà trên hệ thống.</p>
@@ -1835,7 +2753,8 @@
                     <div class="building-form-grid">
                         <div class="building-form-field full-width">
                             <label for="buildingService">Dịch vụ quản lý</label>
-                            <input id="buildingService" name="buildingService" placeholder="Ví dụ: Quản lý vận hành, vệ sinh, bảo vệ">
+                            <input id="buildingService" name="buildingService"
+                                placeholder="Ví dụ: Quản lý vận hành, vệ sinh, bảo vệ">
                         </div>
                     </div>
                 </div>
@@ -1868,7 +2787,8 @@
                             <h3 style="margin-bottom: 0.25rem;">Trạng thái</h3>
                             <span class="building-active-label" id="buildingActiveLabel">Đang hoạt động</span>
                         </div>
-                        <input class="building-toggle" id="buildingActive" name="buildingActive" type="checkbox" checked onchange="updateBuildingActiveLabel()">
+                        <input class="building-toggle" id="buildingActive" name="buildingActive" type="checkbox" checked
+                            onchange="updateBuildingActiveLabel()">
                     </div>
                 </div>
 
@@ -1964,7 +2884,8 @@
             <div class="resident-form-panel" role="dialog" aria-modal="true" aria-labelledby="residentFormTitle">
                 <div class="resident-form-header">
                     <h3 id="residentFormTitle">Thêm khách hàng mới</h3>
-                    <button class="resident-form-close" type="button" aria-label="Đóng" onclick="closeResidentForm()">×</button>
+                    <button class="resident-form-close" type="button" aria-label="Đóng"
+                        onclick="closeResidentForm()">×</button>
                 </div>
 
                 <form id="residentForm" onsubmit="saveResident(event)">
@@ -2038,24 +2959,29 @@
                             </div>
                             <div class="resident-field">
                                 <label for="residentAddress">Địa chỉ chi tiết</label>
-                                <input id="residentAddress" name="residentAddress" type="text" placeholder="Địa chỉ chi tiết">
+                                <input id="residentAddress" name="residentAddress" type="text"
+                                    placeholder="Địa chỉ chi tiết">
                             </div>
                             <div class="resident-field">
                                 <label for="residentCurrentAddress">Nơi ở hiện tại</label>
-                                <input id="residentCurrentAddress" name="residentCurrentAddress" type="text" placeholder="Nơi ở hiện tại">
+                                <input id="residentCurrentAddress" name="residentCurrentAddress" type="text"
+                                    placeholder="Nơi ở hiện tại">
                             </div>
                             <div class="resident-field">
                                 <label for="residentPermanentAddress">Nơi thường trú</label>
-                                <input id="residentPermanentAddress" name="residentPermanentAddress" type="text" placeholder="Nơi thường trú">
+                                <input id="residentPermanentAddress" name="residentPermanentAddress" type="text"
+                                    placeholder="Nơi thường trú">
                             </div>
                             <div class="resident-field">
                                 <label for="residentTemporaryAddress">Nơi tạm trú</label>
-                                <input id="residentTemporaryAddress" name="residentTemporaryAddress" type="text" placeholder="Nơi tạm trú">
+                                <input id="residentTemporaryAddress" name="residentTemporaryAddress" type="text"
+                                    placeholder="Nơi tạm trú">
                             </div>
                         </div>
 
                         <div style="margin-top: 1rem; color: #4b5563; font-size: 0.95rem; line-height: 1.5;">
-                            Thường trú, tạm trú và chỗ ở hiện tại được dùng cho CT01, tách riêng với địa chỉ liên hệ ở trên. Thay đổi chỉ cần báo cáo lại cho ngân hàng nếu cần.
+                            Thường trú, tạm trú và chỗ ở hiện tại được dùng cho CT01, tách riêng với địa chỉ liên hệ ở
+                            trên. Thay đổi chỉ cần báo cáo lại cho ngân hàng nếu cần.
                         </div>
                     </div>
 
@@ -2084,23 +3010,28 @@
                             </div>
                             <div class="resident-field">
                                 <label for="residentConsultantName">Tên tư vấn viên</label>
-                                <input id="residentConsultantName" name="residentConsultantName" type="text" placeholder="Tên tư vấn viên">
+                                <input id="residentConsultantName" name="residentConsultantName" type="text"
+                                    placeholder="Tên tư vấn viên">
                             </div>
                             <div class="resident-field">
                                 <label for="residentConsultantPhone">SĐT tư vấn viên</label>
-                                <input id="residentConsultantPhone" name="residentConsultantPhone" type="tel" placeholder="SĐT tư vấn viên">
+                                <input id="residentConsultantPhone" name="residentConsultantPhone" type="tel"
+                                    placeholder="SĐT tư vấn viên">
                             </div>
                             <div class="resident-field">
                                 <label for="residentContactName">Người liên lạc</label>
-                                <input id="residentContactName" name="residentContactName" type="text" placeholder="Người liên lạc">
+                                <input id="residentContactName" name="residentContactName" type="text"
+                                    placeholder="Người liên lạc">
                             </div>
                             <div class="resident-field">
                                 <label for="residentContactPhone">SĐT người liên lạc</label>
-                                <input id="residentContactPhone" name="residentContactPhone" type="tel" placeholder="SĐT người liên lạc">
+                                <input id="residentContactPhone" name="residentContactPhone" type="tel"
+                                    placeholder="SĐT người liên lạc">
                             </div>
                             <div class="resident-field">
                                 <label for="residentFingerprintCode">Mã vân tay cửa ra vào</label>
-                                <input id="residentFingerprintCode" name="residentFingerprintCode" type="text" placeholder="Mã vân tay cửa ra vào">
+                                <input id="residentFingerprintCode" name="residentFingerprintCode" type="text"
+                                    placeholder="Mã vân tay cửa ra vào">
                             </div>
                         </div>
                     </div>
@@ -2110,7 +3041,8 @@
                             <h4 style="margin: 0;">Khách nước ngoài</h4>
                             <div class="resident-toggle-wrap">
                                 <span class="resident-toggle-label" id="residentForeignerToggleLabel">Không</span>
-                                <input class="resident-toggle" id="residentIsForeigner" name="residentIsForeigner" type="checkbox">
+                                <input class="resident-toggle" id="residentIsForeigner" name="residentIsForeigner"
+                                    type="checkbox">
                             </div>
                         </div>
 
@@ -2139,7 +3071,8 @@
                                 </div>
                                 <div class="resident-field full-width">
                                     <label for="residentPassportPhoto">Ảnh hộ chiếu</label>
-                                    <input id="residentPassportPhoto" name="residentPassportPhoto" type="file" accept="image/*">
+                                    <input id="residentPassportPhoto" name="residentPassportPhoto" type="file"
+                                        accept="image/*">
                                 </div>
                             </div>
                         </div>
@@ -2148,7 +3081,8 @@
                     <div class="resident-form-section resident-vehicle-wrap">
                         <div class="resident-vehicle-header">
                             <h4 class="resident-vehicle-title" style="margin: 0;">PHƯƠNG TIỆN</h4>
-                            <button class="resident-vehicle-add" type="button" id="residentVehicleAddButton">Thêm</button>
+                            <button class="resident-vehicle-add" type="button"
+                                id="residentVehicleAddButton">Thêm</button>
                         </div>
 
                         <div class="resident-vehicle-empty" id="residentVehicleEmptyState">Không có dữ liệu trả về</div>
@@ -2188,7 +3122,8 @@
                                 </div>
                                 <div class="resident-field full-width">
                                     <label for="residentVehiclePhoto">Ảnh xe</label>
-                                    <input id="residentVehiclePhoto" name="residentVehiclePhoto" type="file" accept="image/*">
+                                    <input id="residentVehiclePhoto" name="residentVehiclePhoto" type="file"
+                                        accept="image/*">
                                 </div>
                             </div>
                         </div>
@@ -2207,7 +3142,8 @@
             <div class="resident-form-panel" role="dialog" aria-modal="true" aria-labelledby="residentMoveOutTitle">
                 <div class="resident-form-header">
                     <h3 id="residentMoveOutTitle">Chuyển đi</h3>
-                    <button class="resident-form-close" type="button" aria-label="Đóng" onclick="closeResidentMoveOutForm()">×</button>
+                    <button class="resident-form-close" type="button" aria-label="Đóng"
+                        onclick="closeResidentMoveOutForm()">×</button>
                 </div>
 
                 <form id="residentMoveOutForm" onsubmit="saveResidentMoveOut(event)">
@@ -2225,13 +3161,15 @@
                             </div>
                             <div class="resident-field">
                                 <label for="residentMoveOutNote">Ghi chú</label>
-                                <textarea id="residentMoveOutNote" name="residentMoveOutNote" rows="4" placeholder="Nhập ghi chú về việc chuyển đi"></textarea>
+                                <textarea id="residentMoveOutNote" name="residentMoveOutNote" rows="4"
+                                    placeholder="Nhập ghi chú về việc chuyển đi"></textarea>
                             </div>
                         </div>
                     </div>
 
                     <div class="resident-form-actions">
-                        <button class="resident-btn-secondary" type="button" onclick="closeResidentMoveOutForm()">Hủy</button>
+                        <button class="resident-btn-secondary" type="button"
+                            onclick="closeResidentMoveOutForm()">Hủy</button>
                         <button class="resident-btn-primary" type="submit">Xác nhận</button>
                     </div>
                 </form>
@@ -2263,48 +3201,64 @@
 
         <div id="settings-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div
+                    style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
                     <div>
                         <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý tài khoản</h2>
-                        <p style="color: #94a3b8; margin-top: 0.4rem; font-size: 0.875rem;">Tạo và phân quyền tài khoản Quản lý hoặc Cư dân. Vai trò gán ở đây quyết định giao diện và chức năng tài khoản được phép truy cập.</p>
+                        <p style="color: #94a3b8; margin-top: 0.4rem; font-size: 0.875rem;">Tạo và phân quyền tài khoản
+                            Quản lý hoặc Cư dân. Vai trò gán ở đây quyết định giao diện và chức năng tài khoản được phép
+                            truy cập.</p>
                     </div>
-                    <button class="btn-icon" style="width: auto; padding: 0 1rem; background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border-radius: 10px;" onclick="openAccountForm()">
+                    <button class="btn-icon"
+                        style="width: auto; padding: 0 1rem; background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border-radius: 10px;"
+                        onclick="openAccountForm()">
                         <i class="fas fa-user-plus"></i>&nbsp; Thêm tài khoản
                     </button>
                 </div>
 
-                <form id="accountForm" onsubmit="handleAccountFormSubmit(event)" style="display: none; margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem;">
+                <form id="accountForm" onsubmit="handleAccountFormSubmit(event)"
+                    style="display: none; margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem;">
                     <input type="hidden" id="accountId">
                     <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem;">
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Họ tên</label>
-                            <input id="accountName" type="text" required placeholder="Nguyễn Thị Hoa" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <input id="accountName" type="text" required placeholder="Nguyễn Thị Hoa"
+                                style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Email đăng nhập</label>
-                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn"
+                                style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Mật khẩu</label>
-                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
-                            <div id="accountPasswordHint" style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;"></div>
+                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự"
+                                style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <div id="accountPasswordHint"
+                                style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;"></div>
                         </div>
                         <div>
                             <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Vai trò</label>
-                            <select id="accountRole" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <select id="accountRole"
+                                style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
                                 <option value="manager">Quản lý</option>
                                 <option value="resident">Cư dân</option>
                             </select>
                         </div>
                         <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Căn hộ (nếu là Cư dân)</label>
-                            <input id="accountUnit" type="text" placeholder="VD: A-1208" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Căn hộ (nếu là Cư
+                                dân)</label>
+                            <input id="accountUnit" type="text" placeholder="VD: A-1208"
+                                style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
                         </div>
                     </div>
                     <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
                     <div style="display: flex; gap: 0.6rem; margin-top: 1rem;">
-                        <button type="submit" style="background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border: 0; border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Lưu tài khoản</button>
-                        <button type="button" onclick="closeAccountForm()" style="background: #fff; color: #475569; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Huỷ</button>
+                        <button type="submit"
+                            style="background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border: 0; border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Lưu
+                            tài khoản</button>
+                        <button type="button" onclick="closeAccountForm()"
+                            style="background: #fff; color: #475569; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Huỷ</button>
                     </div>
                 </form>
             </div>
@@ -2330,14 +3284,18 @@
         <!-- Workflows Tab -->
         <div id="workflows-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">4 Quy trình Chính</h2>
-                <p style="color: #64748b; margin-bottom: 1.5rem;">Những quy trình quan trọng nhất trong quản lý cư dân</p>
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">4 Quy trình Chính
+                </h2>
+                <p style="color: #64748b; margin-bottom: 1.5rem;">Những quy trình quan trọng nhất trong quản lý cư dân
+                </p>
             </div>
 
             <!-- Workflow 1 -->
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">1</div>
+                    <div
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        1</div>
                     <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Quản lý Cư dân</h3>
                 </div>
                 <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #667eea;">
@@ -2360,7 +3318,9 @@
             <!-- Workflow 2 -->
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">2</div>
+                    <div
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #10b981 0%, #059669 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        2</div>
                     <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Thanh toán Hóa đơn</h3>
                 </div>
                 <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #10b981;">
@@ -2387,14 +3347,17 @@
             <!-- Workflow 3 -->
             <div class="card" style="margin-bottom: 1.5rem;">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">3</div>
+                    <div
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        3</div>
                     <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Báo Sự Cố</h3>
                 </div>
                 <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #f59e0b;">
                     <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
                         <div>
                             <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">👤 Cư dân:</div>
-                            <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                            <div
+                                style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
                                 Phát hiện sự cố<br>
                                 ↓<br>
                                 Mở ứng dụng<br>
@@ -2409,7 +3372,8 @@
                         </div>
                         <div>
                             <div style="font-weight: 600; color: #1e293b; margin-bottom: 0.5rem;">👨‍💼 Công ty:</div>
-                            <div style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
+                            <div
+                                style="font-family: 'Courier New'; font-size: 0.9rem; line-height: 1.8; color: #475569;">
                                 Website nhận thông báo<br>
                                 ↓<br>
                                 Nhân viên xem yêu cầu<br>
@@ -2432,7 +3396,9 @@
             <!-- Workflow 4 -->
             <div class="card">
                 <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                    <div style="width: 50px; height: 50px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">4</div>
+                    <div
+                        style="width: 50px; height: 50px; background: linear-gradient(135deg, #0284c7 0%, #0369a1 100%); border-radius: 50%; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold;">
+                        4</div>
                     <h3 style="font-weight: 600; color: #1e293b; font-size: 1.25rem;">Hợp đồng Sắp Hết Hạn</h3>
                 </div>
                 <div style="background: #f8fafc; padding: 1rem; border-radius: 0.5rem; border-left: 3px solid #0284c7;">
@@ -2458,74 +3424,86 @@
         <!-- Features Tab -->
         <div id="features-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Chi tiết Tính năng MVP</h2>
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Chi tiết Tính năng
+                    MVP</h2>
                 <p style="color: #64748b;">5 Module chính trong phiên bản ban đầu</p>
             </div>
 
             <div class="grid-2">
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                        <div
+                            style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
                             <i class="fas fa-users"></i>
                         </div>
                         <h3 style="font-weight: 600; color: #1e293b;">👥 Cư dân</h3>
                     </div>
                     <ul style="list-style: none;">
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý hồ sơ cư dân
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý hồ sơ cư
+                            dân
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
                             <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem hồ sơ
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tìm kiếm và cập nhật thông tin
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tìm kiếm và cập
+                            nhật thông tin
                         </li>
                     </ul>
                 </div>
 
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                        <div
+                            style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
                             <i class="fas fa-building"></i>
                         </div>
                         <h3 style="font-weight: 600; color: #1e293b;">🏠 Phòng và hợp đồng</h3>
                     </div>
                     <ul style="list-style: none;">
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý phòng và hợp đồng
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý phòng và
+                            hợp đồng
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem hợp đồng
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem hợp
+                            đồng
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi chi tiết phòng
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi chi tiết
+                            phòng
                         </li>
                     </ul>
                 </div>
 
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                        <div
+                            style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
                             <i class="fas fa-receipt"></i>
                         </div>
                         <h3 style="font-weight: 600; color: #1e293b;">💰 Thanh toán</h3>
                     </div>
                     <ul style="list-style: none;">
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tạo hóa đơn tự động
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Tạo hóa đơn tự
+                            động
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
                             <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi công nợ
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem và thanh toán
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem và
+                            thanh toán
                         </li>
                     </ul>
                 </div>
 
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                        <div
+                            style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
                             <i class="fas fa-tools"></i>
                         </div>
                         <h3 style="font-weight: 600; color: #1e293b;">🔧 Yêu cầu</h3>
@@ -2538,38 +3516,45 @@
                             <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Phân công xử lý
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân gửi và theo dõi
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân gửi và
+                            theo dõi
                         </li>
                     </ul>
                 </div>
 
                 <div class="card">
                     <div style="display: flex; align-items: center; gap: 1rem; margin-bottom: 1rem;">
-                        <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
+                        <div
+                            style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
                             <i class="fas fa-bell"></i>
                         </div>
                         <h3 style="font-weight: 600; color: #1e293b;">🔔 Thông báo</h3>
                     </div>
                     <ul style="list-style: none;">
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Gửi thông báo tự động
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Gửi thông báo tự
+                            động
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
                             <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý thông báo
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân nhận thông báo
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân nhận thông
+                            báo
                         </li>
                     </ul>
                 </div>
             </div>
 
             <!-- Future Modules -->
-            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-left: 3px solid #667eea;">
-                <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">📈 Tính năng mở rộng (Giai đoạn 2)</h3>
+            <div class="card"
+                style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-left: 3px solid #667eea;">
+                <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">📈 Tính năng mở rộng (Giai đoạn 2)
+                </h3>
                 <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
                     <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
-                        <i class="fas fa-chart-bar" style="color: #667eea; margin-right: 0.5rem;"></i> Phân tích và báo cáo
+                        <i class="fas fa-chart-bar" style="color: #667eea; margin-right: 0.5rem;"></i> Phân tích và báo
+                        cáo
                     </div>
                     <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
                         <i class="fas fa-users-cog" style="color: #667eea; margin-right: 0.5rem;"></i> Quản lý nhân viên
@@ -2587,7 +3572,8 @@
         <!-- Architecture Tab -->
         <div id="architecture-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Kiến trúc Hệ thống</h2>
+                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Kiến trúc Hệ thống
+                </h2>
                 <p style="color: #64748b;">Cấu trúc website cho công ty quản lý và ứng dụng cho cư dân</p>
             </div>
 
@@ -2598,31 +3584,42 @@
                         Website - Công ty
                     </h3>
                     <nav style="list-style: none;">
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
-                            <i class="fas fa-chart-line" style="color: #667eea; margin-right: 0.75rem;"></i> Quản lý tổng quan
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-chart-line" style="color: #667eea; margin-right: 0.75rem;"></i> Quản lý
+                            tổng quan
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-users" style="color: #667eea; margin-right: 0.75rem;"></i> Cư dân
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
-                            <i class="fas fa-building" style="color: #667eea; margin-right: 0.75rem;"></i> Phòng và tòa nhà
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                            <i class="fas fa-building" style="color: #667eea; margin-right: 0.75rem;"></i> Phòng và tòa
+                            nhà
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-file-contract" style="color: #667eea; margin-right: 0.75rem;"></i> Hợp đồng
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-receipt" style="color: #667eea; margin-right: 0.75rem;"></i> Thanh toán
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-tools" style="color: #667eea; margin-right: 0.75rem;"></i> Yêu cầu hỗ trợ
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-bell" style="color: #667eea; margin-right: 0.75rem;"></i> Thông báo
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-chart-bar" style="color: #667eea; margin-right: 0.75rem;"></i> Báo cáo
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; border-radius: 0.25rem;">
                             <i class="fas fa-cog" style="color: #667eea; margin-right: 0.75rem;"></i> Cài đặt
                         </div>
                     </nav>
@@ -2634,28 +3631,36 @@
                         Ứng dụng - Cư dân
                     </h3>
                     <nav style="list-style: none;">
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-home" style="color: #667eea; margin-right: 0.75rem;"></i> Trang chủ
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-door-open" style="color: #667eea; margin-right: 0.75rem;"></i> Phòng
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-file-contract" style="color: #667eea; margin-right: 0.75rem;"></i> Hợp đồng
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-receipt" style="color: #667eea; margin-right: 0.75rem;"></i> Hóa đơn
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-credit-card" style="color: #667eea; margin-right: 0.75rem;"></i> Thanh toán
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-tools" style="color: #667eea; margin-right: 0.75rem;"></i> Yêu cầu
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; margin-bottom: 0.5rem; border-radius: 0.25rem;">
                             <i class="fas fa-bell" style="color: #667eea; margin-right: 0.75rem;"></i> Thông báo
                         </div>
-                        <div style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; border-radius: 0.25rem;">
+                        <div
+                            style="padding: 0.75rem; background: #f1f5f9; border-left: 3px solid #667eea; border-radius: 0.25rem;">
                             <i class="fas fa-user-circle" style="color: #667eea; margin-right: 0.75rem;"></i> Cá nhân
                         </div>
                     </nav>
@@ -2663,15 +3668,18 @@
             </div>
 
             <!-- Core Concept -->
-            <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-left: 4px solid #667eea;">
+            <div class="card"
+                style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-left: 4px solid #667eea;">
                 <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">
                     🔥 Câu chuyện cốt lõi
                 </h3>
                 <p style="color: #1e293b; line-height: 1.8; font-size: 1.1rem;">
-                    <strong>ResidentHub</strong> giúp công ty quản lý nhà cho thuê chuyển từ <strong>"quản lý từng cư dân"</strong> sang <strong>"quản lý toàn bộ vận hành trên một hệ thống"</strong>.
+                    <strong>ResidentHub</strong> giúp công ty quản lý nhà cho thuê chuyển từ <strong>"quản lý từng cư
+                        dân"</strong> sang <strong>"quản lý toàn bộ vận hành trên một hệ thống"</strong>.
                 </p>
                 <p style="color: #475569; margin-top: 1rem; font-size: 0.95rem;">
-                    Mỗi tính năng đều phải phục vụ câu chuyện này. Nếu một tính năng không liên quan đến quản lý cư dân/vận hành thì loại bỏ, như vậy hệ thống sẽ không trở nên quá phức tạp.
+                    Mỗi tính năng đều phải phục vụ câu chuyện này. Nếu một tính năng không liên quan đến quản lý cư
+                    dân/vận hành thì loại bỏ, như vậy hệ thống sẽ không trở nên quá phức tạp.
                 </p>
             </div>
         </div>
@@ -3379,6 +4387,17 @@
             renderBuildings();
         }
 
+        const TAB_RENDERERS = {
+            buildings: function () { if (typeof renderBuildings === 'function') renderBuildings(); else if (window.RHUI) RHUI.renderBuildingsTab(); },
+            apartments: function () { if (window.RHUI) RHUI.renderApartmentsTab(); },
+            customers: function () { if (typeof renderResidents === 'function') renderResidents(); else if (window.RHUI) RHUI.renderCustomersTab(); },
+            meters: function () { if (window.RHUI) RHUI.renderMetersTab(); },
+            contracts: function () { if (window.RHUI) RHUI.renderContractsTab(); },
+            invoices: function () { if (window.RHUI) RHUI.renderInvoicesTab(); },
+            workflows: function () { if (typeof renderWorkflows === 'function') renderWorkflows(); }
+        };
+        window.TAB_RENDERERS = TAB_RENDERERS;
+
         // Switch Tab Function
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
@@ -3386,9 +4405,12 @@
             tabs.forEach(tab => tab.style.display = 'none');
 
             // Show selected tab
-            const selectedTab = document.getElementById(tabName + '-tab');
+            let selectedTab = document.getElementById(tabName + '-tab');
+            if (!selectedTab && tabName === 'customers') {
+                selectedTab = document.getElementById('residents-tab');
+            }
             if (selectedTab) selectedTab.style.display = 'block';
-            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName]();
+            if (window.TAB_RENDERERS && window.TAB_RENDERERS[tabName]) window.TAB_RENDERERS[tabName]();
 
             // Update active menu item
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
@@ -3433,7 +4455,7 @@
         }
 
         // Close dropdown when clicking outside
-        document.addEventListener('click', function(event) {
+        document.addEventListener('click', function (event) {
             const dropdown = document.getElementById('profileDropdown');
             if (!event.target.closest('.dropdown')) {
                 dropdown.classList.remove('active');
@@ -3476,10 +4498,10 @@
                     '<td><span style="background:' + badgeBg + ';color:' + badgeColor + ';font-size:0.72rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;">' + ROLE_LABELS[u.role] + '</span></td>' +
                     '<td>' + escapeHtml(u.unit || '—') + '</td>' +
                     '<td style="text-align:right; white-space:nowrap;">' +
-                        '<button onclick="openAccountForm(\'' + u.id + '\')" style="background:none;border:1px solid var(--line);border-radius:6px;padding:0.35rem 0.6rem;margin-right:0.4rem;cursor:pointer;color:#475569;" title="Sửa"><i class="fas fa-pen"></i></button>' +
-                        '<button onclick="deleteAccount(\'' + u.id + '\')" style="background:none;border:1px solid #fecaca;border-radius:6px;padding:0.35rem 0.6rem;cursor:pointer;color:#ef4444;" title="Xoá"><i class="fas fa-trash"></i></button>' +
+                    '<button onclick="openAccountForm(\'' + u.id + '\')" style="background:none;border:1px solid var(--line);border-radius:6px;padding:0.35rem 0.6rem;margin-right:0.4rem;cursor:pointer;color:#475569;" title="Sửa"><i class="fas fa-pen"></i></button>' +
+                    '<button onclick="deleteAccount(\'' + u.id + '\')" style="background:none;border:1px solid #fecaca;border-radius:6px;padding:0.35rem 0.6rem;cursor:pointer;color:#ef4444;" title="Xoá"><i class="fas fa-trash"></i></button>' +
                     '</td>' +
-                '</tr>';
+                    '</tr>';
             }).join('') || '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có tài khoản nào</td></tr>';
         }
 
@@ -3556,7 +4578,7 @@
         }
 
         // Initialize on load
-        window.addEventListener('load', function() {
+        window.addEventListener('load', function () {
             loadSavedStats();
             initCharts();
             document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
@@ -3574,4 +4596,5 @@
         }
     </script>
 </body>
+
 </html>

@@ -735,42 +735,202 @@
 
     // ============================================================= CONTRACTS
 
+    var CONTRACT_TABS = [
+        { id: 'all', label: 'Tất cả' },
+        { id: 'renting', label: 'Đang thuê' },
+        { id: 'valid', label: 'Còn hạn' },
+        { id: 'expiring', label: 'Sắp hết hạn' },
+        { id: 'overdue', label: 'Quá hạn' },
+        { id: 'moving_out', label: 'Sắp chuyển đi' },
+        { id: 'terminated', label: 'Đã thanh lý' },
+        { id: 'deposit_cancelled', label: 'Bỏ cọc' }
+    ];
+
+    function getContractState(c) {
+        var raw = (c.status || 'active').trim();
+        var now = new Date();
+        var todayStr = now.toISOString().slice(0, 10);
+
+        if (raw === 'terminated' || raw === 'ended' || raw === 'Đã thanh lý') {
+            return { id: 'terminated', label: 'Đã thanh lý', color: '#ef4444', bg: '#fee2e2' };
+        }
+        if (raw === 'deposit_cancelled' || raw === 'bo_coc' || raw === 'Bỏ cọc') {
+            return { id: 'deposit_cancelled', label: 'Bỏ cọc', color: '#64748b', bg: '#f1f5f9' };
+        }
+        if (raw === 'moving_out' || raw === 'Sắp chuyển đi') {
+            return { id: 'moving_out', label: 'Sắp chuyển đi', color: '#8b5cf6', bg: '#f5f3ff' };
+        }
+        if (raw === 'overdue' || raw === 'Quá hạn') {
+            return { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' };
+        }
+
+        var isExpired = c.endDate && c.endDate < todayStr;
+        if (isExpired) {
+            return { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' };
+        }
+
+        var daysLeft = null;
+        if (c.endDate) {
+            daysLeft = Math.ceil((new Date(c.endDate) - now) / (1000 * 60 * 60 * 24));
+        }
+
+        if (raw === 'expiring' || raw === 'Sắp hết hạn' || (daysLeft !== null && daysLeft >= 0 && daysLeft <= 30)) {
+            return { id: 'expiring', label: 'Sắp hết hạn', color: '#f59e0b', bg: '#fef3c7', daysLeft: daysLeft };
+        }
+        if (raw === 'valid' || raw === 'Còn hạn') {
+            return { id: 'valid', label: 'Còn hạn', color: '#10b981', bg: '#e6f8ef', daysLeft: daysLeft };
+        }
+        return { id: 'valid', label: 'Đang thuê', color: '#10b981', bg: '#e6f8ef', daysLeft: daysLeft };
+    }
+
+    function contractMatchesTab(c, tabId) {
+        if (!tabId || tabId === 'all') return true;
+        var st = getContractState(c);
+        var raw = (c.status || 'active').trim();
+        var now = new Date();
+        var todayStr = now.toISOString().slice(0, 10);
+        var isExpired = c.endDate && c.endDate < todayStr;
+        var daysLeft = c.endDate ? Math.ceil((new Date(c.endDate) - now) / (1000 * 60 * 60 * 24)) : null;
+
+        if (tabId === 'renting') {
+            return (st.id === 'valid' || st.id === 'expiring' || st.id === 'moving_out' || raw === 'active' || raw === 'renting' || raw === 'Đang thuê') && !isExpired && st.id !== 'terminated' && st.id !== 'deposit_cancelled' && st.id !== 'overdue';
+        }
+        if (tabId === 'valid') {
+            return (st.id === 'valid' || raw === 'valid' || raw === 'Còn hạn') && !isExpired && (daysLeft === null || daysLeft > 30) && st.id !== 'terminated' && st.id !== 'deposit_cancelled';
+        }
+        if (tabId === 'expiring') {
+            return (st.id === 'expiring' || raw === 'expiring' || raw === 'Sắp hết hạn' || (!isExpired && daysLeft !== null && daysLeft >= 0 && daysLeft <= 30)) && st.id !== 'terminated' && st.id !== 'deposit_cancelled';
+        }
+        if (tabId === 'overdue') {
+            return st.id === 'overdue' || isExpired || raw === 'overdue' || raw === 'Quá hạn';
+        }
+        if (tabId === 'moving_out') {
+            return st.id === 'moving_out' || raw === 'moving_out' || raw === 'Sắp chuyển đi';
+        }
+        if (tabId === 'terminated') {
+            return st.id === 'terminated' || raw === 'terminated' || raw === 'ended' || raw === 'Đã thanh lý';
+        }
+        if (tabId === 'deposit_cancelled') {
+            return st.id === 'deposit_cancelled' || raw === 'deposit_cancelled' || raw === 'bo_coc' || raw === 'Bỏ cọc';
+        }
+        return false;
+    }
+
+    RHUI.currentContractTab = 'all';
+
+    RHUI.filterContracts = function (tabId) {
+        RHUI.currentContractTab = tabId;
+        renderContractsTab();
+    };
+
     function renderContractsTab() {
         var tab = byId('contracts-tab');
         if (!tab) return;
         var buildings = RHD.list('buildings');
         var customers = RHD.list('customers');
-        if (!buildings.length || !RHD.list('apartments').length || !customers.length) {
-            tab.innerHTML = renderDemoBanner('contracts') + '<div class="card">' + emptyState('fa-file-contract', 'Cần có Tòa nhà, Căn hộ và Khách hàng trước khi lập hợp đồng.') + '</div>';
-            return;
-        }
+        var apartments = RHD.list('apartments');
         var contracts = RHD.list('contracts').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var rows = contracts.map(function (c) {
-            var building = RHD.get('buildings', c.buildingId);
-            var apt = RHD.get('apartments', c.apartmentId);
-            var cus = RHD.get('customers', c.customerId);
-            return '<tr>' +
-                '<td><strong>' + escapeHtml(c.code) + '</strong></td>' +
-                '<td>' + escapeHtml(building ? building.shortName : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</td>' +
-                '<td>' + escapeHtml(cus ? cus.fullName : '—') + '</td>' +
-                '<td>' + fmtDate(c.startDate) + ' → ' + fmtDate(c.endDate) + '</td>' +
-                '<td>' + money(c.rentPrice) + '</td>' +
-                '<td>' + badge(c.status === 'active' ? 'Đang hiệu lực' : 'Đã kết thúc', c.status === 'active' ? '#18a878' : '#61708a', c.status === 'active' ? '#e6f8ef' : '#f1f5f9') + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
-                '<button onclick="RHUI.openContractForm(\'' + c.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
-                '<button onclick="RHUI.deleteContract(\'' + c.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
-                '</td></tr>';
-        }).join('');
+
+        var totalCount = contracts.length;
+        var rentingCount = contracts.filter(function (c) { return contractMatchesTab(c, 'renting'); }).length;
+        var overdueCount = contracts.filter(function (c) { return contractMatchesTab(c, 'overdue'); }).length;
+
+        var activeTabId = RHUI.currentContractTab || 'all';
+        var activeTabObj = CONTRACT_TABS.find(function (t) { return t.id === activeTabId; }) || CONTRACT_TABS[0];
+
+        // 1. Stats HTML (Đúng 3 thẻ: Hợp đồng, Đang thuê, Quá hạn)
+        var statsHtml = '<div class="contract-summary-grid">' +
+            '<div class="contract-summary-card" onclick="RHUI.filterContracts(\'all\')" style="cursor:pointer;" title="Bấm để lọc Tất cả">' +
+                '<div>' +
+                    '<div class="contract-summary-main">' +
+                        '<i class="fa-solid fa-file-contract contract-summary-icon-contract"></i>' +
+                        '<span class="contract-summary-value" id="contractStatTotal">' + totalCount + '</span>' +
+                    '</div>' +
+                    '<span class="contract-summary-label">Hợp đồng</span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="contract-summary-card" onclick="RHUI.filterContracts(\'renting\')" style="cursor:pointer;" title="Bấm để lọc Đang thuê">' +
+                '<div>' +
+                    '<div class="contract-summary-main">' +
+                        '<i class="fa-solid fa-house-user contract-summary-icon-renting"></i>' +
+                        '<span class="contract-summary-value" id="contractStatRenting">' + rentingCount + '</span>' +
+                    '</div>' +
+                    '<span class="contract-summary-label">Đang thuê</span>' +
+                '</div>' +
+            '</div>' +
+            '<div class="contract-summary-card" onclick="RHUI.filterContracts(\'overdue\')" style="cursor:pointer;" title="Bấm để lọc Quá hạn">' +
+                '<div>' +
+                    '<div class="contract-summary-main">' +
+                        '<i class="fa-solid fa-triangle-exclamation contract-summary-icon-overdue"></i>' +
+                        '<span class="contract-summary-value" id="contractStatOverdue">' + overdueCount + '</span>' +
+                    '</div>' +
+                    '<span class="contract-summary-label">Quá hạn</span>' +
+                '</div>' +
+            '</div>' +
+        '</div>';
+
+        // 2. Filter Bar HTML (8 tab có overflow-x: auto; white-space: nowrap và nhãn đầy đủ cho tab đầu)
+        var filterBarHtml = '<div class="contract-filter-bar">' +
+            CONTRACT_TABS.map(function (t) {
+                var cCount = contracts.filter(function (c) { return contractMatchesTab(c, t.id); }).length;
+                var isActive = (t.id === activeTabId);
+                return '<button type="button" class="contract-tab-pill' + (isActive ? ' active' : '') + '" onclick="RHUI.filterContracts(\'' + t.id + '\')">' +
+                    '<span class="contract-tab-label">' + escapeHtml(t.label) + '</span>' +
+                    '<span class="contract-tab-count">' + cCount + '</span>' +
+                '</button>';
+            }).join('') +
+        '</div>';
+
+        // 3. Render danh sách hợp đồng lọc theo tab
+        var filteredContracts = contracts.filter(function (c) { return contractMatchesTab(c, activeTabId); });
+
+        var listContentHtml = '';
+        if (!buildings.length || !apartments.length || !customers.length) {
+            listContentHtml = emptyState('fa-file-contract', 'Cần có Tòa nhà, Căn hộ và Khách hàng trước khi lập hợp đồng.');
+        } else if (!contracts.length) {
+            listContentHtml = emptyState('fa-file-contract', 'Chưa có hợp đồng nào. Hãy bấm nút (+) màu xanh ở góc dưới bên phải để tạo hợp đồng mới.');
+        } else if (!filteredContracts.length) {
+            listContentHtml = emptyState('fa-filter', 'Không có hợp đồng nào ở trạng thái "' + escapeHtml(activeTabObj.label) + '".');
+        } else {
+            var rows = filteredContracts.map(function (c) {
+                var building = RHD.get('buildings', c.buildingId);
+                var apt = RHD.get('apartments', c.apartmentId);
+                var cus = RHD.get('customers', c.customerId);
+                var st = getContractState(c);
+                return '<tr>' +
+                    '<td><strong style="color:#10213c;">' + escapeHtml(c.code) + '</strong>' + (c.note ? '<div style="font-size:0.75rem;color:#94a3b8;margin-top:2px;">' + escapeHtml(c.note) + '</div>' : '') + '</td>' +
+                    '<td><strong>' + escapeHtml(apt ? apt.name : '—') + '</strong><div style="font-size:0.75rem;color:#64748b;">' + escapeHtml(building ? (building.shortName || building.name) : '—') + '</div></td>' +
+                    '<td><strong>' + escapeHtml(cus ? cus.fullName : '—') + '</strong><div style="font-size:0.75rem;color:#64748b;">' + escapeHtml(cus ? cus.phone : '') + '</div></td>' +
+                    '<td>' + fmtDate(c.startDate) + ' → ' + fmtDate(c.endDate) + '</td>' +
+                    '<td><div style="font-weight:700;color:#0d65d5;">' + money(c.rentPrice) + '</div><div style="font-size:0.75rem;color:#64748b;">Cọc: ' + money(c.depositPrice) + '</div></td>' +
+                    '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
+                    '<td style="text-align:right;white-space:nowrap;">' +
+                        '<button onclick="RHUI.openContractForm(\'' + c.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
+                        '<button onclick="RHUI.deleteContract(\'' + c.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
+                    '</td></tr>';
+            }).join('');
+            listContentHtml = '<div class="table-container"><table><thead><tr><th>Mã HĐ</th><th>Căn hộ / Tòa nhà</th><th>Người thuê</th><th>Thời hạn</th><th>Giá thuê & Cọc</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>';
+        }
+
+        // 4. Floating Action Button (+) màu xanh lá cây ở góc dưới bên phải
+        var fabHtml = '<button class="contract-fab" type="button" id="contractAddButton" onclick="RHUI.openContractForm()" aria-label="Thêm hợp đồng mới" title="Tạo hợp đồng mới">' +
+            '<i class="fas fa-plus"></i>' +
+        '</button>';
 
         tab.innerHTML = renderDemoBanner('contracts') +
+            statsHtml +
             '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hợp đồng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Chọn Tòa nhà → Căn hộ → Khách hàng để tự động điền thông tin.</p></div>' +
-            addButton('Thêm hợp đồng', "RHUI.openContractForm()", 'contracts') +
+                '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1.25rem;">' +
+                    '<div>' +
+                        '<h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hợp đồng thuê</h2>' +
+                        '<p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Quản lý danh sách hợp đồng, thời hạn thuê và trạng thái cọc của căn hộ.</p>' +
+                    '</div>' +
+                    addButton('Thêm hợp đồng', "RHUI.openContractForm()", 'contracts') +
+                '</div>' +
+                filterBarHtml +
+                listContentHtml +
             '</div>' +
-            (contracts.length ? '<div class="table-container"><table><thead><tr><th>Mã HĐ</th><th>Căn hộ</th><th>Khách hàng</th><th>Thời hạn</th><th>Tiền thuê</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-file-contract', 'Chưa có hợp đồng nào.')) +
-            '</div>';
+            fabHtml;
     }
 
     function refreshContractApartmentInfo() {
@@ -799,26 +959,54 @@
         RHUI.drawerId = id || null;
         var buildings = RHD.list('buildings');
         var customers = RHD.list('customers');
+
+        if (!buildings.length) {
+            alert('Chưa có Tòa nhà nào. Vui lòng tạo Tòa nhà trước khi lập hợp đồng.');
+            return;
+        }
         var defaultBuildingId = c ? c.buildingId : buildings[0].id;
         var apartments = RHD.apartmentsOf(defaultBuildingId);
+        if (!apartments.length && !c) {
+            alert('Tòa nhà chưa có Căn hộ nào. Vui lòng thêm Căn hộ trước khi lập hợp đồng.');
+            return;
+        }
+        if (!customers.length && !c) {
+            alert('Chưa có Khách hàng nào. Vui lòng thêm Khách hàng trước khi lập hợp đồng.');
+            return;
+        }
+
         var building = RHD.get('buildings', defaultBuildingId);
         var checkedIds = c ? (c.serviceIds || []) : building.services.filter(function (s) { return s.feeType !== 'deposit' && s.feeType !== 'rent'; }).map(function (s) { return s.id; });
         var overrides = c ? (c.serviceOverrides || {}) : {};
 
+        var currentStatus = c ? c.status : 'active';
+        var statusOptions = [
+            { id: 'active', label: 'Đang thuê' },
+            { id: 'valid', label: 'Còn hạn' },
+            { id: 'expiring', label: 'Sắp hết hạn' },
+            { id: 'overdue', label: 'Quá hạn' },
+            { id: 'moving_out', label: 'Sắp chuyển đi' },
+            { id: 'terminated', label: 'Đã thanh lý' },
+            { id: 'deposit_cancelled', label: 'Bỏ cọc' }
+        ];
+
+        var todayStr = new Date().toISOString().slice(0, 10);
+
         var html = '<form onsubmit="RHUI.submitContractForm(event)">' +
             '<div class="rh-grid-2">' +
             '<div class="rh-field"><label>Tòa nhà *</label><select id="cfBuildingSel" required>' + selectOptions(buildings, 'id', 'name', defaultBuildingId) + '</select></div>' +
-            '<div class="rh-field"><label>Căn hộ *</label><select id="cfApartmentSel" required>' + selectOptions(apartments, 'id', 'name', c ? c.apartmentId : (apartments[0] && apartments[0].id)) + '</select></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Khách hàng *</label><select id="cfCustomerSel" required>' + selectOptions(customers, 'id', function (cu) { return cu.fullName + ' — ' + cu.phone; }, c ? c.customerId : '', 'Chọn khách hàng') + '</select></div>' +
+            '<div class="rh-field"><label>Căn hộ / Phòng *</label><select id="cfApartmentSel" required>' + selectOptions(apartments, 'id', 'name', c ? c.apartmentId : (apartments[0] && apartments[0].id)) + '</select></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Khách hàng / Người thuê *</label><select id="cfCustomerSel" required>' + selectOptions(customers, 'id', function (cu) { return cu.fullName + ' — ' + cu.phone; }, c ? c.customerId : '', 'Chọn khách hàng') + '</select></div>' +
             '<div class="rh-field"><label>Mã hợp đồng</label><input id="cfCode" readonly value="' + escapeHtml(c ? c.code : '(tự động khi lưu)') + '" style="background:#f8fafc;color:#61708a;"></div>' +
+            '<div class="rh-field"><label>Trạng thái hợp đồng *</label><select id="cfStatus">' + selectOptions(statusOptions, 'id', 'label', currentStatus) + '</select></div>' +
             '<div class="rh-field"><label>Chu kỳ thanh toán</label><select id="cfCycle">' + selectOptions(RHD.PAYMENT_CYCLES, 'id', 'label', c ? c.paymentCycle : 'monthly') + '</select></div>' +
-            '<div class="rh-field"><label>Ngày bắt đầu *</label><input id="cfStart" type="date" required value="' + escapeHtml(c ? c.startDate : '') + '"></div>' +
+            '<div class="rh-field"><label>Ngày bắt đầu *</label><input id="cfStart" type="date" required value="' + escapeHtml(c ? c.startDate : todayStr) + '"></div>' +
             '<div class="rh-field"><label>Ngày kết thúc *</label><input id="cfEnd" type="date" required value="' + escapeHtml(c ? c.endDate : '') + '"></div>' +
-            '<div class="rh-field"><label>Ngày ký</label><input id="cfSignDate" type="date" value="' + escapeHtml(c ? c.signDate : '') + '"></div>' +
+            '<div class="rh-field"><label>Ngày ký</label><input id="cfSignDate" type="date" value="' + escapeHtml(c ? c.signDate : todayStr) + '"></div>' +
             '<div class="rh-field"><label>Mẫu hợp đồng</label><select id="cfContractTpl">' + selectOptions(building.contractTemplates || [], 'id', 'name', c ? c.contractTemplateId : '') + '</select></div>' +
             '<div class="rh-field"><label>Mẫu hóa đơn</label><select id="cfInvoiceTpl">' + selectOptions(building.invoiceTemplates || [], 'id', 'name', c ? c.invoiceTemplateId : '') + '</select></div>' +
-            '<div class="rh-field"><label>Tiền thuê (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfRent" type="number" required value="' + (c ? c.rentPrice : '') + '"></div>' +
-            '<div class="rh-field"><label>Tiền cọc (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfDeposit" type="number" required value="' + (c ? c.depositPrice : '') + '"></div>' +
+            '<div class="rh-field"><label>Giá thuê (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfRent" type="number" min="0" required value="' + (c ? c.rentPrice : '') + '"></div>' +
+            '<div class="rh-field"><label>Tiền cọc (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfDeposit" type="number" min="0" required value="' + (c ? c.depositPrice : '') + '"></div>' +
             '<div class="rh-field"><label>Người giới thiệu</label><input id="cfReferrer" value="' + escapeHtml(c ? c.referrer : '') + '"></div>' +
             '<div class="rh-field"><label>Cộng tác viên tìm khách</label><input id="cfCollaborator" value="' + escapeHtml(c ? c.collaborator : '') + '"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú</label><textarea id="cfNoteField" rows="2">' + escapeHtml(c ? c.note : '') + '</textarea></div>' +
@@ -876,7 +1064,7 @@
             files: byId('cfFileData').value ? [{ name: 'hop-dong', dataUrl: byId('cfFileData').value }] : [],
             serviceIds: serviceIds,
             serviceOverrides: overrides,
-            status: 'active'
+            status: byId('cfStatus') ? byId('cfStatus').value : 'active'
         };
         if (!data.customerId) { byId('cfError').textContent = 'Vui lòng chọn khách hàng.'; return; }
 
@@ -1161,6 +1349,7 @@
         renderCustomersTab: renderCustomersTab,
         renderMetersTab: renderMetersTab,
         renderContractsTab: renderContractsTab,
+        filterContracts: RHUI.filterContracts,
         renderInvoicesTab: renderInvoicesTab,
         renderDashboardCounts: renderDashboardCounts,
         renderDemoBanner: renderDemoBanner
