@@ -116,6 +116,13 @@
             padding: 1.5rem;
         }
 
+        #meters-tab.is-visible {
+            display: block !important;
+            min-height: 420px;
+            position: relative;
+            z-index: 5;
+        }
+
         .topbar {
             background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
             padding: 1.5rem;
@@ -220,6 +227,712 @@
 
         .table-container {
             overflow-x: auto;
+        }
+
+        .residents-shell {
+            display: flex;
+            flex-direction: column;
+            gap: 1.25rem;
+        }
+
+        .residents-summary {
+            background: linear-gradient(180deg, #ffffff 0%, #f7fafc 100%);
+            border: 1px solid #e6edf4;
+            border-radius: 20px;
+            padding: 1.1rem 1.3rem 0.9rem;
+            box-shadow: 0 12px 26px rgba(16, 33, 60, 0.05);
+        }
+
+        .residents-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+        }
+
+        .residents-title-wrap {
+            display: flex;
+            align-items: center;
+            gap: 0.75rem;
+        }
+
+        .residents-icon {
+            width: 36px;
+            height: 36px;
+            border-radius: 12px;
+            background: linear-gradient(135deg, #dff6eb 0%, #bbf0d4 100%);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #169b68;
+            font-size: 1.1rem;
+        }
+
+        .residents-icon i {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+            line-height: 1;
+        }
+
+        .residents-title {
+            font-size: 2.05rem;
+            font-weight: 800;
+            line-height: 1.15;
+            color: #10213c;
+            letter-spacing: -0.04em;
+        }
+
+        .residents-subtitle {
+            font-size: 1.05rem;
+            color: #596c84;
+            font-weight: 600;
+        }
+
+        .residents-detail {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.65rem 0.9rem;
+            border-radius: 999px;
+            background: #f3f7fb;
+            border: 1px solid #e1ebf5;
+            color: #3f536d;
+            font-weight: 600;
+            font-size: 0.95rem;
+        }
+
+        .residents-kpis {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            border-top: 1px solid #e9eef5;
+            padding-top: 1rem;
+        }
+
+        .residents-kpi {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+            padding: 0.25rem 0.5rem;
+        }
+
+        .residents-kpi + .residents-kpi {
+            border-left: 1px solid #ebf0f6;
+        }
+
+        .residents-kpi-value {
+            display: flex;
+            align-items: center;
+            gap: 0.45rem;
+            font-size: 2.1rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #10213c;
+        }
+
+        .residents-kpi-label {
+            margin-top: 0.25rem;
+            color: #596c84;
+            font-size: 1rem;
+            line-height: 1.4;
+            text-align: center;
+        }
+
+        .residents-kpi .residents-emoji {
+            font-size: 1.5rem;
+            display: inline-flex;
+            width: 24px;
+            height: 24px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .residents-pills {
+            display: grid;
+            grid-template-columns: repeat(3, minmax(0, 1fr));
+            gap: 0.9rem;
+        }
+
+        .resident-pill {
+            border: none;
+            border-radius: 20px;
+            padding: 1rem 1.1rem;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.65rem;
+            background: #edf2f7;
+            color: #4d6179;
+            font-size: 1.25rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: 0.2s ease;
+            min-height: 72px;
+        }
+
+        .resident-pill.active {
+            background: #182b42;
+            color: #fff;
+            box-shadow: 0 12px 26px rgba(24, 43, 66, 0.18);
+        }
+
+        .resident-pill .badge-pill {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.14);
+            color: inherit;
+            font-size: 1rem;
+            font-weight: 800;
+        }
+
+        .resident-pill:not(.active) .badge-pill {
+            background: #dfe9f5;
+            color: #425874;
+        }
+
+        .empty-state {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 430px;
+            position: relative;
+            background: transparent;
+            text-align: center;
+            padding: 2rem 1rem 2rem;
+        }
+
+        .empty-state.has-residents {
+            min-height: 0;
+            padding: 0;
+        }
+
+        .empty-state.has-residents > #residentEmptyState {
+            display: none;
+        }
+
+        .empty-state.filter-empty {
+            min-height: 260px;
+            padding: 2rem 1rem;
+        }
+
+        .empty-state.filter-empty > #residentEmptyState {
+            display: flex;
+        }
+
+        #residentEmptyState {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            width: 100%;
+        }
+
+        .empty-state-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #edf0f6;
+            color: #9caab8;
+            margin-bottom: 1.25rem;
+        }
+
+        .empty-state-icon i {
+            font-size: 3rem;
+        }
+
+        .empty-state h3 {
+            font-size: 3rem;
+            line-height: 1.2;
+            color: #1f2d3d;
+            font-weight: 800;
+            letter-spacing: -0.05em;
+            margin-bottom: 0.75rem;
+        }
+
+        .empty-state p {
+            font-size: 1.1rem;
+            line-height: 1.55;
+            color: #697d92;
+            max-width: 560px;
+            margin-bottom: 2rem;
+        }
+
+        .resident-list {
+            display: none;
+            overflow-x: auto;
+            background: #fff;
+            border: 1px solid #e6edf4;
+            border-radius: 18px;
+        }
+
+        .resident-list.visible {
+            display: block;
+        }
+
+        .resident-list table {
+            width: 100%;
+            min-width: 720px;
+            border-collapse: collapse;
+        }
+
+        .resident-list th,
+        .resident-list td {
+            padding: 1rem 1.1rem;
+            text-align: left;
+            border-bottom: 1px solid #edf2f7;
+            color: #344b68;
+        }
+
+        .resident-list th {
+            background: #f7fafc;
+            color: #60738d;
+            font-size: 0.85rem;
+            font-weight: 700;
+        }
+
+        .resident-list tr:last-child td {
+            border-bottom: none;
+        }
+
+        .resident-status {
+            display: inline-flex;
+            align-items: center;
+            padding: 0.35rem 0.7rem;
+            border-radius: 999px;
+            background: #e4f8ed;
+            color: #168456;
+            font-size: 0.82rem;
+            font-weight: 700;
+        }
+
+        .resident-status.moved-out {
+            background: #eef2f7;
+            color: #60738d;
+        }
+
+        .resident-actions-cell {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .resident-action {
+            width: 36px;
+            height: 36px;
+            border: 1px solid #dbe7f3;
+            border-radius: 10px;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7fafc;
+            color: #4d6683;
+            cursor: pointer;
+            transition: 0.2s ease;
+        }
+
+        .resident-action:hover {
+            background: #eaf3ff;
+            border-color: #a9ccf7;
+            color: #1468d9;
+        }
+
+        .resident-action.delete:hover {
+            background: #fff0f0;
+            border-color: #f3b4b4;
+            color: #d14343;
+        }
+
+        .empty-add {
+            position: fixed;
+            right: 42px;
+            bottom: 46px;
+            width: 64px;
+            height: 64px;
+            border: none;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 2.4rem;
+            line-height: 1;
+            color: #fff;
+            background: linear-gradient(135deg, #0ea5e9 0%, #2563eb 100%);
+            box-shadow: 0 18px 32px rgba(37, 99, 235, 0.28);
+            cursor: pointer;
+            transition: 0.25s ease;
+            z-index: 20;
+        }
+
+        .empty-add:hover {
+            transform: translateY(-3px) scale(1.02);
+        }
+
+        #residents-tab {
+            position: relative;
+            z-index: 1;
+            display: block;
+            clear: both;
+        }
+
+        .resident-modal {
+            position: fixed;
+            inset: 0;
+            background: rgba(15, 23, 42, 0.45);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 24px;
+            z-index: 110;
+            opacity: 0;
+            visibility: hidden;
+            transition: all 0.2s ease;
+            overflow: auto;
+        }
+
+        .resident-modal.visible {
+            opacity: 1;
+            visibility: visible;
+        }
+
+        .resident-modal-card {
+            position: relative;
+            display: block;
+            width: min(980px, 92vw);
+            max-height: 90vh;
+            overflow: auto;
+            background: #fff;
+            border-radius: 24px;
+            box-shadow: 0 28px 60px rgba(15, 23, 42, 0.22);
+            padding: 1.1rem 1.3rem 1.4rem;
+        }
+
+        .resident-modal-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid #edf2f7;
+            padding-bottom: 0.8rem;
+            margin-bottom: 1rem;
+        }
+
+        .resident-modal-header h3 {
+            font-size: 2rem;
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            color: #11223f;
+        }
+
+        .close-modal {
+            border: none;
+            background: #f1f5f9;
+            color: #475569;
+            width: 42px;
+            height: 42px;
+            border-radius: 12px;
+            font-size: 1.4rem;
+            cursor: pointer;
+        }
+
+        .resident-modal-body {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            width: 100%;
+        }
+
+        .resident-section {
+            border: 1px solid #edf2f7;
+            border-radius: 18px;
+            padding: 1rem 1.1rem;
+            background: #fafcff;
+            margin-bottom: 0;
+            display: block;
+            width: 100%;
+            box-sizing: border-box;
+            clear: both;
+        }
+
+        .resident-section:last-child {
+            margin-bottom: 0;
+        }
+
+        .resident-section h4 {
+            font-size: 1.1rem;
+            color: #11223f;
+            font-weight: 700;
+            margin-bottom: 1rem;
+        }
+
+        .resident-form-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem 1.2rem;
+            align-items: start;
+            grid-auto-rows: max-content;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .resident-form-grid .full {
+            grid-column: 1 / -1;
+        }
+
+        .field-label {
+            display: flex;
+            flex-direction: column;
+            gap: 0.5rem;
+            font-weight: 600;
+            color: #49607e;
+            font-size: 0.95rem;
+            min-height: auto;
+            width: 100%;
+            box-sizing: border-box;
+            min-width: 0;
+        }
+
+        .field-label input,
+        .field-label select,
+        .field-label textarea {
+            border: 1px solid #dfe8f2;
+            background: #fff;
+            border-radius: 12px;
+            padding: 0.8rem 0.9rem;
+            font: inherit;
+            color: #10213c;
+            outline: none;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .field-label input:focus,
+        .field-label select:focus,
+        .field-label textarea:focus {
+            border-color: #7bb7ff;
+            box-shadow: 0 0 0 4px rgba(23, 131, 255, 0.08);
+        }
+
+        .field-label textarea {
+            resize: vertical;
+            min-height: 90px;
+        }
+
+        .resident-toggle {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 0.5rem 0 0.85rem;
+        }
+
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 56px;
+            height: 32px;
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            inset: 0;
+            background: #d7e4f1;
+            border-radius: 999px;
+            transition: 0.2s;
+        }
+
+        .slider:before {
+            content: '';
+            position: absolute;
+            height: 24px;
+            width: 24px;
+            left: 4px;
+            top: 4px;
+            background: white;
+            border-radius: 50%;
+            transition: 0.2s;
+            box-shadow: 0 2px 8px rgba(15, 23, 42, 0.18);
+        }
+
+        .switch input:checked + .slider {
+            background: #1ea874;
+        }
+
+        .switch input:checked + .slider:before {
+            transform: translateX(24px);
+        }
+
+        .foreign-fields {
+            display: none;
+            margin-top: 0.8rem;
+        }
+
+        .foreign-fields.visible {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .vehicle-fields {
+            display: none;
+            margin-top: 0.8rem;
+        }
+
+        .vehicle-fields.visible {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+        }
+
+        .upload-box {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border: 1.5px dashed #cfe0f0;
+            border-radius: 16px;
+            padding: 1rem;
+            background: #f8fbff;
+            color: #5d7998;
+            font-weight: 600;
+            min-height: 120px;
+        }
+
+        .id-upload-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 1rem;
+            width: 100%;
+            grid-column: 1 / -1;
+            box-sizing: border-box;
+            min-width: 0;
+            min-height: 0;
+            align-self: start;
+        }
+
+        .file-upload {
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: 120px;
+            border: 1.5px dashed #cfe0f0;
+            border-radius: 16px;
+            background: #f8fbff;
+            color: #5d7998;
+            font-weight: 600;
+            cursor: pointer;
+            overflow: hidden;
+            width: 100%;
+            box-sizing: border-box;
+            flex: 0 0 auto;
+            transition: border-color 0.2s ease, box-shadow 0.2s ease;
+        }
+
+        .file-upload:hover {
+            border-color: #9ec8ff;
+            box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.08);
+        }
+
+        .file-upload input {
+            position: absolute;
+            inset: 0;
+            opacity: 0;
+            cursor: pointer;
+        }
+
+        .file-upload span {
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0.65rem 1rem;
+            border-radius: 12px;
+            background: #edf7ff;
+            border: 1px solid #cfe3ff;
+            color: #1163d8;
+        }
+
+        .resident-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 0.75rem;
+            padding-top: 0.5rem;
+        }
+
+        .btn-secondary,
+        .btn-primary-form {
+            border: none;
+            border-radius: 12px;
+            padding: 0.8rem 1.2rem;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-secondary {
+            background: #edf2f7;
+            color: #324768;
+        }
+
+        .btn-primary-form {
+            background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%);
+            color: #fff;
+            box-shadow: 0 14px 24px rgba(22, 131, 255, 0.2);
+        }
+
+        .resident-form-grid .field-label select {
+            appearance: none;
+            background-image: linear-gradient(45deg, transparent 50%, #50617d 50%), linear-gradient(135deg, #50617d 50%, transparent 50%);
+            background-position: calc(100% - 18px) calc(50% - 3px), calc(100% - 12px) calc(50% - 3px);
+            background-size: 6px 6px, 6px 6px;
+            background-repeat: no-repeat;
+            padding-right: 2.25rem;
+        }
+
+        @media (max-width: 820px) {
+            .resident-pill {
+                font-size: 1.05rem;
+            }
+
+            .residents-kpis,
+            .resident-form-grid,
+            .foreign-fields,
+            .vehicle-fields {
+                grid-template-columns: 1fr;
+            }
+
+            .residents-kpi + .residents-kpi {
+                border-left: none;
+                border-top: 1px solid #ebf0f6;
+                padding-top: 0.8rem;
+            }
+
+            .residents-kpi {
+                padding-top: 0.75rem;
+            }
+
+            .empty-state h3 {
+                font-size: 2.2rem;
+            }
+
+            .empty-add {
+                right: 24px;
+                bottom: 24px;
+                width: 60px;
+                height: 60px;
+            }
         }
 
         table {
@@ -1398,6 +2111,56 @@
             height: 300px;
             margin-top: 1rem;
         }
+        .apartment-modal {
+            align-items: center;
+            background: rgba(5, 21, 42, .58);
+            display: none;
+            inset: 0;
+            justify-content: center;
+            padding: 1rem;
+            position: fixed;
+            z-index: 200;
+        }
+        .apartment-modal.active { display: flex; }
+        .apartment-modal-content {
+            background: #fff;
+            border: 1px solid #e1eaf4;
+            border-radius: 18px;
+            box-shadow: 0 24px 60px rgba(11, 36, 71, .2);
+            max-width: 520px;
+            padding: 1.5rem;
+            width: 100%;
+        }
+        .apartment-form { display: grid; gap: 1.25rem; margin-top: 1.25rem; }
+        .apartment-form-section { border-top: 1px solid #e8eef5; padding-top: 1.1rem; }
+        .apartment-form-section:first-of-type { border-top: 0; padding-top: 0; }
+        .apartment-form-section h3 { color: #10213c; font-size: .76rem; letter-spacing: .08em; margin: 0 0 .85rem; }
+        .apartment-form-grid { display: grid; gap: 1rem; grid-template-columns: repeat(2, minmax(0, 1fr)); }
+        .apartment-form-field-full { grid-column: 1 / -1; }
+        .apartment-form label { color: #61708a; display: grid; font-size: .82rem; font-weight: 600; gap: .4rem; }
+        .apartment-form input, .apartment-form select { border: 1px solid #dbe5f0; border-radius: .65rem; color: #10213c; font: inherit; padding: .7rem .75rem; }
+        .apartment-form input:focus, .apartment-form select:focus { border-color: #1683ff; box-shadow: 0 0 0 3px rgba(22, 131, 255, .12); outline: none; }
+        .apartment-form-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: .25rem; }
+        .btn-secondary { background: #eef4fb; border: 1px solid #e2ebf5; border-radius: .65rem; color: #536275; cursor: pointer; font-weight: 600; padding: .7rem 1rem; }
+        .apartment-actions { display: flex; gap: .5rem; justify-content: flex-end; margin-top: 1rem; }
+        .apartment-action { align-items: center; background: #fff; border: 1px solid #dbe5f0; border-radius: .55rem; cursor: pointer; display: inline-flex; height: 36px; justify-content: center; width: 38px; }
+        .apartment-action.edit { color: #1683ff; }
+        .apartment-action.edit:hover { background: #eaf3ff; border-color: #9ccaff; }
+        .apartment-action.delete { color: #ef4444; }
+        .apartment-action.delete:hover { background: #fff1f2; border-color: #fca5a5; }
+        .apartment-switch { align-items: center; display: flex; gap: .7rem; }
+        .apartment-switch input { height: 0; opacity: 0; position: absolute; width: 0; }
+        .apartment-switch-slider { background: #cbd5e1; border-radius: 999px; cursor: pointer; height: 24px; position: relative; transition: .2s ease; width: 44px; }
+        .apartment-switch-slider:before { background: #fff; border-radius: 50%; content: ''; height: 18px; left: 3px; position: absolute; top: 3px; transition: .2s ease; width: 18px; }
+        .apartment-switch input:checked + .apartment-switch-slider { background: #1683ff; }
+        .apartment-switch input:checked + .apartment-switch-slider:before { transform: translateX(20px); }
+        .apartment-switch-status { color: #18a878; font-size: .82rem; font-weight: 600; }
+        .apartment-table-wrap { overflow-x: auto; }
+        .apartment-table { min-width: 760px; }
+        .apartment-table th { background: #eef5fc; color: #536b88; font-size: .8rem; white-space: nowrap; }
+        .apartment-table td { color: #526275; vertical-align: middle; }
+        .apartment-table td strong { color: #10213c; }
+        .apartment-table .apartment-actions { margin-top: 0; }
         .mobile-menu-button { display: none; }
         .meter-page { max-width: 1120px; margin: 0 auto; }
         .meter-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
@@ -1511,6 +2274,11 @@
             .data-editor { grid-template-columns: repeat(2, minmax(0, 1fr)); }
             .data-editor .btn-primary { width: 100%; }
         }
+        @media (max-width: 600px) {
+            .apartment-form-grid { grid-template-columns: 1fr; }
+            .apartment-form-field-full { grid-column: auto; }
+            .apartment-modal-content { max-height: 92vh; overflow-y: auto; padding: 1.2rem; }
+        }
         .sidebar-header{padding:1.25rem 1.5rem;border-bottom-color:rgba(255,255,255,.1)}.sidebar{background:linear-gradient(180deg,#0b2447 0%,#102f56 100%);border-right:0;box-shadow:10px 0 28px rgba(11,36,71,.12)}.sidebar-logo{width:46px;height:46px;border-radius:14px;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 10px 22px rgba(22,131,255,.25)}.sidebar-header h2,.sidebar-header div[style*="font-weight"]{color:#fff!important;font-family:'Plus Jakarta Sans',sans-serif}.sidebar-header p,.sidebar-header div[style*="font-size"]{color:#a9c4df!important}.sidebar-menu-item{border:1px solid transparent;color:#b8cce1}.sidebar-menu-item:hover{background:rgba(22,131,255,.16);color:#fff}.sidebar-menu-item.active{background:linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%);border-left-color:#70bbff;color:#fff}.sidebar-menu>div[style*="border-top"]{border-top-color:rgba(255,255,255,.1)!important}.sidebar-menu>div[style*="border-top"]>div[style*="text-transform"]{color:#8fb0d0!important}.topbar-title{font-family:'Plus Jakarta Sans',sans-serif;letter-spacing:-.03em}.topbar,.card{border-radius:16px}.btn-primary{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);box-shadow:0 12px 24px rgba(22,131,255,.18)}.btn-primary:hover{box-shadow:0 16px 28px rgba(22,131,255,.26)}[style*="#667eea"],[style*="rgba(102, 126, 234"]{color:#1683ff!important;border-left-color:#1683ff!important;background:#eaf3ff!important}[style*="#764ba2"]{color:#0d65d5!important}.main-content{background:transparent}.chart-container canvas{filter:drop-shadow(0 8px 12px rgba(22,131,255,.08))}
         .workflow-hero{background:linear-gradient(135deg,#0b2447 0%,#174775 100%);border-radius:16px;color:#fff;margin-bottom:1.5rem;padding:28px 32px;position:relative;overflow:hidden}.workflow-hero:after{border:1px solid rgba(255,255,255,.12);border-radius:50%;content:'';height:260px;position:absolute;right:-70px;top:-120px;width:260px}.workflow-hero h2{font:800 26px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0 0 8px}.workflow-hero p{color:#b9cce3;margin:0;max-width:650px}.workflow-grid{display:grid;gap:18px;grid-template-columns:repeat(2,minmax(0,1fr))}.workflow-card{background:linear-gradient(180deg,#fff 0%,#fbfdff 100%);border:1px solid #e4eaf2;border-radius:16px;padding:22px;transition:.25s ease}.workflow-card:hover{border-color:#9ccaff;box-shadow:0 18px 36px rgba(22,131,255,.12);transform:translateY(-3px)}.workflow-card-head{align-items:flex-start;display:flex;gap:14px}.workflow-number{align-items:center;background:#eaf3ff;border-radius:12px;color:#1683ff;display:flex;flex:0 0 42px;font-weight:800;height:42px;justify-content:center}.workflow-card h3{color:#10213c;font:700 17px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:1px 0 4px}.workflow-card-head p{color:#61708a;font-size:12px;margin:0}.workflow-steps{display:grid;gap:0;list-style:none;margin:22px 0 0;padding:0}.workflow-steps li{align-items:flex-start;display:flex;gap:12px;min-height:42px;position:relative}.workflow-steps li:not(:last-child):after{background:#c9e2fb;content:'';height:calc(100% - 16px);left:10px;position:absolute;top:23px;width:2px}.workflow-steps li span{align-items:center;background:#1683ff;border:3px solid #eaf3ff;border-radius:50%;color:#fff;display:flex;flex:0 0 22px;font-size:10px;font-weight:700;height:22px;justify-content:center;position:relative;z-index:1}.workflow-steps li p{color:#526275;font-size:13px;margin:1px 0 14px}.workflow-footer{align-items:center;border-top:1px solid #e8eef5;display:flex;justify-content:space-between;margin-top:5px;padding-top:14px}.workflow-role{color:#61708a;font-size:11px}.workflow-status{background:#e6f8ef;border-radius:999px;color:#11804f;font-size:11px;font-weight:700;padding:6px 9px}.workflow-status.blue{background:#eaf3ff;color:#0d65d5}.workflow-status.orange{background:#fff4df;color:#a5680c}@media(max-width:850px){.workflow-grid{grid-template-columns:1fr}}
         .main-content{padding:1.25rem 1.5rem 2.5rem}.topbar{align-items:center;background:rgba(255,255,255,.88);border:1px solid rgba(211,224,239,.9);border-radius:20px;box-shadow:0 14px 34px rgba(11,36,71,.06);margin-bottom:1.25rem;padding:1.15rem 1.4rem}.topbar-title{font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em}.topbar-actions{gap:.7rem}.btn-icon{background:#eef4fb;border:1px solid #e2ebf5;box-shadow:none;height:42px;position:relative;width:42px}.btn-icon:hover{background:#dceeff;color:#0d65d5}.grid-2{display:grid;gap:1rem;grid-template-columns:repeat(4,minmax(0,1fr))}.grid-2>.card{border-radius:18px;min-height:148px;padding:1.25rem 1.3rem}.stat-card{align-items:stretch}.stat-label{font-size:.78rem;font-weight:600;letter-spacing:.02em}.stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;letter-spacing:-.04em;margin-top:.35rem}.stat-icon{border-radius:14px;height:46px;width:46px}.grid-3{display:grid;gap:1rem;grid-template-columns:1.25fr 1fr 1fr}.grid-3>.card{border-radius:18px;min-height:365px;padding:1.2rem 1.25rem}.grid-3>.card h3{align-items:center;display:flex;font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;justify-content:space-between;letter-spacing:-.015em}.chart-container{height:285px;margin-top:1.25rem}.card{background:rgba(255,255,255,.95);border:1px solid #e1eaf4;border-radius:18px;box-shadow:0 12px 30px rgba(11,36,71,.055)}.card:hover{border-color:#b8d8f6;box-shadow:0 18px 38px rgba(22,131,255,.1);transform:translateY(-2px)}#dashboard-tab>.card[style*="margin-top: 1.5rem"]{border-radius:18px;padding:1.25rem 1.35rem}#dashboard-tab>.card[style*="margin-top: 1.5rem"]>h3{font:700 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif!important}#dashboard-tab>.card[style*="margin-top: 1.5rem"] .grid-3>div{border:1px solid #e5edf5!important;border-radius:14px!important;box-shadow:0 8px 18px rgba(11,36,71,.04);padding:1.1rem!important}.table-container{border:1px solid #e4eaf2;border-radius:14px;overflow:auto}.table-container table{min-width:640px}.table-container th{background:#f1f7fd;font-size:.7rem;letter-spacing:.08em}.table-container td,.table-container th{border-bottom-color:#e7eef6;padding:.85rem 1rem}@media(max-width:1100px){.grid-2{grid-template-columns:repeat(2,minmax(0,1fr))}.grid-3{grid-template-columns:1fr 1fr}.grid-3>.card:first-child{grid-column:1/-1}}@media(max-width:700px){.main-content{padding:1rem}.grid-2,.grid-3{grid-template-columns:1fr}.grid-3>.card:first-child{grid-column:auto}.topbar{align-items:flex-start;flex-direction:column}.topbar-actions{align-self:flex-end}.grid-2>.card{min-height:132px}}
@@ -1572,19 +2340,15 @@
             <div>
                 <div style="font-weight: bold; color: #1e293b;">ResidentHub</div>
                 <div style="font-size: 0.75rem; color: #94a3b8;">Giao diện Quản lý
-                
+
                 </div>
             </div>
         </div>
 
         <div class="sidebar-menu">
-            <div class="sidebar-menu-item active" onclick="switchTab('dashboard')">
+            <div class="sidebar-menu-item active" onclick="switchTab('dashboard', this)">
                 <i class="fas fa-chart-line"></i>
                 <span>Quản lý</span>
-            </div>
-            <div class="sidebar-menu-item" onclick="switchTab('meters')">
-                <i class="fas fa-gauge-high"></i>
-                <span>Ghi chỉ số</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('buildings')">
                 <i class="fas fa-building"></i>
@@ -1597,16 +2361,21 @@
             <div class="sidebar-menu-item" onclick="switchTab('customers')">
                 <i class="fas fa-users"></i>
                 <span>Khách hàng</span>
+
+            </div>
+            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').classList.add('is-visible');">
+                <i class="fas fa-gauge-high"></i>
+                <span>Ghi chỉ số</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('contracts')">
                 <i class="fas fa-file-contract"></i>
                 <span>Hợp đồng</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('invoices')">
+            <div class="sidebar-menu-item" onclick="switchTab('invoices', this)">
                 <i class="fas fa-receipt"></i>
                 <span>Hóa đơn</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('support')">
+            <div class="sidebar-menu-item" onclick="switchTab('support', this)">
                 <i class="fas fa-tools"></i>
                 <span>Yêu cầu hỗ trợ</span>
             </div>
@@ -1617,15 +2386,15 @@
 
             <div style="padding: 1.5rem 1rem 0.5rem; border-top: 1px solid var(--line); margin-top: 1rem;">
                 <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Quản lý</div>
-                <div class="sidebar-menu-item" onclick="switchTab('workflows')">
+                <div class="sidebar-menu-item" onclick="switchTab('workflows', this)">
                     <i class="fas fa-project-diagram"></i>
                     <span>Quy trình làm việc</span>
                 </div>
-                <div class="sidebar-menu-item" onclick="switchTab('features')">
+                <div class="sidebar-menu-item" onclick="switchTab('features', this)">
                     <i class="fas fa-list-check"></i>
                     <span>Chi tiết tính năng</span>
                 </div>
-                <div class="sidebar-menu-item" onclick="switchTab('architecture')">
+                <div class="sidebar-menu-item" onclick="switchTab('architecture', this)">
                     <i class="fas fa-layer-group"></i>
                     <span>Kiến trúc hệ thống</span>
                 </div>
@@ -1884,6 +2653,64 @@
             </div>
         </div>
 
+        <div id="apartments-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem; padding: 2rem 2.25rem;">
+                <div style="align-items: center; display: flex; justify-content: space-between; gap: 1.5rem;">
+                    <div>
+                        <h2 style="color: #10213c; font: 800 2rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Căn hộ</h2>
+                        <p style="color: #8aa0bc; font-size: 1.05rem; margin-top: 0.45rem;">Thông tin căn hộ và cư dân sẽ được sử dụng khi lập hợp đồng và hóa đơn.</p>
+                    </div>
+                    <button class="btn-primary" onclick="openApartmentModal()" style="font-size: 1.05rem; padding: .9rem 1.25rem; white-space: nowrap;" type="button"><i class="fas fa-plus"></i> Thêm căn hộ</button>
+                </div>
+            </div>
+            <div class="card" style="padding: 0;">
+                <div class="apartment-table-wrap">
+                    <table class="apartment-table">
+                        <thead>
+                            <tr><th>Căn hộ</th><th>Tòa nhà</th><th>Tầng</th><th>Trạng thái</th><th>Thao tác</th></tr>
+                        </thead>
+                        <tbody id="apartments-list"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="apartment-modal" id="apartment-modal" role="dialog" aria-labelledby="apartment-modal-title" aria-modal="true">
+            <div class="apartment-modal-content">
+                <div style="align-items: center; display: flex; justify-content: space-between;">
+                    <h2 id="apartment-modal-title" style="color: #10213c; font: 700 1.25rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Thêm căn hộ</h2>
+                    <button class="btn-secondary" onclick="closeApartmentModal()" title="Đóng" type="button"><i class="fas fa-xmark"></i></button>
+                </div>
+                <form class="apartment-form" id="apartment-form">
+                    <section class="apartment-form-section">
+                        <h3>THÔNG TIN CĂN HỘ</h3>
+                        <div class="apartment-form-grid">
+                            <label class="apartment-form-field-full">Chọn tòa nhà <span style="color: #ef4444;">*</span><select id="apartment-building" required><option value="">Chọn tòa nhà</option></select></label>
+                            <label>Chọn tầng <span style="color: #ef4444;">*</span><select id="apartment-floor" required><option value="">Chọn tầng</option></select></label>
+                            <label>Tên căn hộ <span style="color: #ef4444;">*</span><input id="apartment-code" required placeholder="Tên căn hộ" type="text"></label>
+                            <label>Giá thuê <span style="color: #ef4444;">*</span><input id="apartment-rent" min="0" required placeholder="Giá thuê" type="number"></label>
+                            <label>Cọc <span style="color: #ef4444;">*</span><input id="apartment-deposit" min="0" required placeholder="Cọc" type="number"></label>
+                            <label>Diện tích <span style="color: #ef4444;">*</span><input id="apartment-area" min="0" required placeholder="Diện tích" type="number"></label>
+                            <label>Số khách tối đa <span style="color: #ef4444;">*</span><input id="apartment-max-guests" min="1" required placeholder="Số khách tối đa" type="number"></label>
+                        </div>
+                    </section>
+                    <section class="apartment-form-section">
+                        <h3>CẤU HÌNH</h3>
+                        <div class="apartment-form-grid">
+                            <label class="apartment-form-field-full">Mẫu in hóa đơn<select id="apartment-invoice-template"><option value="">Mẫu in hóa đơn</option></select></label>
+                            <label class="apartment-form-field-full">Mẫu hợp đồng<select id="apartment-contract-template"><option value="">Mẫu hợp đồng</option></select></label>
+                        </div>
+                    </section>
+                    <section class="apartment-form-section">
+                        <h3>TRẠNG THÁI</h3>
+                        <label class="apartment-switch"><input checked id="apartment-active" type="checkbox"><span class="apartment-switch-slider"></span><span class="apartment-switch-status" id="apartment-active-label">Đang hoạt động</span></label>
+                    </section>
+                    <div class="apartment-form-actions">
+                        <button class="btn-secondary" onclick="closeApartmentModal()" type="button">Hủy</button>
+                        <button class="btn-primary" type="submit"><i class="fas fa-save"></i> Lưu căn hộ</button>
+                    </div>
+                </form>
+            </div>
         <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true" aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
             <form class="stat-update-dialog building-form-dialog" onsubmit="saveBuilding(event)">
                 <h2 id="buildingFormTitle">Thêm thông tin tòa nhà</h2>
@@ -2326,10 +3153,288 @@
                         <button class="resident-btn-primary" type="submit">Xác nhận</button>
                     </div>
                 </form>
+            <div class="residents-shell">
+                <div class="residents-summary">
+                    <div class="residents-header">
+                        <div class="residents-title-wrap">
+                            <div class="residents-icon"><i class="fas fa-user-friends"></i></div>
+                            <div>
+                                <div class="residents-title">Tổng quan cư dân</div>
+                                <div class="residents-subtitle">Theo bộ lọc đang xem</div>
+                            </div>
+                        </div>
+                        <button class="residents-detail" type="button"><i class="fas fa-circle-info"></i> Chi tiết</button>
+                    </div>
+
+                    <div class="residents-kpis">
+                        <div class="residents-kpi">
+                            <div class="residents-kpi-value"><span class="residents-emoji"><i class="fas fa-user-group"></i></span> <span id="residentActiveCount">0</span></div>
+                            <div class="residents-kpi-label">Khách đang ở</div>
+                        </div>
+                        <div class="residents-kpi">
+                            <div class="residents-kpi-value"><span class="residents-emoji"><i class="fas fa-right-to-bracket"></i></span> <span id="residentNewCount">0</span></div>
+                            <div class="residents-kpi-label">Mới vào 30 ngày</div>
+                        </div>
+                        <div class="residents-kpi">
+                            <div class="residents-kpi-value"><span class="residents-emoji"><i class="fas fa-xmark"></i></span> <span id="residentExpiringCount">0</span></div>
+                            <div class="residents-kpi-label">HĐ hết hạn trong 30 ngày</div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="residents-pills">
+                    <button class="resident-pill active" type="button" onclick="setResidentFilter('active', this)">
+                        <span>Đang ở</span>
+                        <span class="badge-pill" id="residentActiveBadge">0</span>
+                    </button>
+                    <button class="resident-pill" type="button" onclick="setResidentFilter('moved-out', this)">
+                        <span>Đã chuyển đi</span>
+                        <span class="badge-pill" id="residentMovedOutBadge">0</span>
+                    </button>
+                    <button class="resident-pill" type="button" onclick="setResidentFilter('stranger', this)">
+                        <span>Khách vãng lai</span>
+                        <span class="badge-pill">0</span>
+                    </button>
+                </div>
+
+                <div class="empty-state">
+                    <div id="residentEmptyState">
+                    <div class="empty-state-icon"><i class="fas fa-users"></i></div>
+                    <h3 id="residentEmptyTitle">Chưa có khách hàng nào</h3>
+                    <p id="residentEmptyDescription">Nhấn nút thêm để thêm khách hàng, h&atilde;y đổi tab và bộ lọc nếu cần.</p>
+                    </div>
+                    <button class="empty-add" type="button" aria-label="Thêm khách hàng" onclick="openResidentModal()">+</button>
+                </div>
+
+                <div id="residentList" class="resident-list">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Họ và tên</th>
+                                <th>Số điện thoại</th>
+                                <th>CMND/CCCD</th>
+                                <th>Ngày vào ở</th>
+                                <th>Loại khách hàng</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="residentListBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
 
-        <div id="meters-tab" style="display: none;"></div>
+        <div id="residentModal" class="resident-modal" aria-hidden="true">
+            <div class="resident-modal-card" role="dialog" aria-modal="true" aria-labelledby="residentModalTitle">
+                <div class="resident-modal-header">
+                    <h3 id="residentModalTitle">Thông tin khách hàng</h3>
+                    <button type="button" class="close-modal" aria-label="Đóng" onclick="closeResidentModal()">×</button>
+                </div>
+
+                <div class="resident-modal-body">
+                    <div class="resident-section">
+                        <h4>Thông tin khách hàng</h4>
+                        <div class="resident-form-grid">
+                            <div class="id-upload-grid">
+                                <div class="field-label">
+                                    <span>CMND/CCCD mặt trước</span>
+                                    <label class="file-upload">
+                                        <input type="file" accept="image/*" />
+                                        <span>Chọn ảnh từ máy tính</span>
+                                    </label>
+                                </div>
+
+                                <div class="field-label">
+                                    <span>CMND/CCCD mặt sau</span>
+                                    <label class="file-upload">
+                                        <input type="file" accept="image/*" />
+                                        <span>Chọn ảnh từ máy tính</span>
+                                    </label>
+                                </div>
+                            </div>
+
+                            <label class="field-label">
+                                <span>Họ và tên</span>
+                                <input id="residentName" type="text" placeholder="Nhập họ và tên" />
+                            </label>
+                            <label class="field-label">
+                                <span>Số điện thoại</span>
+                                <input id="residentPhone" type="tel" placeholder="Nhập số điện thoại" />
+                            </label>
+                            <label class="field-label">
+                                <span>Email (không bắt buộc)</span>
+                                <input type="email" placeholder="Nhập email" />
+                            </label>
+                            <label class="field-label">
+                                <span>Ngày sinh</span>
+                                <input type="date" />
+                            </label>
+                            <label class="field-label">
+                                <span>Giới tính</span>
+                                <select>
+                                    <option>Nam</option>
+                                    <option>Nữ</option>
+                                    <option>Khác</option>
+                                </select>
+                            </label>
+                            <label class="field-label">
+                                <span>Số CMMD/CCCD</span>
+                                <input id="residentIdNumber" type="text" placeholder="Nhập số CCCD" />
+                            </label>
+                            <label class="field-label">
+                                <span>Ngày cấp</span>
+                                <input type="date" />
+                            </label>
+                            <label class="field-label">
+                                <span>Ngày vào ở</span>
+                                <input id="residentMoveInDate" type="date" />
+                            </label>
+                            <label class="field-label">
+                                <span>Trạng thái</span>
+                                <select id="residentStatus">
+                                    <option value="active">Đang ở</option>
+                                    <option value="moved-out">Đã chuyển đi</option>
+                                </select>
+                            </label>
+                            <label class="field-label full">
+                                <span>Địa chỉ chi tiết</span>
+                                <textarea placeholder="Nhập địa chỉ chi tiết"></textarea>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="resident-section">
+                        <h4>Thông tin bổ sung</h4>
+                        <div class="resident-form-grid">
+                            <label class="field-label">
+                                <span>Loại khách hàng</span>
+                                <select id="residentType">
+                                    <option>Khách thuê</option>
+                                    <option>Khách lưu trú ngắn hạn</option>
+                                    <option>Khách xem nhà</option>
+                                    <option>Khách VIP</option>
+                                </select>
+                            </label>
+                            <label class="field-label">
+                                <span>Ghi chú</span>
+                                <input type="text" placeholder="Nhập ghi chú" />
+                            </label>
+                            <label class="field-label">
+                                <span>Tên tư vấn viên</span>
+                                <input type="text" placeholder="Tên nhân viên sale" />
+                            </label>
+                            <label class="field-label">
+                                <span>SĐT tư vấn viên</span>
+                                <input type="tel" placeholder="Số điện thoại tư vấn viên" />
+                            </label>
+                            <label class="field-label full">
+                                <span>Mã vân tay cửa ra vào</span>
+                                <input type="text" placeholder="Nhập mã vân tay" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="resident-section">
+                        <div class="resident-toggle">
+                            <h4 style="margin:0;">Khách nước ngoài</h4>
+                            <label class="switch">
+                                <input type="checkbox" id="foreignToggle" />
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div id="foreignFields" class="foreign-fields">
+                            <label class="field-label">
+                                <span>Quốc tịch</span>
+                                <input type="text" placeholder="Nhập quốc tịch" />
+                            </label>
+                            <label class="field-label">
+                                <span>Số hộ chiếu</span>
+                                <input type="text" placeholder="Nhập số hộ chiếu" />
+                            </label>
+                            <label class="field-label">
+                                <span>Loại hộ chiếu</span>
+                                <select>
+                                    <option>Thường</option>
+                                    <option>Thương mại</option>
+                                    <option>Du lịch</option>
+                                </select>
+                            </label>
+                            <label class="field-label">
+                                <span>Ngày hết hạn</span>
+                                <input type="date" />
+                            </label>
+                            <label class="field-label full">
+                                <span>Ảnh hộ chiếu</span>
+                                <label class="upload-box file-upload">
+                                    <input type="file" accept="image/*" />
+                                    <span>Chọn ảnh từ máy tính</span>
+                                </label>
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="resident-section">
+                        <div class="resident-toggle">
+                            <h4 style="margin:0;">Phương tiện</h4>
+                            <label class="switch">
+                                <input type="checkbox" id="vehicleToggle" />
+                                <span class="slider"></span>
+                            </label>
+                        </div>
+
+                        <div id="vehicleFields" class="vehicle-fields">
+                            <label class="field-label">
+                                <span>Loại xe</span>
+                                <select>
+                                    <option>Ô tô</option>
+                                    <option>Ô tô điện</option>
+                                    <option>Xe máy</option>
+                                    <option>Xe máy điện</option>
+                                    <option>Xe đạp</option>
+                                </select>
+                            </label>
+                            <label class="field-label">
+                                <span>Tên dòng xe</span>
+                                <input type="text" placeholder="Ví dụ: Honda Wave Alpha" />
+                            </label>
+                            <label class="field-label">
+                                <span>Biển số xe</span>
+                                <input type="text" placeholder="Nhập biển số" />
+                            </label>
+                            <label class="field-label">
+                                <span>Màu sắc xe</span>
+                                <input type="text" placeholder="Ví dụ: Đen" />
+                            </label>
+                            <label class="field-label full">
+                                <span>Vé xe</span>
+                                <input type="text" placeholder="Nhập thông tin vé xe" />
+                            </label>
+                        </div>
+                    </div>
+
+                    <div class="resident-actions">
+                        <button type="button" class="btn-secondary" onclick="closeResidentModal()">Hủy</button>
+                        <button type="button" class="btn-primary-form" onclick="saveResident()">Lưu thông tin</button>
+                    </div>
+                </div>
+            </div>
+        </div>
+        </div>
+
+        <div id="meters-tab" style="display: none;">
+            <div class="meter-page">
+                <header class="meter-header">
+                    <div class="meter-title">
+                        <button class="back-button" type="button" onclick="switchTab('dashboard')" title="Quay lại"><i class="fas fa-arrow-left"></i></button>
+                        <div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;margin-top:.2rem;">Quản lý chỉ số điện và nước theo từng kỳ</p></div>
+                    </div>
+                    <button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button>
+                </header>
+                <div class="card meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới, hoặc chỉnh bộ lọc.</p></div>
+            </div>
+        </div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
@@ -3051,6 +4156,163 @@
         function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('active'); }
 
         // Switch Tab Function
+        let editingApartmentIndex = null;
+
+        function readStoredArray(keys) {
+            for (const key of keys) {
+                const value = localStorage.getItem(key);
+                if (!value) continue;
+                try {
+                    const parsed = JSON.parse(value);
+                    if (Array.isArray(parsed)) return parsed;
+                } catch (error) {
+                    return [];
+                }
+            }
+            return [];
+        }
+
+        function getBuildingOptions() {
+            const buildings = readStoredArray(['residenthub-buildings', 'buildings']);
+            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
+            const names = buildings.map(building => typeof building === 'string' ? building : building.name || building.title || building.buildingName).filter(Boolean);
+            apartments.forEach(apartment => { if (apartment.building) names.push(apartment.building); });
+            return [...new Set(names.length ? names : ['Riverside'])];
+        }
+
+        function getFloorsForBuilding(buildingName) {
+            const buildings = readStoredArray(['residenthub-buildings', 'buildings']);
+            const building = buildings.find(item => item && typeof item !== 'string' && (item.name === buildingName || item.title === buildingName || item.buildingName === buildingName));
+            if (building && Array.isArray(building.floors) && building.floors.length) return building.floors.map(floor => typeof floor === 'string' ? floor : floor.name || floor.number).filter(Boolean);
+            const floorCount = building && Number(building.floorCount);
+            return Array.from({ length: floorCount > 0 ? floorCount : 20 }, (_, index) => String(index + 1));
+        }
+
+        function populateApartmentSelects(apartment = {}) {
+            const buildingSelect = document.getElementById('apartment-building');
+            const floorSelect = document.getElementById('apartment-floor');
+            const invoiceSelect = document.getElementById('apartment-invoice-template');
+            const contractSelect = document.getElementById('apartment-contract-template');
+            buildingSelect.replaceChildren(new Option('Chọn tòa nhà', ''));
+            getBuildingOptions().forEach(name => buildingSelect.add(new Option(name, name)));
+            buildingSelect.value = apartment.building || '';
+            floorSelect.replaceChildren(new Option('Chọn tầng', ''));
+            getFloorsForBuilding(buildingSelect.value).forEach(floor => floorSelect.add(new Option(`Tầng ${floor}`, floor)));
+            floorSelect.value = apartment.floor || '';
+            const invoiceTemplates = readStoredArray(['residenthub-invoice-templates', 'invoice-templates']);
+            const contractTemplates = readStoredArray(['residenthub-contract-templates', 'contract-templates']);
+            invoiceSelect.replaceChildren(new Option('Mẫu in hóa đơn', ''));
+            contractSelect.replaceChildren(new Option('Mẫu hợp đồng', ''));
+            invoiceTemplates.forEach(template => invoiceSelect.add(new Option(typeof template === 'string' ? template : template.name || template.title, typeof template === 'string' ? template : template.id || template.name)));
+            contractTemplates.forEach(template => contractSelect.add(new Option(typeof template === 'string' ? template : template.name || template.title, typeof template === 'string' ? template : template.id || template.name)));
+            invoiceSelect.value = apartment.invoiceTemplate || '';
+            contractSelect.value = apartment.contractTemplate || '';
+        }
+
+        function updateActiveLabel() {
+            document.getElementById('apartment-active-label').textContent = document.getElementById('apartment-active').checked ? 'Đang hoạt động' : 'Ngừng hoạt động';
+        }
+
+        function openApartmentModal() {
+            editingApartmentIndex = null;
+            document.getElementById('apartment-modal-title').textContent = 'Thêm căn hộ';
+            document.getElementById('apartment-form').reset();
+            populateApartmentSelects();
+            document.getElementById('apartment-active').checked = true;
+            updateActiveLabel();
+            document.getElementById('apartment-modal').classList.add('active');
+            document.getElementById('apartment-building').focus();
+        }
+
+        function closeApartmentModal() {
+            document.getElementById('apartment-modal').classList.remove('active');
+            document.getElementById('apartment-form').reset();
+            updateActiveLabel();
+            editingApartmentIndex = null;
+        }
+
+        function createApartmentRow(apartment, index) {
+            const row = document.createElement('tr');
+            const isActive = apartment.active !== false;
+            const statusClass = isActive ? 'badge-success' : 'badge-warning';
+            row.dataset.apartmentIndex = index;
+            row.innerHTML = `<td><strong></strong></td><td></td><td></td><td><span class="badge ${statusClass}"></span></td><td><div class="apartment-actions"><button class="apartment-action edit" title="Chỉnh sửa" type="button"><i class="fas fa-pen"></i></button><button class="apartment-action delete" title="Xóa" type="button"><i class="fas fa-trash"></i></button></div></td>`;
+            row.querySelector('strong').textContent = apartment.code;
+            row.querySelector('td:nth-child(2)').textContent = apartment.building;
+            row.querySelector('td:nth-child(3)').textContent = apartment.floor ? `Tầng ${apartment.floor}` : '-';
+            row.querySelector('.badge').textContent = isActive ? 'Đang hoạt động' : 'Ngừng hoạt động';
+            row.querySelector('.edit').addEventListener('click', () => editApartment(index));
+            row.querySelector('.delete').addEventListener('click', () => deleteApartment(index));
+            return row;
+        }
+
+        function renderSavedApartments() {
+            const list = document.getElementById('apartments-list');
+            if (!list) return;
+            const storedApartments = localStorage.getItem('residenthub-apartments');
+            const apartments = storedApartments ? JSON.parse(storedApartments) : [{ code: 'A-1208', building: 'Riverside', owner: 'Nguyễn Thị Hoa', status: 'Đang ở' }];
+            if (!storedApartments) localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
+            list.replaceChildren(...apartments.map((apartment, index) => createApartmentRow(apartment, index)));
+        }
+
+        function saveApartment(event) {
+            event.preventDefault();
+            const apartment = {
+                code: document.getElementById('apartment-code').value.trim(),
+                building: document.getElementById('apartment-building').value.trim(),
+                floor: document.getElementById('apartment-floor').value,
+                rent: Number(document.getElementById('apartment-rent').value),
+                deposit: Number(document.getElementById('apartment-deposit').value),
+                area: Number(document.getElementById('apartment-area').value),
+                maxGuests: Number(document.getElementById('apartment-max-guests').value),
+                invoiceTemplate: document.getElementById('apartment-invoice-template').value,
+                contractTemplate: document.getElementById('apartment-contract-template').value,
+                active: document.getElementById('apartment-active').checked
+            };
+            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
+            if (editingApartmentIndex === null) {
+                apartments.push(apartment);
+            } else {
+                apartments[editingApartmentIndex] = apartment;
+            }
+            localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
+            const list = document.getElementById('apartments-list');
+            if (editingApartmentIndex === null) {
+                list.appendChild(createApartmentRow(apartment, apartments.length - 1));
+            } else {
+                renderSavedApartments();
+            }
+            closeApartmentModal();
+        }
+
+        function editApartment(index) {
+            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
+            const apartment = apartments[index];
+            if (!apartment) return;
+            editingApartmentIndex = index;
+            document.getElementById('apartment-modal-title').textContent = 'Chỉnh sửa căn hộ';
+            document.getElementById('apartment-form').reset();
+            populateApartmentSelects(apartment);
+            document.getElementById('apartment-code').value = apartment.code;
+            document.getElementById('apartment-floor').value = apartment.floor || '';
+            document.getElementById('apartment-rent').value = apartment.rent ?? '';
+            document.getElementById('apartment-deposit').value = apartment.deposit ?? '';
+            document.getElementById('apartment-area').value = apartment.area ?? '';
+            document.getElementById('apartment-max-guests').value = apartment.maxGuests ?? '';
+            document.getElementById('apartment-active').checked = apartment.active !== false;
+            updateActiveLabel();
+            document.getElementById('apartment-modal').classList.add('active');
+            document.getElementById('apartment-building').focus();
+        }
+
+        function deleteApartment(index) {
+            const apartments = JSON.parse(localStorage.getItem('residenthub-apartments') || '[]');
+            if (!apartments[index] || !confirm(`Bạn có chắc muốn xóa căn hộ ${apartments[index].code}?`)) return;
+            apartments.splice(index, 1);
+            localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
+            renderSavedApartments();
+        }
+
         const TAB_RENDERERS = {
             buildings: () => RHUI.renderBuildingsTab(),
             apartments: () => RHUI.renderApartmentsTab(),
@@ -3622,25 +4884,66 @@
             renderBuildings();
         }
 
+        function ensureTab(tabName) {
+            const tabId = tabName + '-tab';
+            let tab = document.getElementById(tabId);
+            if (!tab) {
+                tab = document.createElement('div');
+                tab.id = tabId;
+                tab.style.display = 'none';
+                const mainContent = document.querySelector('.main-content');
+                if (mainContent) {
+                    mainContent.appendChild(tab);
+                } else {
+                    document.body.appendChild(tab);
+                }
+            }
+            return tab;
+        }
+
+        function renderMetersFallback(tab) {
+            const readings = window.RHD && Array.isArray(RHD.list('meters')) ? RHD.list('meters') : [];
+            const rows = readings.map(function (reading) {
+                const building = RHD.get('buildings', reading.buildingId);
+                const apartment = RHD.get('apartments', reading.apartmentId);
+                return '<tr><td>' + (building ? (building.shortName || building.name || '—') : '—') + ' / ' + (apartment ? apartment.name : '—') + '</td>' +
+                    '<td>' + (reading.meterType === 'water' ? 'Công tơ nước' : 'Công tơ điện') + '</td><td>' + (reading.previousIndex || 0) + '</td><td>' +
+                    (reading.latestIndex || 0) + '</td><td><strong>' + (reading.consumption || 0) + '</strong></td></tr>';
+            }).join('');
+            tab.innerHTML = '<div class="meter-page"><div class="meter-header"><div class="meter-title"><button class="back-button" type="button" onclick="switchTab(\'dashboard\')"><i class="fas fa-arrow-left"></i></button><div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;">Quản lý chỉ số điện và nước</p></div></div><button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button></div><div class="card"><h2 style="font-size:1rem;color:#10213c;margin-bottom:1rem;">Danh sách bản ghi</h2>' +
+                (rows ? '<div class="table-container"><table><thead><tr><th>Tòa nhà / Căn hộ</th><th>Loại công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới.</p></div>') + '</div></div>';
+        }
+
         // Switch Tab Function
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
-            tabs.forEach(tab => tab.style.display = 'none');
+            tabs.forEach(tab => {
+                tab.style.display = 'none';
+                if (tab.id === 'meters-tab') tab.classList.remove('is-visible');
+            });
 
             // Show selected tab
-            const selectedTab = document.getElementById(tabName + '-tab');
-            if (selectedTab) selectedTab.style.display = 'block';
-            if (TAB_RENDERERS[tabName]) TAB_RENDERERS[tabName]();
+            const selectedTab = ensureTab(tabName);
+            selectedTab.style.display = 'block';
+            if (tabName === 'meters') selectedTab.classList.add('is-visible');
+            if (TAB_RENDERERS[tabName]) {
+                try {
+                    TAB_RENDERERS[tabName]();
+                } catch (error) {
+                    console.error('Không thể render tab ' + tabName, error);
+                        if (tabName === 'meters') renderMetersFallback(selectedTab);
+                        else selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
+                }
+            }
+                    if (tabName === 'meters' && !selectedTab.innerHTML.trim()) renderMetersFallback(selectedTab);
 
-            // Update active menu item
             const menuItems = document.querySelectorAll('.sidebar-menu-item');
             menuItems.forEach(item => item.classList.remove('active'));
             const navigationEvent = sourceEvent || window.event;
             const clickedMenuItem = navigationEvent && navigationEvent.target ? navigationEvent.target.closest('.sidebar-menu-item') : null;
             if (clickedMenuItem) clickedMenuItem.classList.add('active');
 
-            // Update page title
             const titles = {
                 'dashboard': 'Quản lý',
                 'buildings': 'Tòa nhà',
@@ -3648,6 +4951,7 @@
                 'customers': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
+                'residents': 'Khách hàng',
                 'support': 'Yêu cầu hỗ trợ',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
@@ -3668,7 +4972,7 @@
         // Dropdown Toggle
         function toggleDropdown() {
             const dropdown = document.getElementById('profileDropdown');
-            dropdown.classList.toggle('active');
+            if (dropdown) dropdown.classList.toggle('active');
         }
 
         // Logout Function
@@ -3679,6 +4983,29 @@
             }
         }
 
+        const foreignToggle = document.getElementById('foreignToggle');
+        const foreignFields = document.getElementById('foreignFields');
+        const vehicleToggle = document.getElementById('vehicleToggle');
+        const vehicleFields = document.getElementById('vehicleFields');
+
+        if (foreignToggle && foreignFields) {
+            foreignToggle.addEventListener('change', function() {
+                foreignFields.classList.toggle('visible', this.checked);
+            });
+        }
+
+        if (vehicleToggle && vehicleFields) {
+            vehicleToggle.addEventListener('change', function() {
+                vehicleFields.classList.toggle('visible', this.checked);
+            });
+        }
+
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape') {
+                closeResidentModal();
+            }
+        });
+
         // Close dropdown when clicking outside
         document.addEventListener('click', function(event) {
             const dropdown = document.getElementById('profileDropdown');
@@ -3687,6 +5014,7 @@
             }
         });
 
+        
         function renderCurrentUser() {
             if (!RH_SESSION) return;
             document.getElementById('topbarWelcome').textContent = RH_IS_DEMO
@@ -3807,6 +5135,14 @@
             loadSavedStats();
             initCharts();
             document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
+            document.getElementById('apartment-form').addEventListener('submit', saveApartment);
+            document.getElementById('apartment-building').addEventListener('change', () => {
+                const floorSelect = document.getElementById('apartment-floor');
+                floorSelect.replaceChildren(new Option('Chọn tầng', ''));
+                getFloorsForBuilding(document.getElementById('apartment-building').value).forEach(floor => floorSelect.add(new Option(`Tầng ${floor}`, floor)));
+            });
+            document.getElementById('apartment-active').addEventListener('change', updateActiveLabel);
+            renderSavedApartments();
             renderDashboardData();
             renderWorkflows();
             renderCurrentUser();
