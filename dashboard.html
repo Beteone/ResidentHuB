@@ -116,6 +116,13 @@
             padding: 1.5rem;
         }
 
+        #meters-tab.is-visible {
+            display: block !important;
+            min-height: 420px;
+            position: relative;
+            z-index: 5;
+        }
+
         .topbar {
             background: linear-gradient(180deg, #ffffff 0%, #f9fbff 100%);
             padding: 1.5rem;
@@ -2356,7 +2363,7 @@
                 <span>Khách hàng</span>
 
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').style.display = 'block';">
+            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').classList.add('is-visible');">
                 <i class="fas fa-gauge-high"></i>
                 <span>Ghi chỉ số</span>
             </div>
@@ -4911,11 +4918,15 @@
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
-            tabs.forEach(tab => tab.style.display = 'none');
+            tabs.forEach(tab => {
+                tab.style.display = 'none';
+                if (tab.id === 'meters-tab') tab.classList.remove('is-visible');
+            });
 
             // Show selected tab
             const selectedTab = ensureTab(tabName);
             selectedTab.style.display = 'block';
+            if (tabName === 'meters') selectedTab.classList.add('is-visible');
             if (TAB_RENDERERS[tabName]) {
                 try {
                     TAB_RENDERERS[tabName]();
