@@ -1105,6 +1105,9 @@
         .billing-name i { width:34px; height:34px; display:grid; place-items:center; border-radius:10px; background:#eaf3ff; color:#1683ff; }
         .billing-action { width:32px; height:32px; border:1px solid var(--line); border-radius:8px; color:#1683ff; background:#fff; cursor:pointer; }
         .billing-action:hover { background:#eff6ff; border-color:#93c5fd; }
+        .billing-pay-all:disabled { opacity:.55; cursor:not-allowed; }
+        .billing-empty-cell { padding:1.5rem; color:#718096; text-align:center; }
+        .billing-sample-note { margin:.25rem 0 1rem; color:#718096; font-size:.8rem; line-height:1.5; }
         .contract-workspace { display:grid; grid-template-columns:minmax(0,1.25fr) minmax(275px,.75fr); gap:1.25rem; }
         .contract-overview { padding:1.35rem; border:1px solid #cfe5ff; border-radius:16px; background:linear-gradient(145deg,#f8fcff,#ecf6ff); }
         .contract-overview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; }
@@ -1328,9 +1331,10 @@
         <section class="screen-section" id="invoicesSection" style="display:none;">
             <div class="resident-feature">
                 <div class="resident-feature-hero"><div><div><h3>Hóa đơn & thanh toán</h3><p>Quản lý hóa đơn theo từng tòa nhà và phòng; mỗi kỳ thu gồm tiền nhà, dịch vụ, điện nước và các khoản phí khác.</p></div><i class="fas fa-receipt resident-feature-icon"></i></div></div>
-                <div class="billing-summary"><div class="billing-summary-item"><small><i class="fas fa-wallet" style="color:#f59e0b"></i> CẦN THANH TOÁN</small><strong id="billingDue">0đ</strong><span id="billingDueNote">Bạn không có hóa đơn cần thanh toán</span></div><div class="billing-summary-item"><small><i class="fas fa-circle-check" style="color:#18a878"></i> ĐÃ THANH TOÁN</small><strong id="billingPaid">0đ</strong><span>Tổng chi phí trong 3 tháng gần đây</span></div><div class="billing-summary-item"><small><i class="fas fa-calendar-days" style="color:#1683ff"></i> KỲ HIỆN TẠI</small><strong>09/2026</strong><span>Thu từ 28/08 đến 05/09/2026</span></div></div>
+                <div class="billing-summary"><div class="billing-summary-item"><small><i class="fas fa-wallet" style="color:#f59e0b"></i> CẦN THANH TOÁN</small><strong id="billingDue">0 ₫</strong><span id="billingDueNote">Bạn không có hóa đơn cần thanh toán</span></div><div class="billing-summary-item"><small><i class="fas fa-circle-check" style="color:#18a878"></i> ĐÃ THANH TOÁN</small><strong id="billingPaid">0 ₫</strong><span>Tổng chi phí trong 3 tháng gần đây</span></div><div class="billing-summary-item"><small><i class="fas fa-calendar-days" style="color:#1683ff"></i> KỲ HIỆN TẠI</small><strong>09/2026</strong><span>Thu từ 28/08 đến 05/09/2026</span></div></div>
                 <div class="card"><div class="billing-toolbar"><div class="billing-filters"><button class="billing-filter active" data-billing-filter="all">Tất cả</button><button class="billing-filter" data-billing-filter="pending">Chưa thanh toán</button><button class="billing-filter" data-billing-filter="paid">Đã thanh toán</button></div><label class="billing-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hoặc khoản thu"></label></div>
-                    <div class="table-wrap"><table><thead><tr><th>Hóa đơn theo phòng</th><th>Tòa nhà</th><th>Số phòng</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody id="billingRows"></tbody></table></div><div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1rem; color:#718096; font-size:.78rem"><span id="billingCount">Hiển thị 0 hóa đơn</span><button class="btn-primary billing-pay-all" style="padding:.65rem 1rem"><i class="fas fa-credit-card"></i> Thanh toán hóa đơn</button></div></div>
+                    <div class="table-wrap"><table><thead><tr><th>Hóa đơn theo phòng</th><th>Tòa nhà</th><th>Số phòng</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody id="billingRows"></tbody></table></div><div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1rem; color:#718096; font-size:.78rem"><span id="billingCount">Hiển thị 0 hóa đơn</span><button class="btn-primary billing-pay-all" style="padding:.65rem 1rem" disabled><i class="fas fa-credit-card"></i> Thanh toán hóa đơn</button></div></div>
+                <div class="card" id="billingSampleHistory" hidden><h4 style="margin:0;color:#10213c;font-size:1rem">Một số hóa đơn cũ (mẫu tham khảo)</h4><p class="billing-sample-note">Dữ liệu minh họa để xem lịch sử; không thuộc công nợ hay tài khoản của bạn.</p><div class="table-wrap"><table><thead><tr><th>Kỳ thu</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody><tr><td>06/2026</td><td>HD2026-0006</td><td>05/07/2026</td><td>2.650.000 ₫</td><td><span class="badge badge-paid">Đã thanh toán</span></td></tr><tr><td>07/2026</td><td>HD2026-0007</td><td>05/08/2026</td><td>2.784.000 ₫</td><td><span class="badge badge-paid">Đã thanh toán</span></td></tr><tr><td>08/2026</td><td>HD2026-0008</td><td>05/09/2026</td><td>2.912.000 ₫</td><td><span class="badge badge-paid">Đã thanh toán</span></td></tr></tbody></table></div></div>
             </div>
         </section>
 
@@ -1466,12 +1470,12 @@
             noticeDays: 30,
             renewalStatus: localStorage.getItem('residenthub_contract_renewal_status_' + (RH_SESSION ? RH_SESSION.id : '')) || 'draft'
         };
-        function money(value) { return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + 'đ'; }
+        function money(value) { return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + ' ₫'; }
         function renderRealBillingRows() {
             const tbody = document.getElementById('billingRows');
             if (!tbody) return;
             const invoices = (RH_CTX && RH_CTX.invoices) || [];
-            tbody.innerHTML = invoices.map(inv => {
+            tbody.innerHTML = invoices.length ? invoices.map(inv => {
                 const statusBucket = inv.status === 'paid' ? 'paid' : 'pending';
                 const badgeClass = inv.status === 'paid' ? 'badge-paid' : (inv.status === 'overdue' ? 'badge-overdue' : 'badge-pending');
                 const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán');
@@ -1488,11 +1492,16 @@
                     '<td><strong>' + money(inv.total) + '</strong></td>' +
                     '<td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td>' +
                     '<td>' + actions + '</td></tr>';
-            }).join('');
+            }).join('') : '<tr class="billing-empty-row"><td colspan="8" class="billing-empty-cell">Bạn không có hóa đơn cần thanh toán</td></tr>';
             const countEl = document.getElementById('billingCount');
             if (countEl) countEl.textContent = 'Hiển thị ' + invoices.length + ' hóa đơn';
             const paidEl = document.getElementById('billingPaid');
             if (paidEl) paidEl.textContent = money(invoices.filter(i => i.status === 'paid').reduce((s, i) => s + i.total, 0));
+            const dueInvoices = invoices.filter(i => i.status !== 'paid');
+            const dueEl = document.getElementById('billingDue');
+            if (dueEl) dueEl.textContent = money(dueInvoices.reduce((sum, invoice) => sum + invoice.total, 0));
+            const dueNote = document.getElementById('billingDueNote');
+            if (dueNote) dueNote.textContent = dueInvoices.length ? dueInvoices.length + ' hóa đơn cần thanh toán' : 'Bạn không có hóa đơn cần thanh toán';
         }
         renderRealBillingRows();
         function renderRealContractOverview() {
@@ -2575,7 +2584,7 @@
             // RH_CTX.invoices (the same RHD data the manager side writes) — this
             // feature only adds search/filter/payment-modal behavior on top of it.
             const storedInvoices = (RH_CTX && RH_CTX.invoices) || [];
-            const rows = Array.from(document.querySelectorAll('#billingRows tr'));
+            const rows = Array.from(document.querySelectorAll('#billingRows tr:not(.billing-empty-row)'));
             rows.forEach((row, index) => { if (storedInvoices[index]) row.dataset.billingId = storedInvoices[index].id || ''; });
             const search = document.getElementById('billingSearch');
             const count = document.getElementById('billingCount');
@@ -2586,21 +2595,19 @@
             let filter = 'all'; let selectedInvoices = [];
             const open = (heading, html) => { title.textContent = heading; content.innerHTML = html; modal.classList.add('open'); };
             if (!storedInvoices.length) {
-                const contractsSection = document.getElementById('contractsSection');
-                if (contractsSection) contractsSection.innerHTML = '<div class="resident-feature"><div class="resident-feature-hero"><div><div><h3>Hợp đồng thuê nhà</h3><p>Hợp đồng sẽ xuất hiện khi ban quản lý hoặc cư dân tạo và gắn dữ liệu cho tài khoản này.</p></div><i class="fas fa-file-signature resident-feature-icon"></i></div></div><div class="contract-workspace"><div class="card"><div class="notice-list"><div class="notice-item"><div style="font-weight:700; margin-bottom:.35rem;">Chưa có hợp đồng nào</div><div style="color:#64748b; line-height:1.55;">Tài khoản mới bắt đầu trống. Chưa có dữ liệu hợp đồng được phân bổ.</div></div></div></div></div></div>';
-                document.getElementById('billingDue').textContent = '0&#273;';
-                document.getElementById('billingPaid').textContent = '0&#273;';
+                document.getElementById('billingDue').textContent = money(0);
+                document.getElementById('billingPaid').textContent = money(0);
                 document.getElementById('billingDueNote').textContent = 'Bạn không có hóa đơn cần thanh toán';
                 document.getElementById('billingCount').textContent = 'Hiển thị 0 hóa đơn';
-                const calendarSection = document.getElementById('calendarSection');
-                if (calendarSection) calendarSection.innerHTML = '<div class="card"><div class="notice-list"><div class="notice-item"><div style="font-weight:700; margin-bottom:.35rem;">Chưa có lịch hẹn nào</div><div style="color:#64748b; line-height:1.55;">Lịch hẹn và nhắc nhở sẽ xuất hiện khi được cư dân hoặc ban quản lý tạo cho tài khoản này.</div></div></div></div>';
+                document.querySelector('.billing-pay-all').disabled = true;
+                document.getElementById('billingSampleHistory').hidden = false;
                 return;
             }
             const contractDetails = document.querySelector('#contractsSection .contract-detail-grid');
             if (contractDetails) contractDetails.insertAdjacentHTML('beforeend', '<div class="meta-box"><small>Kỳ thu tiếp theo</small><strong>28/09–05/10/2026</strong><button class="contract-inline-link contract-invoice-link">Xem hóa đơn <i class="fas fa-arrow-right"></i></button></div>');
             const close = () => modal.classList.remove('open');
             const amount = row => Number(row.children[5].innerText.replace(/[^0-9]/g, ''));
-            const money = value => new Intl.NumberFormat('vi-VN').format(value) + 'đ';
+            const money = value => new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
             const refresh = () => { const term = search.value.toLowerCase(); let shown = 0; rows.forEach(row => { const belongsToResident = residentRows.includes(row); const visible = belongsToResident && (filter === 'all' || row.dataset.billingStatus === filter) && row.innerText.toLowerCase().includes(term); row.style.display = visible ? '' : 'none'; if (visible) shown++; }); count.textContent = `Hiển thị ${shown} hóa đơn`; const pending = residentRows.filter(row => row.dataset.billingStatus === 'pending'); const paid = residentRows.filter(row => row.dataset.billingStatus === 'paid'); document.getElementById('billingDue').textContent = money(pending.reduce((sum,row) => sum + amount(row),0)); document.getElementById('billingPaid').textContent = money(paid.reduce((sum,row) => sum + amount(row),0)); const nextDueText = pending.length ? pending.map(row => row.children[4].innerText).sort()[0] : ''; document.getElementById('billingDueNote').textContent = pending.length ? `${pending.length} hóa đơn, hạn thanh toán ${nextDueText}` : 'Bạn không có hóa đơn cần thanh toán'; const payAll = document.querySelector('.billing-pay-all'); if (payAll) { payAll.disabled = pending.length === 0; payAll.innerHTML = `<i class="fas fa-credit-card"></i> Thanh toán ${pending.length} hóa đơn`; } };
             document.querySelectorAll('[data-billing-filter]').forEach(button => button.addEventListener('click', () => { filter = button.dataset.billingFilter; document.querySelectorAll('[data-billing-filter]').forEach(item => item.classList.toggle('active', item === button)); refresh(); }));
             search.addEventListener('input', refresh);
