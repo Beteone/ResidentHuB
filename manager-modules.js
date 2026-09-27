@@ -581,7 +581,6 @@
         };
         var res = RHUI.drawerId ? RHD.update('customers', RHUI.drawerId, data) : RHD.create('customers', data);
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
-        if (window.RH && RH.syncManagerRecord) RH.syncManagerRecord(res.item, 'contract');
         closeDrawer();
         renderCustomersTab();
         renderDashboardCounts();
@@ -928,6 +927,7 @@
             res = RHD.create('contracts', data);
         }
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
+        if (window.RH && RH.syncManagerRecord) RH.syncManagerRecord(res.item, 'contract');
 
         if (!RHUI.drawerId && apartment && (apartment.status === 'vacant' || apartment.status === 'deposited')) {
             RHD.update('apartments', apartment.id, { status: 'occupied' });
@@ -940,8 +940,12 @@
     };
 
     RHUI.deleteContract = function (id) {
+        var contract = RHD.get('contracts', id);
         var hasInvoice = RHD.list('invoices').some(function (i) { return i.contractId === id; });
-        confirmDelete('contracts', id, function () { renderContractsTab(); renderDashboardCounts(); }, hasInvoice ? 'Không thể xoá: hợp đồng đang gắn với hóa đơn.' : null);
+        confirmDelete('contracts', id, function () {
+            if (contract && window.RH && RH.removeManagerRecord) RH.removeManagerRecord(contract, 'contract');
+            renderContractsTab(); renderDashboardCounts();
+        }, hasInvoice ? 'Không thể xoá: hợp đồng đang gắn với hóa đơn.' : null);
     };
 
     // ============================================================== INVOICES
@@ -1136,7 +1140,11 @@
     };
 
     RHUI.deleteInvoice = function (id) {
-        confirmDelete('invoices', id, function () { renderInvoicesTab(); renderDashboardCounts(); });
+        var invoice = RHD.get('invoices', id);
+        confirmDelete('invoices', id, function () {
+            if (invoice && window.RH && RH.removeManagerRecord) RH.removeManagerRecord(invoice, 'invoice');
+            renderInvoicesTab(); renderDashboardCounts();
+        });
     };
 
     RHUI.markInvoicePaid = function (id) {

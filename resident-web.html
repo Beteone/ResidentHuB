@@ -1681,9 +1681,12 @@
         window.addEventListener('residenthub:data-changed', () => {
             syncResidentDashboardData();
         });
+        window.addEventListener('residenthub:business-data-changed', event => {
+            if (event.detail && event.detail.mode === 'live') window.location.reload();
+        });
         window.addEventListener('storage', event => {
-            if (event.key === 'residenthub_internal_data' || (event.key && event.key.indexOf('rh_db_') === 0)) {
-                if (event.key.indexOf('rh_db_') === 0) {
+            if (event.key === 'residenthub_internal_data' || event.key === 'residenthub_users' || (event.key && (event.key.indexOf('rh_db_') === 0 || event.key.indexOf('residenthub_live_') === 0))) {
+                if (event.key === 'residenthub_users' || event.key.indexOf('rh_db_') === 0 || event.key.indexOf('residenthub_live_') === 0) {
                     window.location.reload();
                     return;
                 }

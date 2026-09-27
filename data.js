@@ -118,6 +118,11 @@
 
     function writeAll(entity, list) {
         localStorage.setItem(key(entity), JSON.stringify(list));
+        try {
+            global.dispatchEvent(new CustomEvent('residenthub:business-data-changed', { detail: { entity: entity, mode: mode() } }));
+        } catch (e) {
+            /* Storage events remain available across tabs. */
+        }
     }
 
     function genId(prefixStr) {
@@ -196,7 +201,7 @@
     }
 
     function activeContractFor(apartmentId) {
-        var contracts = contractsOf(apartmentId).filter(function (c) { return c.status !== 'ended'; });
+        var contracts = contractsOf(apartmentId).filter(function (c) { return c.status !== 'ended' && c.status !== 'terminated' && c.status !== 'expired'; });
         contracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
         return contracts[0] || null;
     }
@@ -207,14 +212,24 @@
         return readings[0] || null;
     }
 
-    function findApartmentByUnit(unitText) {
+    function findApartmentByUnit(unitText, buildingText) {
         var norm = String(unitText || '').trim().toLowerCase();
         if (!norm) return null;
         var apartments = readAll('apartments');
-        for (var i = 0; i < apartments.length; i++) {
-            if (String(apartments[i].name || '').trim().toLowerCase() === norm) return apartments[i];
+        var matches = apartments.filter(function (apartment) {
+            return String(apartment.name || '').trim().toLowerCase() === norm;
+        });
+        if (matches.length === 1) return matches[0];
+        var buildingNorm = String(buildingText || '').trim().toLowerCase();
+        if (buildingNorm) {
+            matches = matches.filter(function (apartment) {
+                var building = get('buildings', apartment.buildingId);
+                return building && [building.id, building.code, building.shortName, building.name].some(function (value) {
+                    return String(value || '').trim().toLowerCase() === buildingNorm;
+                });
+            });
         }
-        return null;
+        return matches.length === 1 ? matches[0] : null;
     }
 
     // Resolves everything a logged-in resident session is allowed to see, purely
@@ -232,25 +247,29 @@
         var residentId = (liveUser && liveUser.residentId) || session.residentId || '';
         var apartmentId = (liveUser && liveUser.apartmentId) || session.apartmentId;
         var unit = (liveUser && liveUser.unit) || session.unit;
-
-        // Accounts approved through the ResidentAccountRequest flow (auth.js) carry
-        // residentId → this is the authoritative link to the Resident Profile
-        // (customer). Prefer it over the apartment-derived lookup below, which exists
-        // for backward compatibility with accounts only ever linked by apartmentId.
         var customer = residentId ? get('customers', residentId) : null;
-        var contract = null;
-        if (customer) {
-            var customerContracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id && c.status !== 'ended'; });
-            customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
-            contract = customerContracts[0] || null;
-        }
-
-        var apartment = (apartmentId && get('apartments', apartmentId)) || (contract && get('apartments', contract.apartmentId)) || findApartmentByUnit(unit);
+        var apartment = (apartmentId && get('apartments', apartmentId)) || findApartmentByUnit(unit, liveUser && liveUser.building || session.building);
+        var allContracts = readAll('contracts');
+        var contracts = allContracts.filter(function (item) {
+            return item.status !== 'ended' && item.status !== 'terminated' && item.status !== 'expired';
+        });
+        var contractCandidates = contracts.filter(function (item) {
+            return apartment ? item.apartmentId === apartment.id && (!customer || item.customerId === customer.id) : customer && item.customerId === customer.id;
+        });
+        contractCandidates.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        var contract = contractCandidates[0] || null;
+        if (!apartment && contract) apartment = get('apartments', contract.apartmentId);
         if (!apartment) return { apartment: null, building: null, contract: null, customer: customer, invoices: [], supportRequests: [] };
         var building = get('buildings', apartment.buildingId);
-        if (!contract) contract = activeContractFor(apartment.id);
         if (!customer && contract) customer = get('customers', contract.customerId);
-        var invoices = readAll('invoices').filter(function (inv) { return inv.apartmentId === apartment.id; })
+        var invoices = readAll('invoices').filter(function (inv) {
+            if (inv.apartmentId !== apartment.id) return false;
+            if (inv.contractId) {
+                var invoiceContract = allContracts.filter(function (item) { return item.id === inv.contractId; })[0];
+                return !!(customer && invoiceContract && invoiceContract.apartmentId === apartment.id && invoiceContract.customerId === customer.id);
+            }
+            return !!(customer && inv.customerId === customer.id);
+        })
             .sort(function (a, b) { return b.createdAt - a.createdAt; });
         var supportRequests = readAll('supportRequests').filter(function (r) {
             return r.apartmentId === apartment.id || r.residentEmail === session.email;

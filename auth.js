@@ -240,6 +240,9 @@
     }
 
     function managerStore(store) {
+        if (global.RHD && typeof global.RHD.list === 'function') {
+            return global.RHD.list(store) || [];
+        }
         try {
             var mode = global.RHDB_MODE || 'live';
             var raw = localStorage.getItem('rh_db_' + mode + '_' + store);
@@ -251,19 +254,32 @@
 
     function usersForManagerRecord(record) {
         if (!record) return [];
+        if (global.RHD && typeof global.RHD.mode === 'function' && global.RHD.mode() === 'demo') return [];
         var customers = managerStore('customers');
         var customer = customers.filter(function (item) { return item.id === record.customerId; })[0];
         var apartments = managerStore('apartments');
         var apartment = apartments.filter(function (item) { return item.id === record.apartmentId; })[0];
         var normalize = function (value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, ''); };
         var users = readUsers();
+        var buildings = managerStore('buildings');
+        var building = apartment && buildings.filter(function (item) { return item.id === apartment.buildingId; })[0];
+        var legacyUnitUsers = [];
+        if (apartment && !apartments.some(function (item) { return item.id !== apartment.id && normalize(item.name) === normalize(apartment.name); })) {
+            legacyUnitUsers = users.filter(function (user) {
+                if (user.role !== ROLES.RESIDENT || user.apartmentId || normalize(user.unit) !== normalize(apartment.name)) return false;
+                if (user.building && [apartment.buildingId, building && building.shortName, building && building.name].every(function (value) { return normalize(value) !== normalize(user.building); })) return false;
+                return true;
+            });
+            if (legacyUnitUsers.length !== 1) legacyUnitUsers = [];
+        }
         return users.filter(function (user) {
-            return user.role === ROLES.RESIDENT && (
-                (record.userId && user.id === record.userId) ||
-                (customer && customer.userId && user.id === customer.userId) ||
-                (customer && customer.email && user.email && customer.email.toLowerCase() === user.email.toLowerCase()) ||
-                (apartment && normalize(apartment.name) === normalize(user.unit))
-            );
+            if (user.role !== ROLES.RESIDENT) return false;
+            if (record.userId && user.id === record.userId) return true;
+            if (user.apartmentId && record.apartmentId && user.apartmentId !== record.apartmentId) return false;
+            if (customer && ((customer.userId && user.id === customer.userId) || (user.residentId && user.residentId === customer.id))) return true;
+            if (user.apartmentId && record.apartmentId && user.apartmentId === record.apartmentId) return true;
+            if (customer && customer.email && user.email && customer.email.toLowerCase() === user.email.toLowerCase()) return true;
+            return legacyUnitUsers.indexOf(user) !== -1;
         });
     }
 
@@ -297,6 +313,28 @@
             });
         });
         return { ok: true, count: targets.length };
+    }
+
+    function removeManagerRecord(record, kind) {
+        if (!record) return { ok: false, count: 0 };
+        var collection = kind === 'contract' ? 'contracts' : 'invoices';
+        var removed = 0;
+        usersForManagerRecord(record).forEach(function (user) {
+            var data = readDataStore();
+            var userData = data.users && data.users[user.id];
+            if (!userData || !Array.isArray(userData[collection])) return;
+            var records = userData[collection];
+            userData[collection] = records.filter(function (item) {
+                var matches = item.managerRecordId === record.id || item.id === record.id;
+                if (matches) removed++;
+                return !matches;
+            });
+            if (userData[collection].length !== records.length) {
+                data.users[user.id] = userData;
+                writeDataStore(data);
+            }
+        });
+        return { ok: true, count: removed };
     }
 
     function syncManagerNotification(record) {
@@ -932,6 +970,7 @@
         createContractForUser: createContractForUser,
         createInvoiceForUser: createInvoiceForUser,
         syncManagerRecord: syncManagerRecord,
+        removeManagerRecord: removeManagerRecord,
         syncManagerNotification: syncManagerNotification,
         updateNotificationForUser: updateNotificationForUser,
         updateRequestForUser: updateRequestForUser,

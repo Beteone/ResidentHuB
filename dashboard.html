@@ -4645,18 +4645,21 @@
             const role = document.getElementById('accountRole').value;
             const apartmentId = document.getElementById('accountApartmentId').value;
             const apartment = apartmentId ? RHD.get('apartments', apartmentId) : null;
+            const apartmentContract = apartmentId && RHD.activeContractFor ? RHD.activeContractFor(apartmentId) : null;
+            const residentId = apartmentContract ? apartmentContract.customerId : '';
+            const building = apartment ? RHD.get('buildings', apartment.buildingId) : null;
             const unit = apartment ? apartment.name : '';
             const errorEl = document.getElementById('accountFormError');
 
             let result;
             if (id) {
-                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, apartmentId: apartmentId, password: password });
+                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, apartmentId: apartmentId, residentId: residentId, building: building ? (building.shortName || building.name) : '', password: password });
             } else {
                 if (!password) {
                     errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
                     return;
                 }
-                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit, apartmentId: apartmentId });
+                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit, apartmentId: apartmentId, residentId: residentId, building: building ? (building.shortName || building.name) : '' });
             }
 
             if (!result.ok) {
