@@ -1117,6 +1117,16 @@
         .contract-values div { color:#64748b; font-size:.73rem; }.contract-values strong { display:block; margin-top:.25rem; color:#1e293b; font-size:.86rem; }
         .contract-document { display:flex; align-items:center; justify-content:space-between; gap:.6rem; padding:.8rem; border:1px solid var(--line); border-radius:10px; background:#fff; }
         .contract-document > div { display:flex; gap:.65rem; align-items:center; min-width:0; }.contract-document .fa-file-pdf { color:#ef4444; font-size:1.1rem; }.contract-document strong { display:block; color:#334155; font-size:.78rem; }.contract-document small { display:block; margin-top:.18rem; color:#94a3b8; font-size:.69rem; }
+        #contractsSection .contract-side-column { display:grid; align-content:start; gap:1.25rem; min-width:0; }
+        #contractsSection .contract-main-card, #contractsSection .contract-side-column > .card { min-width:0; }
+        #contractsSection .contract-document-info { display:flex; align-items:center; gap:.65rem; min-width:0; }
+        #contractsSection .contract-document-info > span { min-width:0; overflow-wrap:anywhere; }
+        #contractsSection .contract-resource-list { display:grid; gap:.65rem; }
+        #contractsSection .contract-resource-note { margin:-.25rem 0 .8rem; color:#718096; font-size:.76rem; line-height:1.5; }
+        #contractsSection .contract-history-list { display:grid; gap:.5rem; }
+        #contractsSection .contract-history-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; align-items:center; gap:.75rem; padding:.75rem; border:1px solid var(--line); border-radius:10px; color:#536275; font-size:.78rem; }
+        #contractsSection .contract-history-row strong { color:#10213c; }
+        #contractsSection .contract-history-row small { color:#718096; text-align:right; }
         .contract-renewal-card { min-height: 238px; display: flex; flex-direction: column; }
         .contract-renewal-card .contract-renew { margin-top: auto; }
         .contract-countdown { margin-top:.55rem; font-size:2.1rem; font-weight:800; color:#10213c; }
@@ -1143,7 +1153,7 @@
         .contract-progress-step.done { color:#166534; }
         .resident-feature-modal { display:none; position:fixed; inset:0; z-index:80; align-items:center; justify-content:center; padding:1rem; background:rgba(15,35,64,.48); }.resident-feature-modal.open { display:flex; }
         .resident-feature-dialog { width:min(500px,100%); max-height:90vh; overflow:auto; padding:1.4rem; border-radius:16px; background:#fff; box-shadow:0 30px 70px rgba(15,35,64,.24); }.resident-feature-dialog header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }.resident-feature-dialog h4 { margin:0; color:#10213c; font-size:1.12rem; }.resident-feature-close { border:0; background:transparent; color:#64748b; font-size:1.2rem; cursor:pointer; }.payment-method { width:100%; margin-top:.7rem; padding:.85rem; border:1px solid var(--line); border-radius:10px; background:#fff; text-align:left; cursor:pointer; color:#334155; font:600 .82rem 'Be Vietnam Pro',sans-serif; }.payment-method:hover { border-color:#60a5fa; background:#f8fbff; }
-        @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}}
+        @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}#contractsSection .contract-history-row{grid-template-columns:1fr auto}#contractsSection .contract-history-row small{grid-column:1/-1;text-align:left}}
     </style>
 </head>
 <body>
@@ -1464,10 +1474,18 @@
         const REAL_APARTMENT = RH_CTX && RH_CTX.apartment;
         const REAL_CUSTOMER = RH_CTX && RH_CTX.customer;
         const contractData = {
-            id: REAL_CONTRACT ? REAL_CONTRACT.code : '—',
-            startDate: (REAL_CONTRACT && REAL_CONTRACT.startDate) || '2026-01-01',
-            endDate: (REAL_CONTRACT && REAL_CONTRACT.endDate) || '2026-12-31',
-            noticeDays: 30,
+            ...(REAL_CONTRACT || {}),
+            id: REAL_CONTRACT ? REAL_CONTRACT.id || REAL_CONTRACT.code : '',
+            code: REAL_CONTRACT ? REAL_CONTRACT.code || REAL_CONTRACT.id : '',
+            startDate: (REAL_CONTRACT && REAL_CONTRACT.startDate) || '2026-07-01',
+            endDate: (REAL_CONTRACT && REAL_CONTRACT.endDate) || '2027-08-31',
+            signDate: (REAL_CONTRACT && REAL_CONTRACT.signDate) || '',
+            rentPrice: Number(REAL_CONTRACT && REAL_CONTRACT.rentPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.rentPrice) || 0,
+            depositPrice: Number(REAL_CONTRACT && REAL_CONTRACT.depositPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.depositPrice) || 0,
+            version: (REAL_CONTRACT && (REAL_CONTRACT.version || REAL_CONTRACT.revision)) || 'v1.0',
+            noticeDays: Number(REAL_CONTRACT && REAL_CONTRACT.noticeDays) || 30,
+            files: REAL_CONTRACT && Array.isArray(REAL_CONTRACT.files) ? REAL_CONTRACT.files : [],
+            appendices: REAL_CONTRACT && (REAL_CONTRACT.appendices || REAL_CONTRACT.addenda || REAL_CONTRACT.signedAppendices) || [],
             renewalStatus: localStorage.getItem('residenthub_contract_renewal_status_' + (RH_SESSION ? RH_SESSION.id : '')) || 'draft'
         };
         function money(value) { return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + ' ₫'; }
@@ -1605,7 +1623,7 @@
         const contractDeadline = () => {
             if (!contractData || !contractData.endDate) return null;
             const date = contractDate(contractData.endDate);
-            date.setDate(date.getDate() - (contractData.noticeDays || 30) + 1);
+            date.setDate(date.getDate() - (contractData.noticeDays || 30));
             return date;
         };
         const contractDaysRemaining = () => {
@@ -2607,7 +2625,6 @@
             if (contractDetails) contractDetails.insertAdjacentHTML('beforeend', '<div class="meta-box"><small>Kỳ thu tiếp theo</small><strong>28/09–05/10/2026</strong><button class="contract-inline-link contract-invoice-link">Xem hóa đơn <i class="fas fa-arrow-right"></i></button></div>');
             const close = () => modal.classList.remove('open');
             const amount = row => Number(row.children[5].innerText.replace(/[^0-9]/g, ''));
-            const money = value => new Intl.NumberFormat('vi-VN').format(value) + ' ₫';
             const refresh = () => { const term = search.value.toLowerCase(); let shown = 0; rows.forEach(row => { const belongsToResident = residentRows.includes(row); const visible = belongsToResident && (filter === 'all' || row.dataset.billingStatus === filter) && row.innerText.toLowerCase().includes(term); row.style.display = visible ? '' : 'none'; if (visible) shown++; }); count.textContent = `Hiển thị ${shown} hóa đơn`; const pending = residentRows.filter(row => row.dataset.billingStatus === 'pending'); const paid = residentRows.filter(row => row.dataset.billingStatus === 'paid'); document.getElementById('billingDue').textContent = money(pending.reduce((sum,row) => sum + amount(row),0)); document.getElementById('billingPaid').textContent = money(paid.reduce((sum,row) => sum + amount(row),0)); const nextDueText = pending.length ? pending.map(row => row.children[4].innerText).sort()[0] : ''; document.getElementById('billingDueNote').textContent = pending.length ? `${pending.length} hóa đơn, hạn thanh toán ${nextDueText}` : 'Bạn không có hóa đơn cần thanh toán'; const payAll = document.querySelector('.billing-pay-all'); if (payAll) { payAll.disabled = pending.length === 0; payAll.innerHTML = `<i class="fas fa-credit-card"></i> Thanh toán ${pending.length} hóa đơn`; } };
             document.querySelectorAll('[data-billing-filter]').forEach(button => button.addEventListener('click', () => { filter = button.dataset.billingFilter; document.querySelectorAll('[data-billing-filter]').forEach(item => item.classList.toggle('active', item === button)); refresh(); }));
             search.addEventListener('input', refresh);
@@ -2719,6 +2736,158 @@
                         .replace(/8\.500\.000 ₫\/tháng/g, contractRentLabel);
                 });
             }
+        })();
+
+        (function residentContractWorkspace() {
+            const root = document.getElementById('contractsSection');
+            const workspace = root && root.querySelector('.contract-workspace');
+            const modal = document.getElementById('residentFeatureModal');
+            const modalTitle = document.getElementById('residentFeatureTitle');
+            const modalContent = document.getElementById('residentFeatureContent');
+            if (!workspace || !modal || !modalTitle || !modalContent) return;
+
+            const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
+            const dateLabel = value => {
+                if (!value) return 'Chưa cập nhật';
+                const date = typeof value === 'number' ? new Date(value) : /^\d{10,13}$/.test(String(value)) ? new Date(Number(value) * (String(value).length === 10 ? 1000 : 1)) : new Date(String(value).slice(0, 10) + 'T00:00:00');
+                return Number.isNaN(date.getTime()) ? 'Chưa cập nhật' : contractFormatDate(date.getFullYear() + '-' + String(date.getMonth() + 1).padStart(2, '0') + '-' + String(date.getDate()).padStart(2, '0'));
+            };
+            const residentName = REAL_CUSTOMER && REAL_CUSTOMER.fullName || RH_SESSION && RH_SESSION.name || 'Cư dân';
+            const roomName = REAL_APARTMENT && REAL_APARTMENT.name || RH_SESSION && RH_SESSION.unit || 'Chưa được phân căn hộ';
+            const buildingName = REAL_BUILDING && (REAL_BUILDING.name || REAL_BUILDING.shortName) || 'Chưa cập nhật tòa nhà';
+            const buildingLabel = REAL_BUILDING && (REAL_BUILDING.shortName || REAL_BUILDING.name) || 'Chưa cập nhật';
+            const landlordName = contractData.landlordName || contractData.lessorName || contractData.landlord || (REAL_BUILDING && (REAL_BUILDING.landlordName || REAL_BUILDING.ownerName)) || 'Ban quản lý ResidentHub';
+            const statusLabels = { active: 'Đang hiệu lực', signed: 'Đã ký', draft: 'Bản dự thảo', pending: 'Chờ xác nhận', ended: 'Đã kết thúc', terminated: 'Đã chấm dứt' };
+            const contractStatus = statusLabels[contractData.status] || (contractData.status ? String(contractData.status) : REAL_CONTRACT ? 'Đang hiệu lực' : 'Chưa có hợp đồng');
+            const statusClass = contractData.status === 'ended' || contractData.status === 'terminated' ? 'badge-overdue' : contractData.status === 'draft' || !REAL_CONTRACT ? 'badge-pending' : 'badge-paid';
+            const paymentCycleLabels = { monthly: 'hàng tháng', quarterly: 'hàng quý', yearly: 'hàng năm' };
+            const paymentCycleLabel = paymentCycleLabels[contractData.paymentCycle] || contractData.paymentCycle || 'theo thỏa thuận';
+            const clauses = [
+                ['Điều 1. Thời hạn thuê', 'Thời hạn thuê được tính từ ngày ' + dateLabel(contractData.startDate) + ' đến ngày ' + dateLabel(contractData.endDate) + '. Việc tiếp tục thuê sau ngày kết thúc cần được hai bên xác nhận bằng văn bản.'],
+                ['Điều 2. Giá thuê và chu kỳ thanh toán', 'Giá thuê là ' + money(contractData.rentPrice) + ' mỗi kỳ (' + paymentCycleLabel + '). Tiền thuê và khoản dịch vụ được thanh toán theo hóa đơn của Ban quản lý.'],
+                ['Điều 3. Tiền đặt cọc', 'Tiền đặt cọc là ' + money(contractData.depositPrice) + '. Khoản đặt cọc được đối soát và hoàn trả sau khi kết thúc hợp đồng, bàn giao căn hộ và thanh toán các nghĩa vụ còn lại.'],
+                ['Điều 4. Thanh toán hóa đơn', 'Cư dân thanh toán đúng hạn các hóa đơn tiền thuê, điện, nước, phí quản lý và dịch vụ phát sinh theo thông báo của Ban quản lý.'],
+                ['Điều 5. Bàn giao và sử dụng căn hộ', 'Căn hộ được sử dụng đúng mục đích cư trú. Hiện trạng, chìa khóa, thiết bị và chỉ số điện nước được ghi nhận trong biên bản bàn giao.'],
+                ['Điều 6. Bảo quản tài sản', 'Cư dân có trách nhiệm bảo quản căn hộ và thiết bị; thông báo kịp thời cho Ban quản lý khi phát hiện hư hỏng hoặc sự cố cần xử lý.'],
+                ['Điều 7. Sửa chữa và cải tạo', 'Không tự ý thay đổi kết cấu, hệ thống kỹ thuật hoặc lắp đặt ảnh hưởng đến căn hộ khi chưa có chấp thuận bằng văn bản của bên cho thuê.'],
+                ['Điều 8. Khách lưu trú và cho thuê lại', 'Việc cho thuê lại, chuyển giao quyền sử dụng hoặc lưu trú dài hạn của người khác phải được bên cho thuê chấp thuận và tuân thủ nội quy tòa nhà.'],
+                ['Điều 9. Thú cưng và nội quy', 'Việc nuôi thú cưng và sử dụng tiện ích chung thực hiện theo nội quy tòa nhà và thỏa thuận cụ thể trong hợp đồng.'],
+                ['Điều 10. Quyền tiếp cận căn hộ', 'Ban quản lý thông báo trước khi cần tiếp cận căn hộ để kiểm tra, bảo trì hoặc xử lý sự cố, trừ trường hợp khẩn cấp cần bảo đảm an toàn.'],
+                ['Điều 11. Gia hạn hợp đồng', 'Cư dân gửi yêu cầu gia hạn trước tối thiểu ' + contractData.noticeDays + ' ngày so với ngày kết thúc. Việc gia hạn chỉ có hiệu lực khi hai bên thống nhất và ký phụ lục hoặc hợp đồng mới.'],
+                ['Điều 12. Chấm dứt trước hạn', 'Bên đề nghị chấm dứt trước hạn gửi thông báo bằng văn bản theo thời hạn báo trước trong hợp đồng. Các khoản phải trả được đối soát đến ngày bàn giao.'],
+                ['Điều 13. Bồi thường và xử lý vi phạm', 'Thiệt hại tài sản và nghĩa vụ phát sinh do vi phạm hợp đồng được hai bên xác minh, đối soát và xử lý theo thỏa thuận cùng quy định pháp luật.'],
+                ['Điều 14. Thay đổi và giải quyết tranh chấp', 'Mọi thay đổi được lập thành văn bản hoặc phụ lục có xác nhận của các bên. Tranh chấp được ưu tiên giải quyết thông qua thương lượng trước khi thực hiện các thủ tục pháp lý.']
+            ];
+            const termsPreview = clauses.slice(0, 4).map(clause => '<div class="notice-item"><strong>' + escapeHtml(clause[0]) + '</strong><p style="margin:.35rem 0 0;color:#475569;font-size:.84rem;line-height:1.55">' + escapeHtml(clause[1]) + '</p></div>').join('');
+            const uploadedFiles = contractData.files.map((file, index) => ({
+                name: file.name || 'Tài liệu hợp đồng ' + (index + 1),
+                dataUrl: file.dataUrl || file.url || '',
+                type: file.type || '',
+                description: file.description || 'Tệp do Ban quản lý cung cấp',
+                generated: false
+            }));
+            const makeDocumentHtml = (title, body) => '<!doctype html><html lang="vi"><meta charset="utf-8"><title>' + escapeHtml(title) + '</title><style>body{font:16px/1.65 Arial,sans-serif;max-width:820px;margin:48px auto;padding:0 24px;color:#10213c}h1{color:#0d65d5}dt{font-weight:bold;margin-top:16px}dd{margin:4px 0}</style><h1>' + escapeHtml(title) + '</h1>' + body + '<hr><p>Tài liệu xem trước ResidentHub · ' + escapeHtml(dateLabel(new Date().toISOString().slice(0, 10))) + '</p></html>';
+            if (!uploadedFiles.length) {
+                const contractPreviewHtml = makeDocumentHtml('Bản xem trước hợp đồng ' + (contractData.code || ''), '<dl><dt>Bên cho thuê</dt><dd>' + escapeHtml(landlordName + ' · ' + buildingName) + '</dd><dt>Bên thuê</dt><dd>' + escapeHtml(residentName) + '</dd><dt>Căn hộ</dt><dd>' + escapeHtml(roomName + ' · ' + buildingLabel) + '</dd><dt>Thời hạn</dt><dd>' + escapeHtml(dateLabel(contractData.startDate) + ' đến ' + dateLabel(contractData.endDate)) + '</dd><dt>Giá thuê</dt><dd>' + escapeHtml(money(contractData.rentPrice)) + '</dd><dt>Tiền đặt cọc</dt><dd>' + escapeHtml(money(contractData.depositPrice)) + '</dd></dl>');
+                const handoverHtml = makeDocumentHtml('Danh mục bàn giao căn hộ ' + roomName, '<dl><dt>Căn hộ</dt><dd>' + escapeHtml(roomName + ' · ' + buildingName) + '</dd><dt>Ngày bàn giao dự kiến</dt><dd>' + escapeHtml(dateLabel(contractData.startDate)) + '</dd><dt>Lưu ý</dt><dd>Đây là danh mục mẫu; biên bản có chữ ký chính thức sẽ được bổ sung khi Ban quản lý tải lên.</dd></dl>');
+                uploadedFiles.push({ name: 'Ban-xem-truoc-hop-dong.html', dataUrl: 'data:text/html;charset=utf-8,' + encodeURIComponent(contractPreviewHtml), type: 'text/html', description: REAL_CONTRACT ? 'Bản xem trước từ thông tin hợp đồng' : 'Mẫu tham khảo · chưa phải hợp đồng đã ký', generated: true });
+                uploadedFiles.push({ name: 'Danh-muc-ban-giao-mau.html', dataUrl: 'data:text/html;charset=utf-8,' + encodeURIComponent(handoverHtml), type: 'text/html', description: 'Mẫu tham khảo · chưa phải biên bản đã ký', generated: true });
+            }
+            const appendices = Array.isArray(contractData.appendices) ? contractData.appendices : contractData.appendices ? [contractData.appendices] : [];
+            const normalizedAppendices = appendices.map((item, index) => typeof item === 'string' ? { name: item, description: 'Phụ lục hợp đồng' } : Object.assign({ name: 'Phụ lục ' + (index + 1), description: 'Phụ lục hợp đồng' }, item));
+
+            const fileRows = uploadedFiles.map((file, index) => '<div class="contract-document"><div class="contract-document-info"><i class="fas ' + (/\.pdf($|\?)/i.test(file.name) || file.type === 'application/pdf' ? 'fa-file-pdf' : 'fa-file-lines') + '"></i><span><strong>' + escapeHtml(file.name) + '</strong><small>' + escapeHtml(file.description) + (file.generated ? '' : ' · Tài liệu hợp đồng') + '</small></span></div><div class="contract-doc-actions"><button type="button" class="billing-action" data-contract-action="preview-file" data-file-index="' + index + '" aria-label="Xem ' + escapeHtml(file.name) + '" title="Xem"><i class="fas fa-eye"></i></button><button type="button" class="billing-action" data-contract-action="download-file" data-file-index="' + index + '" aria-label="Tải xuống ' + escapeHtml(file.name) + '" title="Tải xuống"><i class="fas fa-download"></i></button></div></div>').join('');
+            const appendixRows = normalizedAppendices.map((appendix, index) => '<div class="contract-document"><div class="contract-document-info"><i class="fas fa-file-signature"></i><span><strong>' + escapeHtml(appendix.name || appendix.title) + '</strong><small>' + escapeHtml(appendix.description || 'Phụ lục đã ký') + (appendix.signedAt ? ' · Ký ngày ' + escapeHtml(dateLabel(appendix.signedAt)) : '') + '</small></span></div><div class="contract-doc-actions"><button type="button" class="billing-action" data-contract-action="preview-appendix" data-appendix-index="' + index + '" aria-label="Xem phụ lục" title="Xem"><i class="fas fa-eye"></i></button><button type="button" class="billing-action" data-contract-action="download-appendix" data-appendix-index="' + index + '" aria-label="Tải phụ lục" title="Tải xuống"><i class="fas fa-download"></i></button></div></div>').join('');
+            const history = Array.isArray(contractData.history) ? contractData.history : Array.isArray(contractData.versions) ? contractData.versions : [];
+            const historyRows = (history.length ? history : [{ version: contractData.version, status: contractStatus, date: contractData.updatedAt || contractData.createdAt, code: contractData.code || 'Chưa cấp mã' }]).map(item => '<div class="contract-history-row"><strong>' + escapeHtml(item.version || item.revision || 'Phiên bản hiện tại') + '</strong><span>' + escapeHtml(item.code || item.status || 'Hợp đồng') + '</span><small>' + escapeHtml(item.date ? dateLabel(item.date) : 'Bản ghi hiện tại') + '</small></div>').join('');
+            const appendixContent = normalizedAppendices.length ? appendixRows : '<div class="notice-item"><strong>Chưa có phụ lục đã ký</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem">Phụ lục sẽ hiển thị tại đây sau khi được hai bên ký và cập nhật vào hồ sơ hợp đồng.</p></div>';
+
+            workspace.innerHTML = '<div class="card contract-main-card"><div class="contract-overview"><div class="contract-overview-head"><div><small>HỒ SƠ HỢP ĐỒNG</small><h4>' + escapeHtml(contractData.code ? 'Hợp đồng ' + contractData.code : 'Hợp đồng thuê nhà') + '</h4></div><span class="badge ' + statusClass + '" id="contractStatusBadge">' + escapeHtml(contractStatus) + '</span></div><div class="contract-values"><div>Căn hộ<strong>' + escapeHtml(roomName + ' · ' + buildingLabel) + '</strong></div><div>Thời hạn<strong>' + escapeHtml(dateLabel(contractData.startDate) + ' — ' + dateLabel(contractData.endDate)) + '</strong></div><div>Giá thuê<strong>' + escapeHtml(contractData.rentPrice ? money(contractData.rentPrice) + '/tháng' : 'Chưa cập nhật') + '</strong></div></div><div class="contract-detail-grid"><div class="meta-box"><small>Ngày ký</small><strong>' + escapeHtml(dateLabel(contractData.signDate)) + '</strong></div><div class="meta-box"><small>Bên cho thuê</small><strong>' + escapeHtml(landlordName) + '</strong></div><div class="meta-box"><small>Tiền đặt cọc</small><strong>' + escapeHtml(contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật') + '</strong></div><div class="meta-box"><small>Phiên bản</small><strong>' + escapeHtml(contractData.version) + '</strong></div><div class="meta-box"><small>Bên thuê</small><strong>' + escapeHtml(residentName) + '</strong></div><div class="meta-box"><small>Thời hạn báo trước</small><strong>' + escapeHtml(contractData.noticeDays + ' ngày') + '</strong></div></div></div><div class="contract-section-heading"><h4>Điều khoản cần lưu ý</h4><button type="button" class="billing-filter" data-contract-action="show-terms">Xem đầy đủ (' + clauses.length + ')</button></div><div class="notice-list">' + termsPreview + '</div><div class="contract-section-heading"><h4>Lịch sử hợp đồng</h4></div><div class="contract-history-list">' + historyRows + '</div></div><div class="contract-side-column"><div class="card contract-renewal-card"><small style="color:#64748b;font-weight:700">ĐẾN HẠN GIA HẠN</small><div class="contract-countdown" id="contractCountdown">Đang tính...</div><p class="contract-deadline" id="contractDeadline">Đang tính hạn chót theo điều khoản...</p><button type="button" class="btn-primary contract-renew" data-contract-action="renew" style="width:100%;padding:.7rem">Yêu cầu gia hạn</button><div class="contract-status" id="contractRenewalStatus"></div><div class="contract-progress" id="contractProgress" aria-label="Tiến trình gia hạn"></div></div><div class="card"><div class="contract-section-heading" style="margin:0 0 .85rem"><h4>Tài liệu hợp đồng</h4><button type="button" class="billing-filter" data-contract-action="download-all">Tải tất cả</button></div><p class="contract-resource-note">' + (uploadedFiles.some(file => file.generated) ? 'Chưa có file chính thức được tải lên; các tài liệu mẫu được đánh dấu rõ bên dưới.' : 'Tài liệu trong hồ sơ hợp đồng.') + '</p><div class="contract-resource-list">' + fileRows + '</div><div class="contract-section-heading"><h4>Phụ lục đã ký</h4><span class="badge badge-info">' + normalizedAppendices.length + ' phụ lục</span></div><div class="contract-resource-list">' + appendixContent + '</div></div></div></div>';
+
+            const openModal = (heading, html) => { modalTitle.textContent = heading; modalContent.innerHTML = html; modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
+            const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
+            const contractRenewalStatus = () => ({ draft: 'Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và phản hồi.', submitted: 'Yêu cầu gia hạn đã được gửi đến Ban quản lý.', reviewing: 'Ban quản lý đang xem xét yêu cầu gia hạn.', signing: 'Yêu cầu đã được duyệt; đang chờ ký phụ lục.', completed: 'Phụ lục gia hạn đã hoàn tất.' }[contractData.renewalStatus] || 'Trạng thái yêu cầu: ' + contractData.renewalStatus);
+            const renewalSteps = ['Đã gửi yêu cầu', 'Ban quản lý xem xét', 'Chờ ký phụ lục', 'Hoàn tất'];
+            const renderRenewal = () => {
+                const deadline = contractDeadline();
+                const now = new Date(); now.setHours(0, 0, 0, 0);
+                const days = deadline ? Math.ceil((deadline - now) / 86400000) : null;
+                const countdown = root.querySelector('#contractCountdown');
+                const deadlineLabel = root.querySelector('#contractDeadline');
+                const statusEl = root.querySelector('#contractRenewalStatus');
+                const progress = root.querySelector('#contractProgress');
+                if (countdown) countdown.textContent = days == null ? 'Chưa xác định' : days > 0 ? 'Còn ' + days + ' ngày' : days === 0 ? 'Đến hạn hôm nay' : 'Đã quá hạn ' + Math.abs(days) + ' ngày';
+                if (deadlineLabel) deadlineLabel.textContent = 'Hạn gửi yêu cầu: ' + (deadline ? contractFormatDate(deadline.toISOString().slice(0, 10)) : 'chưa xác định') + ' · Kết thúc hợp đồng ' + dateLabel(contractData.endDate) + ' (báo trước ' + contractData.noticeDays + ' ngày).';
+                if (statusEl) { statusEl.textContent = contractRenewalStatus(); statusEl.className = 'contract-status ' + (contractData.renewalStatus === 'submitted' || contractData.renewalStatus === 'reviewing' ? 'pending' : contractData.renewalStatus === 'signing' ? 'review' : ''); }
+                const step = { draft: -1, submitted: 0, reviewing: 1, signing: 2, completed: 3 }[contractData.renewalStatus];
+                if (progress) progress.innerHTML = renewalSteps.map((label, index) => '<div class="contract-progress-step ' + (index < step ? 'done' : index === step ? 'current' : '') + '">' + label + '</div>').join('');
+            };
+            const documentUrl = file => file.dataUrl || 'data:text/html;charset=utf-8,' + encodeURIComponent(makeDocumentHtml(file.name, '<p>' + escapeHtml(file.description || 'Tài liệu trong hồ sơ hợp đồng.') + '</p>'));
+            const clickDownload = (url, filename) => { const link = document.createElement('a'); link.href = url; link.download = filename || 'tai-lieu-hop-dong'; link.rel = 'noopener'; document.body.appendChild(link); link.click(); link.remove(); };
+            const selectedAppendixFile = appendix => ({ name: appendix.name || appendix.title || 'Phu-luc-hop-dong.html', dataUrl: appendix.dataUrl || appendix.url || '', description: appendix.description || 'Phụ lục hợp đồng đã ký' });
+            const crc32 = bytes => { let crc = -1; for (const byte of bytes) { crc ^= byte; for (let bit = 0; bit < 8; bit++) crc = (crc >>> 1) ^ (crc & 1 ? 0xedb88320 : 0); } return (crc ^ -1) >>> 0; };
+            const makeZip = async entries => {
+                const encoder = new TextEncoder(); const localParts = []; const centralParts = []; let offset = 0;
+                const write16 = (view, position, value) => view.setUint16(position, value, true);
+                const write32 = (view, position, value) => view.setUint32(position, value >>> 0, true);
+                for (const entry of entries) {
+                    const name = encoder.encode(entry.name); const url = documentUrl(entry); let data;
+                    if (url.indexOf('data:') === 0) {
+                        const split = url.indexOf(','); const metadata = url.slice(0, split); const payload = url.slice(split + 1);
+                        if (/;base64/i.test(metadata)) { const binary = atob(payload); data = Uint8Array.from(binary, character => character.charCodeAt(0)); }
+                        else data = encoder.encode(decodeURIComponent(payload));
+                    } else { const response = await fetch(url); if (!response.ok) throw new Error('Không đọc được tệp ' + entry.name); data = new Uint8Array(await response.arrayBuffer()); }
+                    const crc = crc32(data);
+                    const local = new Uint8Array(30 + name.length); const localView = new DataView(local.buffer);
+                    write32(localView, 0, 0x04034b50); write16(localView, 4, 20); write16(localView, 6, 0x0800); write16(localView, 8, 0); write32(localView, 14, crc); write32(localView, 18, data.length); write32(localView, 22, data.length); write16(localView, 26, name.length); local.set(name, 30);
+                    localParts.push(local, data);
+                    const central = new Uint8Array(46 + name.length); const centralView = new DataView(central.buffer);
+                    write32(centralView, 0, 0x02014b50); write16(centralView, 4, 20); write16(centralView, 6, 20); write16(centralView, 8, 0x0800); write16(centralView, 10, 0); write32(centralView, 16, crc); write32(centralView, 20, data.length); write32(centralView, 24, data.length); write16(centralView, 28, name.length); write32(centralView, 42, offset); central.set(name, 46); centralParts.push(central); offset += local.length + data.length;
+                }
+                const centralSize = centralParts.reduce((sum, part) => sum + part.length, 0); const end = new Uint8Array(22); const endView = new DataView(end.buffer);
+                write32(endView, 0, 0x06054b50); write16(endView, 8, entries.length); write16(endView, 10, entries.length); write32(endView, 12, centralSize); write32(endView, 16, offset);
+                const blob = new Blob([...localParts, ...centralParts, end], { type: 'application/zip' }); const url = URL.createObjectURL(blob); clickDownload(url, 'ho-so-hop-dong-' + (contractData.code || 'residenthub') + '.zip'); setTimeout(() => URL.revokeObjectURL(url), 30000);
+            };
+            const openDocument = (file, titleText) => {
+                const url = documentUrl(file); const type = file.type || '';
+                const preview = type.startsWith('image/') || /^data:image\//i.test(url) ? '<img src="' + escapeHtml(url) + '" alt="' + escapeHtml(file.name) + '" style="max-width:100%;max-height:65vh;object-fit:contain;display:block;margin:auto">' : '<iframe src="' + escapeHtml(url) + '" title="' + escapeHtml(file.name) + '" style="width:100%;height:65vh;border:0;border-radius:10px;background:#f8fafc"></iframe>';
+                openModal(titleText || file.name, preview + '<button type="button" class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đóng</button>');
+            };
+            const openRenewalForm = () => {
+                if (contractData.renewalStatus !== 'draft') { openModal('Theo dõi yêu cầu gia hạn', '<p style="color:#64748b;line-height:1.6">' + escapeHtml(contractRenewalStatus()) + '</p><button type="button" class="btn-primary resident-feature-close" style="width:100%">Đóng</button>'); return; }
+                openModal('Yêu cầu gia hạn hợp đồng', '<form data-contract-action="renew-form"><label style="display:block;margin:.75rem 0 .35rem;font-weight:600">Thời hạn mong muốn</label><select name="duration" required style="width:100%;padding:.7rem;border:1px solid #dbe3ed;border-radius:8px;font:inherit"><option value="12 tháng">12 tháng</option><option value="24 tháng">24 tháng</option><option value="Khác">Khác / trao đổi thêm</option></select><label style="display:block;margin:.75rem 0 .35rem;font-weight:600">Ngày bắt đầu mong muốn (không bắt buộc)</label><input name="requestedStart" type="date" style="width:100%;padding:.7rem;border:1px solid #dbe3ed;border-radius:8px;font:inherit"><label style="display:block;margin:.75rem 0 .35rem;font-weight:600">Ghi chú gửi Ban quản lý</label><textarea name="note" rows="3" maxlength="1000" placeholder="Nội dung cần trao đổi" style="width:100%;padding:.7rem;border:1px solid #dbe3ed;border-radius:8px;font:inherit;resize:vertical"></textarea><p data-contract-error style="color:#b91c1c;font-size:.85rem"></p><div style="display:flex;gap:.65rem;margin-top:1rem"><button type="button" class="billing-filter resident-feature-close" style="flex:1">Hủy</button><button type="submit" class="btn-primary" style="flex:1">Gửi yêu cầu</button></div></form>');
+            };
+            root.addEventListener('click', async event => {
+                const button = event.target.closest('[data-contract-action]'); if (!button) return;
+                const action = button.dataset.contractAction;
+                if (action === 'show-terms') openModal('Điều khoản hợp đồng · ' + clauses.length + ' điều khoản', '<div class="notice-list">' + clauses.map(clause => '<div class="notice-item"><strong>' + escapeHtml(clause[0]) + '</strong><p style="color:#475569;font-size:.84rem;line-height:1.6;margin:.4rem 0 0">' + escapeHtml(clause[1]) + '</p></div>').join('') + '</div><button type="button" class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đóng</button>');
+                if (action === 'renew') openRenewalForm();
+                if (action === 'preview-file') openDocument(uploadedFiles[Number(button.dataset.fileIndex)], 'Xem ' + uploadedFiles[Number(button.dataset.fileIndex)].name);
+                if (action === 'download-file') { const file = uploadedFiles[Number(button.dataset.fileIndex)]; clickDownload(documentUrl(file), file.name); }
+                if (action === 'preview-appendix' || action === 'download-appendix') { const file = selectedAppendixFile(normalizedAppendices[Number(button.dataset.appendixIndex)]); if (action === 'preview-appendix') openDocument(file, 'Xem ' + file.name); else clickDownload(documentUrl(file), file.name); }
+                if (action === 'download-all') {
+                    button.disabled = true; button.textContent = 'Đang chuẩn bị...';
+                    try { await makeZip(uploadedFiles.concat(normalizedAppendices.map(selectedAppendixFile))); }
+                    catch (error) { openModal('Không thể tải hồ sơ', '<p style="color:#64748b;line-height:1.6">Trình duyệt không thể đóng gói tài liệu này. Hãy tải từng tệp bằng nút tải xuống cạnh tên tài liệu.</p><button type="button" class="btn-primary resident-feature-close" style="width:100%">Đóng</button>'); }
+                    finally { button.disabled = false; button.textContent = 'Tải tất cả'; }
+                }
+            });
+            modalContent.addEventListener('submit', event => {
+                if (!event.target.matches('[data-contract-action="renew-form"]')) return;
+                event.preventDefault(); const form = event.target; const values = new FormData(form); const note = String(values.get('note') || '').trim();
+                const description = 'Đề nghị gia hạn hợp đồng ' + (contractData.code || '') + ' tại căn ' + roomName + ' (' + buildingName + '). Thời hạn mong muốn: ' + values.get('duration') + '.' + (values.get('requestedStart') ? ' Ngày bắt đầu mong muốn: ' + values.get('requestedStart') + '.' : '') + (note ? ' Ghi chú: ' + note : '');
+                if (!RH_SESSION || !RH_SESSION.id || !RH || typeof RH.createRequestForUser !== 'function') { const error = form.querySelector('[data-contract-error]'); if (error) error.textContent = 'Không thể gửi yêu cầu lúc này. Vui lòng đăng nhập lại rồi thử lại.'; return; }
+                const result = RH.createRequestForUser(RH_SESSION.id, { title: 'Yêu cầu gia hạn hợp đồng ' + (contractData.code || ''), type: 'Hợp đồng', subType: 'Gia hạn', priority: 'normal', status: 'new', date: new Date().toLocaleDateString('vi-VN'), description: description, location: roomName + ' · ' + buildingName, expected: 'Ban quản lý phản hồi trong 2 ngày làm việc' });
+                if (!result || !result.ok) { const error = form.querySelector('[data-contract-error]'); if (error) error.textContent = result && result.error || 'Gửi yêu cầu chưa thành công. Vui lòng thử lại.'; return; }
+                contractData.renewalStatus = 'submitted'; localStorage.setItem('residenthub_contract_renewal_status_' + RH_SESSION.id, 'submitted'); renderRenewal(); closeModal();
+                if (typeof notificationToast === 'function') notificationToast('Đã gửi yêu cầu gia hạn ' + result.item.id + ' đến Ban quản lý.');
+                if (typeof renderOverview === 'function') renderOverview(); if (typeof renderRequests === 'function') renderRequests();
+            });
+            modal.addEventListener('click', event => {
+                if (event.target.closest('.resident-feature-close') || event.target === modal) closeModal();
+            });
+            document.addEventListener('keydown', event => { if (event.key === 'Escape' && modal.classList.contains('open')) { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); } });
+            renderRenewal();
         })();
     </script>
 </body>
