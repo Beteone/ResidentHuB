@@ -1,0 +1,622 @@
+<!-- ========================================================================= -->
+<!-- COMPONENT: MÀN HÌNH HOÁ ĐƠN MOBILE (STANDALONE SCOPED CSS)                 -->
+<!-- Tương thích 100% khi nhúng vào templates.html                             -->
+<!-- ========================================================================= -->
+
+<style>
+    /* --- SCOPED CSS: Toàn bộ style nằm trong .rh-inv-mobile-app --- */
+    .rh-inv-mobile-app,
+    .rh-inv-mobile-app * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+        font-family: 'Be Vietnam Pro', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+        -webkit-tap-highlight-color: transparent;
+    }
+
+    .rh-inv-mobile-app {
+        position: relative;
+        width: 100%;
+        max-width: 414px;
+        height: 780px;
+        background-color: #f8fafc;
+        border-radius: 28px;
+        box-shadow: 0 20px 45px rgba(15, 23, 42, 0.15), 0 0 0 1px rgba(226, 232, 240, 0.8);
+        display: flex;
+        flex-direction: column;
+        overflow: hidden;
+        margin: 0 auto;
+    }
+
+    /* 1. Header (App Bar) */
+    .rh-inv-mobile-app .rh-inv-header {
+        background-color: #ffffff;
+        padding: 14px 16px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        border-bottom: 1px solid #f1f5f9;
+        position: sticky;
+        top: 0;
+        z-index: 30;
+        flex-shrink: 0;
+    }
+
+    .rh-inv-mobile-app .rh-inv-header-left {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-btn-back {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        margin-left: -6px;
+        border-radius: 50%;
+        color: #0f172a;
+        transition: background-color 0.15s ease;
+    }
+
+    .rh-inv-mobile-app .rh-inv-btn-back:hover {
+        background-color: #f1f5f9;
+    }
+
+    .rh-inv-mobile-app .rh-inv-title {
+        font-size: 21px;
+        font-weight: 800;
+        color: #0f172a;
+        letter-spacing: -0.02em;
+        line-height: 1.2;
+    }
+
+    .rh-inv-mobile-app .rh-inv-header-right {
+        display: flex;
+        align-items: center;
+        gap: 14px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-header-icon-btn {
+        position: relative;
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 6px;
+        border-radius: 8px;
+        color: #1e293b;
+        transition: background-color 0.15s ease;
+    }
+
+    .rh-inv-mobile-app .rh-inv-header-icon-btn:hover {
+        background-color: #f1f5f9;
+    }
+
+    .rh-inv-mobile-app .rh-inv-header-icon-btn svg {
+        width: 21px;
+        height: 21px;
+        stroke-width: 2.1;
+    }
+
+    /* Dấu chấm đỏ nhỏ (notification dot) ở góc trên bên phải icon filter */
+    .rh-inv-mobile-app .rh-inv-notification-dot {
+        position: absolute;
+        top: 3px;
+        right: 3px;
+        width: 8px;
+        height: 8px;
+        background-color: #ef4444;
+        border-radius: 50%;
+        border: 1.5px solid #ffffff;
+    }
+
+    /* Nội dung cuộn */
+    .rh-inv-mobile-app .rh-inv-content {
+        flex: 1;
+        overflow-y: auto;
+        overflow-x: hidden;
+        display: flex;
+        flex-direction: column;
+        position: relative;
+        background-color: #f8fafc;
+    }
+
+    /* 2. Khu vực Lọc (Filter Section) */
+    .rh-inv-mobile-app .rh-inv-filter-section {
+        background-color: #eef6ff;
+        /* light blue tinted background */
+        padding: 12px 16px 14px 16px;
+        border-bottom: 1px solid #e0edfd;
+    }
+
+    .rh-inv-mobile-app .rh-inv-filter-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 9px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-filter-current {
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        color: #1d68d8;
+        /* text màu xanh dương */
+        font-size: 13.5px;
+        font-weight: 600;
+    }
+
+    .rh-inv-mobile-app .rh-inv-filter-current svg {
+        width: 15px;
+        height: 15px;
+        stroke-width: 2.2;
+    }
+
+    .rh-inv-mobile-app .rh-inv-btn-clear {
+        background: none;
+        border: none;
+        cursor: pointer;
+        color: #dc2626;
+        /* màu đỏ xỉn */
+        font-size: 13px;
+        font-weight: 500;
+        padding: 2px 4px;
+        transition: opacity 0.15s ease;
+    }
+
+    .rh-inv-mobile-app .rh-inv-btn-clear:hover {
+        opacity: 0.8;
+        text-decoration: underline;
+    }
+
+    .rh-inv-mobile-app .rh-inv-filter-chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        background-color: #ffffff;
+        border: 1px solid #bfdbfe;
+        /* viền xanh nhạt */
+        color: #1e40af;
+        padding: 5px 12px;
+        border-radius: 9999px;
+        font-size: 13px;
+        font-weight: 500;
+        box-shadow: 0 1px 2px rgba(37, 99, 235, 0.04);
+    }
+
+    .rh-inv-mobile-app .rh-inv-chip-check {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: #16a34a;
+        /* tick xanh */
+    }
+
+    .rh-inv-mobile-app .rh-inv-chip-check svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2.5;
+    }
+
+    /* 3. Thẻ Tóm tắt (Summary Card) */
+    .rh-inv-mobile-app .rh-inv-summary-container {
+        padding: 14px 16px 8px 16px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-summary-card {
+        background-color: #ffffff;
+        border-radius: 14px;
+        border: 1px solid #e2e8f0;
+        /* thin light gray border */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.02);
+        overflow: hidden;
+    }
+
+    .rh-inv-mobile-app .rh-inv-summary-top {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        padding: 14px 6px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-summary-col {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        padding: 2px 4px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-summary-col:not(:first-child) {
+        border-left: 1px solid #e5e7eb;
+        /* vạch chia xám mỏng */
+    }
+
+    .rh-inv-mobile-app .rh-inv-summary-label {
+        font-size: 11.5px;
+        color: #64748b;
+        /* chữ xám nhỏ */
+        margin-bottom: 5px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+
+    .rh-inv-mobile-app .rh-inv-summary-val {
+        font-size: 16px;
+        font-weight: 800;
+        line-height: 1.2;
+    }
+
+    .rh-inv-mobile-app .rh-inv-val-blue {
+        color: #1d4ed8;
+    }
+
+    /* xanh dương đậm */
+    .rh-inv-mobile-app .rh-inv-val-green {
+        color: #16a34a;
+    }
+
+    /* xanh lá cây */
+    .rh-inv-mobile-app .rh-inv-val-red {
+        color: #dc2626;
+    }
+
+    /* đỏ */
+
+    .rh-inv-mobile-app .rh-inv-summary-bottom {
+        border-top: 1px solid #f1f5f9;
+        padding: 12px 16px 14px 16px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-rate-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-rate-title-wrap {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-rate-title {
+        font-size: 12.5px;
+        color: #64748b;
+        /* chữ xám */
+        font-weight: 500;
+    }
+
+    .rh-inv-mobile-app .rh-inv-info-icon {
+        color: #94a3b8;
+        display: inline-flex;
+        align-items: center;
+    }
+
+    .rh-inv-mobile-app .rh-inv-info-icon svg {
+        width: 14px;
+        height: 14px;
+        stroke-width: 2;
+    }
+
+    .rh-inv-mobile-app .rh-inv-rate-percent {
+        font-size: 13px;
+        font-weight: 700;
+        color: #475569;
+    }
+
+    /* Progress bar: background hồng nhạt, width 0% */
+    .rh-inv-mobile-app .rh-inv-progress-track {
+        width: 100%;
+        height: 7px;
+        background-color: #fee2e2;
+        /* hồng nhạt */
+        border-radius: 9999px;
+        overflow: hidden;
+    }
+
+    .rh-inv-mobile-app .rh-inv-progress-fill {
+        height: 100%;
+        width: 0%;
+        /* không có màu (0%) */
+        background-color: #16a34a;
+        border-radius: 9999px;
+        transition: width 0.3s ease;
+    }
+
+    /* 4. Tabs/Toggles (Trạng thái hoá đơn) */
+    .rh-inv-mobile-app .rh-inv-tabs-section {
+        padding: 12px 16px 14px 16px;
+        display: flex;
+        justify-content: center;
+    }
+
+    .rh-inv-mobile-app .rh-inv-tabs-wrap {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .rh-inv-mobile-app .rh-inv-tab-pill {
+        background: none;
+        border: none;
+        cursor: pointer;
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 7px 15px;
+        border-radius: 9999px;
+        /* bo tròn 2 đầu */
+        font-size: 13.5px;
+        font-weight: 600;
+        transition: all 0.15s ease;
+    }
+
+    /* Nút 1 ("Tất cả"): Background đen, chữ trắng, badge xám nền xám đậm */
+    .rh-inv-mobile-app .rh-inv-tab-pill.rh-inv-tab-active {
+        background-color: #0f172a;
+        color: #ffffff;
+    }
+
+    .rh-inv-mobile-app .rh-inv-tab-pill.rh-inv-tab-active .rh-inv-tab-badge {
+        background-color: #334155;
+        color: #94a3b8;
+    }
+
+    /* Nút 2 ("Còn nợ") & 3 ("Đã tt"): Background xám rất nhạt, chữ xám */
+    .rh-inv-mobile-app .rh-inv-tab-pill:not(.rh-inv-tab-active) {
+        background-color: #f1f5f9;
+        color: #64748b;
+    }
+
+    .rh-inv-mobile-app .rh-inv-tab-pill:not(.rh-inv-tab-active) .rh-inv-tab-badge {
+        background-color: #e2e8f0;
+        color: #64748b;
+    }
+
+    .rh-inv-mobile-app .rh-inv-tab-badge {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        min-width: 18px;
+        height: 18px;
+        padding: 0 4px;
+        border-radius: 50%;
+        font-size: 11px;
+        font-weight: 700;
+        line-height: 1;
+    }
+
+    /* 5. Nút Floating Action Button (FAB) */
+    .rh-inv-mobile-app .rh-inv-fab {
+        position: absolute;
+        bottom: 22px;
+        right: 20px;
+        width: 52px;
+        height: 52px;
+        border-radius: 50%;
+        background-color: #16a34a;
+        /* xanh lá cây */
+        color: #ffffff;
+        border: none;
+        cursor: pointer;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        box-shadow: 0 4px 14px rgba(22, 163, 74, 0.42), 0 2px 6px rgba(0, 0, 0, 0.08);
+        transition: transform 0.18s cubic-bezier(0.34, 1.56, 0.64, 1);
+        z-index: 40;
+    }
+
+    .rh-inv-mobile-app .rh-inv-fab:hover {
+        transform: scale(1.06);
+    }
+
+    .rh-inv-mobile-app .rh-inv-fab svg {
+        width: 26px;
+        height: 26px;
+        stroke-width: 2.6;
+    }
+</style>
+
+<!-- GIAO DIỆN COMPONENT HOÁ ĐƠN MOBILE -->
+<div class="rh-inv-mobile-app" id="rhInvoiceMobileScreen">
+
+    <!-- 1. Header (App Bar) -->
+    <header class="rh-inv-header">
+        <div class="rh-inv-header-left">
+            <!-- Icon Arrow Back -->
+            <button type="button" class="rh-inv-btn-back" aria-label="Quay lại">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round" width="22" height="22" stroke-width="2.2">
+                    <line x1="19" y1="12" x2="5" y2="12"></line>
+                    <polyline points="12 19 5 12 12 5"></polyline>
+                </svg>
+            </button>
+            <!-- Tiêu đề "Hoá đơn" (font bold, to, màu đen) -->
+            <h1 class="rh-inv-title">Hoá đơn</h1>
+        </div>
+
+        <!-- 4 Icon bên phải căn lề phải, khoảng cách đều nhau -->
+        <div class="rh-inv-header-right">
+            <!-- Icon Search (kính lúp) -->
+            <button type="button" class="rh-inv-header-icon-btn" aria-label="Tìm kiếm">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <circle cx="11" cy="11" r="7"></circle>
+                    <line x1="21" y1="21" x2="16.2" y2="16.2"></line>
+                </svg>
+            </button>
+
+            <!-- Icon Copy/Multiple Select (hai hình vuông chồng nhau) -->
+            <button type="button" class="rh-inv-header-icon-btn" aria-label="Chọn nhiều">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <rect x="9" y="9" width="12" height="12" rx="2" ry="2"></rect>
+                    <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"></path>
+                </svg>
+            </button>
+
+            <!-- Icon Send (mũi tên ngang / send) -->
+            <button type="button" class="rh-inv-header-icon-btn" aria-label="Gửi">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="22" y1="2" x2="11" y2="13"></line>
+                    <polygon points="22 2 15 22 11 13 2 9 22 2"></polygon>
+                </svg>
+            </button>
+
+            <!-- Icon Filter (thanh trượt) có notification dot màu đỏ -->
+            <button type="button" class="rh-inv-header-icon-btn" aria-label="Bộ lọc">
+                <span class="rh-inv-notification-dot"></span>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                    stroke-linejoin="round">
+                    <line x1="4" y1="21" x2="4" y2="14"></line>
+                    <line x1="4" y1="10" x2="4" y2="3"></line>
+                    <line x1="12" y1="21" x2="12" y2="12"></line>
+                    <line x1="12" y1="8" x2="12" y2="3"></line>
+                    <line x1="20" y1="21" x2="20" y2="16"></line>
+                    <line x1="20" y1="12" x2="20" y2="3"></line>
+                    <line x1="1" y1="14" x2="7" y2="14"></line>
+                    <line x1="9" y1="8" x2="15" y2="8"></line>
+                    <line x1="17" y1="16" x2="23" y2="16"></line>
+                </svg>
+            </button>
+        </div>
+    </header>
+
+    <!-- Khung nội dung cuộn -->
+    <div class="rh-inv-content">
+
+        <!-- 2. Khu vực Lọc (Filter Section) -->
+        <section class="rh-inv-filter-section">
+            <div class="rh-inv-filter-header">
+                <div class="rh-inv-filter-current">
+                    <!-- Icon phễu lọc màu xanh dương -->
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                        stroke-linejoin="round">
+                        <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"></polygon>
+                    </svg>
+                    <span>Đang lọc theo:</span>
+                </div>
+                <!-- Nút text "Xoá lọc" màu đỏ xỉn -->
+                <button type="button" class="rh-inv-btn-clear">Xoá lọc</button>
+            </div>
+
+            <!-- Chip/Pill: Text "Tháng: 09-2026" kèm icon tick xanh -->
+            <div>
+                <div class="rh-inv-filter-chip">
+                    <span>Tháng: 09-2026</span>
+                    <span class="rh-inv-chip-check">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                            stroke-linejoin="round">
+                            <polyline points="20 6 9 17 4 12"></polyline>
+                        </svg>
+                    </span>
+                </div>
+            </div>
+        </section>
+
+        <!-- 3. Thẻ Tóm tắt (Summary Card) -->
+        <section class="rh-inv-summary-container">
+            <div class="rh-inv-summary-card">
+                <!-- Nửa trên của thẻ (3 cột bằng nhau) -->
+                <div class="rh-inv-summary-top">
+                    <!-- Cột 1: Phát sinh kỳ này | 0 đ (xanh dương đậm) -->
+                    <div class="rh-inv-summary-col">
+                        <span class="rh-inv-summary-label">Phát sinh kỳ này</span>
+                        <span class="rh-inv-summary-val rh-inv-val-blue">0 đ</span>
+                    </div>
+
+                    <!-- Cột 2: Đã thu | 0 đ (xanh lá cây) ngăn cách bằng vạch chia -->
+                    <div class="rh-inv-summary-col">
+                        <span class="rh-inv-summary-label">Đã thu</span>
+                        <span class="rh-inv-summary-val rh-inv-val-green">0 đ</span>
+                    </div>
+
+                    <!-- Cột 3: Cần thu + nợ | 0 đ (đỏ) ngăn cách bằng vạch chia -->
+                    <div class="rh-inv-summary-col">
+                        <span class="rh-inv-summary-label">Cần thu + nợ</span>
+                        <span class="rh-inv-summary-val rh-inv-val-red">0 đ</span>
+                    </div>
+                </div>
+
+                <!-- Nửa dưới của thẻ: Tỷ lệ đã thu + info icon + 0% + progress bar -->
+                <div class="rh-inv-summary-bottom">
+                    <div class="rh-inv-rate-header">
+                        <div class="rh-inv-rate-title-wrap">
+                            <span class="rh-inv-rate-title">Tỷ lệ đã thu</span>
+                            <span class="rh-inv-info-icon" title="Thông tin tỷ lệ">
+                                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round"
+                                    stroke-linejoin="round">
+                                    <circle cx="12" cy="12" r="10"></circle>
+                                    <line x1="12" y1="16" x2="12" y2="12"></line>
+                                    <line x1="12" y1="8" x2="12.01" y2="8"></line>
+                                </svg>
+                            </span>
+                        </div>
+                        <span class="rh-inv-rate-percent">0%</span>
+                    </div>
+
+                    <!-- Progress bar: background hồng nhạt, phần hoàn thành width 0% -->
+                    <div class="rh-inv-progress-track">
+                        <div class="rh-inv-progress-fill" style="width: 0%;"></div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- 4. Khu vực Tabs/Toggles (Trạng thái hoá đơn) -->
+        <section class="rh-inv-tabs-section">
+            <div class="rh-inv-tabs-wrap" role="tablist">
+                <!-- Nút 1 ("Tất cả"): Background đen, chữ trắng. Kèm badge số "0" -->
+                <button type="button" class="rh-inv-tab-pill rh-inv-tab-active" onclick="switchRhTab(this)">
+                    <span>Tất cả</span>
+                    <span class="rh-inv-tab-badge">0</span>
+                </button>
+
+                <!-- Nút 2 ("Còn nợ"): Background xám rất nhạt, chữ xám. Kèm badge số "0" -->
+                <button type="button" class="rh-inv-tab-pill" onclick="switchRhTab(this)">
+                    <span>Còn nợ</span>
+                    <span class="rh-inv-tab-badge">0</span>
+                </button>
+
+                <!-- Nút 3 ("Đã tt"): Background xám rất nhạt, chữ xám. Kèm badge số "0" -->
+                <button type="button" class="rh-inv-tab-pill" onclick="switchRhTab(this)">
+                    <span>Đã tt</span>
+                    <span class="rh-inv-tab-badge">0</span>
+                </button>
+            </div>
+        </section>
+
+    </div>
+
+    <!-- 5. Nút Floating Action Button (FAB) -->
+    <!-- Nằm ở góc dưới cùng bên phải, tròn, background xanh lá cây, icon + trắng -->
+    <button type="button" class="rh-inv-fab" aria-label="Tạo hoá đơn mới">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19"></line>
+            <line x1="5" y1="12" x2="19" y2="12"></line>
+        </svg>
+    </button>
+</div>
+
+<script>
+    // Script chuyển đổi tab độc lập
+    function switchRhTab(button) {
+        var wrap = button.closest('.rh-inv-tabs-wrap');
+        if (!wrap) return;
+        wrap.querySelectorAll('.rh-inv-tab-pill').forEach(function (pill) {
+            pill.classList.remove('rh-inv-tab-active');
+        });
+        button.classList.add('rh-inv-tab-active');
+    }
+</script>
+```
