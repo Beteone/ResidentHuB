@@ -2327,14 +2327,154 @@
         .kpi-card.mini .stat-value{font:800 1.6rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin-top:.3rem}
         .kpi-card.mini .stat-sub{color:#94a3b8;font-size:.72rem;margin-top:.25rem}
         .kpi-card.todo{padding:1.1rem 1.25rem}
+        #dashRowTodo{grid-template-columns:repeat(4,minmax(0,1fr))}
+        #dashRowTodo>.card{min-height:0}
+        @media(max-width:1100px){#dashRowTodo{grid-template-columns:repeat(2,minmax(0,1fr))}#dashRowTodo>.card:first-child{grid-column:auto}}
+        @media(max-width:700px){#dashRowTodo{grid-template-columns:1fr}}
         .kpi-card.todo .stat-label{color:#61708a;font-size:.82rem;font-weight:600}
         .kpi-card.todo .stat-label i{color:#1683ff;margin-right:.4rem}
         .kpi-card.todo .stat-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin-top:.4rem}
         .kpi-card.todo .stat-sub{color:#94a3b8;font-size:.78rem;margin-top:.3rem}
         .kpi-card.todo.has-items .stat-value{color:#ef4444}
         #dashActivityBody .activity-empty td{color:#94a3b8;padding:2rem 1rem;text-align:center}
-        @media(max-width:1100px){#dashRowSystem{grid-template-columns:repeat(3,minmax(0,1fr))!important}}
-        @media(max-width:700px){#dashRowSystem{grid-template-columns:repeat(2,minmax(0,1fr))!important}}
+        .kpi-card .stat-sub{color:#94a3b8;font-size:.76rem;margin-top:.2rem}
+        /* Sidebar counters (Yêu cầu hỗ trợ mới / Tài khoản chờ duyệt) */
+        .rh-nav-badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:.7rem;font-weight:700;align-items:center;justify-content:center}
+        /* Tài khoản */
+        .acc-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
+        .acc-head h2{font-size:1.4rem;font-weight:700;color:#10213c}
+        .acc-head p{color:#94a3b8;margin-top:.3rem;font-size:.875rem}
+        .acc-filters{display:flex;gap:.4rem;flex-wrap:wrap;margin-top:1rem}
+        .acc-filter{border:1px solid var(--line);background:#fff;color:#475569;border-radius:999px;padding:.35rem .85rem;font:inherit;font-size:.8rem;cursor:pointer}
+        .acc-filter.active{background:#eaf3ff;border-color:#b9d8ff;color:#0d65d5;font-weight:600}
+        .acc-filter span{margin-left:.3rem;color:#94a3b8}
+        .acc-pill{font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;white-space:nowrap}
+        .acc-btn{background:none;border:1px solid var(--line);border-radius:6px;padding:.35rem .6rem;cursor:pointer;color:#475569;margin-left:.3rem}
+        .acc-btn.danger{border-color:#fecaca;color:#ef4444}
+        .acc-field label{font-size:.8rem;font-weight:600;color:#475569}
+        .acc-field input,.acc-field select,.acc-field textarea{width:100%;margin-top:.35rem;padding:.6rem .75rem;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
+        .acc-field small{display:block;font-size:.72rem;color:#94a3b8;margin-top:.3rem}
+        /* Shared hexagon icon (Bảng tin tiles + Cài đặt rows) */
+        .hex-icon{width:46px;height:50px;flex:0 0 46px;display:inline-flex;align-items:center;justify-content:center;background:#eef4fb;color:#61708a;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);font-size:1.05rem}
+        .tone-green{color:#18a878!important}.tone-amber{color:#d99a1e!important}.tone-red{color:#ef4444!important}.tone-blue{color:#1683ff!important}.tone-purple{color:#7c3aed!important}
+        /* Bảng tin */
+        .db-toolbar{display:flex;align-items:flex-end;justify-content:space-between;gap:1rem;flex-wrap:wrap;margin-bottom:1.25rem}
+        .db-title{font:800 1.5rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;color:#10213c}
+        .db-sub{color:#94a3b8;font-size:.85rem;margin-top:.2rem}
+        .db-toolbar-actions{display:flex;gap:.6rem;align-items:center}
+        .db-toolbar-actions select{min-width:0;width:220px;max-width:100%;padding:.6rem .8rem;border:1px solid var(--line);border-radius:10px;font:inherit;background:#fff;color:#10213c}
+        .db-add{white-space:nowrap;padding:.6rem 1rem;border-radius:10px;border:0;color:#fff;cursor:pointer;font:inherit;font-weight:600}
+        .db-top{display:grid;grid-template-columns:minmax(0,.9fr) minmax(0,1.6fr);gap:1.25rem;margin-bottom:1.25rem}
+        .db-tiles{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1.25rem}
+        .db-tile{cursor:pointer;display:flex;flex-direction:column;gap:.35rem;padding:1.25rem!important}
+        .db-tile .hex-icon{margin-bottom:.6rem}
+        .db-tile-value{font:800 2rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;color:#10213c;line-height:1}
+        .db-tile-label{color:#61708a;font-size:.88rem}
+        .db-status{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));padding:0!important;cursor:pointer;overflow:hidden}
+        .db-status-cell{padding:1.4rem 1.2rem;border-left:1px solid var(--line);display:flex;flex-direction:column;gap:.6rem}
+        .db-status-cell:first-child{border-left:0}
+        .db-status-label{font-weight:600;color:#10213c;font-size:.92rem;min-height:2.6em}
+        .db-status-value{font:800 2.1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;line-height:1}
+        .db-status-pct{color:#94a3b8;font-size:.82rem}
+        .db-grid-3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1.25rem;margin-bottom:1.25rem}
+        .db-grid-money{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,2fr);gap:1.25rem;margin-bottom:1.25rem}
+        .db-card{display:flex;flex-direction:column;gap:1rem}
+        .db-card-head{display:flex;align-items:center;justify-content:space-between;gap:.75rem;border-bottom:1px solid var(--line);padding-bottom:.9rem;margin:-.2rem 0 0}
+        .db-card-head h3{font-weight:700;color:#10213c;font-size:1rem}
+        .db-link{color:#1683ff;font-size:.82rem;font-weight:600;cursor:pointer;white-space:nowrap}
+        .db-link:hover{text-decoration:underline}
+        .db-muted{color:#94a3b8;font-size:.82rem}
+        .db-pair{display:grid;grid-template-columns:1fr 1fr;gap:1rem}
+        .db-pair>div+div{border-left:1px solid var(--line);padding-left:1rem}
+        .db-big{font:800 1.7rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;color:#10213c;margin-bottom:.2rem}
+        .db-bar{height:8px;border-radius:999px;background:#f1f5f9;margin-top:.6rem;overflow:hidden}
+        .db-bar span{display:block;height:100%;width:0;background:#f0a34a;border-radius:inherit;transition:width .4s}
+        .db-bar.green span{background:#18a878}
+        .db-rows{display:grid;gap:.55rem;margin-top:auto}
+        .db-rows>div{display:flex;justify-content:space-between;gap:1rem;font-size:.86rem;color:#475569}
+        .db-rows>div.kpi-card{cursor:pointer}
+        .db-rows b{color:#10213c}
+        .db-rows-top{margin-top:0}
+        .db-boxes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+        .db-boxes>div{background:#f6f9fc;border-radius:12px;padding:.9rem .5rem;text-align:center;display:flex;flex-direction:column;gap:.35rem;cursor:pointer}
+        .db-boxes b{font:800 1.35rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif}
+        .db-boxes span{color:#61708a;font-size:.75rem;line-height:1.3}
+        .db-money-row{display:flex;align-items:center;gap:.75rem;flex-wrap:wrap}
+        .db-money{font:800 1.9rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;color:#10213c}
+        .db-delta{font-size:.72rem;padding:.2rem .5rem;border-radius:6px;background:#f1f5f9;color:#61708a}
+        .db-delta.up{background:#e6f8ef;color:#18a878}.db-delta.down{background:#fee2e2;color:#ef4444}
+        .db-split{display:flex;gap:4px;height:10px}
+        .db-split span{border-radius:999px;transition:width .4s}
+        .db-split .paid{background:#18a878}.db-split .unpaid{background:#ef4444}
+        .db-legend{display:flex;gap:1.2rem;flex-wrap:wrap;font-size:.8rem;color:#61708a}
+        .db-legend b{color:#10213c;margin-left:.25rem}
+        .dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:.35rem}.dot.green{background:#18a878}.dot.red{background:#ef4444}
+        .db-fees{display:grid;gap:.55rem;border-top:1px solid var(--line);padding-top:.9rem}
+        .db-fees>div{display:grid;grid-template-columns:1fr auto 3.5rem;gap:.75rem;font-size:.86rem;color:#475569;align-items:center}
+        .db-fees i{width:1.3rem;color:#94a3b8}
+        .db-fees b{color:#10213c}
+        .db-fees em{font-style:normal;color:#94a3b8;text-align:right}
+        .db-ratings{display:grid;gap:.55rem}
+        .db-ratings>div{display:flex;justify-content:space-between;align-items:center}
+        .db-stars{color:#475569;font-size:.86rem}
+        .db-stars i{color:#f5b301;margin-left:2px}
+        .db-stars i.far{color:#d6dde6}
+        .db-hot{display:grid;grid-template-columns:1fr 1fr;padding:0!important;overflow:hidden}
+        .db-hot>div{padding:1.1rem;border-left:1px solid var(--line);border-top:1px solid var(--line);display:flex;flex-direction:column;gap:.35rem}
+        .db-hot>div:nth-child(odd){border-left:0}
+        .db-hot>div:nth-child(-n+2){border-top:0}
+        .db-hot-label{font-weight:600;color:#10213c;font-size:.88rem}
+        .db-hot-value{color:#475569;font-size:.86rem;overflow-wrap:anywhere}
+        @media(max-width:1200px){.db-top{grid-template-columns:1fr}.db-grid-3{grid-template-columns:1fr 1fr}}
+        @media(max-width:800px){.db-grid-3,.db-grid-money{grid-template-columns:1fr}.db-status{grid-template-columns:1fr 1fr}.db-status-cell:nth-child(3){border-left:0}.db-status-cell:nth-child(n+3){border-top:1px solid var(--line)}}
+        /* Cài đặt */
+        .set-tabs{display:flex;gap:.3rem;overflow-x:auto;background:#fff;border:1px solid var(--line);border-radius:14px;padding:.35rem;margin-bottom:1.25rem;scrollbar-width:thin}
+        .set-tabs button{display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;border:0;background:none;padding:.55rem .95rem;border-radius:10px;font:inherit;font-size:.86rem;color:#475569;cursor:pointer}
+        .set-tabs button i{color:#94a3b8}
+        .set-tabs button:hover{background:#f1f5ff}
+        .set-tabs button.active{background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff;font-weight:600}
+        .set-tabs button.active i{color:#fff}
+        .set-panel{display:none;grid-template-columns:minmax(0,1.9fr) minmax(0,1fr);gap:1.25rem;align-items:start}
+        .set-panel.active{display:grid}
+        .set-main{display:grid;gap:1rem}
+        .set-main-full{grid-column:1/-1}
+        .set-item{display:flex;align-items:center;gap:1rem;border:1px solid var(--line);border-radius:14px;padding:1rem 1.1rem;flex-wrap:wrap}
+        .set-item-block{align-items:flex-start}
+        .set-item-block>.set-grid,.set-item-block>.set-input,.set-item-block>.set-checks,.set-item-block>.set-actions{flex-basis:100%;margin-left:calc(46px + 1rem)}
+        .set-text{flex:1;min-width:220px;display:flex;flex-direction:column;gap:.25rem}
+        .set-text strong{color:#10213c;font-size:.92rem}
+        .set-text span{color:#61708a;font-size:.82rem;line-height:1.45}
+        .set-input{width:200px;padding:.6rem .75rem;border:1px solid var(--line);border-radius:8px;font:inherit}
+        .set-input.wide{width:min(360px,100%)}
+        .set-checks{display:flex;gap:1.5rem;flex-wrap:wrap;font-size:.86rem;color:#475569}
+        .set-checks label{display:flex;align-items:center;gap:.45rem;cursor:pointer}
+        .set-checks input{accent-color:#1683ff;width:16px;height:16px}
+        .set-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+        .set-drop{display:flex;align-items:center;justify-content:center;min-width:220px;min-height:84px;border:1.5px dashed #c8d6e5;border-radius:12px;padding:.6rem 1rem;cursor:pointer;color:#61708a;font-size:.82rem;text-align:center;line-height:1.5}
+        .set-drop.over,.set-drop:hover{border-color:#1683ff;background:#f5f9ff}
+        .set-drop i{color:#1683ff;margin-right:.3rem}
+        .set-drop small{color:#94a3b8}
+        .set-drop img{max-height:64px;max-width:180px;object-fit:contain}
+        .rh-switch{position:relative;width:44px;height:24px;flex:0 0 44px;cursor:pointer}
+        .rh-switch input{position:absolute;opacity:0;width:0;height:0}
+        .rh-switch span{position:absolute;inset:0;background:#dbe3ec;border-radius:999px;transition:.2s}
+        .rh-switch span::after{content:'';position:absolute;top:3px;left:3px;width:18px;height:18px;border-radius:50%;background:#fff;box-shadow:0 1px 3px rgba(0,0,0,.2);transition:.2s}
+        .rh-switch input:checked+span{background:#1683ff}
+        .rh-switch input:checked+span::after{transform:translateX(20px)}
+        .rh-switch input:focus-visible+span{outline:2px solid #1683ff;outline-offset:2px}
+        .set-side h4{font-weight:700;color:#10213c;padding-bottom:.9rem;margin-bottom:.4rem;border-bottom:1px solid var(--line)}
+        .set-side p{color:#61708a;font-size:.86rem;line-height:1.6}
+        .set-side details{border-bottom:1px solid var(--line);padding:.85rem 0}
+        .set-side summary{cursor:pointer;color:#10213c;font-size:.88rem;font-weight:500;list-style:none;display:flex;justify-content:space-between;gap:.75rem}
+        .set-side summary::after{content:'\f078';font-family:'Font Awesome 6 Free','Font Awesome 5 Free';font-weight:900;font-size:.7rem;color:#94a3b8;transition:transform .2s}
+        .set-side details[open] summary::after{transform:rotate(180deg)}
+        .set-side details p{margin-top:.55rem}
+        .set-save{display:flex;justify-content:flex-end;align-items:center;gap:1rem;margin-top:1.25rem}
+        .set-save .btn-primary,.set-item .btn-primary,.set-actions .btn-primary{border:0;border-radius:10px;padding:.6rem 1.3rem;color:#fff;font:inherit;font-weight:600;cursor:pointer}
+        .set-actions{display:flex;align-items:center;gap:.75rem}
+        .set-saved{color:#18a878;font-size:.85rem;display:none}
+        @media(max-width:1000px){.set-panel.active{grid-template-columns:1fr}}
+        @media(max-width:640px){.set-grid{grid-template-columns:1fr}.set-item-block>.set-grid,.set-item-block>.set-input,.set-item-block>.set-checks,.set-item-block>.set-actions{margin-left:0}.set-input{width:100%}}
     </style>
 </head>
 <body>
@@ -2397,6 +2537,12 @@
             <div class="sidebar-menu-item" onclick="switchTab('support', this)">
                 <i class="fas fa-tools"></i>
                 <span>Yêu cầu hỗ trợ</span>
+                <span class="rh-nav-badge" id="rhNavSupportCount" style="display:none;">0</span>
+            </div>
+            <div class="sidebar-menu-item" id="rhAccountsMenuItem" onclick="switchTab('accounts', this)">
+                <i class="fas fa-user-shield"></i>
+                <span>Tài khoản</span>
+                <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('reports')">
                 <i class="fas fa-chart-bar"></i>
@@ -2427,7 +2573,7 @@
                 </div>
                 <div class="sidebar-menu-item" id="rhSettingsMenuItem" onclick="switchTab('settings')">
                     <i class="fas fa-cog"></i>
-                    <span>Cấu hình</span>
+                    <span>Cài đặt</span>
                 </div>
                 <div class="sidebar-menu-item" id="rhLogoutMenuItem" onclick="logout()">
                     <i class="fas fa-sign-out-alt"></i>
@@ -2453,9 +2599,9 @@
                 <button class="btn-icon" title="Tìm kiếm">
                     <i class="fas fa-search"></i>
                 </button>
-                <button class="btn-icon" title="Thông báo">
+                <button class="btn-icon" title="Việc cần xử lý" onclick="switchTab('dashboard'); document.getElementById('dashRowTodo').scrollIntoView({ behavior: 'smooth', block: 'center' });">
                     <i class="fas fa-bell"></i>
-                    <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">3</span>
+                    <span id="rhBellCount" data-display="flex" style="display:none; position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; min-width: 20px; height: 20px; padding: 0 4px; border-radius: 999px; align-items: center; justify-content: center; font-size: 0.72rem;">0</span>
                 </button>
                 <div class="dropdown">
                     <button class="btn-icon" onclick="toggleDropdown()" title="Tài khoản">
@@ -2468,7 +2614,7 @@
                             <i class="fas fa-user"></i>
                             <span id="topbarUserLabel">Tài khoản của tôi</span>
                         </div>
-                        <div class="dropdown-item">
+                        <div class="dropdown-item" onclick="switchTab('settings')">
                             <i class="fas fa-cog"></i>
                             <span>Cài đặt</span>
                         </div>
@@ -2481,93 +2627,114 @@
             </div>
         </div>
 
-        <!-- Dashboard Tab -->
+        <!-- Dashboard Tab — READ + CALCULATE only: every figure comes from RHD.dashboardStats() -->
         <div id="dashboard-tab">
-            <div class="dash-hero">
-                <h2>Tổng quan</h2>
-                <p>Một nơi để theo dõi toàn bộ hoạt động quản lý — mọi số liệu dưới đây được tính trực tiếp từ dữ liệu bạn đã nhập, không có số liệu minh họa.</p>
-            </div>
-
-            <div class="dash-row-label">Tổng quan</div>
-            <div class="grid-2" id="dashRowOverview">
-                <div class="card kpi-card" data-goto="buildings">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Tòa nhà đang quản lý</div><div class="stat-value" id="kpiBuildings">0</div></div>
-                        <div class="stat-icon" style="background:rgba(102,126,234,.1);color:#667eea;"><i class="fas fa-building"></i></div>
-                    </div>
+            <div class="db-toolbar">
+                <div>
+                    <h2 class="db-title">Bảng tin</h2>
+                    <p class="db-sub">Số liệu tính trực tiếp từ dữ liệu đã nhập ở các module — không có số liệu minh họa.</p>
                 </div>
-                <div class="card kpi-card" data-goto="apartments">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Số căn hộ</div><div class="stat-value" id="kpiApartments">0</div></div>
-                        <div class="stat-icon" style="background:rgba(22,131,255,.1);color:#1683ff;"><i class="fas fa-door-open"></i></div>
-                    </div>
-                </div>
-                <div class="card kpi-card" data-goto="customers">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Cư dân</div><div class="stat-value" id="kpiCustomers">0</div></div>
-                        <div class="stat-icon" style="background:rgba(245,158,11,.1);color:#f59e0b;"><i class="fas fa-user-group"></i></div>
-                    </div>
-                </div>
-                <div class="card kpi-card" data-goto="apartments">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Căn hộ trống</div><div class="stat-value" id="kpiVacant">0</div></div>
-                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#18a878;"><i class="fas fa-key"></i></div>
-                    </div>
+                <div class="db-toolbar-actions">
+                    <select id="dashBuildingFilter" aria-label="Chọn tòa nhà" onchange="RHUI.renderDashboardCounts()"><option value="">Tất cả tòa nhà</option></select>
+                    <button type="button" class="btn-primary db-add" onclick="switchTab('buildings'); RHUI.openBuildingForm();"><i class="fas fa-plus"></i> Tòa nhà</button>
                 </div>
             </div>
 
-            <div class="dash-row-label">Tài chính</div>
-            <div class="grid-2" id="dashRowFinance">
-                <div class="card kpi-card" data-goto="invoices">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Doanh thu tháng</div><div class="stat-value" id="kpiRevenueMonth" style="font-size:1.5rem;">0đ</div></div>
-                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#10b981;"><i class="fas fa-chart-line"></i></div>
+            <div class="db-top">
+                <div class="db-tiles">
+                    <div class="card db-tile kpi-card" data-goto="buildings"><span class="hex-icon"><i class="fas fa-building"></i></span><div class="db-tile-value" id="kpiBuildings">0</div><div class="db-tile-label">Tòa nhà</div></div>
+                    <div class="card db-tile kpi-card" data-goto="apartments"><span class="hex-icon"><i class="fas fa-door-open"></i></span><div class="db-tile-value" id="kpiApartments">0</div><div class="db-tile-label">Căn hộ</div></div>
+                    <div class="card db-tile kpi-card" data-goto="customers"><span class="hex-icon"><i class="fas fa-user-group"></i></span><div class="db-tile-value" id="kpiCustomers">0</div><div class="db-tile-label">Cư dân</div></div>
+                    <div class="card db-tile kpi-card" data-goto="apartments"><span class="hex-icon"><i class="fas fa-percent"></i></span><div class="db-tile-value" id="kpiOccupancy">0%</div><div class="db-tile-label">Tỷ lệ lấp đầy</div></div>
+                </div>
+                <div class="card db-status kpi-card" data-goto="apartments">
+                    <div class="db-status-cell"><div class="db-status-label">Căn hộ đang ở</div><div class="db-status-value tone-green" id="dAptOccupied">0</div><div class="db-status-pct"><b class="tone-green" id="dAptOccupiedPct">0%</b> căn hộ</div></div>
+                    <div class="db-status-cell"><div class="db-status-label">Căn hộ đã đặt cọc</div><div class="db-status-value tone-amber" id="dAptDeposited">0</div><div class="db-status-pct"><b class="tone-amber" id="dAptDepositedPct">0%</b> căn hộ</div></div>
+                    <div class="db-status-cell"><div class="db-status-label">Căn hộ đang trống</div><div class="db-status-value tone-blue" id="kpiVacant">0</div><div class="db-status-pct"><b class="tone-blue" id="dAptVacantPct">0%</b> căn hộ</div></div>
+                    <div class="db-status-cell"><div class="db-status-label">Căn hộ bảo trì</div><div class="db-status-value tone-red" id="dAptMaintenance">0</div><div class="db-status-pct"><b class="tone-red" id="dAptMaintenancePct">0%</b> căn hộ</div></div>
+                </div>
+            </div>
+
+            <div class="db-grid-3">
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Tài khoản cư dân</h3><a class="db-link" data-goto-link="accounts">Xem chi tiết</a></div>
+                    <div class="db-pair">
+                        <div><div class="db-big tone-amber" id="dAccPending">0</div><div class="db-muted">Chờ phê duyệt</div><div class="db-bar"><span id="dAccPendingBar"></span></div></div>
+                        <div><div class="db-big tone-green" id="dAccApproved">0</div><div class="db-muted">Đã phê duyệt</div><div class="db-bar green"><span id="dAccApprovedBar"></span></div></div>
+                    </div>
+                    <div class="db-rows">
+                        <div><span>Đăng ký trong tháng</span><b id="dAccMonth">0</b></div>
+                        <div><span>Bị từ chối</span><b id="dAccRejected">0</b></div>
                     </div>
                 </div>
-                <div class="card kpi-card" data-goto="invoices">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Đã thu</div><div class="stat-value" id="kpiCollected" style="font-size:1.5rem;">0đ</div></div>
-                        <div class="stat-icon" style="background:rgba(16,185,129,.1);color:#18a878;"><i class="fas fa-circle-check"></i></div>
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Tổng quan cư dân</h3><a class="db-link" data-goto-link="customers">Xem chi tiết</a></div>
+                    <div class="db-pair">
+                        <div><div class="db-big" id="dCusNew">0</div><div class="db-muted">Cư dân mới trong tháng</div></div>
+                        <div><div class="db-big" id="dCusLinked">0</div><div class="db-muted">Có tài khoản đăng nhập</div></div>
+                    </div>
+                    <div class="db-rows">
+                        <div><span>Chưa có hợp đồng hiệu lực</span><b id="dCusNoContract">0</b></div>
+                        <div><span>Tỷ lệ có tài khoản</span><b id="dCusLinkedPct">0%</b></div>
                     </div>
                 </div>
-                <div class="card kpi-card" data-goto="invoices">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Công nợ</div><div class="stat-value" id="kpiDebt" style="font-size:1.5rem;">0đ</div></div>
-                        <div class="stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="fas fa-sack-dollar"></i></div>
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Tổng quan hợp đồng</h3><a class="db-link" data-goto-link="contracts">Xem chi tiết</a></div>
+                    <div class="db-rows db-rows-top">
+                        <div class="tone-green"><span>Ký mới trong tháng</span><b id="dConNew">0</b></div>
+                        <div class="tone-red"><span>Kết thúc trong tháng</span><b id="dConEnded">0</b></div>
                     </div>
-                </div>
-                <div class="card kpi-card" data-goto="invoices" data-filter="overdue">
-                    <div class="stat-card">
-                        <div><div class="stat-label">Hóa đơn quá hạn</div><div class="stat-value" id="kpiOverdueCount">0</div></div>
-                        <div class="stat-icon" style="background:rgba(239,68,68,.1);color:#ef4444;"><i class="fas fa-triangle-exclamation"></i></div>
+                    <div class="db-boxes">
+                        <div class="kpi-card" data-goto="contracts"><b class="tone-green" id="dConActive">0</b><span>Đang hiệu lực</span></div>
+                        <div class="kpi-card" data-goto="contracts" data-filter="expiring"><b class="tone-amber" id="dConExpiring">0</b><span id="dConExpiringLabel">Sắp hết hạn</span></div>
+                        <div class="kpi-card" data-goto="contracts"><b class="tone-purple" id="dConClosed">0</b><span>Đã kết thúc</span></div>
                     </div>
                 </div>
             </div>
 
-            <!-- Charts — computed from real invoices/apartments, not manually editable placeholder numbers -->
-            <div class="grid-3" style="margin-top: 1.5rem;">
-                <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Doanh thu 12 tháng (đã thu)</h3>
-                    <div class="chart-container"><canvas id="revenueChart"></canvas></div>
+            <div class="db-grid-money">
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Tiền hóa đơn tháng này</h3><a class="db-link" data-goto-link="invoices">Xem chi tiết</a></div>
+                    <div class="db-muted">Tất cả (<span id="dInvMonthCount">0</span> hóa đơn kỳ <span id="dInvMonthKey">—</span>)</div>
+                    <div class="db-money-row"><div class="db-money" id="dInvMonthTotal">0đ</div><span class="db-delta" id="dInvMonthDelta">0% tháng trước</span></div>
+                    <div class="db-split"><span class="paid" id="dInvBarPaid" style="width:0%"></span><span class="unpaid" id="dInvBarUnpaid" style="width:0%"></span></div>
+                    <div class="db-legend"><span><i class="dot green"></i>Đã thu <b id="dInvMonthPaid">0đ</b></span><span><i class="dot red"></i>Chưa thu <b id="dInvMonthUnpaid">0đ</b></span></div>
+                    <div class="db-fees" id="dInvGroups"></div>
+                    <div class="db-rows">
+                        <div class="kpi-card" data-goto="invoices" data-filter="unpaid"><span>Tổng công nợ</span><b class="tone-red" id="kpiDebt">0đ</b></div>
+                        <div class="kpi-card" data-goto="invoices" data-filter="overdue"><span>Hóa đơn quá hạn</span><b class="tone-red" id="kpiOverdueCount">0</b></div>
+                    </div>
                 </div>
-                <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Tình trạng căn hộ</h3>
-                    <div class="chart-container"><canvas id="roomStatusChart"></canvas></div>
-                </div>
-                <div class="card">
-                    <h3 style="font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Trạng thái hóa đơn</h3>
-                    <div class="chart-container"><canvas id="paymentChart"></canvas></div>
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Doanh thu 12 tháng</h3><span class="db-muted">Đã lập hóa đơn và đã thu</span></div>
+                    <div class="chart-container" style="height:320px;"><canvas id="revenueChart"></canvas></div>
                 </div>
             </div>
 
-            <div class="dash-row-label">Dữ liệu hệ thống</div>
-            <div class="grid-3" id="dashRowSystem" style="grid-template-columns:repeat(6,minmax(0,1fr));">
-                <div class="card kpi-card mini" data-goto="buildings"><div class="stat-label">Tòa nhà</div><div class="stat-value" id="sysBuildings">0</div><div class="stat-sub">Tòa nhà đang quản lý</div></div>
-                <div class="card kpi-card mini" data-goto="apartments"><div class="stat-label">Căn hộ</div><div class="stat-value" id="sysApartments">0</div><div class="stat-sub">Căn hộ đã tạo</div></div>
-                <div class="card kpi-card mini" data-goto="customers"><div class="stat-label">Cư dân</div><div class="stat-value" id="sysCustomers">0</div><div class="stat-sub">Hồ sơ cư dân</div></div>
-                <div class="card kpi-card mini" data-goto="contracts"><div class="stat-label">Hợp đồng</div><div class="stat-value" id="sysContracts">0</div><div class="stat-sub">Hợp đồng đã lập</div></div>
-                <div class="card kpi-card mini" data-goto="meters"><div class="stat-label">Chỉ số</div><div class="stat-value" id="sysMeters">0</div><div class="stat-sub">Chỉ số đã ghi</div></div>
-                <div class="card kpi-card mini" data-goto="invoices"><div class="stat-label">Hóa đơn</div><div class="stat-value" id="sysInvoices">0</div><div class="stat-sub">Hóa đơn đã lập</div></div>
+            <div class="db-grid-3">
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Tổng quan yêu cầu hỗ trợ</h3><a class="db-link" data-goto-link="support">Xem chi tiết</a></div>
+                    <div class="db-rows db-rows-top">
+                        <div><span>Phát sinh trong tháng</span><b id="dReqMonth">0</b></div>
+                        <div><span>Hoàn thành trong tháng</span><b id="dReqDone">0</b></div>
+                    </div>
+                    <div class="db-boxes">
+                        <div class="kpi-card" data-goto="support"><b class="tone-blue" id="dReqNew">0</b><span>Mới</span></div>
+                        <div class="kpi-card" data-goto="support"><b class="tone-amber" id="dReqProgress">0</b><span>Đang xử lý</span></div>
+                        <div class="kpi-card" data-goto="support"><b class="tone-purple" id="dReqResolved">0</b><span>Chờ cư dân xác nhận</span></div>
+                    </div>
+                </div>
+                <div class="card db-card">
+                    <div class="db-card-head"><h3>Đánh giá của cư dân</h3></div>
+                    <div class="db-muted" id="dRatingSummary">Dựa trên 0 đánh giá</div>
+                    <div class="db-ratings" id="dRatingRows"></div>
+                </div>
+                <div class="card db-hot">
+                    <div><div class="db-hot-label">Tòa nhà nhiều yêu cầu nhất</div><div class="db-hot-value" id="dHotBuilding">—</div><div class="db-muted"><b class="tone-green" id="dHotBuildingCount">0</b> yêu cầu</div></div>
+                    <div><div class="db-hot-label">Căn hộ nhiều yêu cầu nhất</div><div class="db-hot-value" id="dHotApartment">—</div><div class="db-muted"><b class="tone-green" id="dHotApartmentCount">0</b> yêu cầu</div></div>
+                    <div><div class="db-hot-label">Loại yêu cầu phát sinh nhiều nhất</div><div class="db-hot-value" id="dHotCategory">—</div><div class="db-muted"><b class="tone-green" id="dHotCategoryCount">0</b> yêu cầu</div></div>
+                    <div><div class="db-hot-label">Nhân viên còn nhiều việc nhất</div><div class="db-hot-value" id="dHotAssignee">—</div><div class="db-muted"><b class="tone-green" id="dHotAssigneeCount">0</b> việc chưa xong</div></div>
+                </div>
             </div>
 
             <div class="dash-row-label">Cần xử lý</div>
@@ -2587,7 +2754,7 @@
                     <div class="stat-value" id="todoExpiring">0</div>
                     <div class="stat-sub" id="todoExpiringNote">Không có hợp đồng sắp hết hạn</div>
                 </div>
-                <div class="card kpi-card todo" data-goto="settings">
+                <div class="card kpi-card todo" data-goto="accounts">
                     <div class="stat-label"><i class="fas fa-user-clock"></i> Tài khoản cư dân chờ phê duyệt</div>
                     <div class="stat-value" id="todoAccountRequests">0</div>
                     <div class="stat-sub" id="todoAccountRequestsNote">Không có tài khoản chờ phê duyệt</div>
@@ -3267,15 +3434,17 @@
             </div>
         </div>
 
-        <div id="settings-tab" style="display: none;">
+        <!-- Tài khoản: duyệt đăng ký Cư dân + quản lý tài khoản đăng nhập (tách khỏi Cài đặt) -->
+        <div id="accounts-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+                <div class="acc-head">
                     <div>
-                        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Yêu cầu đăng ký tài khoản cư dân</h2>
-                        <p style="color: #94a3b8; margin-top: 0.4rem; font-size: 0.875rem;">Cư dân đăng ký từ trang chủ sẽ xuất hiện ở đây, chờ được phê duyệt trước khi tài khoản có hiệu lực.</p>
+                        <h2>Yêu cầu đăng ký tài khoản cư dân</h2>
+                        <p>Cư dân đăng ký từ trang chủ sẽ ở trạng thái Chờ phê duyệt. Chỉ khi được phê duyệt, tài khoản mới được kích hoạt và liên kết với hồ sơ cư dân.</p>
                     </div>
                 </div>
-                <div class="table-container" style="margin-top: 1.25rem;">
+                <div class="acc-filters" id="accountRequestFilters"></div>
+                <div class="table-container" style="margin-top: 1rem;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
@@ -3293,44 +3462,41 @@
                 </div>
             </div>
 
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <div style="display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 1rem;">
+            <div class="card">
+                <div class="acc-head">
                     <div>
-                        <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Quản lý tài khoản</h2>
-                        <p style="color: #94a3b8; margin-top: 0.4rem; font-size: 0.875rem;">Tạo và phân quyền tài khoản Quản lý hoặc Cư dân. Vai trò gán ở đây quyết định giao diện và chức năng tài khoản được phép truy cập.</p>
+                        <h2>Danh sách tài khoản</h2>
+                        <p>Tài khoản Cư dân chỉ được tạo qua phê duyệt đăng ký ở trên. Tại đây bạn có thể thêm tài khoản Quản lý, đổi liên kết hồ sơ cư dân, khoá hoặc mở khoá tài khoản.</p>
                     </div>
                     <button class="btn-icon" style="width: auto; padding: 0 1rem; background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border-radius: 10px;" onclick="openAccountForm()">
-                        <i class="fas fa-user-plus"></i>&nbsp; Thêm tài khoản
+                        <i class="fas fa-user-plus"></i>&nbsp; Thêm tài khoản Quản lý
                     </button>
                 </div>
 
                 <form id="accountForm" onsubmit="handleAccountFormSubmit(event)" style="display: none; margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem;">
                     <input type="hidden" id="accountId">
-                    <div style="display: grid; grid-template-columns: repeat(2, minmax(0,1fr)); gap: 1rem;">
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Họ tên</label>
-                            <input id="accountName" type="text" required placeholder="Nguyễn Thị Hoa" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                        <div class="acc-field">
+                            <label for="accountName">Họ tên</label>
+                            <input id="accountName" type="text" required placeholder="Họ và tên">
                         </div>
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Email đăng nhập</label>
-                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
+                        <div class="acc-field">
+                            <label for="accountEmail">Email đăng nhập</label>
+                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn">
                         </div>
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Mật khẩu</label>
-                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
-                            <div id="accountPasswordHint" style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;"></div>
+                        <div class="acc-field">
+                            <label for="accountPassword">Mật khẩu</label>
+                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự">
+                            <small id="accountPasswordHint"></small>
                         </div>
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Vai trò</label>
-                            <select id="accountRole" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;">
-                                <option value="manager">Quản lý</option>
-                                <option value="resident">Cư dân</option>
-                            </select>
+                        <div class="acc-field">
+                            <label for="accountRoleLabel">Vai trò</label>
+                            <input id="accountRoleLabel" type="text" readonly style="background:#f1f5f9;color:#475569;">
                         </div>
-                        <div>
-                            <label style="font-size: 0.8rem; font-weight: 600; color: #475569;">Căn hộ (nếu là Cư dân)</label>
-                            <select id="accountApartmentId" style="width: 100%; margin-top: 0.35rem; padding: 0.6rem 0.75rem; border: 1px solid var(--line); border-radius: 8px; font: inherit;"></select>
-                            <p style="font-size: 0.72rem; color: #94a3b8; margin-top: 0.3rem;">Gán đúng căn hộ để tài khoản này thấy được hợp đồng/hóa đơn thật của căn hộ đó.</p>
+                        <div class="acc-field" id="accountResidentWrap" style="display:none;">
+                            <label for="accountResidentId">Hồ sơ cư dân liên kết</label>
+                            <select id="accountResidentId"></select>
+                            <small>Tòa nhà, căn hộ, hợp đồng và hóa đơn của cư dân được lấy tự động từ hồ sơ này.</small>
                         </div>
                     </div>
                     <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
@@ -3339,17 +3505,16 @@
                         <button type="button" onclick="closeAccountForm()" style="background: #fff; color: #475569; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Huỷ</button>
                     </div>
                 </form>
-            </div>
 
-            <div class="card">
-                <div class="table-container">
+                <div class="table-container" style="margin-top: 1.25rem;">
                     <table style="width: 100%; border-collapse: collapse;">
                         <thead>
                             <tr>
                                 <th style="text-align: left;">Họ tên</th>
                                 <th style="text-align: left;">Email</th>
                                 <th style="text-align: left;">Vai trò</th>
-                                <th style="text-align: left;">Căn hộ</th>
+                                <th style="text-align: left;">Hồ sơ cư dân / Căn hộ</th>
+                                <th style="text-align: left;">Trạng thái</th>
                                 <th style="text-align: right;">Hành động</th>
                             </tr>
                         </thead>
@@ -3357,6 +3522,220 @@
                     </table>
                 </div>
             </div>
+        </div>
+
+        <!-- Cài đặt: chỉ cấu hình hệ thống (RHD.getSettings/saveSettings), không chứa duyệt tài khoản.
+             Mỗi ô có data-setting = khóa trong SETTINGS_DEFAULTS (data.js) và đều được module thật đọc. -->
+        <div id="settings-tab" style="display: none;">
+            <div class="set-tabs" id="settingsNav" role="tablist">
+                <button type="button" class="active" data-set-panel="basic"><i class="fas fa-gear"></i> Cài đặt cơ bản</button>
+                <button type="button" data-set-panel="contract"><i class="fas fa-file-contract"></i> Hợp đồng</button>
+                <button type="button" data-set-panel="invoice"><i class="fas fa-file-invoice-dollar"></i> Hóa đơn</button>
+                <button type="button" data-set-panel="support"><i class="fas fa-headset"></i> Yêu cầu hỗ trợ</button>
+                <button type="button" data-set-panel="notify"><i class="fas fa-bell"></i> Thông báo</button>
+                <button type="button" data-set-panel="templates"><i class="fas fa-file-lines"></i> Biểu mẫu</button>
+                <button type="button" data-set-panel="security" id="settingsSecurityNav"><i class="fas fa-lock"></i> Bảo mật</button>
+                <button type="button" data-set-panel="demo" id="settingsDemoNav" style="display:none;"><i class="fas fa-rotate-left"></i> Dữ liệu Demo</button>
+            </div>
+
+            <form id="settingsForm" onsubmit="saveSystemSettings(event)">
+                <!-- Cài đặt cơ bản -->
+                <div class="set-panel active" data-set-panel="basic">
+                    <div class="card set-main">
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-palette"></i></span>
+                            <div class="set-text"><strong>Logo thương hiệu</strong><span>Hiển thị ở thanh bên trang Quản lý và trang Cư dân.</span></div>
+                            <label class="set-drop" id="setLogoDrop">
+                                <input type="file" id="setLogoFile" accept="image/png,image/jpeg,image/svg+xml" hidden>
+                                <img id="setLogoPreview" alt="Logo" style="display:none;">
+                                <span id="setLogoHint"><i class="fas fa-image"></i> Chọn hoặc kéo thả file<br><small>SVG, PNG, JPG • tối đa 300KB</small></span>
+                            </label>
+                            <input type="hidden" data-setting="orgLogo" id="setOrgLogo">
+                            <button type="button" class="acc-btn danger" id="setLogoRemove" title="Xoá logo" style="display:none;"><i class="fas fa-trash"></i></button>
+                        </div>
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-building-user"></i></span>
+                            <div class="set-text"><strong>Thông tin ban quản lý</strong><span>Hiển thị cho cư dân ở mục "Bên cho thuê" trên trang Hợp đồng.</span></div>
+                            <div class="set-grid">
+                                <div class="acc-field"><label for="setOrgName">Tên đơn vị quản lý</label><input id="setOrgName" data-setting="orgName" placeholder="VD: Ban quản lý tòa nhà A"></div>
+                                <div class="acc-field"><label for="setOrgHotline">Hotline</label><input id="setOrgHotline" data-setting="orgHotline" placeholder="VD: 1900 xxxx"></div>
+                                <div class="acc-field"><label for="setOrgEmail">Email liên hệ</label><input id="setOrgEmail" data-setting="orgEmail" type="email" placeholder="bql@example.com"></div>
+                                <div class="acc-field"><label for="setOrgAddress">Địa chỉ văn phòng</label><input id="setOrgAddress" data-setting="orgAddress" placeholder="Số nhà, đường, phường..."></div>
+                            </div>
+                        </div>
+                    </div>
+                    <aside class="card set-side">
+                        <h4>Mẹo nhỏ lan tỏa thương hiệu</h4>
+                        <p>Tải logo nhận diện riêng lên để cư dân nhận ra ban quản lý ngay khi mở ứng dụng. Tên đơn vị và hotline xuất hiện trên trang hợp đồng của cư dân, giúp cư dân biết liên hệ ai khi cần.</p>
+                    </aside>
+                </div>
+
+                <!-- Hợp đồng -->
+                <div class="set-panel" data-set-panel="contract">
+                    <div class="card set-main">
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-door-closed"></i></span>
+                            <div class="set-text"><strong>Tự động chuyển căn hộ sang "Đang ở" khi lập hợp đồng</strong><span>Áp dụng cho căn hộ đang Trống hoặc Đã đặt cọc khi lập hợp đồng mới.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="autoOccupyOnContract"><span></span></label>
+                        </div>
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-bell"></i></span>
+                            <div class="set-text"><strong>Hiển thị trạng thái sắp hết hạn khi hợp đồng còn X ngày</strong><span>Dùng cho thẻ "Hợp đồng sắp hết hạn" trên Bảng tin và bộ lọc Hợp đồng.</span></div>
+                            <input class="set-input" type="number" min="1" max="365" id="setContractExpiringDays" data-setting="contractExpiringDays">
+                        </div>
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-calendar-check"></i></span>
+                            <div class="set-text"><strong>Số ngày báo trước khi gia hạn</strong><span>Hạn chót cư dân gửi yêu cầu gia hạn = ngày kết thúc hợp đồng trừ số ngày này.</span></div>
+                            <input class="set-input" type="number" min="0" max="365" data-setting="contractNoticeDays">
+                        </div>
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-clock-rotate-left"></i></span>
+                            <div class="set-text"><strong>Nhắc hợp đồng theo số ngày trước hoặc sau khi hết hạn</strong><span>Các mốc cách nhau bằng dấu phẩy. Số dương: nhắc trước khi hết hạn; 0: đúng ngày hết hạn; số âm: sau khi hết hạn. Ví dụ: 30,15,7,0,-1. Hiển thị trong Lịch hẹn của cư dân.</span></div>
+                            <input class="set-input wide" type="text" data-setting="contractReminderDays" placeholder="30,15,7,0">
+                        </div>
+                    </div>
+                    <aside class="card set-side">
+                        <h4>Câu hỏi thường gặp</h4>
+                        <details><summary>"Sắp hết hạn" được tính thế nào?</summary><p>Hợp đồng còn hiệu lực có ngày kết thúc nằm trong X ngày tới (tính từ hôm nay) được đếm vào "Hợp đồng sắp hết hạn".</p></details>
+                        <details><summary>Cư dân thấy nhắc gia hạn ở đâu?</summary><p>Trong mục Hợp đồng (đếm ngược tới hạn chót gia hạn) và mục Lịch hẹn (các mốc nhắc bạn đã cấu hình).</p></details>
+                        <details><summary>Tắt tự chuyển "Đang ở" thì sao?</summary><p>Trạng thái căn hộ giữ nguyên khi lập hợp đồng; bạn tự cập nhật trong mục Căn hộ.</p></details>
+                    </aside>
+                </div>
+
+                <!-- Hóa đơn -->
+                <div class="set-panel" data-set-panel="invoice">
+                    <div class="card set-main">
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-calendar-day"></i></span>
+                            <div class="set-text"><strong>Hạn thanh toán hóa đơn</strong><span>Tự điền vào ô "Hạn thanh toán" khi lập hóa đơn mới.</span></div>
+                            <div class="set-checks">
+                                <label><input type="radio" name="setDueMode" value="days" data-setting="invoiceDueMode"> X ngày kể từ ngày lập</label>
+                                <label><input type="radio" name="setDueMode" value="dayOfMonth" data-setting="invoiceDueMode"> Ngày cố định trong tháng</label>
+                            </div>
+                            <div class="set-grid">
+                                <div class="acc-field" data-due-mode="days"><label>Nhập số ngày</label><input type="number" min="0" max="90" id="setInvoiceDueDays" data-setting="invoiceDueDays"></div>
+                                <div class="acc-field" data-due-mode="dayOfMonth"><label>Ngày trong tháng (1–28)</label><input type="number" min="1" max="28" data-setting="invoiceDueDayOfMonth"></div>
+                            </div>
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-triangle-exclamation"></i></span>
+                            <div class="set-text"><strong>Tự động chuyển hóa đơn quá hạn sang "Quá hạn"</strong><span>Hóa đơn chưa thanh toán đã qua hạn sẽ tự đổi trạng thái.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="autoMarkOverdue"><span></span></label>
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-paper-plane"></i></span>
+                            <div class="set-text"><strong>Chỉ hiển thị hóa đơn cho cư dân sau khi đã gửi</strong><span>Khi bật, hóa đơn ở trạng thái "Chưa thanh toán" (chưa gửi) sẽ chưa hiện bên Cư dân.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="invoiceRequireSend"><span></span></label>
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-credit-card"></i></span>
+                            <div class="set-text"><strong>Cho phép cư dân thanh toán trên ứng dụng</strong><span>Hiện nút "Thanh toán" trong mục Hóa đơn của cư dân.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="residentOnlinePayment"><span></span></label>
+                        </div>
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-calendar-days"></i></span>
+                            <div class="set-text"><strong>Nhắc trước hạn thanh toán (ngày)</strong><span>Hóa đơn đến hạn trong khoảng này được đánh dấu "Sắp đến hạn" trên Lịch của cư dân.</span></div>
+                            <input class="set-input" type="number" min="0" max="60" id="setInvoiceReminderDays" data-setting="invoiceReminderDays">
+                        </div>
+                    </div>
+                    <aside class="card set-side">
+                        <h4>Câu hỏi thường gặp</h4>
+                        <details><summary>Khi nào cư dân thấy hóa đơn?</summary><p>Mặc định ngay khi lập. Nếu bật "Chỉ hiển thị sau khi đã gửi", cư dân chỉ thấy khi bạn bấm Gửi hóa đơn (hoặc hóa đơn đã thanh toán/quá hạn).</p></details>
+                        <details><summary>Hạn thanh toán hiển thị ở đâu?</summary><p>Mọi hóa đơn chưa thanh toán có hạn thanh toán sẽ tự xuất hiện trong Lịch hẹn của cư dân.</p></details>
+                        <details><summary>"Ngày cố định trong tháng" tính thế nào?</summary><p>Hạn là ngày đó của tháng lập hóa đơn; nếu ngày đó đã qua thì chuyển sang tháng sau.</p></details>
+                    </aside>
+                </div>
+
+                <!-- Yêu cầu hỗ trợ -->
+                <div class="set-panel" data-set-panel="support">
+                    <div class="card set-main">
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-user-gear"></i></span>
+                            <div class="set-text"><strong>Người phụ trách mặc định</strong><span>Tự điền khi xử lý yêu cầu hỗ trợ chưa có người phụ trách.</span></div>
+                            <input class="set-input wide" type="text" id="setSupportAssignee" data-setting="supportAutoAssignee" placeholder="Tên nhân viên">
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-star"></i></span>
+                            <div class="set-text"><strong>Cho phép cư dân đánh giá yêu cầu đã hoàn tất</strong><span>Kết quả đánh giá hiển thị ở thẻ "Đánh giá của cư dân" trên Bảng tin.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="supportAllowRating"><span></span></label>
+                        </div>
+                    </div>
+                    <aside class="card set-side">
+                        <h4>Câu hỏi thường gặp</h4>
+                        <details><summary>Cư dân gửi yêu cầu thì tôi thấy ở đâu?</summary><p>Ngay tại Quản lý &gt; Yêu cầu hỗ trợ, kèm tòa nhà/căn hộ của cư dân, và số yêu cầu mới hiện trên thanh bên.</p></details>
+                        <details><summary>Cư dân có biết khi tôi đổi trạng thái?</summary><p>Có — cư dân thấy trạng thái mới ngay, và nhận thông báo nếu bật trong tab Thông báo.</p></details>
+                    </aside>
+                </div>
+
+                <!-- Thông báo -->
+                <div class="set-panel" data-set-panel="notify">
+                    <div class="card set-main set-main-full">
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-file-invoice-dollar"></i></span>
+                            <div class="set-text"><strong>Thông báo hóa đơn cho cư dân</strong><span>Gửi thông báo trong ứng dụng khi hóa đơn được lập, gửi hoặc thanh toán.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="notifyInvoice"><span></span></label>
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-file-signature"></i></span>
+                            <div class="set-text"><strong>Thông báo hợp đồng cho cư dân</strong><span>Gửi thông báo khi hợp đồng của cư dân được lập hoặc cập nhật.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="notifyContract"><span></span></label>
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-screwdriver-wrench"></i></span>
+                            <div class="set-text"><strong>Thông báo trạng thái yêu cầu hỗ trợ</strong><span>Gửi thông báo khi ban quản lý đổi trạng thái yêu cầu của cư dân.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="notifySupportStatus"><span></span></label>
+                        </div>
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-user-check"></i></span>
+                            <div class="set-text"><strong>Thông báo phê duyệt tài khoản</strong><span>Gửi lời chào đến tài khoản cư dân vừa được phê duyệt.</span></div>
+                            <label class="rh-switch"><input type="checkbox" data-setting="notifyAccountApproved"><span></span></label>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Biểu mẫu -->
+                <div class="set-panel" data-set-panel="templates">
+                    <div class="card set-main set-main-full">
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-file-lines"></i></span>
+                            <div class="set-text"><strong>Thư viện biểu mẫu hợp đồng &amp; hóa đơn</strong><span>Mẫu dùng khi in / xem trước. Mỗi tòa nhà chọn mẫu riêng trong form Tòa nhà.</span></div>
+                            <button type="button" class="btn-primary" onclick="openTemplatesPage()"><i class="fas fa-up-right-from-square"></i> Mở thư viện</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Bảo mật -->
+                <div class="set-panel" data-set-panel="security">
+                    <div class="card set-main set-main-full">
+                        <div class="set-item set-item-block">
+                            <span class="hex-icon"><i class="fas fa-key"></i></span>
+                            <div class="set-text"><strong>Đổi mật khẩu</strong><span>Áp dụng cho tài khoản Quản lý đang đăng nhập.</span></div>
+                            <div class="set-grid">
+                                <div class="acc-field"><label for="setCurrentPassword">Mật khẩu hiện tại</label><input id="setCurrentPassword" type="password" autocomplete="current-password"></div>
+                                <div class="acc-field"><label for="setNewPassword">Mật khẩu mới</label><input id="setNewPassword" type="password" autocomplete="new-password" placeholder="Tối thiểu 6 ký tự"></div>
+                            </div>
+                            <div class="set-actions"><button type="button" class="btn-primary" onclick="changeOwnPassword()">Đổi mật khẩu</button><span id="setPasswordMsg" style="font-size:.85rem;"></span></div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Dữ liệu Demo -->
+                <div class="set-panel" data-set-panel="demo">
+                    <div class="card set-main set-main-full">
+                        <div class="set-item">
+                            <span class="hex-icon"><i class="fas fa-rotate-left"></i></span>
+                            <div class="set-text"><strong>Khôi phục dữ liệu Demo</strong><span>Xoá mọi thay đổi trong bản Demo và khôi phục dữ liệu mẫu ban đầu. Không ảnh hưởng dữ liệu thật.</span></div>
+                            <button type="button" class="btn-primary" onclick="resetDemoData()">Khôi phục</button>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="set-save" id="settingsSaveBar">
+                    <span class="set-saved" id="settingsSaved"><i class="fas fa-circle-check"></i> Đã lưu cài đặt</span>
+                    <span id="settingsError" style="color:#ef4444;font-size:.85rem;"></span>
+                    <button type="submit" class="btn-primary">Cập nhật</button>
+                </div>
+            </form>
         </div>
 
         <!-- Workflows Tab -->
@@ -3765,95 +4144,51 @@
     </div>
 
     <script>
-        let roomStatusChart, revenueChart, paymentChart;
+        let revenueChart;
 
-        // Charts read straight from RHD (data.js) — no manually-editable / mock
-        // dataset backing them. Called from RHUI.renderDashboardCounts() on load
-        // and after every create/update in any module, so they always match
-        // what's actually been entered into the system.
+        // The chart reads RHD.dashboardStats().revenue12 — no dataset of its own.
+        // Called from RHUI.renderDashboardCounts() on load and after every change.
         function initCharts() {
-            const revenueCtx = document.getElementById('revenueChart').getContext('2d');
-            revenueChart = new Chart(revenueCtx, {
+            const canvas = document.getElementById('revenueChart');
+            if (!canvas || typeof Chart === 'undefined') return;
+            const tick = { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } };
+            revenueChart = new Chart(canvas.getContext('2d'), {
                 type: 'line',
                 data: {
-                    labels: ['T1', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7', 'T8', 'T9', 'T10', 'T11', 'T12'],
-                    datasets: [{
-                        label: 'Doanh thu (đã thu)',
-                        data: new Array(12).fill(0),
-                        borderColor: '#1683ff',
-                        backgroundColor: 'rgba(22, 131, 255, 0.12)',
-                        tension: 0.35,
-                        borderWidth: 3,
-                        pointRadius: 3,
-                        pointHoverRadius: 5,
-                        fill: true
-                    }]
+                    labels: [],
+                    datasets: [
+                        { label: 'Đã lập hóa đơn', data: [], borderColor: '#1683ff', backgroundColor: 'rgba(22,131,255,.10)', tension: .35, borderWidth: 3, pointRadius: 3, fill: true },
+                        { label: 'Đã thu', data: [], borderColor: '#18a878', backgroundColor: 'rgba(24,168,120,.08)', tension: .35, borderWidth: 3, pointRadius: 3, fill: true }
+                    ]
                 },
                 options: {
                     responsive: true,
                     maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } },
-                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } } }
-                }
-            });
-
-            const roomCtx = document.getElementById('roomStatusChart').getContext('2d');
-            roomStatusChart = new Chart(roomCtx, {
-                type: 'doughnut',
-                data: {
-                    labels: ['Đang ở', 'Đã đặt cọc', 'Trống', 'Bảo trì'],
-                    datasets: [{ data: [0, 0, 0, 0], backgroundColor: ['#18a878', '#a5680c', '#1683ff', '#ef4444'], borderWidth: 0 }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { position: 'bottom', labels: { color: '#61708a', padding: 16, usePointStyle: true, font: { family: 'Be Vietnam Pro', size: 11 } } }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } }
-                }
-            });
-
-            const paymentCtx = document.getElementById('paymentChart').getContext('2d');
-            paymentChart = new Chart(paymentCtx, {
-                type: 'bar',
-                data: {
-                    labels: ['Đã thanh toán', 'Chờ thanh toán', 'Quá hạn'],
-                    datasets: [{ label: 'Số lượng', data: [0, 0, 0], backgroundColor: ['#18a878', '#f0a34a', '#e45b68'], borderRadius: 8, borderSkipped: false, barPercentage: 0.58, categoryPercentage: 0.7 }]
-                },
-                options: {
-                    responsive: true,
-                    maintainAspectRatio: false,
-                    plugins: { legend: { display: false }, tooltip: { backgroundColor: '#0b2447', padding: 10, cornerRadius: 10 } },
-                    scales: { x: { grid: { display: false }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 } } }, y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: { color: '#7b8ca3', font: { family: 'Be Vietnam Pro', size: 10 }, precision: 0 } } }
+                    interaction: { mode: 'index', intersect: false },
+                    plugins: {
+                        legend: { position: 'bottom', labels: { color: '#61708a', usePointStyle: true, font: { family: 'Be Vietnam Pro', size: 11 } } },
+                        tooltip: {
+                            backgroundColor: '#0b2447', padding: 10, cornerRadius: 10,
+                            callbacks: {
+                                label: ctx => ' ' + ctx.dataset.label + ': ' + Number(ctx.raw || 0).toLocaleString('vi-VN') + 'đ',
+                                footer: items => 'Chưa thu: ' + Math.max(0, (items[0] ? items[0].raw : 0) - (items[1] ? items[1].raw : 0)).toLocaleString('vi-VN') + 'đ'
+                            }
+                        }
+                    },
+                    scales: {
+                        x: { grid: { display: false }, ticks: tick },
+                        y: { beginAtZero: true, grid: { color: '#e8eef5' }, ticks: Object.assign({}, tick, { callback: v => Number(v).toLocaleString('vi-VN') + 'đ' }) }
+                    }
                 }
             });
         }
 
-        function updateDashboardCharts() {
-            if (!revenueChart || !roomStatusChart || !paymentChart) return;
-            const apartments = RHD.list('apartments');
-            const invoices = RHD.list('invoices');
-
-            const now = new Date();
-            const months = [];
-            for (let i = 11; i >= 0; i--) months.push(new Date(now.getFullYear(), now.getMonth() - i, 1));
-            const revenueByMonth = months.map(m => {
-                const key = m.getFullYear() + '-' + String(m.getMonth() + 1).padStart(2, '0');
-                return invoices.filter(inv => inv.status === 'paid' && inv.paidAt && new Date(inv.paidAt).getFullYear() + '-' + String(new Date(inv.paidAt).getMonth() + 1).padStart(2, '0') === key)
-                    .reduce((s, inv) => s + inv.total, 0);
-            });
-            revenueChart.data.labels = months.map(m => 'T' + (m.getMonth() + 1));
-            revenueChart.data.datasets[0].data = revenueByMonth;
+        function updateDashboardCharts(stats) {
+            if (!revenueChart || !stats) return;
+            revenueChart.data.labels = stats.revenue12.map(m => 'T' + Number(m.month.slice(5)) + '/' + m.month.slice(2, 4));
+            revenueChart.data.datasets[0].data = stats.revenue12.map(m => m.billed);
+            revenueChart.data.datasets[1].data = stats.revenue12.map(m => m.collected);
             revenueChart.update();
-
-            const statusCount = id => apartments.filter(a => a.status === id).length;
-            roomStatusChart.data.datasets[0].data = [statusCount('occupied'), statusCount('deposited'), statusCount('vacant'), statusCount('maintenance')];
-            roomStatusChart.update();
-
-            const todayStr = now.toISOString().slice(0, 10);
-            const paidCount = invoices.filter(i => i.status === 'paid').length;
-            const overdueCount = invoices.filter(i => i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr)).length;
-            const pendingCount = invoices.length - paidCount - overdueCount;
-            paymentChart.data.datasets[0].data = [paidCount, Math.max(0, pendingCount), overdueCount];
-            paymentChart.update();
         }
 
         // NOTE: the functions below (meterState/openMeterForm/etc.) drive the
@@ -3955,14 +4290,20 @@
             meters: (f) => RHUI.renderMetersTab(f),
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
-            support: (f) => RHUI.renderSupportTab(f)
+            support: (f) => RHUI.renderSupportTab(f),
+            accounts: (f) => { renderAccountRequestsTable(f); renderAccountsTable(); },
+            settings: () => renderSettingsTab()
         };
+        let currentTab = 'dashboard';
+        let currentTabFilter = null;
 
         function switchTab(tabName, evt, filter) {
-            if (tabName === 'settings' && RH_IS_DEMO) {
-                alert('Cấu hình tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
+            if (tabName === 'accounts' && RH_IS_DEMO) {
+                alert('Quản lý tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
                 return;
             }
+            currentTab = tabName;
+            currentTabFilter = filter || null;
             // Hide all tabs
             const tabs = document.querySelectorAll('[id$="-tab"]');
             tabs.forEach(tab => {
@@ -4008,8 +4349,16 @@
                 'workflows': 'Quy trình làm việc',
                 'features': 'Chi tiết tính năng',
                 'architecture': 'Kiến trúc hệ thống',
+                'accounts': 'Tài khoản',
                 'settings': 'Cài đặt'
             };
+            // Keep the sidebar highlight in sync when a tab is opened from a KPI card / bell.
+            if (!sidebarItem) {
+                document.querySelectorAll('.sidebar-menu-item').forEach(item => {
+                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-z]+)'/);
+                    item.classList.toggle('active', !!match && match[1] === tabName);
+                });
+            }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
             window.scrollTo(0, 0);
         }
@@ -4466,8 +4815,8 @@
             document.getElementById('topbarUserLabel').textContent = RH_IS_DEMO ? 'Khách demo' : (RH_SESSION.name + ' (Quản lý)');
 
             if (RH_IS_DEMO) {
-                const settingsItem = document.getElementById('rhSettingsMenuItem');
-                if (settingsItem) settingsItem.style.opacity = '0.45';
+                const accountsItem = document.getElementById('rhAccountsMenuItem');
+                if (accountsItem) accountsItem.style.opacity = '0.45';
                 const logoutItem = document.getElementById('rhLogoutMenuItem');
                 if (logoutItem) {
                     logoutItem.querySelector('span').textContent = 'Thoát Demo';
@@ -4480,28 +4829,48 @@
 
         const ROLE_LABELS = { manager: 'Quản lý', resident: 'Cư dân' };
 
+        function pill(label, color, bg) {
+            return '<span class="acc-pill" style="background:' + bg + ';color:' + color + ';">' + label + '</span>';
+        }
+
+        // "Hồ sơ cư dân / Căn hộ" column: everything is resolved from the account's
+        // residentId through the manager's own data — nothing is stored on the account.
+        function residentLinkLabel(user) {
+            if (user.role !== 'resident') return '<span style="color:#94a3b8;">—</span>';
+            const ctx = RHD.residentContext({ id: user.id, email: user.email, residentId: user.residentId, apartmentId: user.apartmentId, unit: user.unit });
+            const customer = ctx && ctx.customer;
+            if (!customer) return '<span style="color:#ef4444;">Chưa liên kết hồ sơ</span>';
+            const place = ctx.apartment ? (ctx.building ? (ctx.building.shortName || ctx.building.name) + ' / ' : '') + ctx.apartment.name : 'Chưa gán căn hộ';
+            return escapeHtml(customer.fullName) + '<div style="font-size:0.75rem;color:#94a3b8;">' + escapeHtml(place) + '</div>';
+        }
+
         function renderAccountsTable() {
             const body = document.getElementById('accountsTableBody');
             if (!body) return;
             const users = RH.getUsers();
+            const selfId = RH_SESSION ? RH_SESSION.id : '';
             body.innerHTML = users.map(function (u) {
-                const badgeColor = u.role === 'manager' ? '#0d65d5' : '#18a878';
-                const badgeBg = u.role === 'manager' ? '#eaf3ff' : '#e6f8ef';
+                const role = u.role === 'manager' ? pill(ROLE_LABELS.manager, '#0d65d5', '#eaf3ff') : pill(ROLE_LABELS.resident, '#18a878', '#e6f8ef');
+                const locked = u.status === 'locked';
+                const status = locked ? pill('Đã khoá', '#ef4444', '#fee2e2') : pill('Đang hoạt động', '#18a878', '#e6f8ef');
+                const lockBtn = u.id === selfId ? '' : '<button class="acc-btn" onclick="toggleAccountLock(\'' + u.id + '\')" title="' + (locked ? 'Mở khoá' : 'Khoá') + '"><i class="fas ' + (locked ? 'fa-lock-open' : 'fa-lock') + '"></i></button>';
                 return '<tr>' +
-                    '<td>' + escapeHtml(u.name) + '</td>' +
+                    '<td>' + escapeHtml(u.name) + (u.id === selfId ? ' <span style="color:#94a3b8;font-size:0.75rem;">(bạn)</span>' : '') + '</td>' +
                     '<td>' + escapeHtml(u.email) + '</td>' +
-                    '<td><span style="background:' + badgeBg + ';color:' + badgeColor + ';font-size:0.72rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;">' + ROLE_LABELS[u.role] + '</span></td>' +
-                    '<td>' + escapeHtml(u.unit || '—') + '</td>' +
+                    '<td>' + role + '</td>' +
+                    '<td>' + residentLinkLabel(u) + '</td>' +
+                    '<td>' + status + '</td>' +
                     '<td style="text-align:right; white-space:nowrap;">' +
-                        '<button onclick="openAccountForm(\'' + u.id + '\')" style="background:none;border:1px solid var(--line);border-radius:6px;padding:0.35rem 0.6rem;margin-right:0.4rem;cursor:pointer;color:#475569;" title="Sửa"><i class="fas fa-pen"></i></button>' +
-                        '<button onclick="deleteAccount(\'' + u.id + '\')" style="background:none;border:1px solid #fecaca;border-radius:6px;padding:0.35rem 0.6rem;cursor:pointer;color:#ef4444;" title="Xoá"><i class="fas fa-trash"></i></button>' +
+                        '<button class="acc-btn" onclick="openAccountForm(\'' + u.id + '\')" title="Sửa"><i class="fas fa-pen"></i></button>' +
+                        lockBtn +
+                        '<button class="acc-btn danger" onclick="deleteAccount(\'' + u.id + '\')" title="Xoá"><i class="fas fa-trash"></i></button>' +
                     '</td>' +
                 '</tr>';
-            }).join('') || '<tr><td colspan="5" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có tài khoản nào</td></tr>';
+            }).join('') || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có tài khoản nào</td></tr>';
         }
 
         function escapeHtml(str) {
-            return String(str).replace(/[&<>"']/g, function (c) {
+            return String(str == null ? '' : str).replace(/[&<>"']/g, function (c) {
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
             });
         }
@@ -4509,11 +4878,21 @@
         const REQUEST_STATUS_LABELS = { pending: 'Chờ phê duyệt', approved: 'Đã phê duyệt', rejected: 'Đã từ chối' };
         const REQUEST_STATUS_COLORS = { pending: '#a5680c', approved: '#18a878', rejected: '#ef4444' };
         const REQUEST_STATUS_BG = { pending: '#fff4df', approved: '#e6f8ef', rejected: '#fee2e2' };
+        let accountRequestFilter = 'pending';
 
-        function renderAccountRequestsTable() {
+        function renderAccountRequestsTable(filter) {
             const body = document.getElementById('accountRequestsTableBody');
             if (!body) return;
-            const requests = RH.listAccountRequests ? RH.listAccountRequests() : [];
+            if (filter && (filter === 'all' || REQUEST_STATUS_LABELS[filter])) accountRequestFilter = filter;
+            const all = RH.listAccountRequests ? RH.listAccountRequests() : [];
+            const filters = document.getElementById('accountRequestFilters');
+            if (filters) {
+                filters.innerHTML = [['pending', 'Chờ phê duyệt'], ['approved', 'Đã phê duyệt'], ['rejected', 'Đã từ chối'], ['all', 'Tất cả']].map(function (f) {
+                    const count = f[0] === 'all' ? all.length : all.filter(function (r) { return r.status === f[0]; }).length;
+                    return '<button type="button" class="acc-filter' + (accountRequestFilter === f[0] ? ' active' : '') + '" onclick="renderAccountRequestsTable(\'' + f[0] + '\')">' + f[1] + '<span>' + count + '</span></button>';
+                }).join('');
+            }
+            const requests = accountRequestFilter === 'all' ? all : all.filter(function (r) { return r.status === accountRequestFilter; });
             body.innerHTML = requests.map(function (r) {
                 const building = RHD.get('buildings', r.buildingId);
                 const apartment = RHD.get('apartments', r.apartmentId);
@@ -4521,17 +4900,17 @@
                 const submitted = new Date(r.submittedAt).toLocaleString('vi-VN');
                 const actions = r.status === 'pending'
                     ? '<button onclick="openAccountRequestDrawer(\'' + r.id + '\')" style="background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff;border:0;border-radius:6px;padding:0.35rem 0.75rem;cursor:pointer;" title="Xem & xử lý"><i class="fas fa-eye"></i> Xử lý</button>'
-                    : '<span style="color:#94a3b8;font-size:0.78rem;">' + (r.reviewedAt ? new Date(r.reviewedAt).toLocaleString('vi-VN') : '—') + '</span>';
+                    : '<span style="color:#94a3b8;font-size:0.78rem;">' + (r.reviewedAt ? new Date(r.reviewedAt).toLocaleString('vi-VN') : '—') + (r.rejectionReason ? '<br>Lý do: ' + escapeHtml(r.rejectionReason) : '') + '</span>';
                 return '<tr>' +
                     '<td>' + escapeHtml(r.fullName) + '</td>' +
                     '<td>' + escapeHtml(r.phone || '—') + '<div style="font-size:0.75rem;color:#94a3b8;">' + escapeHtml(r.email) + '</div></td>' +
                     '<td>' + escapeHtml(building ? (building.shortName || building.name) : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</td>' +
                     '<td>' + (customer ? escapeHtml(customer.fullName) : '<span style="color:#ef4444;">Chưa liên kết</span>') + '</td>' +
-                    '<td><span style="background:' + REQUEST_STATUS_BG[r.status] + ';color:' + REQUEST_STATUS_COLORS[r.status] + ';font-size:0.72rem;font-weight:700;padding:0.25rem 0.6rem;border-radius:999px;">' + REQUEST_STATUS_LABELS[r.status] + '</span></td>' +
+                    '<td>' + pill(REQUEST_STATUS_LABELS[r.status], REQUEST_STATUS_COLORS[r.status], REQUEST_STATUS_BG[r.status]) + '</td>' +
                     '<td style="white-space:nowrap;">' + submitted + '</td>' +
                     '<td style="text-align:right;white-space:nowrap;">' + actions + '</td>' +
                     '</tr>';
-            }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có yêu cầu đăng ký nào</td></tr>';
+            }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:1.5rem;">' + (accountRequestFilter === 'pending' ? 'Không có yêu cầu nào đang chờ phê duyệt' : 'Chưa có yêu cầu đăng ký nào') + '</td></tr>';
         }
 
         function openAccountRequestDrawer(id) {
@@ -4539,11 +4918,15 @@
             if (!r) return;
             const building = RHD.get('buildings', r.buildingId);
             const apartment = RHD.get('apartments', r.apartmentId);
-            const customers = RHD.list('customers');
+            const linkedIds = RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId; }).map(function (u) { return u.residentId; });
+            // Profiles already linked to another login account can't be linked twice.
+            const customers = RHD.list('customers').filter(function (c) { return linkedIds.indexOf(c.id) === -1; });
             const contract = apartment ? RHD.activeContractFor(apartment.id) : null;
 
             const customerOptions = '<option value="">— Tạo hồ sơ cư dân mới —</option>' + customers.map(function (c) {
-                return '<option value="' + c.id + '"' + (c.id === r.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + '</option>';
+                const cContract = RHD.list('contracts').filter(function (k) { return k.customerId === c.id && k.status !== 'ended'; })[0];
+                const cApt = cContract ? RHD.get('apartments', cContract.apartmentId) : null;
+                return '<option value="' + c.id + '"' + (c.id === r.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + (cApt ? ' • Căn ' + escapeHtml(cApt.name) : '') + '</option>';
             }).join('');
 
             const html = '<div style="display:grid;gap:0.9rem;">' +
@@ -4554,12 +4937,12 @@
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">CCCD</label><div style="font-weight:600;">' + escapeHtml(r.idNumber || '—') + '</div></div>' +
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">Ngày đăng ký</label><div style="font-weight:600;">' + new Date(r.submittedAt).toLocaleString('vi-VN') + '</div></div>' +
                 '</div>' +
-                '<div><label style="font-size:0.78rem;color:#94a3b8;">Tòa nhà / Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</div></div>' +
-                (contract ? '<div><label style="font-size:0.78rem;color:#94a3b8;">Hợp đồng liên quan</label><div style="font-weight:600;">' + escapeHtml(contract.code) + '</div></div>' : '') +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Tòa nhà / Căn hộ đã chọn</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</div></div>' +
+                (contract ? '<div><label style="font-size:0.78rem;color:#94a3b8;">Hợp đồng đang hiệu lực của căn</label><div style="font-weight:600;">' + escapeHtml(contract.code) + '</div></div>' : '') +
                 '<div style="border-top:1px solid var(--line);padding-top:0.9rem;">' +
                 (r.residentId
-                    ? '<div style="color:#18a878;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-circle-check"></i> Đã tìm thấy hồ sơ cư dân phù hợp.</div>'
-                    : '<div style="color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-triangle-exclamation"></i> Không tìm thấy hồ sơ cư dân phù hợp. Vui lòng chọn một hồ sơ có sẵn hoặc tạo hồ sơ mới trước khi phê duyệt.</div>') +
+                    ? '<div style="color:#18a878;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-circle-check"></i> Đã tìm thấy hồ sơ cư dân phù hợp — tài khoản sẽ được liên kết, không tạo hồ sơ trùng.</div>'
+                    : '<div style="color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-triangle-exclamation"></i> Không tự tìm thấy hồ sơ cư dân phù hợp. Chọn hồ sơ đã nhập ở Khách hàng, hoặc để trống để tạo hồ sơ mới.</div>') +
                 '<label style="font-size:0.8rem;font-weight:600;color:#475569;">Liên kết hồ sơ cư dân</label>' +
                 '<select id="reqResidentSelect" style="width:100%;margin-top:0.35rem;padding:0.6rem 0.75rem;border:1px solid var(--line);border-radius:8px;font:inherit;">' + customerOptions + '</select>' +
                 '</div>' +
@@ -4573,6 +4956,12 @@
             RHUI.openDrawer('Yêu cầu đăng ký — ' + r.fullName, html);
         }
 
+        function refreshAccountViews() {
+            renderAccountRequestsTable();
+            renderAccountsTable();
+            RHUI.renderDashboardCounts();
+        }
+
         function submitApproveAccountRequest(id) {
             const select = document.getElementById('reqResidentSelect');
             const residentId = select ? select.value : '';
@@ -4584,9 +4973,7 @@
                 return;
             }
             RHUI.closeDrawer();
-            renderAccountRequestsTable();
-            renderAccountsTable();
-            RHUI.renderDashboardCounts();
+            refreshAccountViews();
         }
 
         function promptRejectAccountRequest(id) {
@@ -4595,23 +4982,25 @@
             const result = RH.rejectAccountRequest(id, RH_SESSION ? RH_SESSION.id : null, reason);
             if (!result.ok) { alert(result.error); return; }
             RHUI.closeDrawer();
-            renderAccountRequestsTable();
-            RHUI.renderDashboardCounts();
+            refreshAccountViews();
         }
 
-        function populateAccountApartmentOptions(selectedId) {
-            const select = document.getElementById('accountApartmentId');
-            const apartments = RHD.list('apartments');
-            select.innerHTML = '<option value="">— Chưa gán căn hộ —</option>' + apartments.map(function (a) {
-                const building = RHD.get('buildings', a.buildingId);
-                const label = (building ? (building.shortName || building.name) + ' - ' : '') + a.name;
-                return '<option value="' + a.id + '"' + (a.id === selectedId ? ' selected' : '') + '>' + label + '</option>';
+        function populateAccountResidentOptions(user) {
+            const select = document.getElementById('accountResidentId');
+            const linkedElsewhere = RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && u.id !== user.id; }).map(function (u) { return u.residentId; });
+            const customers = RHD.list('customers').filter(function (c) { return linkedElsewhere.indexOf(c.id) === -1; });
+            select.innerHTML = '<option value="">— Chưa liên kết —</option>' + customers.map(function (c) {
+                return '<option value="' + c.id + '"' + (c.id === user.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + '</option>';
             }).join('');
         }
 
+        // New accounts created here are always Quản lý — Cư dân accounts only come
+        // from an approved registration request. Editing a Cư dân account can
+        // re-link its Resident Profile (residentId).
         function openAccountForm(id) {
             const form = document.getElementById('accountForm');
             document.getElementById('accountFormError').textContent = '';
+            const residentWrap = document.getElementById('accountResidentWrap');
             if (id) {
                 const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
                 if (!user) return;
@@ -4620,13 +5009,15 @@
                 document.getElementById('accountEmail').value = user.email;
                 document.getElementById('accountPassword').value = '';
                 document.getElementById('accountPasswordHint').textContent = 'Để trống nếu không đổi mật khẩu.';
-                document.getElementById('accountRole').value = user.role;
-                populateAccountApartmentOptions(user.apartmentId || '');
+                document.getElementById('accountRoleLabel').value = ROLE_LABELS[user.role];
+                residentWrap.style.display = user.role === 'resident' ? '' : 'none';
+                if (user.role === 'resident') populateAccountResidentOptions(user);
             } else {
+                form.reset();
                 document.getElementById('accountId').value = '';
-                document.getElementById('accountForm').reset();
                 document.getElementById('accountPasswordHint').textContent = 'Tài khoản mới bắt buộc có mật khẩu (tối thiểu 6 ký tự).';
-                populateAccountApartmentOptions('');
+                document.getElementById('accountRoleLabel').value = ROLE_LABELS.manager;
+                residentWrap.style.display = 'none';
             }
             form.style.display = 'block';
             form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
@@ -4642,21 +5033,28 @@
             const name = document.getElementById('accountName').value;
             const email = document.getElementById('accountEmail').value;
             const password = document.getElementById('accountPassword').value;
-            const role = document.getElementById('accountRole').value;
-            const apartmentId = document.getElementById('accountApartmentId').value;
-            const apartment = apartmentId ? RHD.get('apartments', apartmentId) : null;
-            const unit = apartment ? apartment.name : '';
             const errorEl = document.getElementById('accountFormError');
 
             let result;
             if (id) {
-                result = RH.updateUser(id, { name: name, email: email, role: role, unit: unit, apartmentId: apartmentId, password: password });
+                const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
+                const patch = { name: name, email: email, password: password };
+                if (user && user.role === 'resident') {
+                    const residentId = document.getElementById('accountResidentId').value;
+                    // Keep the display cache (unit/apartmentId) in step with the Resident Profile's contract.
+                    const ctx = RHD.residentContext({ id: user.id, email: user.email, residentId: residentId, apartmentId: residentId === user.residentId ? user.apartmentId : '' });
+                    patch.residentId = residentId;
+                    patch.apartmentId = ctx && ctx.apartment ? ctx.apartment.id : '';
+                    patch.unit = ctx && ctx.apartment ? ctx.apartment.name : '';
+                    patch.building = ctx && ctx.building ? (ctx.building.shortName || ctx.building.name) : '';
+                }
+                result = RH.updateUser(id, patch);
             } else {
                 if (!password) {
                     errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
                     return;
                 }
-                result = RH.createUser({ name: name, email: email, password: password, role: role, unit: unit, apartmentId: apartmentId });
+                result = RH.createUser({ name: name, email: email, password: password, role: 'manager' });
             }
 
             if (!result.ok) {
@@ -4666,6 +5064,16 @@
             closeAccountForm();
             renderAccountsTable();
             renderCurrentUser();
+        }
+
+        function toggleAccountLock(id) {
+            const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
+            if (!user) return;
+            const lock = user.status !== 'locked';
+            if (lock && !confirm('Khoá tài khoản ' + user.email + '? Tài khoản sẽ không đăng nhập được cho đến khi mở khoá.')) return;
+            const result = RH.updateUser(id, { status: lock ? 'locked' : 'active' });
+            if (!result.ok) { alert(result.error); return; }
+            renderAccountsTable();
         }
 
         function deleteAccount(id) {
@@ -4678,20 +5086,166 @@
             renderAccountsTable();
         }
 
+        // ---- Cài đặt (system configuration only) -------------------------------
+        // Every control carries data-setting="<key of RHD.SETTINGS_DEFAULTS>", so
+        // loading/saving is generic and a new setting only needs markup + a reader.
+        const SETTINGS_PANELS_WITHOUT_SAVE = ['templates', 'security', 'demo'];
+
+        function settingControls() {
+            return Array.from(document.querySelectorAll('#settingsForm [data-setting]'));
+        }
+
+        function showSettingsPanel(name) {
+            document.querySelectorAll('#settingsNav [data-set-panel]').forEach(b => b.classList.toggle('active', b.dataset.setPanel === name));
+            document.querySelectorAll('#settingsForm .set-panel').forEach(p => p.classList.toggle('active', p.dataset.setPanel === name));
+            document.getElementById('settingsSaveBar').style.display = SETTINGS_PANELS_WITHOUT_SAVE.indexOf(name) === -1 ? '' : 'none';
+            document.getElementById('settingsSaved').style.display = 'none';
+        }
+
+        function syncDueModeFields() {
+            const checked = document.querySelector('#settingsForm input[name="setDueMode"]:checked');
+            const mode = checked ? checked.value : 'days';
+            document.querySelectorAll('#settingsForm [data-due-mode]').forEach(el => { el.style.display = el.dataset.dueMode === mode ? '' : 'none'; });
+        }
+
+        function setLogoPreview(dataUrl) {
+            document.getElementById('setOrgLogo').value = dataUrl || '';
+            const img = document.getElementById('setLogoPreview');
+            img.src = dataUrl || '';
+            img.style.display = dataUrl ? 'block' : 'none';
+            document.getElementById('setLogoHint').style.display = dataUrl ? 'none' : '';
+            document.getElementById('setLogoRemove').style.display = dataUrl ? '' : 'none';
+        }
+
+        function readLogoFile(file) {
+            const err = document.getElementById('settingsError');
+            err.textContent = '';
+            if (!file) return;
+            if (!/^image\/(png|jpeg|svg\+xml)$/.test(file.type)) { err.textContent = 'Logo phải là file SVG, PNG hoặc JPG.'; return; }
+            if (file.size > 300 * 1024) { err.textContent = 'Logo tối đa 300KB.'; return; }
+            const reader = new FileReader();
+            reader.onload = () => setLogoPreview(reader.result);
+            reader.readAsDataURL(file);
+        }
+
+        function bindSettingsOnce() {
+            const nav = document.getElementById('settingsNav');
+            if (nav.dataset.ready) return;
+            nav.dataset.ready = '1';
+            nav.addEventListener('click', ev => {
+                const btn = ev.target.closest('[data-set-panel]');
+                if (btn) showSettingsPanel(btn.dataset.setPanel);
+            });
+            document.querySelectorAll('#settingsForm input[name="setDueMode"]').forEach(r => r.addEventListener('change', syncDueModeFields));
+            document.getElementById('setLogoFile').addEventListener('change', function () { readLogoFile(this.files[0]); this.value = ''; });
+            const drop = document.getElementById('setLogoDrop');
+            ['dragover', 'dragenter'].forEach(t => drop.addEventListener(t, e => { e.preventDefault(); drop.classList.add('over'); }));
+            ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, () => drop.classList.remove('over')));
+            drop.addEventListener('drop', e => { e.preventDefault(); readLogoFile(e.dataTransfer.files[0]); });
+            document.getElementById('setLogoRemove').addEventListener('click', () => setLogoPreview(''));
+        }
+
+        function renderSettingsTab() {
+            bindSettingsOnce();
+            const settings = RHD.getSettings();
+            settingControls().forEach(el => {
+                const value = settings[el.dataset.setting];
+                if (el.type === 'checkbox') el.checked = !!value;
+                else if (el.type === 'radio') el.checked = el.value === value;
+                else el.value = value == null ? '' : value;
+            });
+            setLogoPreview(settings.orgLogo);
+            syncDueModeFields();
+            document.getElementById('settingsSecurityNav').style.display = RH_IS_DEMO ? 'none' : '';
+            document.getElementById('settingsDemoNav').style.display = RH_IS_DEMO ? '' : 'none';
+            document.getElementById('settingsError').textContent = '';
+            const active = document.querySelector('#settingsNav button.active');
+            showSettingsPanel(active && active.style.display !== 'none' ? active.dataset.setPanel : 'basic');
+        }
+
+        function saveSystemSettings(event) {
+            event.preventDefault();
+            const patch = {};
+            settingControls().forEach(el => {
+                const k = el.dataset.setting;
+                if (el.type === 'checkbox') patch[k] = el.checked;
+                else if (el.type === 'radio') { if (el.checked) patch[k] = el.value; }
+                else if (el.type === 'number') patch[k] = Number(el.value);
+                else patch[k] = el.value.trim();
+            });
+            RHD.saveSettings(patch);
+            const active = document.querySelector('#settingsNav button.active');
+            renderSettingsTab();
+            if (active) showSettingsPanel(active.dataset.setPanel);
+            document.getElementById('settingsSaved').style.display = 'inline';
+            applyBrandLogo();
+            RHUI.renderDashboardCounts();
+        }
+
+        // Cài đặt > Logo thương hiệu replaces the sidebar house icon.
+        function applyBrandLogo() {
+            const logo = RHD.getSettings().orgLogo;
+            const box = document.querySelector('.sidebar-logo');
+            if (!box) return;
+            box.innerHTML = logo ? '<img src="' + logo + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;background:#fff;">' : '<i class="fas fa-home"></i>';
+        }
+
+        function changeOwnPassword() {
+            const msg = document.getElementById('setPasswordMsg');
+            const current = document.getElementById('setCurrentPassword').value;
+            const next = document.getElementById('setNewPassword').value;
+            const me = RH_SESSION && RH.getUsers().filter(function (u) { return u.id === RH_SESSION.id; })[0];
+            const fail = function (text) { msg.style.color = '#ef4444'; msg.textContent = text; };
+            if (!me) return fail('Không tìm thấy tài khoản đang đăng nhập.');
+            if (String(me.password) !== current) return fail('Mật khẩu hiện tại không đúng.');
+            if (next.length < 6) return fail('Mật khẩu mới phải có ít nhất 6 ký tự.');
+            const result = RH.updateUser(me.id, { password: next });
+            if (!result.ok) return fail(result.error);
+            document.getElementById('setCurrentPassword').value = '';
+            document.getElementById('setNewPassword').value = '';
+            msg.style.color = '#18a878';
+            msg.textContent = 'Đã đổi mật khẩu.';
+        }
+
+        function resetDemoData() {
+            if (!RH_IS_DEMO || !confirm('Khôi phục dữ liệu Demo ban đầu? Mọi thay đổi trong bản Demo sẽ bị xoá.')) return;
+            RHD.resetDemo();
+            window.location.reload();
+        }
+
+        // ---- live sync ------------------------------------------------------------
+        // A resident submitting a request / registering (another tab or window)
+        // writes to localStorage; re-read and re-render so the dashboard, badges
+        // and the open tab reflect it without a manual reload.
+        function refreshFromStorage() {
+            RHUI.renderDashboardCounts();
+            if (['support', 'accounts', 'invoices', 'contracts', 'customers'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab]) {
+                if (document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
+                try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
+            }
+        }
+        window.addEventListener('storage', function (event) {
+            if (!event.key) return refreshFromStorage();
+            const prefix = 'residenthub_' + RHD.mode() + '_';
+            if (event.key.indexOf(prefix) === 0 || event.key === 'residenthub_account_requests' || event.key === 'residenthub_users') refreshFromStorage();
+        });
+
         // Initialize on load
         window.addEventListener('load', function() {
             initCharts();
             renderWorkflows();
             renderCurrentUser();
+            applyBrandLogo();
             if (!RH_IS_DEMO) { renderAccountsTable(); renderAccountRequestsTable(); }
             RHUI.renderDashboardCounts();
             document.addEventListener('click', function (ev) {
+                const link = ev.target.closest('[data-goto-link]');
+                if (link) { ev.preventDefault(); switchTab(link.dataset.gotoLink); return; }
                 const card = ev.target.closest('.kpi-card[data-goto]');
                 if (!card) return;
                 switchTab(card.dataset.goto, ev, card.dataset.filter || null);
             });
         });
-
         function renderWorkflows() {
             const workflowTab = document.getElementById('workflows-tab');
             if (!workflowTab) return;
