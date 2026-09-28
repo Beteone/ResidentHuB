@@ -15,6 +15,7 @@
     <script src="templates.js"></script>
     <script src="data.js"></script>
     <script src="manager-modules.js"></script>
+    <script src="dist/meter-reading.js"></script>
     <style>
         * {
             margin: 0;
@@ -3403,18 +3404,8 @@
         </div>
         </div>
 
-        <div id="meters-tab" style="display: none;">
-            <div class="meter-page">
-                <header class="meter-header">
-                    <div class="meter-title">
-                        <button class="back-button" type="button" onclick="switchTab('dashboard')" title="Quay lại"><i class="fas fa-arrow-left"></i></button>
-                        <div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;margin-top:.2rem;">Quản lý chỉ số điện và nước theo từng kỳ</p></div>
-                    </div>
-                    <button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button>
-                </header>
-                <div class="card meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới, hoặc chỉnh bộ lọc.</p></div>
-            </div>
-        </div>
+        <!-- Ghi chỉ số: React module (src/meter-reading → dist/meter-reading.js) mounts here -->
+        <div id="meters-tab" style="display: none;"></div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
@@ -4088,61 +4079,6 @@
         </div>
     </div>
 
-    <div class="meter-modal" id="meterFormModal" onclick="closeOnOverlay(event, 'meterFormModal')">
-        <div class="meter-form" role="dialog" aria-modal="true" aria-labelledby="meterFormTitle">
-            <div class="form-header">
-                <button class="plain-button" onclick="closeMeterForm()" title="Đóng"><i class="fas fa-xmark"></i></button>
-                <h2 id="meterFormTitle">Thêm chỉ số</h2>
-                <button class="plain-button" title="Lịch sử"><i class="fas fa-clock-rotate-left"></i></button>
-            </div>
-            <section class="form-section">
-                <div class="form-section-title">THÔNG TIN CHUNG</div>
-                <div class="form-grid">
-                    <div class="form-field">
-                        <label for="formMonth">Tháng chốt *</label>
-                        <select id="formMonth" onchange="updateMonthFromForm(this.value)"></select>
-                    </div>
-                    <div class="form-field">
-                        <label for="formDate">Ngày chốt *</label>
-                        <input id="formDate" type="date" onchange="updateSelectedDate(this.value)">
-                    </div>
-                </div>
-                <div class="form-field">
-                    <label for="buildingSelect">Toà nhà *</label>
-                    <select id="buildingSelect"><option value="">Chọn toà nhà</option><option>Toà nhà Riverside</option><option>Toà nhà Central</option></select>
-                </div>
-                <div class="form-field">
-                    <label for="apartmentSelect">Căn hộ</label>
-                    <select id="apartmentSelect"><option value="">Chọn căn hộ</option><option>A-101</option><option>A-102</option><option>B-201</option></select>
-                </div>
-                <div class="form-field">
-                    <label>Loại công tơ *</label>
-                    <div class="segmented-control" id="meterTypeControl">
-                        <button class="segment-button active" onclick="setMeterType(this, 'all')">Tất cả</button>
-                        <button class="segment-button" onclick="setMeterType(this, 'electric')">Công tơ điện</button>
-                        <button class="segment-button" onclick="setMeterType(this, 'water')">Công tơ nước</button>
-                    </div>
-                </div>
-                <label class="toggle-row"><input class="toggle-input" type="checkbox"> <span>Chỉ hiện công tơ chưa chốt trong tháng</span></label>
-            </section>
-            <section class="form-section">
-                <div class="form-section-title">CHỈ SỐ</div>
-                <div class="form-empty"><i class="fas fa-gauge-high"></i><strong>Không có dữ liệu trả về</strong><p>Vui lòng kiểm tra lại dữ liệu và bộ lọc.</p></div>
-            </section>
-        </div>
-    </div>
-
-    <div class="meter-modal date-modal" id="monthPickerModal" onclick="closeOnOverlay(event, 'monthPickerModal')">
-        <div class="meter-form" role="dialog" aria-modal="true" aria-labelledby="monthPickerTitle">
-            <div class="form-header"><button class="plain-button" onclick="closeMonthPicker()" title="Đóng"><i class="fas fa-xmark"></i></button><h2 id="monthPickerTitle">Chọn kỳ ghi chỉ số</h2><span></span></div>
-            <div class="form-section">
-                <div class="form-field"><label for="pickerMonth">Tháng</label><select id="pickerMonth"></select></div>
-                <div class="form-field"><label for="pickerYear">Năm</label><select id="pickerYear"></select></div>
-                <div class="date-actions"><button class="secondary-button" onclick="closeMonthPicker()">Huỷ</button><button class="add-meter-button" onclick="applyMonthPicker()">Áp dụng</button></div>
-            </div>
-        </div>
-    </div>
-
     <script>
         let revenueChart;
 
@@ -4191,95 +4127,6 @@
             revenueChart.update();
         }
 
-        // NOTE: the functions below (meterState/openMeterForm/etc.) drive the
-        // meterFormModal / monthPickerModal markup further down this file, but
-        // nothing currently calls openMeterForm() — the "Ghi chỉ số" tab is
-        // rendered by RHUI.renderMetersTab() (manager-modules.js) instead. Left
-        // in place rather than deleted since it looks like in-progress work from
-        // another branch; harmless while unused.
-        const meterState = {
-            selectedMonth: new Date().toISOString().slice(0, 7),
-            selectedDate: new Date().toISOString().slice(0, 10),
-            meterType: 'all'
-        };
-
-        function formatSelectedMonth(monthValue) {
-            const [year, month] = monthValue.split('-');
-            return `Tháng ${Number(month)}/${year}`;
-        }
-
-        function renderMeterState() {
-            document.querySelectorAll('[data-selected-month]').forEach(element => {
-                element.textContent = formatSelectedMonth(meterState.selectedMonth);
-            });
-            document.getElementById('formMonth').value = meterState.selectedMonth;
-            document.getElementById('formDate').value = meterState.selectedDate;
-        }
-
-        function initializeMeterState() {
-            const formMonth = document.getElementById('formMonth');
-            const currentYear = new Date().getFullYear();
-            formMonth.innerHTML = Array.from({ length: 36 }, (_, index) => {
-                const date = new Date(currentYear, index - 12, 1);
-                const value = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}`;
-                return `<option value="${value}">${formatSelectedMonth(value)}</option>`;
-            }).join('');
-            renderMeterState();
-        }
-
-        function populateDatePicker() {
-            const pickerMonth = document.getElementById('pickerMonth');
-            const pickerYear = document.getElementById('pickerYear');
-            const [year, month] = meterState.selectedMonth.split('-');
-            pickerMonth.innerHTML = Array.from({ length: 12 }, (_, index) => `<option value="${String(index + 1).padStart(2, '0')}">Tháng ${index + 1}</option>`).join('');
-            pickerYear.innerHTML = Array.from({ length: 5 }, (_, index) => `<option>${Number(year) - 2 + index}</option>`).join('');
-            pickerMonth.value = month;
-            pickerYear.value = year;
-        }
-
-        function openMonthPicker() {
-            populateDatePicker();
-            document.getElementById('monthPickerModal').classList.add('open');
-        }
-
-        function closeMonthPicker() { document.getElementById('monthPickerModal').classList.remove('open'); }
-
-        function applyMonthPicker() {
-            meterState.selectedMonth = `${document.getElementById('pickerYear').value}-${document.getElementById('pickerMonth').value}`;
-            renderMeterState();
-            closeMonthPicker();
-        }
-
-        function resetMonthFilter() {
-            const today = new Date();
-            meterState.selectedMonth = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}`;
-            renderMeterState();
-        }
-
-        function updateMonthFromForm(monthValue) {
-            meterState.selectedMonth = monthValue;
-            renderMeterState();
-        }
-
-        function updateSelectedDate(dateValue) { meterState.selectedDate = dateValue; }
-
-        function openMeterForm() {
-            renderMeterState();
-            document.getElementById('meterFormModal').classList.add('open');
-        }
-
-        function closeMeterForm() { document.getElementById('meterFormModal').classList.remove('open'); }
-
-        function closeOnOverlay(event, modalId) {
-            if (event.target.id === modalId) document.getElementById(modalId).classList.remove('open');
-        }
-
-        function setMeterType(button, type) {
-            meterState.meterType = type;
-            document.querySelectorAll('#meterTypeControl .segment-button').forEach(segment => segment.classList.remove('active'));
-            button.classList.add('active');
-        }
-
         function toggleSidebar() { document.querySelector('.sidebar').classList.toggle('active'); }
 
         // Switch Tab Function
@@ -4320,11 +4167,9 @@
                     TAB_RENDERERS[tabName](filter || null);
                 } catch (error) {
                     console.error('Không thể render tab ' + tabName, error);
-                    if (tabName === 'meters') renderMetersFallback(selectedTab);
-                    else selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
+                    selectedTab.innerHTML = '<div class="card"><h2 style="font-size:1.25rem;color:#10213c;">Không thể tải nội dung</h2><p style="color:#61708a;margin-top:.75rem;">Dữ liệu đang được khôi phục. Vui lòng tải lại trang.</p></div>';
                 }
             }
-            if (tabName === 'meters' && !selectedTab.innerHTML.trim()) renderMetersFallback(selectedTab);
 
             // Update active menu item (only when the click came from the sidebar)
             const source = (evt || window.event);
@@ -4747,19 +4592,6 @@
             return tab;
         }
 
-        function renderMetersFallback(tab) {
-            const readings = window.RHD && Array.isArray(RHD.list('meters')) ? RHD.list('meters') : [];
-            const rows = readings.map(function (reading) {
-                const building = RHD.get('buildings', reading.buildingId);
-                const apartment = RHD.get('apartments', reading.apartmentId);
-                return '<tr><td>' + (building ? (building.shortName || building.name || '—') : '—') + ' / ' + (apartment ? apartment.name : '—') + '</td>' +
-                    '<td>' + (reading.meterType === 'water' ? 'Công tơ nước' : 'Công tơ điện') + '</td><td>' + (reading.previousIndex || 0) + '</td><td>' +
-                    (reading.latestIndex || 0) + '</td><td><strong>' + (reading.consumption || 0) + '</strong></td></tr>';
-            }).join('');
-            tab.innerHTML = '<div class="meter-page"><div class="meter-header"><div class="meter-title"><button class="back-button" type="button" onclick="switchTab(\'dashboard\')"><i class="fas fa-arrow-left"></i></button><div><h1>Ghi chỉ số</h1><p style="color:#94a3b8;font-size:.85rem;">Quản lý chỉ số điện và nước</p></div></div><button class="add-meter-button" type="button" onclick="RHUI.openMeterForm()"><i class="fas fa-plus"></i> Thêm mới</button></div><div class="card"><h2 style="font-size:1rem;color:#10213c;margin-bottom:1rem;">Danh sách bản ghi</h2>' +
-                (rows ? '<div class="table-container"><table><thead><tr><th>Tòa nhà / Căn hộ</th><th>Loại công tơ</th><th>Chỉ số trước</th><th>Chỉ số kỳ này</th><th>Tiêu thụ</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="meter-empty"><i class="fas fa-gauge-high"></i><h2>Chưa có lần ghi chỉ số nào</h2><p>Nhấn nút thêm để ghi chỉ số mới.</p></div>') + '</div></div>';
-        }
-
         // Dropdown Toggle
         function toggleDropdown() {
             const dropdown = document.getElementById('profileDropdown');
@@ -4789,6 +4621,14 @@
             vehicleToggle.addEventListener('change', function() {
                 vehicleFields.classList.toggle('visible', this.checked);
             });
+        }
+
+        // Used by the #residentModal close buttons and Escape (was referenced but never defined).
+        function closeResidentModal() {
+            const modal = document.getElementById('residentModal');
+            if (!modal) return;
+            modal.classList.remove('visible');
+            modal.setAttribute('aria-hidden', 'true');
         }
 
         document.addEventListener('keydown', function(event) {
