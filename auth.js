@@ -3,7 +3,7 @@
  * No backend exists in this project, so accounts and sessions are persisted
  * in localStorage/sessionStorage. This is the single source of truth for
  * users and roles used by: the landing page login/signup modals, the
- * manager dashboard's Settings > "Quản lý tài khoản" screen, and the
+ * manager dashboard's "Tài khoản" screen, and the
  * access guards on the manager/resident pages.
  */
 (function (global) {
@@ -239,52 +239,37 @@
         return { ok: true, item: userData.notifications[index] };
     }
 
-    function managerStore(store) {
-        try {
-            var mode = global.RHDB_MODE || 'live';
-            var raw = localStorage.getItem('rh_db_' + mode + '_' + store);
-            return raw ? JSON.parse(raw) : [];
-        } catch (e) {
-            return [];
-        }
-    }
-
+    // Resident login accounts a manager-side RHD record (contract / invoice /
+    // support request) belongs to. residentId (== record.customerId) is the
+    // identity link; the apartment match is only for legacy accounts that were
+    // linked by apartment before residentId existed.
     function usersForManagerRecord(record) {
-        if (!record) return [];
-        var customers = managerStore('customers');
-        var customer = customers.filter(function (item) { return item.id === record.customerId; })[0];
-        var apartments = managerStore('apartments');
-        var apartment = apartments.filter(function (item) { return item.id === record.apartmentId; })[0];
+        // Demo Mode records are sandboxed sample data — never notify real accounts.
+        if (!record || (global.RHD && global.RHD.mode() === 'demo')) return [];
         var normalize = function (value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, ''); };
-        var users = readUsers();
-        return users.filter(function (user) {
-            return user.role === ROLES.RESIDENT && (
-                (record.userId && user.id === record.userId) ||
-                (customer && customer.userId && user.id === customer.userId) ||
-                (customer && customer.email && user.email && customer.email.toLowerCase() === user.email.toLowerCase()) ||
-                (apartment && normalize(apartment.name) === normalize(user.unit))
-            );
+        var apartment = (record.apartmentId && global.RHD) ? global.RHD.get('apartments', record.apartmentId) : null;
+        return readUsers().filter(function (user) {
+            if (user.role !== ROLES.RESIDENT) return false;
+            if (record.userId && user.id === record.userId) return true;
+            if (user.residentId) return !!record.customerId && user.residentId === record.customerId;
+            if (record.residentEmail && normalizeEmail(record.residentEmail) === user.email) return true;
+            return !!apartment && (user.apartmentId === apartment.id || normalize(apartment.name) === normalize(user.unit));
         });
     }
 
+    // Contracts/invoices live only in RHD (data.js) and the resident page reads
+    // them from there by residentId — this just notifies the linked account(s).
+    // It deliberately does not copy the record into the per-user store, which
+    // would be a second, drifting copy of manager data.
+    function residentNotifySetting(name) {
+        return !global.RHD || global.RHD.getSettings()[name] !== false;
+    }
+
     function syncManagerRecord(record, kind) {
+        // Cài đặt > Thông báo can switch these in-app notifications off.
+        if (!residentNotifySetting(kind === 'contract' ? 'notifyContract' : 'notifyInvoice')) return { ok: true, count: 0 };
         var targets = usersForManagerRecord(record);
         targets.forEach(function (user) {
-            var collection = kind === 'contract' ? 'contracts' : 'invoices';
-            var existing = getUserData(user.id)[collection].filter(function (item) {
-                return item.managerRecordId === record.id || item.id === record.id;
-            })[0];
-            var data = readDataStore();
-            var userData = data.users[user.id] || ensureUserContainer(user.id);
-            userData[collection] = Array.isArray(userData[collection]) ? userData[collection] : [];
-            var mapped = Object.assign({}, record, { managerRecordId: record.id, userId: user.id });
-            if (existing) {
-                userData[collection] = userData[collection].map(function (item) { return item.id === existing.id ? Object.assign({}, item, mapped) : item; });
-            } else {
-                userData[collection].unshift(mapped);
-            }
-            data.users[user.id] = userData;
-            writeDataStore(data);
             createNotificationForUser(user.id, {
                 type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
                 subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
@@ -387,7 +372,24 @@
         return normalized.id && normalized.email && normalized.password ? normalized : null;
     }
 
+    // Earlier builds seeded a mock resident login (u-resident-1 /
+    // resident@residenthub.vn). Remove it from browsers that still have it.
+    function purgeLegacyMockResident() {
+        var users = readUsers();
+        var next = users.filter(function (u) {
+            return !(u.role === ROLES.RESIDENT && (u.id === 'u-resident-1' || u.email === 'resident@residenthub.vn'));
+        });
+        if (next.length === users.length) return;
+        writeUsers(next);
+        var data = readDataStore();
+        if (data.users && data.users['u-resident-1']) {
+            delete data.users['u-resident-1'];
+            localStorage.setItem(DATA_KEY, JSON.stringify(data));
+        }
+    }
+
     function seedIfEmpty() {
+        purgeLegacyMockResident();
         var users = readUsers();
         if (users.length > 0) return;
         // No seeded resident login account: residents only ever get an active
@@ -495,6 +497,7 @@
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
         if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
+        if (patch.status !== undefined) user.status = patch.status === 'locked' ? 'locked' : 'active';
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
@@ -758,7 +761,16 @@
             return { ok: false, error: 'Hồ sơ cư dân này đã được liên kết với một tài khoản khác (' + conflictingUser.email + ').' };
         }
 
-        var apartment = global.RHD ? global.RHD.get('apartments', request.apartmentId) : null;
+        // Building/Apartment come from the manager's data: the linked Resident
+        // Profile's active contract if there is one, else the apartment the
+        // resident picked (from the same RHD dropdown) when registering.
+        var linkedContract = null;
+        if (global.RHD) {
+            linkedContract = global.RHD.list('contracts').filter(function (c) { return c.customerId === residentId && c.status !== 'ended'; })
+                .sort(function (a, b) { return b.createdAt - a.createdAt; })[0] || null;
+        }
+        var apartmentId = (linkedContract && linkedContract.apartmentId) || request.apartmentId;
+        var apartment = global.RHD ? global.RHD.get('apartments', apartmentId) : null;
         var building = (apartment && global.RHD) ? global.RHD.get('buildings', apartment.buildingId) : null;
 
         var userResult = createUser({
@@ -767,7 +779,7 @@
             password: request.password,
             role: ROLES.RESIDENT,
             unit: apartment ? apartment.name : '',
-            apartmentId: request.apartmentId,
+            apartmentId: apartmentId,
             building: building ? (building.shortName || building.name) : '',
             residentId: residentId
         });
@@ -782,7 +794,7 @@
         });
         writeAccountRequests(requests);
 
-        createNotificationForUser(userResult.user.id, {
+        if (residentNotifySetting('notifyAccountApproved')) createNotificationForUser(userResult.user.id, {
             type: 'ANNOUNCEMENT',
             subType: 'ACCOUNT_APPROVED',
             title: 'Tài khoản của bạn đã được phê duyệt',
@@ -861,7 +873,7 @@
             if (!raw) return null;
             var session = JSON.parse(raw);
             var user = readUsers().filter(function (item) { return item.id === session.id; })[0];
-            if (!user) {
+            if (!user || user.status === 'locked') {
                 logout();
                 return null;
             }

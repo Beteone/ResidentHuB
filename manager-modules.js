@@ -581,7 +581,6 @@
         };
         var res = RHUI.drawerId ? RHD.update('customers', RHUI.drawerId, data) : RHD.create('customers', data);
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
-        if (window.RH && RH.syncManagerRecord) RH.syncManagerRecord(res.item, 'contract');
         closeDrawer();
         renderCustomersTab();
         renderDashboardCounts();
@@ -778,11 +777,9 @@
         var contracts = RHD.list('contracts').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
         var filterLabel = '';
         if (filter === 'expiring') {
-            var todayStr = new Date().toISOString().slice(0, 10);
-            var in30 = new Date(); in30.setDate(in30.getDate() + 30);
-            var in30Str = in30.toISOString().slice(0, 10);
-            filterLabel = 'Đang lọc: Sắp hết hạn (trong 30 ngày)';
-            contracts = contracts.filter(function (c) { return c.status === 'active' && c.endDate && c.endDate >= todayStr && c.endDate <= in30Str; });
+            var stats = RHD.dashboardStats();
+            filterLabel = 'Đang lọc: Sắp hết hạn (trong ' + stats.expiringDays + ' ngày)';
+            contracts = stats.expiringContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
         }
         var rows = contracts.map(function (c) {
             var building = RHD.get('buildings', c.buildingId);
@@ -929,9 +926,10 @@
         }
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
 
-        if (!RHUI.drawerId && apartment && (apartment.status === 'vacant' || apartment.status === 'deposited')) {
+        if (!RHUI.drawerId && RHD.getSettings().autoOccupyOnContract && apartment && (apartment.status === 'vacant' || apartment.status === 'deposited')) {
             RHD.update('apartments', apartment.id, { status: 'occupied' });
         }
+        if (window.RH && RH.syncManagerRecord) RH.syncManagerRecord(res.item, 'contract');
 
         closeDrawer();
         renderContractsTab();
@@ -949,6 +947,7 @@
     function renderInvoicesTab(filter) {
         var tab = byId('invoices-tab');
         if (!tab) return;
+        RHD.markOverdueInvoices();
         var contracts = RHD.list('contracts');
         if (!contracts.length) {
             tab.innerHTML = renderDemoBanner('invoices') + '<div class="card">' + emptyState('fa-receipt', 'Cần có Hợp đồng trước khi lập hóa đơn.') + '</div>';
@@ -1067,13 +1066,14 @@
         var defaultContractId = inv ? inv.contractId : contracts[0].id;
         var today = new Date().toISOString().slice(0, 10);
         var defaultPeriod = inv ? inv.period : today.slice(0, 7);
+        var defaultDueDate = RHD.defaultDueDate(today);
 
         var html = '<form onsubmit="RHUI.submitInvoiceForm(event)">' +
             '<div class="rh-grid-2">' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Hợp đồng *</label><select id="ifContract" required>' + selectOptions(contracts, 'id', invoiceContractLabel, defaultContractId) + '</select></div>' +
             '<div class="rh-field"><label>Kỳ thanh toán</label><input id="ifPeriod" type="month" value="' + escapeHtml(defaultPeriod) + '"></div>' +
             '<div class="rh-field"><label>Ngày lập hóa đơn</label><input id="ifIssueDate" type="date" value="' + escapeHtml(inv ? inv.issueDate : today) + '"></div>' +
-            '<div class="rh-field"><label>Hạn thanh toán</label><input id="ifDueDate" type="date" value="' + escapeHtml(inv ? inv.dueDate : '') + '"></div>' +
+            '<div class="rh-field"><label>Hạn thanh toán</label><input id="ifDueDate" type="date" value="' + escapeHtml(inv ? inv.dueDate : defaultDueDate) + '"></div>' +
             '<div class="rh-field"><label>Trạng thái</label><select id="ifStatus">' + selectOptions(RHD.INVOICE_STATUSES, 'id', 'label', inv ? inv.status : 'unpaid') + '</select></div>' +
             '</div>' +
             '<div class="rh-section"><div class="rh-section-title">Thông tin chung (tự động)</div>' +
@@ -1098,6 +1098,8 @@
         openDrawer(inv ? 'Sửa hóa đơn' : 'Thêm hóa đơn', html);
         byId('ifContract').addEventListener('change', refreshInvoiceFromContract);
         byId('ifPeriod').addEventListener('change', refreshInvoiceFromContract);
+        // New invoice: due date follows the issue date per Cài đặt > Hóa đơn.
+        if (!inv) byId('ifIssueDate').addEventListener('change', function () { byId('ifDueDate').value = RHD.defaultDueDate(this.value); });
         refreshInvoiceFromContract();
     };
 
@@ -1143,6 +1145,7 @@
         var result = RHD.update('invoices', id, { status: 'paid', paidAt: Date.now() });
         if (result.ok && window.RH && RH.syncManagerRecord) RH.syncManagerRecord(result.item, 'invoice');
         renderInvoicesTab();
+        renderDashboardCounts();
     };
 
     RHUI.sendSelectedInvoices = function () {
@@ -1314,7 +1317,7 @@
             '<div><label style="font-size:.8rem;color:#94a3b8;">Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</div></div>' +
             '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
             '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
-            '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || '') + '" placeholder="Tên nhân viên xử lý"></div>' +
+            '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"></div>' +
             '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
             '<button type="submit" class="btn-primary">Cập nhật</button>' +
@@ -1325,11 +1328,21 @@
 
     RHUI.submitSupportForm = function (ev) {
         ev.preventDefault();
-        RHD.update('supportRequests', RHUI.drawerId, {
+        var before = RHD.get('supportRequests', RHUI.drawerId);
+        var res = RHD.update('supportRequests', RHUI.drawerId, {
             status: byId('srStatus').value,
             assignee: byId('srAssignee').value.trim(),
             updatedAt: Date.now()
         });
+        // Notify the resident account linked to this request (by residentId).
+        if (res.ok && RHD.getSettings().notifySupportStatus && before && before.status !== res.item.status && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
+            global.RH.syncManagerNotification({
+                id: res.item.id, customerId: res.item.customerId, apartmentId: res.item.apartmentId, residentEmail: res.item.residentEmail,
+                type: 'request', title: 'Yêu cầu ' + res.item.code + ' đã được cập nhật',
+                body: 'Trạng thái mới: ' + statusMeta(RHD.SUPPORT_STATUSES, res.item.status).label + (res.item.assignee ? ' • Phụ trách: ' + res.item.assignee : ''),
+                refType: 'request', actionUrl: 'requests', actionLabel: 'Xem yêu cầu'
+            });
+        }
         closeDrawer();
         renderSupportTab();
         renderDashboardCounts();
@@ -1383,70 +1396,150 @@
         }).join('') : '<tr class="activity-empty"><td colspan="3">Chưa có hoạt động</td></tr>';
     }
 
-    function renderDashboardCounts() {
-        var anchor = byId('kpiBuildings');
-        if (!anchor) return;
+    function setText(id, value) {
+        var el = byId(id);
+        if (el) el.textContent = value;
+    }
 
+    // Small red counters on the topbar bell and sidebar items — hidden at 0.
+    function setBadge(id, count) {
+        var el = byId(id);
+        if (!el) return;
+        el.textContent = count > 99 ? '99+' : count;
+        el.style.display = count > 0 ? (el.getAttribute('data-display') || 'inline-flex') : 'none';
+    }
+
+    function pct(part, whole) {
+        return whole ? Math.round(part * 1000 / whole) / 10 : 0;
+    }
+
+    var FEE_GROUP_META = [
+        { id: 'rent', label: 'Tiền nhà', icon: 'fa-house' },
+        { id: 'electricity', label: 'Tiền điện', icon: 'fa-lightbulb' },
+        { id: 'water', label: 'Tiền nước', icon: 'fa-droplet' },
+        { id: 'other', label: 'Dịch vụ khác', icon: 'fa-credit-card' }
+    ];
+
+    // Keeps the building filter in step with the Tòa nhà module.
+    function syncDashboardBuildingFilter() {
+        var select = byId('dashBuildingFilter');
+        if (!select) return '';
+        var current = select.value;
         var buildings = RHD.list('buildings');
-        var apartments = RHD.list('apartments');
-        var customers = RHD.list('customers');
-        var contracts = RHD.list('contracts');
-        var meters = RHD.list('meters');
-        var invoices = RHD.list('invoices');
-        var requests = RHD.list('supportRequests');
+        if (current && !buildings.some(function (b) { return b.id === current; })) current = '';
+        select.innerHTML = '<option value="">Tất cả tòa nhà</option>' + buildings.map(function (b) {
+            return '<option value="' + b.id + '"' + (b.id === current ? ' selected' : '') + '>' + escapeHtml(b.name) + '</option>';
+        }).join('');
+        return current;
+    }
 
-        var todayStr = new Date().toISOString().slice(0, 10);
-        var now = new Date();
-        var curMonthKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+    function renderDashboardCounts() {
+        RHD.markOverdueInvoices();
+        // Badges (bell + sidebar) always reflect the whole system, not the filter.
+        var all = RHD.dashboardStats();
+        setBadge('rhBellCount', all.openRequests.length + all.accountRequests.pending);
+        setBadge('rhNavSupportCount', all.newRequests.length);
+        setBadge('rhNavAccountsCount', all.accountRequests.pending);
 
-        // Row 1 — Tổng quan
-        byId('kpiBuildings').textContent = buildings.length;
-        byId('kpiApartments').textContent = apartments.length;
-        byId('kpiCustomers').textContent = customers.length;
-        byId('kpiVacant').textContent = apartments.filter(function (a) { return a.status === 'vacant'; }).length;
+        if (!byId('kpiBuildings')) return;
+        var buildingId = syncDashboardBuildingFilter();
+        var s = buildingId ? RHD.dashboardStats(buildingId) : all;
+        var aptCount = s.apartments.length;
 
-        // Row 2 — Tài chính
-        var revenueMonth = invoices.filter(function (i) {
-            if (i.status !== 'paid' || !i.paidAt) return false;
-            var d = new Date(i.paidAt);
-            return (d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0')) === curMonthKey;
-        }).reduce(function (s, i) { return s + i.total; }, 0);
-        var collected = invoices.filter(function (i) { return i.status === 'paid'; }).reduce(function (s, i) { return s + i.total; }, 0);
-        var overdueInvoices = invoices.filter(function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); });
-        var debt = invoices.filter(function (i) { return i.status !== 'paid'; }).reduce(function (s, i) { return s + i.total; }, 0);
-        byId('kpiRevenueMonth').textContent = money(revenueMonth);
-        byId('kpiCollected').textContent = money(collected);
-        byId('kpiDebt').textContent = money(debt);
-        byId('kpiOverdueCount').textContent = overdueInvoices.length;
+        // Tiles + apartment status panel
+        setText('kpiBuildings', s.buildings);
+        setText('kpiApartments', aptCount);
+        setText('kpiCustomers', s.customers);
+        setText('kpiOccupancy', s.occupancyRate + '%');
+        [['occupied', 'dAptOccupied'], ['deposited', 'dAptDeposited'], ['vacant', 'kpiVacant'], ['maintenance', 'dAptMaintenance']].forEach(function (pair) {
+            setText(pair[1], s.aptStatus[pair[0]] || 0);
+        });
+        setText('dAptOccupiedPct', pct(s.aptStatus.occupied, aptCount) + '%');
+        setText('dAptDepositedPct', pct(s.aptStatus.deposited, aptCount) + '%');
+        setText('dAptVacantPct', pct(s.aptStatus.vacant, aptCount) + '%');
+        setText('dAptMaintenancePct', pct(s.aptStatus.maintenance, aptCount) + '%');
 
-        // Row 3 — Dữ liệu hệ thống
-        byId('sysBuildings').textContent = buildings.length;
-        byId('sysApartments').textContent = apartments.length;
-        byId('sysCustomers').textContent = customers.length;
-        byId('sysContracts').textContent = contracts.length;
-        byId('sysMeters').textContent = meters.length;
-        byId('sysInvoices').textContent = invoices.length;
+        // Tài khoản cư dân
+        var acc = s.accountRequests;
+        var accTotal = acc.pending + acc.approved + acc.rejected;
+        setText('dAccPending', acc.pending);
+        setText('dAccApproved', acc.approved);
+        setText('dAccRejected', acc.rejected);
+        setText('dAccMonth', acc.thisMonth);
+        if (byId('dAccPendingBar')) byId('dAccPendingBar').style.width = pct(acc.pending, accTotal) + '%';
+        if (byId('dAccApprovedBar')) byId('dAccApprovedBar').style.width = pct(acc.approved, accTotal) + '%';
 
-        // Row 4 — Cần xử lý
-        var openRequests = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; });
-        var unpaidInvoices = invoices.filter(function (i) { return i.status !== 'paid'; });
-        var in30 = new Date(); in30.setDate(in30.getDate() + 30);
-        var in30Str = in30.toISOString().slice(0, 10);
-        var expiringContracts = contracts.filter(function (c) { return c.status === 'active' && c.endDate && c.endDate >= todayStr && c.endDate <= in30Str; });
+        // Cư dân
+        setText('dCusNew', s.customersNewThisMonth);
+        setText('dCusLinked', s.linkedAccounts);
+        setText('dCusNoContract', s.customersWithoutContract);
+        setText('dCusLinkedPct', pct(s.linkedAccounts, s.customers) + '%');
 
-        setTodo('todoRequests', 'todoRequestsNote', openRequests.length, 'yêu cầu cần xử lý', 'Không có yêu cầu cần xử lý');
-        setTodo('todoUnpaid', 'todoUnpaidNote', unpaidInvoices.length, 'hóa đơn cần thanh toán', 'Không có hóa đơn cần thanh toán');
-        setTodo('todoExpiring', 'todoExpiringNote', expiringContracts.length, 'hợp đồng sắp hết hạn', 'Không có hợp đồng sắp hết hạn');
+        // Hợp đồng
+        setText('dConNew', s.contractsSignedThisMonth);
+        setText('dConEnded', s.contractsEndedThisMonth);
+        setText('dConActive', s.activeContracts.length);
+        setText('dConExpiring', s.expiringContracts.length);
+        setText('dConExpiringLabel', 'Hết hạn trong ' + s.expiringDays + ' ngày');
+        setText('dConClosed', s.endedContracts.length);
 
-        // Account requests (auth.js) are a global store, not split by RHD live/demo
-        // mode like everything else here — only surface the real count outside Demo
-        // Mode so the sandboxed demo view never leaks real pending registrations.
-        var pendingAccountRequests = (RHD.mode() !== 'demo' && global.RH && global.RH.listAccountRequests)
-            ? global.RH.listAccountRequests().filter(function (r) { return r.status === 'pending'; })
-            : [];
-        setTodo('todoAccountRequests', 'todoAccountRequestsNote', pendingAccountRequests.length, 'tài khoản chờ phê duyệt', 'Không có tài khoản chờ phê duyệt');
+        // Hóa đơn tháng này
+        var m = s.month;
+        var delta = m.prevTotal ? Math.round((m.total - m.prevTotal) * 1000 / m.prevTotal) / 10 : 0;
+        setText('dInvMonthCount', m.count);
+        setText('dInvMonthKey', m.key.split('-').reverse().join('/'));
+        setText('dInvMonthTotal', money(m.total));
+        setText('dInvMonthPaid', money(m.paid));
+        setText('dInvMonthUnpaid', money(m.total - m.paid));
+        var deltaEl = byId('dInvMonthDelta');
+        if (deltaEl) {
+            deltaEl.textContent = (delta > 0 ? '+' : '') + delta + '% so với tháng trước';
+            deltaEl.className = 'db-delta' + (delta > 0 ? ' up' : delta < 0 ? ' down' : '');
+        }
+        if (byId('dInvBarPaid')) byId('dInvBarPaid').style.width = pct(m.paid, m.total) + '%';
+        if (byId('dInvBarUnpaid')) byId('dInvBarUnpaid').style.width = (m.total ? 100 - pct(m.paid, m.total) : 0) + '%';
+        var groupsEl = byId('dInvGroups');
+        if (groupsEl) {
+            groupsEl.innerHTML = FEE_GROUP_META.map(function (g) {
+                var v = m.groups[g.id];
+                return '<div><span><i class="fas ' + g.icon + '"></i>' + g.label + '</span><b>' + money(v.total) + '</b><em title="Đã thu">' + pct(v.paid, v.total) + '%</em></div>';
+            }).join('');
+        }
+        setText('kpiDebt', money(s.unpaidInvoices.reduce(function (sum, i) { return sum + (Number(i.total) || 0); }, 0)));
+        setText('kpiOverdueCount', s.overdueInvoices.length);
 
-        if (typeof updateDashboardCharts === 'function') updateDashboardCharts();
+        // Yêu cầu hỗ trợ
+        setText('dReqMonth', s.requestsThisMonth);
+        setText('dReqDone', s.requestsDoneThisMonth);
+        setText('dReqNew', s.requestsByStatus.new);
+        setText('dReqProgress', s.requestsByStatus.in_progress);
+        setText('dReqResolved', s.requestsByStatus.resolved);
+
+        // Đánh giá (from ratings residents leave on completed requests)
+        setText('dRatingSummary', s.ratedCount ? 'Trung bình ' + s.ratingAverage + '/5 • dựa trên ' + s.ratedCount + ' đánh giá' : 'Chưa có đánh giá nào từ cư dân');
+        var ratingEl = byId('dRatingRows');
+        if (ratingEl) {
+            ratingEl.innerHTML = s.ratings.map(function (r) {
+                var stars = '';
+                for (var i = 1; i <= 5; i++) stars += '<i class="' + (i <= r.star ? 'fas' : 'far') + ' fa-star"></i>';
+                return '<div><span class="db-stars">' + r.star + ' ' + stars + '</span><span class="db-muted">' + r.count + ' (' + pct(r.count, s.ratedCount) + '%)</span></div>';
+            }).join('');
+        }
+
+        // Điểm nóng
+        [['building', 'dHotBuilding'], ['apartment', 'dHotApartment'], ['category', 'dHotCategory'], ['assignee', 'dHotAssignee']].forEach(function (pair) {
+            var h = s.hotspots[pair[0]];
+            setText(pair[1], h ? h.label : '—');
+            setText(pair[1] + 'Count', h ? h.count : 0);
+        });
+
+        // Cần xử lý
+        setTodo('todoRequests', 'todoRequestsNote', s.openRequests.length, 'yêu cầu cần xử lý', 'Không có yêu cầu cần xử lý');
+        setTodo('todoUnpaid', 'todoUnpaidNote', s.unpaidInvoices.length, 'hóa đơn cần thanh toán', 'Không có hóa đơn cần thanh toán');
+        setTodo('todoExpiring', 'todoExpiringNote', s.expiringContracts.length, 'hợp đồng hết hạn trong ' + s.expiringDays + ' ngày', 'Không có hợp đồng sắp hết hạn');
+        setTodo('todoAccountRequests', 'todoAccountRequestsNote', acc.pending, 'tài khoản chờ phê duyệt', 'Không có tài khoản chờ phê duyệt');
+
+        if (typeof updateDashboardCharts === 'function') updateDashboardCharts(s);
         renderRecentActivity();
     }
 
