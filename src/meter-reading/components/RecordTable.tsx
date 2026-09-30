@@ -1,7 +1,8 @@
-import type { ReactNode } from 'react';
-import type { Apartment, Building, MeterRecord, TableRow, TypeFilter } from '../types';
-import { KIND_META, STATUS_META } from '../types';
+import type { KeyboardEvent, ReactNode } from 'react';
+import type { Apartment, Building, MeterKind, MeterRecord, TableRow, TypeFilter } from '../types';
+import { KIND_META } from '../types';
 import { cx, dateTimeLabel, formatNumber } from '../format';
+import { ApprovalToggle, ClosingBadge, Tag } from './StatusBadges';
 
 interface RecordTableProps {
     rows: TableRow[];
@@ -9,9 +10,11 @@ interface RecordTableProps {
     onTypeChange: (filter: TypeFilter) => void;
     buildings: Map<string, Building>;
     apartments: Map<string, Apartment>;
-    onToggleApprove: (record: MeterRecord) => void;
+    selectedKey: string | null;
+    onOpen: (row: TableRow) => void;
+    onToggleApprove: (row: TableRow) => void;
     onEdit: (row: TableRow) => void;
-    onDelete: (record: MeterRecord) => void;
+    onDelete: (row: TableRow) => void;
     onRecord: (row: TableRow) => void;
     onViewPhoto: (record: MeterRecord) => void;
     emptyText: string;
@@ -24,6 +27,7 @@ const TYPE_TABS: Array<{ value: TypeFilter; label: string }> = [
 ];
 
 const KIND_TAG = { dien: 'bg-orange-100 text-orange-700', nuoc: 'bg-sky-100 text-sky-700' } as const;
+const KIND_TEXT = { dien: 'text-orange-600', nuoc: 'text-blue-600' } as const;
 
 function TypeTabs({ value, onChange }: { value: TypeFilter; onChange: (v: TypeFilter) => void }) {
     return (
@@ -47,10 +51,6 @@ function TypeTabs({ value, onChange }: { value: TypeFilter; onChange: (v: TypeFi
     );
 }
 
-function Tag({ className, children }: { className: string; children: ReactNode }) {
-    return <span className={cx('inline-flex whitespace-nowrap rounded-full px-2.5 py-0.5 text-xs font-semibold', className)}>{children}</span>;
-}
-
 function IconButton({ title, onClick, className, icon }: { title: string; onClick: () => void; className: string; icon: string }) {
     return (
         <button type="button" title={title} aria-label={title} onClick={onClick} className={cx('inline-flex h-8 w-8 items-center justify-center rounded-lg transition-all', className)}>
@@ -59,8 +59,13 @@ function IconButton({ title, onClick, className, icon }: { title: string; onClic
     );
 }
 
+/** Clicks on controls inside a row must not also open the detail drawer. */
+const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
+
 export function RecordTable(props: RecordTableProps) {
-    const { rows, typeFilter, onTypeChange, buildings, apartments, emptyText } = props;
+    const { rows, typeFilter, onTypeChange, buildings, apartments, emptyText, selectedKey } = props;
+    // View mode: the tabs choose which meter lines the cells show; rows stay the same.
+    const visibleKinds: MeterKind[] = typeFilter === 'all' ? ['dien', 'nuoc'] : [typeFilter];
 
     const place = (row: TableRow) => {
         const b = buildings.get(row.buildingId);
@@ -68,47 +73,103 @@ export function RecordTable(props: RecordTableProps) {
         return { building: b ? b.shortName || b.name : '—', apartment: a ? a.name : '—' };
     };
 
-    const latestCell = (row: TableRow) => {
-        if (!row.record) return <span className="text-slate-400">—</span>;
-        const r = row.record;
+    /** Stacks one line per visible meter inside a cell: Điện on top (cam), Nước below (xanh dương). */
+    const stacked = (row: TableRow, render: (r: MeterRecord, kind: MeterKind) => ReactNode, align: 'left' | 'right' = 'right', empty?: (kind: MeterKind) => ReactNode) => (
+        <div className={cx('flex flex-col gap-1', align === 'right' && 'items-end')}>
+            {visibleKinds.map(kind => {
+                const r = row[kind];
+                return (
+                    <div key={kind} className={cx('flex min-h-[22px] items-center whitespace-nowrap', KIND_TEXT[kind])} data-meter-kind={kind}>
+                        {r ? render(r, kind) : empty ? empty(kind) : <span className="text-slate-400">—</span>}
+                    </div>
+                );
+            })}
+        </div>
+    );
+
+    // Most recent reading among the meters in view (for the closer line).
+    const lastRecorded = (row: TableRow): MeterRecord | null =>
+        visibleKinds.map(k => row[k]).filter((r): r is MeterRecord => !!r).sort((a, b) => b.recordedAt - a.recordedAt)[0] || null;
+
+    // Most recent approval among the meters in view (for the approver line).
+    const lastApproved = (row: TableRow): MeterRecord | null =>
+        visibleKinds.map(k => row[k]).filter((r): r is MeterRecord => !!r && r.approvalStatus === 'đã_duyệt').sort((a, b) => (b.approvedAt || 0) - (a.approvedAt || 0))[0] || null;
+
+    const latestCell = (r: MeterRecord) => (
+        <span className="inline-flex items-center gap-2">
+            <span className="font-semibold">{formatNumber(r.latestIndex)}</span>
+            <button
+                type="button"
+                disabled={!r.photo}
+                title={r.photo ? 'Xem ảnh đồng hồ' : 'Chưa có ảnh'}
+                aria-label={r.photo ? 'Xem ảnh đồng hồ' : 'Chưa có ảnh'}
+                onClick={e => { stop(e); props.onViewPhoto(r); }}
+                className={cx('text-sm', r.photo ? 'text-blue-600 hover:text-blue-800' : 'cursor-not-allowed text-slate-300')}
+            >
+                <i className="fas fa-image" aria-hidden="true" />
+            </button>
+        </span>
+    );
+
+    const closingCell = (row: TableRow, align: 'left' | 'right' = 'left') => {
+        const r = lastRecorded(row);
         return (
-            <span className="inline-flex items-center gap-2">
-                <span className="font-semibold text-slate-900">{formatNumber(r.latestIndex)}</span>
-                <button
-                    type="button"
-                    disabled={!r.photo}
-                    title={r.photo ? 'Xem ảnh đồng hồ' : 'Chưa có ảnh'}
-                    aria-label={r.photo ? 'Xem ảnh đồng hồ' : 'Chưa có ảnh'}
-                    onClick={() => props.onViewPhoto(r)}
-                    className={cx('text-sm', r.photo ? 'text-blue-600 hover:text-blue-800' : 'cursor-not-allowed text-slate-300')}
-                >
-                    <i className="fas fa-image" aria-hidden="true" />
-                </button>
-            </span>
+            <div className="flex flex-col gap-1">
+                {stacked(
+                    row,
+                    m => <ClosingBadge status="đã_chốt" title={'Chốt bởi ' + (m.recordedBy || '—') + ' lúc ' + dateTimeLabel(m.recordedAt)} />,
+                    align,
+                    () => <ClosingBadge status="chưa_chốt" />
+                )}
+                {r && <div className="text-[11px] leading-tight text-slate-500">{r.recordedBy ? r.recordedBy + ' · ' : ''}{dateTimeLabel(r.recordedAt)}</div>}
+            </div>
         );
     };
 
+    const approvalCell = (row: TableRow) => {
+        if (!row.approval) return <span className="text-xs text-slate-400">Chưa có số để duyệt</span>;
+        const a = lastApproved(row);
+        return (
+            <div className="flex flex-col items-start gap-1">
+                <ApprovalToggle status={row.approval} subject={'căn ' + place(row).apartment} onToggle={() => props.onToggleApprove(row)} />
+                <div className="text-[11px] leading-tight text-slate-500">
+                    {row.approval === 'đã_duyệt' && a ? <>{a.approvedBy || '—'} · {dateTimeLabel(a.approvedAt || 0)}</> : 'Chờ người duyệt'}
+                </div>
+            </div>
+        );
+    };
+
+    // Actions apply to the whole apartment (Điện + Nước).
     const actions = (row: TableRow) => {
-        if (!row.record) {
+        if (!row.dien && !row.nuoc) {
             return (
                 <button type="button" onClick={() => props.onRecord(row)} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
                     <i className="fas fa-pen-to-square" aria-hidden="true" /> Ghi số
                 </button>
             );
         }
-        const record = row.record;
         return (
             <div className="flex items-center justify-end gap-1.5">
-                {/* Always shown: toggles between Chưa duyệt ⇄ Đã chốt. */}
-                {record.status === 'chưa_duyệt' ? (
-                    <IconButton title="Duyệt" icon="fa-shield-halved" onClick={() => props.onToggleApprove(record)} className="bg-green-500 text-white hover:bg-green-600" />
-                ) : (
-                    <IconButton title="Bỏ duyệt (chuyển về Chưa duyệt)" icon="fa-shield-halved" onClick={() => props.onToggleApprove(record)} className="border border-green-200 bg-green-50 text-green-600 hover:bg-green-100" />
-                )}
                 <IconButton title="Sửa" icon="fa-pen" onClick={() => props.onEdit(row)} className="border border-slate-200 text-slate-500 hover:bg-slate-100" />
-                <IconButton title="Xoá" icon="fa-trash" onClick={() => props.onDelete(record)} className="border border-red-100 text-red-500 hover:bg-red-50" />
+                <IconButton title="Xoá" icon="fa-trash" onClick={() => props.onDelete(row)} className="border border-red-100 text-red-500 hover:bg-red-50" />
             </div>
         );
+    };
+
+    const rowProps = (row: TableRow) => {
+        const p = place(row);
+        return {
+            tabIndex: 0,
+            'aria-label': 'Xem chi tiết chỉ số căn ' + p.apartment + ' — ' + p.building,
+            onClick: () => props.onOpen(row),
+            onKeyDown: (e: KeyboardEvent) => {
+                if (e.target !== e.currentTarget || (e.key !== 'Enter' && e.key !== ' ')) return;
+                e.preventDefault();
+                props.onOpen(row);
+            },
+            'data-closing': row.closing,
+            'data-approval': row.approval || 'none'
+        };
     };
 
     return (
@@ -116,7 +177,7 @@ export function RecordTable(props: RecordTableProps) {
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
                 <div>
                     <h2 className="text-base font-bold text-slate-900">Danh sách bản ghi</h2>
-                    <p className="text-xs text-slate-500">{rows.length} dòng theo bộ lọc hiện tại</p>
+                    <p className="text-xs text-slate-500">{rows.length} dòng theo bộ lọc hiện tại · bấm vào một dòng để xem chi tiết</p>
                 </div>
                 <TypeTabs value={typeFilter} onChange={onTypeChange} />
             </div>
@@ -130,7 +191,7 @@ export function RecordTable(props: RecordTableProps) {
                 <>
                     {/* Desktop / tablet: table */}
                     <div className="hidden overflow-x-auto rounded-xl border border-slate-200 md:block">
-                        <table className="w-full min-w-[860px] text-sm">
+                        <table className="w-full min-w-[980px] text-sm">
                             <thead className="bg-slate-50 text-left text-[11px] uppercase tracking-wider text-slate-500">
                                 <tr>
                                     <th className="px-4 py-3">Tòa nhà / Căn hộ</th>
@@ -138,25 +199,35 @@ export function RecordTable(props: RecordTableProps) {
                                     <th className="px-4 py-3 text-right">Chỉ số trước</th>
                                     <th className="px-4 py-3 text-right">Chỉ số kỳ này</th>
                                     <th className="px-4 py-3 text-right">Tiêu thụ</th>
-                                    <th className="px-4 py-3">Ngày ghi &amp; Người ghi</th>
-                                    <th className="px-4 py-3">Trạng thái</th>
+                                    <th className="px-4 py-3">Chốt số &amp; Người chốt</th>
+                                    <th className="px-4 py-3">Duyệt &amp; Người duyệt</th>
                                     <th className="px-4 py-3 text-right">Thao tác</th>
                                 </tr>
                             </thead>
                             <tbody className="divide-y divide-slate-100">
                                 {rows.map(row => {
                                     const p = place(row);
-                                    const r = row.record;
                                     return (
-                                        <tr key={row.key} className="hover:bg-slate-50/70" data-row-status={row.status}>
+                                        <tr
+                                            key={row.key}
+                                            {...rowProps(row)}
+                                            className={cx(
+                                                'cursor-pointer align-top outline-none transition-colors focus-visible:bg-blue-50/60',
+                                                selectedKey === row.key ? 'bg-blue-50/70' : 'hover:bg-slate-50/70'
+                                            )}
+                                        >
                                             <td className="px-4 py-3"><div className="font-bold text-slate-900">{p.building}</div><div className="text-xs text-slate-500">{p.apartment}</div></td>
-                                            <td className="px-4 py-3"><Tag className={KIND_TAG[row.kind]}>{KIND_META[row.kind].label}</Tag></td>
-                                            <td className="px-4 py-3 text-right text-slate-600">{r ? formatNumber(r.previousIndex) : '—'}</td>
-                                            <td className="px-4 py-3 text-right">{latestCell(row)}</td>
-                                            <td className="px-4 py-3 text-right font-bold text-blue-600">{r ? formatNumber(r.consumption) + ' ' + KIND_META[row.kind].unit : '—'}</td>
-                                            <td className="px-4 py-3">{r ? <><div className="text-slate-800">{dateTimeLabel(r.recordedAt)}</div><div className="text-xs text-slate-500">{r.recordedBy || '—'}</div></> : <span className="text-slate-400">—</span>}</td>
-                                            <td className="px-4 py-3"><Tag className={STATUS_META[row.status].tag}>{STATUS_META[row.status].label}</Tag></td>
-                                            <td className="px-4 py-3 text-right">{actions(row)}</td>
+                                            <td className="px-4 py-3">
+                                                <div className="flex flex-col items-start gap-1">
+                                                    {visibleKinds.map(kind => <div key={kind} className="flex min-h-[22px] items-center"><Tag className={KIND_TAG[kind]}>{KIND_META[kind].label}</Tag></div>)}
+                                                </div>
+                                            </td>
+                                            <td className="px-4 py-3 text-right">{stacked(row, m => formatNumber(m.previousIndex))}</td>
+                                            <td className="px-4 py-3 text-right">{stacked(row, m => latestCell(m))}</td>
+                                            <td className="px-4 py-3 text-right font-bold">{stacked(row, (m, kind) => formatNumber(m.consumption) + ' ' + KIND_META[kind].unit)}</td>
+                                            <td className="px-4 py-3">{closingCell(row)}</td>
+                                            <td className="px-4 py-3">{approvalCell(row)}</td>
+                                            <td className="px-4 py-3 text-right" onClick={stop} onKeyDown={stop}>{actions(row)}</td>
                                         </tr>
                                     );
                                 })}
@@ -168,27 +239,30 @@ export function RecordTable(props: RecordTableProps) {
                     <ul className="flex flex-col gap-3 md:hidden">
                         {rows.map(row => {
                             const p = place(row);
-                            const r = row.record;
                             return (
-                                <li key={row.key} className="rounded-xl border border-slate-200 p-3" data-row-status={row.status}>
+                                <li
+                                    key={row.key}
+                                    {...rowProps(row)}
+                                    className={cx('cursor-pointer rounded-xl border p-3 outline-none focus-visible:ring-2 focus-visible:ring-blue-300', selectedKey === row.key ? 'border-blue-300 bg-blue-50/50' : 'border-slate-200')}
+                                >
                                     <div className="flex items-start justify-between gap-2">
                                         <div><div className="font-bold text-slate-900">{p.building}</div><div className="text-xs text-slate-500">{p.apartment}</div></div>
                                         <div className="flex flex-col items-end gap-1">
-                                            <Tag className={KIND_TAG[row.kind]}>{KIND_META[row.kind].label}</Tag>
-                                            <Tag className={STATUS_META[row.status].tag}>{STATUS_META[row.status].label}</Tag>
+                                            {visibleKinds.map(kind => <Tag key={kind} className={KIND_TAG[kind]}>{KIND_META[kind].label}</Tag>)}
                                         </div>
                                     </div>
-                                    {r && (
+                                    {(row.dien || row.nuoc) && (
                                         <dl className="mt-3 grid grid-cols-3 gap-2 text-center text-xs">
-                                            <div className="rounded-lg bg-slate-50 p-2"><dt className="text-slate-500">Trước</dt><dd className="font-semibold">{formatNumber(r.previousIndex)}</dd></div>
-                                            <div className="rounded-lg bg-slate-50 p-2"><dt className="text-slate-500">Kỳ này</dt><dd>{latestCell(row)}</dd></div>
-                                            <div className="rounded-lg bg-slate-50 p-2"><dt className="text-slate-500">Tiêu thụ</dt><dd className="font-bold text-blue-600">{formatNumber(r.consumption)} {KIND_META[row.kind].unit}</dd></div>
+                                            <div className="rounded-lg bg-slate-50 p-2"><dt className="text-slate-500">Trước</dt><dd className="font-semibold">{stacked(row, m => formatNumber(m.previousIndex), 'left')}</dd></div>
+                                            <div className="rounded-lg bg-slate-50 p-2"><dt className="text-slate-500">Kỳ này</dt><dd>{stacked(row, m => latestCell(m), 'left')}</dd></div>
+                                            <div className="rounded-lg bg-slate-50 p-2"><dt className="text-slate-500">Tiêu thụ</dt><dd className="font-bold">{stacked(row, (m, kind) => formatNumber(m.consumption) + ' ' + KIND_META[kind].unit, 'left')}</dd></div>
                                         </dl>
                                     )}
-                                    <div className="mt-3 flex items-center justify-between gap-2">
-                                        <div className="text-xs text-slate-500">{r ? dateTimeLabel(r.recordedAt) + (r.recordedBy ? ' · ' + r.recordedBy : '') : 'Chưa ghi số'}</div>
-                                        {actions(row)}
+                                    <div className="mt-3 grid grid-cols-2 gap-3">
+                                        <div><div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Chốt số</div>{closingCell(row)}</div>
+                                        <div><div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Duyệt</div>{approvalCell(row)}</div>
                                     </div>
+                                    <div className="mt-3 flex justify-end" onClick={stop} onKeyDown={stop}>{actions(row)}</div>
                                 </li>
                             );
                         })}

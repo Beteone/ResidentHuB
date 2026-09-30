@@ -25,6 +25,12 @@ export function dateTimeLabel(ts: number): string {
     return pad(d.getDate()) + '/' + pad(d.getMonth() + 1) + '/' + d.getFullYear() + ' ' + pad(d.getHours()) + ':' + pad(d.getMinutes());
 }
 
+/** YYYY-MM-DD → DD/MM/YYYY */
+export function dateLabel(date: string): string {
+    const [y, m, d] = date.split('-');
+    return y && m && d ? d + '/' + m + '/' + y : date || '—';
+}
+
 export function formatNumber(n: number): string {
     return n.toLocaleString('vi-VN');
 }
