@@ -621,6 +621,7 @@
         style.id = 'rhContractsStyles';
         style.textContent = '#contracts-tab{position:relative;padding-bottom:5rem;color:#171923}#contracts-tab .rh-contract-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}#contracts-tab .rh-contract-head h2{font:700 1.35rem \'Plus Jakarta Sans\',sans-serif;color:#171923}#contracts-tab .rh-contract-tools{display:flex;gap:.5rem}#contracts-tab .rh-contract-icon-btn{width:40px;height:40px;border:1px solid #e6e8ed;background:#fff;border-radius:50%;color:#242833;cursor:pointer}#contracts-tab .rh-contract-icon-btn:hover{background:#f3f4f6}#contracts-tab .rh-contract-search{display:none;margin:0 0 1rem}#contracts-tab .rh-contract-search.open{display:block}#contracts-tab .rh-contract-search input,#contracts-tab .rh-contract-filter-panel select{width:100%;padding:.7rem .85rem;border:1px solid #e2e5eb;border-radius:8px;font:inherit}#contracts-tab .rh-contract-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#contracts-tab .rh-contract-kpi{display:flex;align-items:center;gap:.8rem;padding:1rem 1.1rem;border-radius:12px;background:#f4f5f7;min-width:0}#contracts-tab .rh-contract-kpi:nth-child(2){background:#eff3ff}#contracts-tab .rh-contract-kpi:nth-child(3){background:#fff1ef}#contracts-tab .rh-contract-kpi-icon{width:48px;height:48px;flex:0 0 48px;border-radius:12px;display:grid;place-items:center;background:#e6e8ec;color:#68717f;font-size:1.15rem}#contracts-tab .rh-contract-kpi:nth-child(2) .rh-contract-kpi-icon{background:#dfe7ff;color:#3866d9}#contracts-tab .rh-contract-kpi:nth-child(3) .rh-contract-kpi-icon{background:#ffe1dc;color:#c8443e}#contracts-tab .rh-contract-kpi strong{display:block;font-size:1.35rem;line-height:1.2}#contracts-tab .rh-contract-kpi span:last-child{display:block;color:#87909d;margin-top:.18rem;font-size:.9rem}#contracts-tab .rh-contract-tabs{display:flex;gap:.55rem;overflow-x:auto;padding:.25rem 0 .8rem;margin-bottom:1rem;scrollbar-width:thin}#contracts-tab .rh-contract-tab{display:inline-flex;align-items:center;gap:.5rem;flex:0 0 auto;border:0;border-radius:999px;background:#f1f2f4;color:#656d78;padding:.62rem .85rem;font:600 .85rem inherit;cursor:pointer;white-space:nowrap}#contracts-tab .rh-contract-tab b{display:grid;place-items:center;min-width:23px;height:23px;padding:0 .32rem;border-radius:50%;background:#e2e4e8;color:#535a64;font-size:.75rem}#contracts-tab .rh-contract-tab.active{background:#171923;color:white;box-shadow:0 5px 12px #17192324}#contracts-tab .rh-contract-tab.active b{background:#454956;color:white}#contracts-tab .rh-contract-filter-panel{display:none;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem;padding:0 0 1rem}#contracts-tab .rh-contract-filter-panel.open{display:grid}#contracts-tab .rh-contract-list{display:grid;gap:.65rem}#contracts-tab .rh-contract-row{display:grid;grid-template-columns:minmax(145px,1fr) minmax(145px,1.1fr) minmax(150px,1.2fr) minmax(150px,1fr) minmax(100px,.8fr) auto;align-items:center;gap:.75rem;padding:.9rem 1rem;border:1px solid #e7eaf0;border-radius:9px;background:#fff}#contracts-tab .rh-contract-cell small{display:block;color:#9299a4;font-size:.7rem;margin-bottom:.25rem}#contracts-tab .rh-contract-cell strong{font-size:.82rem;font-weight:600}#contracts-tab .rh-contract-actions{display:flex;gap:.35rem}#contracts-tab .rh-contract-actions .rh-row-btn{width:32px;height:32px}#contracts-tab .rh-contract-empty{min-height:220px;display:grid;place-content:center;text-align:center;color:#a0a5af;background:#f4f4f7;border-radius:0 0 10px 10px}#contracts-tab .rh-contract-empty i{font-size:3.5rem;margin-bottom:.75rem}#contracts-tab .rh-contract-fab{position:fixed;right:28px;bottom:28px;width:64px;height:64px;border:0;border-radius:50%;background:#41995d;color:#fff;font-size:2rem;box-shadow:0 8px 18px #19231e30;cursor:pointer;z-index:40}#contracts-tab .rh-contract-fab:hover{background:#34864f;transform:translateY(-2px)}#contracts-tab .rh-customer-preview{grid-column:1/-1;padding:.7rem .85rem;border-radius:8px;background:#f7f8fa;color:#6b7280;font-size:.82rem}#contracts-tab .rh-contract-search input:focus,#contracts-tab .rh-contract-filter-panel select:focus{outline:2px solid #c8d3ff;border-color:#7189d9}@media(max-width:900px){#contracts-tab .rh-contract-row{grid-template-columns:repeat(2,minmax(0,1fr))}#contracts-tab .rh-contract-actions{justify-content:flex-end}}@media(max-width:600px){#contracts-tab{padding-bottom:5.5rem}#contracts-tab .rh-contract-head h2{font-size:1.15rem}#contracts-tab .rh-contract-kpis{gap:.45rem}#contracts-tab .rh-contract-kpi{padding:.7rem .55rem;gap:.5rem;align-items:flex-start;flex-direction:column}#contracts-tab .rh-contract-kpi-icon{width:38px;height:38px;flex-basis:38px}#contracts-tab .rh-contract-row{gap:.55rem;padding:.75rem}#contracts-tab .rh-contract-cell strong{font-size:.76rem}#contracts-tab .rh-contract-fab{right:18px;bottom:20px;width:58px;height:58px}}';
         style.textContent += '#contracts-tab .rh-contract-tab{font-family:"Be Vietnam Pro",sans-serif;font-size:.85rem;font-weight:600}';
+        style.textContent += '#invoices-tab .rh-invoice-clear,#invoices-tab .rh-invoice-tab{font-family:inherit;font-size:.82rem;font-weight:600}#invoices-tab .rh-invoice-period-chip{position:relative}#invoices-tab .rh-invoice-period-chip input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}';
         document.head.appendChild(style);
     }
 
@@ -865,57 +866,132 @@
 
     // ============================================================== INVOICES
 
+    function ensureInvoiceStyles() {
+        if (byId('rhInvoiceStyles')) return;
+        var style = document.createElement('style');
+        style.id = 'rhInvoiceStyles';
+        style.textContent = '#invoices-tab .rh-invoices-module{position:relative;color:#172b45}#invoices-tab .rh-invoice-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}#invoices-tab .rh-invoice-head h2{font-size:1.45rem;font-weight:800;color:#10213c}#invoices-tab .rh-invoice-tools{display:flex;gap:.55rem}#invoices-tab .rh-invoice-icon{position:relative;width:40px;height:40px;display:grid;place-items:center;border:1px solid #e0e8f1;border-radius:10px;background:#fff;color:#53677f;cursor:pointer}#invoices-tab .rh-invoice-icon:hover{border-color:#9ccaff;color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}#invoices-tab .rh-invoice-search{display:none;margin:0 0 .85rem}#invoices-tab .rh-invoice-search.open{display:block}#invoices-tab .rh-invoice-search input{width:min(100%,420px);padding:.7rem .85rem;border:1px solid #dbe4ef;border-radius:8px;font:inherit}#invoices-tab .rh-invoice-period{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;padding:.8rem 1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-period>span{font-size:.82rem;font-weight:700;color:#718096}#invoices-tab .rh-invoice-period-chip{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem .7rem;border:1px solid #ccebdc;border-radius:7px;background:#f1fbf5;color:#18845c;font-size:.82rem;font-weight:700}#invoices-tab .rh-invoice-period-chip input{width:110px;border:0;background:transparent;color:#176d50;font:inherit;outline:0}#invoices-tab .rh-invoice-clear{margin-left:auto;border:0;background:none;color:#d54444;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#invoices-tab .rh-invoice-stat{min-width:0;padding:1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-stat small{display:block;color:#718096;font-size:.76rem;font-weight:700}#invoices-tab .rh-invoice-stat strong{display:block;margin-top:.55rem;font-size:1.25rem;line-height:1.3;color:#176fd1;overflow-wrap:anywhere}#invoices-tab .rh-invoice-stat.collected strong{color:#16875d}#invoices-tab .rh-invoice-stat.debt strong{color:#d54444}#invoices-tab .rh-invoice-progress{height:6px;margin-top:.7rem;overflow:hidden;border-radius:99px;background:#edf1f5}#invoices-tab .rh-invoice-progress span{display:block;height:100%;border-radius:inherit;background:#18a878;transition:width .2s}#invoices-tab .rh-invoice-rate{display:flex;justify-content:space-between;gap:.5rem;margin-top:.5rem;color:#718096;font-size:.72rem}#invoices-tab .rh-invoice-tabs{display:flex;gap:.4rem;overflow:auto;margin-bottom:.85rem;padding-bottom:.1rem}#invoices-tab .rh-invoice-tab{display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;padding:.58rem .8rem;border:1px solid #e0e8f1;border-radius:8px;background:#fff;color:#5c6b7d;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-tab b{font-size:.72rem;color:#8090a2}#invoices-tab .rh-invoice-tab.active{border-color:#17212e;background:#17212e;color:#fff}#invoices-tab .rh-invoice-tab.active b{color:#d6dee8}#invoices-tab .rh-invoice-filter-panel{display:none;gap:.6rem;margin-bottom:.85rem;padding:.75rem;border:1px solid #e3eaf2;border-radius:8px;background:#fff}#invoices-tab .rh-invoice-filter-panel.open{display:flex}#invoices-tab .rh-invoice-filter-panel select{max-width:100%;padding:.55rem .7rem;border:1px solid #dbe4ef;border-radius:7px;background:#fff;font:inherit;color:#44566c}#invoices-tab .rh-invoice-table-wrap{overflow-x:auto;border:1px solid #e3eaf2;border-radius:9px;background:#fff}#invoices-tab .rh-invoice-table{width:100%;border-collapse:collapse;min-width:760px;text-align:left}#invoices-tab .rh-invoice-table th{padding:.7rem .8rem;background:#f3f7fb;color:#718096;font-size:.69rem;letter-spacing:.04em;text-transform:uppercase}#invoices-tab .rh-invoice-table td{padding:.7rem .8rem;border-top:1px solid #edf1f5;font-size:.8rem}#invoices-tab .rh-invoice-actions{display:flex;justify-content:flex-end;gap:.3rem;white-space:nowrap}#invoices-tab .rh-invoice-actions button{width:30px;height:30px;border:1px solid #e0e8f1;border-radius:6px;background:#fff;color:#53708e;cursor:pointer}#invoices-tab .rh-invoice-actions button:hover{color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-actions button.danger{color:#dc4b4b}#invoices-tab .rh-invoice-empty{padding:2.5rem 1rem;text-align:center;color:#718096}#invoices-tab .rh-invoice-empty i{display:block;margin-bottom:.65rem;color:#9aabba;font-size:1.5rem}#invoices-tab .rh-invoice-fab{position:fixed;right:30px;bottom:28px;z-index:30;width:56px;height:56px;border:0;border-radius:50%;background:#18a878;color:#fff;font-size:1.7rem;line-height:1;box-shadow:0 8px 22px rgba(24,168,120,.28);cursor:pointer}#invoices-tab .rh-invoice-fab:hover{background:#11845d;transform:translateY(-2px)}#invoices-tab .rh-invoice-fab:disabled{opacity:.55;cursor:not-allowed}@media(max-width:850px){#invoices-tab .rh-invoice-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#invoices-tab .rh-invoice-head{align-items:flex-start}#invoices-tab .rh-invoice-head h2{font-size:1.25rem}#invoices-tab .rh-invoice-period{align-items:flex-start}#invoices-tab .rh-invoice-clear{margin-left:0}#invoices-tab .rh-invoice-summary{gap:.5rem}#invoices-tab .rh-invoice-stat{padding:.75rem}#invoices-tab .rh-invoice-stat strong{font-size:1rem}#invoices-tab .rh-invoice-fab{right:18px;bottom:18px;width:52px;height:52px}';
+        document.head.appendChild(style);
+    }
+
     function renderInvoicesTab(filter) {
         var tab = byId('invoices-tab');
         if (!tab) return;
+        ensureInvoiceStyles();
         RHD.markOverdueInvoices();
+        var state = RHUI.invoiceFilters || (RHUI.invoiceFilters = {
+            status: 'all', period: new Date().toISOString().slice(0, 7), search: '', building: '', searchOpen: false, filtersOpen: false, overdueOnly: false
+        });
+        if (filter === 'unpaid' || filter === 'overdue') {
+            state.status = 'debt';
+            state.overdueOnly = filter === 'overdue';
+        }
         var contracts = RHD.list('contracts');
-        if (!contracts.length) {
-            tab.innerHTML = renderDemoBanner('invoices') + '<div class="card">' + emptyState('fa-receipt', 'Cần có Hợp đồng trước khi lập hóa đơn.') + '</div>';
-            return;
-        }
         var todayStr = new Date().toISOString().slice(0, 10);
-        var invoices = RHD.list('invoices').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var filterLabel = '';
-        if (filter === 'overdue') {
-            filterLabel = 'Đang lọc: Quá hạn';
-            invoices = invoices.filter(function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); });
-        } else if (filter === 'unpaid') {
-            filterLabel = 'Đang lọc: Chưa thanh toán';
-            invoices = invoices.filter(function (i) { return i.status !== 'paid'; });
-        }
-        var rows = invoices.map(function (inv) {
+        var allInvoices = RHD.list('invoices').slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        var invoiceMonth = function (inv) {
+            if (inv.period) return inv.period;
+            if (inv.issueDate) return inv.issueDate.slice(0, 7);
+            return new Date(inv.createdAt || Date.now()).toISOString().slice(0, 7);
+        };
+        var baseInvoices = allInvoices.filter(function (inv) {
+            if (state.period && invoiceMonth(inv) !== state.period) return false;
+            if (state.building && inv.buildingId !== state.building) return false;
+            if (state.search) {
+                var apt = RHD.get('apartments', inv.apartmentId) || {};
+                var customer = RHD.get('customers', inv.customerId) || {};
+                var term = state.search.toLocaleLowerCase();
+                if ([inv.code, apt.name, customer.fullName, customer.phone, inv.period].join(' ').toLocaleLowerCase().indexOf(term) === -1) return false;
+            }
+            return true;
+        });
+        var debtInvoices = baseInvoices.filter(function (inv) { return inv.status !== 'paid'; });
+        var paidInvoices = baseInvoices.filter(function (inv) { return inv.status === 'paid'; });
+        var visibleInvoices = state.status === 'paid' ? paidInvoices : (state.status === 'debt' ? debtInvoices : baseInvoices);
+        if (state.overdueOnly) visibleInvoices = visibleInvoices.filter(function (inv) { return inv.status === 'overdue' || (inv.status !== 'paid' && inv.dueDate && inv.dueDate < todayStr); });
+        var sumTotal = function (items) { return items.reduce(function (sum, inv) { return sum + (Number(inv.total) || 0); }, 0); };
+        var billed = sumTotal(visibleInvoices);
+        var collected = sumTotal(visibleInvoices.filter(function (inv) { return inv.status === 'paid'; }));
+        var debt = sumTotal(visibleInvoices.filter(function (inv) { return inv.status !== 'paid'; }));
+        var collectionRate = billed ? Math.round(collected * 100 / billed) : 0;
+        var monthLabel = state.period ? state.period.slice(5, 7) + '-' + state.period.slice(0, 4) : 'Tất cả kỳ';
+        var rows = visibleInvoices.map(function (inv) {
             var apt = RHD.get('apartments', inv.apartmentId);
             var cus = RHD.get('customers', inv.customerId);
             var st = statusMeta(RHD.INVOICE_STATUSES, inv.status);
             return '<tr>' +
-                '<td><input type="checkbox" class="rh-invoice-check" value="' + inv.id + '"></td>' +
+                '<td><input type="checkbox" class="rh-invoice-check" value="' + escapeHtml(inv.id) + '" aria-label="Chọn hóa đơn ' + escapeHtml(inv.code) + '"></td>' +
                 '<td><strong>' + escapeHtml(inv.code) + '</strong></td>' +
                 '<td>' + escapeHtml(apt ? apt.name : '—') + '</td>' +
                 '<td>' + escapeHtml(cus ? cus.fullName : '—') + '</td>' +
-                '<td>' + escapeHtml(inv.period || '—') + '</td>' +
-                '<td>' + money(inv.total) + '</td>' +
+                '<td>' + escapeHtml(invoiceMonth(inv)) + '</td>' +
+                '<td><strong>' + money(inv.total) + '</strong></td>' +
                 '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
-                '<button onclick="RHUI.previewInvoice(\'' + inv.id + '\')" class="rh-row-btn" title="Xem trước"><i class="fas fa-eye"></i></button>' +
-                '<button onclick="RHUI.openInvoiceForm(\'' + inv.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
-                '<button onclick="RHUI.markInvoicePaid(\'' + inv.id + '\')" class="rh-row-btn" title="Đánh dấu đã thanh toán"><i class="fas fa-check"></i></button>' +
-                '<button onclick="RHUI.deleteInvoice(\'' + inv.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
-                '</td></tr>';
+                '<td><div class="rh-invoice-actions">' +
+                '<button onclick="RHUI.previewInvoice(\'' + inv.id + '\')" title="Xem trước" aria-label="Xem trước"><i class="fas fa-eye"></i></button>' +
+                '<button onclick="RHUI.openInvoiceForm(\'' + inv.id + '\')" title="Sửa" aria-label="Sửa"><i class="fas fa-pen"></i></button>' +
+                '<button onclick="RHUI.markInvoicePaid(\'' + inv.id + '\')" title="Đánh dấu đã thanh toán" aria-label="Đánh dấu đã thanh toán"><i class="fas fa-check"></i></button>' +
+                '<button class="danger" onclick="RHUI.deleteInvoice(\'' + inv.id + '\')" title="Xóa" aria-label="Xóa"><i class="fas fa-trash"></i></button>' +
+                '</div></td></tr>';
         }).join('');
+        var buildingOptions = '<option value="">Tất cả tòa nhà</option>' + RHD.list('buildings').map(function (building) {
+            return '<option value="' + escapeHtml(building.id) + '"' + (state.building === building.id ? ' selected' : '') + '>' + escapeHtml(building.name) + '</option>';
+        }).join('');
+        var canAdd = contracts.length > 0 && !demoLimitReached('invoices');
+        var periodValue = state.period;
+        var emptyMessage = allInvoices.length ? 'Không có hóa đơn phù hợp bộ lọc.' : (contracts.length ? 'Chưa có hóa đơn nào.' : 'Cần có Hợp đồng trước khi lập hóa đơn.');
 
-        tab.innerHTML = renderDemoBanner('invoices') +
-            (filterLabel ? '<div style="align-items:center;background:#eaf3ff;border:1px solid #9ccaff;border-radius:10px;color:#0d65d5;display:flex;font-size:.85rem;font-weight:600;gap:.6rem;margin-bottom:1rem;padding:.6rem 1rem;">' + filterLabel + '<button onclick="RHUI.renderInvoicesTab()" style="background:none;border:0;color:#0d65d5;cursor:pointer;font:inherit;font-weight:700;margin-left:auto;">Xoá lọc ×</button></div>' : '') +
-            '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hóa đơn</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Chọn Hợp đồng để tự động điền dịch vụ, phí và chỉ số điện/nước.</p></div>' +
-            '<div style="display:flex;gap:.6rem;">' +
-            '<button onclick="RHUI.sendSelectedInvoices()" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:.65rem 1rem;font:inherit;font-weight:600;cursor:pointer;"><i class="fas fa-paper-plane"></i> Gửi hàng loạt</button>' +
-            addButton('Thêm hóa đơn', "RHUI.openInvoiceForm()", 'invoices') +
+        tab.innerHTML = renderDemoBanner('invoices') + '<section class="rh-invoices-module">' +
+            '<div class="rh-invoice-head"><h2>Hoá đơn</h2><div class="rh-invoice-tools">' +
+            '<button type="button" class="rh-invoice-icon" data-invoice-search-toggle title="Tìm kiếm" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button>' +
+            '<button type="button" class="rh-invoice-icon" onclick="RHUI.sendSelectedInvoices()" title="Gửi hàng loạt" aria-label="Gửi hàng loạt"><i class="fas fa-file-export"></i></button>' +
+            '<button type="button" class="rh-invoice-icon" onclick="RHUI.sendSelectedInvoices()" title="Gửi thông báo" aria-label="Gửi thông báo"><i class="fas fa-paper-plane"></i></button>' +
+            '<button type="button" class="rh-invoice-icon" data-invoice-filter-toggle title="Bộ lọc nâng cao" aria-label="Bộ lọc nâng cao"><i class="fas fa-sliders"></i><span class="rh-invoice-dot"></span></button>' +
             '</div></div>' +
-            (invoices.length ? '<div class="table-container"><table><thead><tr><th style="width:36px;"></th><th>Mã HĐ</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-receipt', filter ? 'Không có hóa đơn phù hợp bộ lọc.' : 'Chưa có hóa đơn nào.')) +
-            '</div>';
+            '<div class="rh-invoice-search' + (state.searchOpen ? ' open' : '') + '"><input type="search" data-invoice-search placeholder="Tìm mã hóa đơn, căn hộ, khách hàng..." value="' + escapeHtml(state.search) + '"></div>' +
+            '<div class="rh-invoice-period"><span>Đang lọc theo:</span><label class="rh-invoice-period-chip"><i class="fas fa-circle-check"></i><span>Tháng: ' + escapeHtml(monthLabel) + '</span><input type="month" data-invoice-period aria-label="Chọn kỳ hóa đơn" value="' + escapeHtml(periodValue) + '"></label><button type="button" class="rh-invoice-clear" data-invoice-clear>Xóa lọc</button></div>' +
+            '<div class="rh-invoice-summary">' +
+            '<div class="rh-invoice-stat"><small>Phát sinh kỳ này</small><strong>' + money(billed) + '</strong></div>' +
+            '<div class="rh-invoice-stat collected"><small>Đã thu</small><strong>' + money(collected) + '</strong></div>' +
+            '<div class="rh-invoice-stat debt"><small>Cần thu + nợ</small><strong>' + money(debt) + '</strong></div>' +
+            '<div class="rh-invoice-stat"><small>Tỷ lệ đã thu</small><strong>' + collectionRate + '%</strong><div class="rh-invoice-progress"><span style="width:' + collectionRate + '%"></span></div><div class="rh-invoice-rate"><span>' + paidInvoices.length + ' đã thanh toán</span><span>' + visibleInvoices.length + ' hóa đơn</span></div></div>' +
+            '</div>' +
+            '<div class="rh-invoice-tabs" role="tablist" aria-label="Lọc trạng thái hóa đơn">' +
+            '<button type="button" class="rh-invoice-tab' + (state.status === 'all' ? ' active' : '') + '" data-invoice-status="all">Tất cả <b>' + baseInvoices.length + '</b></button>' +
+            '<button type="button" class="rh-invoice-tab' + (state.status === 'debt' ? ' active' : '') + '" data-invoice-status="debt">Còn nợ <b>' + debtInvoices.length + '</b></button>' +
+            '<button type="button" class="rh-invoice-tab' + (state.status === 'paid' ? ' active' : '') + '" data-invoice-status="paid">Đã tt <b>' + paidInvoices.length + '</b></button>' +
+            '</div>' +
+            '<div class="rh-invoice-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><select data-invoice-building aria-label="Lọc theo tòa nhà">' + buildingOptions + '</select></div>' +
+            (visibleInvoices.length ? '<div class="rh-invoice-table-wrap"><table class="rh-invoice-table"><thead><tr><th></th><th>Mã hóa đơn</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="rh-invoice-empty"><i class="fas fa-receipt"></i><p>' + emptyMessage + '</p></div>') +
+            '<button type="button" class="rh-invoice-fab" data-invoice-add title="Thêm hóa đơn" aria-label="Thêm hóa đơn"' + (canAdd ? '' : ' disabled') + '>+</button></section>';
+
+        tab.querySelector('[data-invoice-search-toggle]').addEventListener('click', function () {
+            state.searchOpen = !state.searchOpen;
+            renderInvoicesTab();
+            if (state.searchOpen) { var input = tab.querySelector('[data-invoice-search]'); if (input) input.focus(); }
+        });
+        var searchInput = tab.querySelector('[data-invoice-search]');
+        if (searchInput) searchInput.addEventListener('input', function () {
+            state.search = this.value;
+            var cursor = this.selectionStart;
+            renderInvoicesTab();
+            var next = tab.querySelector('[data-invoice-search]');
+            if (next) { next.focus(); next.setSelectionRange(cursor, cursor); }
+        });
+        tab.querySelector('[data-invoice-filter-toggle]').addEventListener('click', function () { state.filtersOpen = !state.filtersOpen; renderInvoicesTab(); });
+        tab.querySelector('[data-invoice-period]').addEventListener('change', function () { state.period = this.value; state.overdueOnly = false; renderInvoicesTab(); });
+        tab.querySelector('[data-invoice-clear]').addEventListener('click', function () {
+            state.status = 'all'; state.period = ''; state.search = ''; state.building = ''; state.overdueOnly = false;
+            renderInvoicesTab();
+        });
+        tab.querySelector('[data-invoice-building]').addEventListener('change', function () { state.building = this.value; renderInvoicesTab(); });
+        tab.querySelectorAll('[data-invoice-status]').forEach(function (button) {
+            button.addEventListener('click', function () { state.status = this.getAttribute('data-invoice-status'); state.overdueOnly = false; renderInvoicesTab(); });
+        });
+        tab.querySelector('[data-invoice-add]').addEventListener('click', function () {
+            if (canAdd) RHUI.openInvoiceForm();
+            else alert(contracts.length ? 'Đã đạt giới hạn hóa đơn của bản Demo.' : 'Cần có Hợp đồng trước khi lập hóa đơn.');
+        });
     }
 
     function invoiceContractLabel(c) {
