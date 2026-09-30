@@ -453,10 +453,14 @@
         if (!tab) return;
         var customers = RHD.list('customers');
         var rows = customers.map(function (c) {
+            var residenceBuilding = RHD.get('buildings', c.residenceBuildingId);
+            var residenceApartment = RHD.get('apartments', c.residenceApartmentId);
             return '<tr>' +
                 '<td><strong>' + escapeHtml(c.fullName) + '</strong>' + (c.isForeigner ? ' ' + badge('Nước ngoài', '#0d65d5', '#eaf3ff') : '') + '</td>' +
                 '<td>' + escapeHtml(c.phone) + '</td>' +
                 '<td>' + escapeHtml(c.idNumber || '—') + '</td>' +
+                '<td>' + escapeHtml(residenceBuilding ? residenceBuilding.name : '—') + '</td>' +
+                '<td>' + escapeHtml(residenceApartment ? residenceApartment.name : '—') + '</td>' +
                 '<td>' + escapeHtml(c.customerType || '—') + '</td>' +
                 '<td>' + (c.vehicles ? c.vehicles.length : 0) + ' xe</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
@@ -472,7 +476,7 @@
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Khách hàng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Hồ sơ khách hàng dùng để lập hợp đồng — không cần nhập lại thông tin.</p></div>' +
             addButton('Thêm khách hàng', "RHUI.openCustomerForm()", 'customers') +
             '</div>' +
-            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Tòa nhà</th><th>Phòng ở</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                 : emptyState('fa-users', 'Chưa có khách hàng nào.')) +
             '</div>';
     }
@@ -486,6 +490,9 @@
         RHUI.drawerEntity = 'customers';
         RHUI.drawerId = id || null;
         RHUI.customerVehicles = c ? JSON.parse(JSON.stringify(c.vehicles || [])) : [];
+        var residenceBuildings = RHD.list('buildings');
+        var residenceBuildingId = c ? c.residenceBuildingId : '';
+        var residenceApartments = residenceBuildingId ? RHD.apartmentsOf(residenceBuildingId) : [];
         var existingTypes = [];
         RHD.list('customers').forEach(function (cc) { if (cc.customerType && existingTypes.indexOf(cc.customerType) === -1) existingTypes.push(cc.customerType); });
         ['Cá nhân', 'Công ty', 'Khách vãng lai'].forEach(function (t) { if (existingTypes.indexOf(t) === -1) existingTypes.push(t); });
@@ -509,6 +516,12 @@
             '<div class="rh-field"><label>Xã / Phường</label><input id="cfWard" list="rhCustWardSuggestions" value="' + escapeHtml(c ? c.ward : '') + '"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Địa chỉ chi tiết</label><input id="cfAddress" value="' + escapeHtml(c ? c.addressDetail : '') + '"></div>' +
             '</div><datalist id="rhCustWardSuggestions"></datalist></div>' +
+
+            '<div class="rh-section"><div class="rh-section-title">Lịch sử ở</div><div class="rh-grid-2">' +
+            '<div class="rh-field"><label>Tòa nhà</label><select id="cfResidenceBuilding">' + selectOptions(residenceBuildings, 'id', function (building) { return building.shortName || building.code; }, residenceBuildingId, 'Chọn tòa nhà') + '</select></div>' +
+            '<div class="rh-field"><label>Căn hộ</label><select id="cfResidenceApartment">' + selectOptions(residenceApartments, 'id', 'name', c ? c.residenceApartmentId : '', 'Chọn căn hộ') + '</select></div>' +
+            '<div class="rh-field"><label>Ngày vào ở</label><input id="cfMoveInDate" type="date" value="' + escapeHtml(c ? c.moveInDate : '') + '"></div>' +
+            '</div></div>' +
 
             '<div class="rh-section"><div class="rh-section-title">Thông tin bổ sung</div><div class="rh-grid-2">' +
             '<div class="rh-field"><label>Loại khách hàng</label><input id="cfType" list="rhCustTypeList" value="' + escapeHtml(c ? c.customerType : 'Cá nhân') + '"></div>' +
@@ -545,6 +558,10 @@
             var wards = RHD.WARD_SUGGESTIONS[this.value] || [];
             byId('rhCustWardSuggestions').innerHTML = wards.map(function (w) { return '<option value="' + escapeHtml(w) + '">'; }).join('');
         });
+        byId('cfResidenceBuilding').addEventListener('change', function () {
+            var apartments = this.value ? RHD.apartmentsOf(this.value) : [];
+            byId('cfResidenceApartment').innerHTML = selectOptions(apartments, 'id', 'name', '', 'Chọn căn hộ');
+        });
         byId('cfIdFront').addEventListener('change', function () { readFileAsDataUrl(this, function (d) { byId('cfIdFrontData').value = d; }); });
         byId('cfIdBack').addEventListener('change', function () { readFileAsDataUrl(this, function (d) { byId('cfIdBackData').value = d; }); });
         var passportInput = byId('cfPassportPhoto');
@@ -567,6 +584,9 @@
             province: byId('cfProvince').value,
             ward: byId('cfWard').value.trim(),
             addressDetail: byId('cfAddress').value.trim(),
+            residenceBuildingId: byId('cfResidenceBuilding').value,
+            residenceApartmentId: byId('cfResidenceApartment').value,
+            moveInDate: byId('cfMoveInDate').value,
             customerType: byId('cfType').value.trim(),
             note: byId('cfNote').value.trim(),
             consultantName: byId('cfConsultant').value.trim(),
