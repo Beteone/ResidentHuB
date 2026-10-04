@@ -86,8 +86,8 @@ export interface TableRow {
     nuoc: MeterRecord | null;
     /** "đã_chốt" only once both meters have a reading for the period. */
     closing: ClosingStatus;
-    /** null while nothing is recorded (nothing to approve yet). */
-    approval: ApprovalStatus | null;
+    // No room-level approval field on purpose: approval lives on each reading
+    // and the room summary is derived from dien/nuoc (see approval.ts).
 }
 
 /** Contract / tenant linked to an apartment, read from the existing store. */

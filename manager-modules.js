@@ -79,10 +79,18 @@
             '</div>';
         document.body.appendChild(el);
         el.addEventListener('click', function (ev) { if (ev.target === el) RHUI.closeDrawer(); });
+        document.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Escape' && !ev.defaultPrevented && el.classList.contains('show')) RHUI.closeDrawer();
+        });
     }
+
+    // Id of the building whose read-only detail is showing; any other drawer
+    // content (forms, other modules) clears it so it is never auto-refreshed.
+    var detailBuildingId = null;
 
     function openDrawer(title, bodyHtml) {
         ensureDrawer();
+        detailBuildingId = null;
         byId('rhDrawerTitle').textContent = title;
         byId('rhDrawerBody').innerHTML = bodyHtml;
         byId('rhDrawerOverlay').classList.add('show');
@@ -91,6 +99,7 @@
     function closeDrawer() {
         var el = byId('rhDrawerOverlay');
         if (el) el.classList.remove('show');
+        detailBuildingId = null;
     }
 
     // -------------------------------------------------------- demo banner
@@ -140,18 +149,37 @@
 
     // ============================================================ BUILDINGS
 
+    // "Người quản lý" cell: the name is resolved from Building.managerId on every
+    // render, so renaming/removing the account is reflected immediately.
+    function managerCellHtml(b) {
+        if (!b.managerId) return '<span style="color:#94a3b8;">Chưa phân công</span>';
+        var m = RHD.buildingManager(b);
+        if (!m) return '<span style="color:#ef4444;">Tài khoản không còn tồn tại</span>';
+        return '<div style="display:flex;align-items:center;gap:.5rem;">' + avatarHtml(m.name, 28) +
+            '<div style="min-width:0;"><div style="font-weight:600;">' + escapeHtml(m.name) + '</div>' +
+            (m.email ? '<div style="font-size:.75rem;color:#94a3b8;">' + escapeHtml(m.email) + '</div>' : '') + '</div></div>';
+    }
+
+    function avatarHtml(name, size) {
+        // First + last word, ignoring notes like "(Trưởng BQL)": "Nguyễn Văn An" -> "NA".
+        var words = String(name || '').replace(/\([^)]*\)/g, ' ').trim().split(/\s+/).filter(Boolean);
+        var initials = words.length ? (words[0].charAt(0) + (words.length > 1 ? words[words.length - 1].charAt(0) : '')).toUpperCase() : '?';
+        return '<span style="align-items:center;background:#eaf3ff;border-radius:50%;color:#0d65d5;display:inline-flex;flex:0 0 ' + size + 'px;font-size:' + Math.round(size * 0.38) + 'px;font-weight:700;height:' + size + 'px;justify-content:center;width:' + size + 'px;">' + escapeHtml(initials) + '</span>';
+    }
+
     function renderBuildingsTab() {
         var tab = byId('buildings-tab');
         if (!tab) return;
         var buildings = RHD.list('buildings');
         var rows = buildings.map(function (b) {
             var apts = RHD.apartmentsOf(b.id).length;
-            return '<tr>' +
+            return '<tr class="rh-click-row" tabindex="0" title="Xem chi tiết tòa nhà" onclick="RHUI.openBuildingDetail(\'' + b.id + '\')" onkeydown="if(event.key===\'Enter\'&&event.target===this)RHUI.openBuildingDetail(\'' + b.id + '\')">' +
                 '<td><strong>' + escapeHtml(b.name) + '</strong><div style="font-size:.75rem;color:#94a3b8;">' + escapeHtml(b.code) + ' · ' + escapeHtml(b.shortName || '') + '</div></td>' +
-                '<td>' + escapeHtml(b.addressDetail) + ', ' + escapeHtml(b.ward || '') + ', ' + escapeHtml(b.province || '') + '</td>' +
+                '<td>' + escapeHtml(RHD.buildingFullAddress(b)) + '</td>' +
+                '<td>' + managerCellHtml(b) + '</td>' +
                 '<td>' + apts + ' căn hộ</td>' +
                 '<td>' + (b.services || []).length + ' dịch vụ</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
+                '<td style="text-align:right;white-space:nowrap;" onclick="event.stopPropagation()">' +
                 '<button onclick="RHUI.openBuildingForm(\'' + b.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
                 '<button onclick="RHUI.deleteBuilding(\'' + b.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
                 '</td></tr>';
@@ -163,7 +191,7 @@
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Tòa nhà</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Thông tin tòa nhà và dịch vụ sẽ được tái sử dụng khi lập hợp đồng và hóa đơn.</p></div>' +
             addButton('Thêm tòa nhà', "RHUI.openBuildingForm()", 'buildings') +
             '</div>' +
-            (buildings.length ? '<div class="table-container"><table><thead><tr><th>Tòa nhà</th><th>Địa chỉ</th><th>Căn hộ</th><th>Dịch vụ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+            (buildings.length ? '<div class="table-container"><table><thead><tr><th>Tòa nhà</th><th>Địa chỉ</th><th>Người quản lý</th><th>Căn hộ</th><th>Dịch vụ</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                 : emptyState('fa-building', 'Chưa có tòa nhà nào. Thêm tòa nhà đầu tiên để bắt đầu quy trình.')) +
             '</div>';
     }
@@ -228,6 +256,8 @@
             '<div class="rh-field"><label>Tỉnh / Thành phố *</label><select id="bfProvince" required>' + selectOptions(RHD.PROVINCES.map(function (p) { return { p: p }; }), 'p', 'p', b ? b.province : '', 'Chọn tỉnh/thành') + '</select></div>' +
             '<div class="rh-field"><label>Xã / Phường *</label><input id="bfWard" list="rhWardSuggestions" required value="' + escapeHtml(b ? b.ward : '') + '" placeholder="VD: Phường Tích Lương"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Địa chỉ chi tiết *</label><input id="bfAddress" required value="' + escapeHtml(b ? b.addressDetail : '') + '"></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Người quản lý</label><div id="bfManagerField"></div>' +
+            '<div style="color:#94a3b8;font-size:.75rem;margin-top:.3rem;">Danh sách lấy từ tài khoản Quản lý trong mục Tài khoản.</div></div>' +
             '</div><datalist id="rhWardSuggestions"></datalist>' +
 
             '<div class="rh-section">' +
@@ -257,6 +287,14 @@
             '</div></form>';
 
         openDrawer(b ? 'Sửa tòa nhà' : 'Thêm tòa nhà', html);
+        RHSelect.create(byId('bfManagerField'), {
+            inputId: 'bfManager',
+            value: b ? b.managerId || '' : '',
+            placeholder: 'Chọn người quản lý tòa',
+            searchPlaceholder: 'Tìm theo tên, email, số điện thoại...',
+            noOptionsText: 'Chưa có tài khoản Quản lý nào',
+            options: managerOptions
+        });
         renderBuildingServicesList();
         byId('bfProvince').addEventListener('change', function () {
             var wards = RHD.WARD_SUGGESTIONS[this.value] || [];
@@ -272,6 +310,7 @@
             province: byId('bfProvince').value,
             ward: byId('bfWard').value.trim(),
             addressDetail: byId('bfAddress').value.trim(),
+            managerId: byId('bfManager').value,
             services: RHUI.buildingServices,
             invoiceTemplateId: byId('bfInvoiceTpl').value,
             contractTemplateId: byId('bfContractTpl').value,
@@ -301,6 +340,154 @@
         var block = RHD.apartmentsOf(id).length ? 'Không thể xoá: vẫn còn căn hộ thuộc tòa nhà này.' : null;
         confirmDelete('buildings', id, function () { renderBuildingsTab(); renderDashboardCounts(); }, block);
     };
+
+    // Options for every "Người quản lý" picker — read from the account store on
+    // each open, never a fixed list. Locked accounts stay selectable only if
+    // they are already the current value (shown with a note).
+    function managerOptions() {
+        return RHD.managerAccounts().map(function (u) {
+            var managed = RHD.list('buildings').filter(function (b) { return b.managerId === u.id; }).length;
+            return {
+                value: u.id,
+                label: u.name + (u.status === 'locked' ? ' (đã khoá)' : ''),
+                sub: [u.email, u.phone, managed ? 'Đang quản lý ' + managed + ' tòa' : ''].filter(Boolean).join(' · '),
+                keywords: [u.email, u.phone]
+            };
+        });
+    }
+
+    // ------------------------------------------------ building detail drawer
+
+    function detailItem(label, valueHtml, full) {
+        return '<div' + (full ? ' style="grid-column:1/-1;"' : '') + '><div style="color:#94a3b8;font-size:.75rem;margin-bottom:.2rem;">' + escapeHtml(label) + '</div>' +
+            '<div style="color:#10213c;font-weight:600;word-break:break-word;">' + (valueHtml === '' || valueHtml == null ? '<span style="color:#cbd5e1;font-weight:400;">—</span>' : valueHtml) + '</div></div>';
+    }
+
+    function buildingDetailHtml(b) {
+        var apartments = RHD.apartmentsOf(b.id);
+        var contracts = RHD.list('contracts').filter(function (c) { return c.buildingId === b.id; });
+        var today = new Date().toISOString().slice(0, 10);
+        var activeContracts = contracts.filter(function (c) { return c.status !== 'ended' && !(c.endDate && c.endDate < today); });
+        var residentIds = {};
+        activeContracts.forEach(function (c) { if (c.customerId) residentIds[c.customerId] = true; });
+        var manager = RHD.buildingManager(b);
+        var cfg = b.config || {};
+        var invoiceTpl = b.invoiceTemplateId ? RHT.get(b.invoiceTemplateId) : null;
+        var contractTpl = b.contractTemplateId ? RHT.get(b.contractTemplateId) : null;
+        var openRequests = RHD.list('supportRequests').filter(function (r) { return r.buildingId === b.id && (r.status === 'new' || r.status === 'in_progress'); }).length;
+
+        var managerHtml;
+        if (manager) {
+            managerHtml = '<div style="display:flex;align-items:center;gap:.75rem;">' + avatarHtml(manager.name, 40) +
+                '<div style="min-width:0;"><div style="font-weight:700;color:#10213c;">' + escapeHtml(manager.name) + '</div>' +
+                '<div style="color:#61708a;font-size:.82rem;">' + [manager.email, manager.phone].filter(Boolean).map(escapeHtml).join(' · ') + '</div></div></div>';
+        } else {
+            managerHtml = '<div style="color:' + (b.managerId ? '#ef4444' : '#94a3b8') + ';font-size:.88rem;">' +
+                (b.managerId ? '<i class="fas fa-triangle-exclamation"></i> Tài khoản quản lý đã gán không còn tồn tại.' : 'Chưa phân công người quản lý.') +
+                ' <button type="button" class="rh-link-btn" onclick="RHUI.openBuildingForm(\'' + b.id + '\')">Phân công</button></div>';
+        }
+
+        var statusChips = RHD.APARTMENT_STATUSES.map(function (st) {
+            var n = apartments.filter(function (a) { return a.status === st.id; }).length;
+            return '<div style="background:' + st.bg + ';border-radius:10px;padding:.6rem .75rem;">' +
+                '<div style="color:' + st.color + ';font:800 1.25rem \'Plus Jakarta Sans\',sans-serif;">' + n + '</div>' +
+                '<div style="color:' + st.color + ';font-size:.75rem;font-weight:600;">' + escapeHtml(st.label) + '</div></div>';
+        }).join('');
+
+        var aptRows = apartments.slice().sort(function (x, y) { return String(x.name).localeCompare(String(y.name), 'vi', { numeric: true }); }).map(function (a) {
+            var st = statusMeta(RHD.APARTMENT_STATUSES, a.status);
+            var contract = RHD.activeContractFor(a.id);
+            var customer = contract ? RHD.get('customers', contract.customerId) : null;
+            return '<tr><td><strong>' + escapeHtml(a.name) + '</strong><div style="font-size:.72rem;color:#94a3b8;">' + escapeHtml(a.floor || '') + (a.area ? ' · ' + escapeHtml(a.area) + ' m²' : '') + '</div></td>' +
+                '<td>' + (customer ? escapeHtml(customer.fullName) + (contract.code ? '<div style="font-size:.72rem;color:#94a3b8;">' + escapeHtml(contract.code) + '</div>' : '') : '<span style="color:#cbd5e1;">—</span>') + '</td>' +
+                '<td style="white-space:nowrap;">' + money(a.rentPrice) + '</td>' +
+                '<td>' + badge(st.label, st.color, st.bg) + '</td></tr>';
+        }).join('');
+
+        var serviceRows = (b.services || []).map(function (s) {
+            return '<tr><td><strong>' + escapeHtml(s.name || '—') + '</strong><div style="font-size:.72rem;color:#94a3b8;">' + escapeHtml(feeTypeLabel(s.feeType)) + '</div></td>' +
+                '<td>' + escapeHtml(calcMethodLabel(s.calcMethod)) + '</td>' +
+                '<td style="white-space:nowrap;text-align:right;">' + money(s.unitPrice) + '</td>' +
+                '<td style="text-align:right;">' + (Number(s.taxRate) || 0) + '%</td></tr>';
+        }).join('');
+
+        var miniTable = function (head, body, empty) {
+            return body ? '<div class="table-container"><table style="min-width:0;"><thead><tr>' + head + '</tr></thead><tbody>' + body + '</tbody></table></div>'
+                : '<p style="color:#94a3b8;font-size:.85rem;">' + escapeHtml(empty) + '</p>';
+        };
+
+        return '<div class="rh-detail">' +
+            '<div style="display:flex;align-items:flex-start;gap:1rem;">' +
+            '<span style="align-items:center;background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);border-radius:14px;color:#fff;display:inline-flex;flex:0 0 52px;font-size:1.3rem;height:52px;justify-content:center;"><i class="fas fa-building"></i></span>' +
+            '<div style="min-width:0;flex:1;"><div style="color:#10213c;font:800 1.2rem \'Plus Jakarta Sans\',sans-serif;">' + escapeHtml(b.name) + '</div>' +
+            '<div style="color:#61708a;font-size:.85rem;margin-top:.15rem;">' + escapeHtml(b.code || '') + (b.shortName ? ' · ' + escapeHtml(b.shortName) : '') + '</div>' +
+            '<div style="color:#61708a;font-size:.85rem;margin-top:.35rem;"><i class="fas fa-location-dot" style="color:#94a3b8;"></i> ' + escapeHtml(RHD.buildingFullAddress(b) || '—') + '</div></div></div>' +
+
+            '<div class="rh-detail-kpis">' +
+            '<div><strong>' + apartments.length + '</strong><span>Căn hộ</span></div>' +
+            '<div><strong>' + Object.keys(residentIds).length + '</strong><span>Cư dân có HĐ</span></div>' +
+            '<div><strong>' + activeContracts.length + '</strong><span>HĐ hiệu lực</span></div>' +
+            '<div><strong>' + openRequests + '</strong><span>Yêu cầu mở</span></div>' +
+            '</div>' +
+
+            '<div class="rh-section"><div class="rh-section-title">Người quản lý</div>' + managerHtml + '</div>' +
+
+            '<div class="rh-section"><div class="rh-section-title">Thông tin chung</div><div class="rh-grid-2">' +
+            detailItem('Mã tòa', escapeHtml(b.code || '')) +
+            detailItem('Tên viết tắt', escapeHtml(b.shortName || '')) +
+            detailItem('Tỉnh / Thành phố', escapeHtml(b.province || '')) +
+            detailItem('Xã / Phường', escapeHtml(b.ward || '')) +
+            detailItem('Địa chỉ chi tiết', escapeHtml(b.addressDetail || ''), true) +
+            detailItem('Ngày tạo', b.createdAt ? new Date(b.createdAt).toLocaleDateString('vi-VN') : '') +
+            (b.floorCount ? detailItem('Số tầng', escapeHtml(b.floorCount)) : '') +
+            '</div></div>' +
+
+            '<div class="rh-section"><div class="rh-section-title" style="display:flex;justify-content:space-between;align-items:center;">Căn hộ (' + apartments.length + ')' +
+            '<button type="button" class="rh-link-btn" onclick="RHUI.closeDrawer();switchTab(\'apartments\')">Mở Căn hộ <i class="fas fa-arrow-right"></i></button></div>' +
+            (apartments.length ? '<div class="rh-detail-status">' + statusChips + '</div>' : '') +
+            miniTable('<th>Căn</th><th>Cư dân / HĐ</th><th>Giá thuê</th><th>Trạng thái</th>', aptRows, 'Chưa có căn hộ nào thuộc tòa nhà này.') +
+            '</div>' +
+
+            '<div class="rh-section"><div class="rh-section-title">Dịch vụ (' + (b.services || []).length + ')</div>' +
+            miniTable('<th>Dịch vụ</th><th>Cách tính</th><th style="text-align:right;">Đơn giá</th><th style="text-align:right;">Thuế</th>', serviceRows, 'Chưa cấu hình dịch vụ.') +
+            '</div>' +
+
+            '<div class="rh-section"><div class="rh-section-title">Cấu hình</div><div class="rh-grid-2">' +
+            detailItem('Ngân hàng', escapeHtml(cfg.bankName || '')) +
+            detailItem('Số tài khoản', escapeHtml(cfg.bankAccountNumber || '')) +
+            detailItem('Chủ tài khoản', escapeHtml(cfg.bankAccountHolder || '')) +
+            detailItem('Tài khoản gạch nợ tự động', escapeHtml(cfg.autoDebitAccount || '')) +
+            detailItem('Hóa đơn điện tử', cfg.eInvoiceProvider ? escapeHtml(cfg.eInvoiceProvider) : 'Chưa bật') +
+            detailItem('Mẫu hóa đơn', invoiceTpl ? escapeHtml(invoiceTpl.name) : '') +
+            detailItem('Mẫu hợp đồng', contractTpl ? escapeHtml(contractTpl.name) : '') +
+            '</div></div>' +
+
+            '<div style="display:flex;gap:.6rem;flex-wrap:wrap;margin-top:1.5rem;">' +
+            '<button type="button" class="btn-primary" onclick="RHUI.openBuildingForm(\'' + b.id + '\')"><i class="fas fa-pen"></i> Sửa tòa nhà</button>' +
+            '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Đóng</button>' +
+            '</div></div>';
+    }
+
+    RHUI.openBuildingDetail = function (id) {
+        var b = RHD.get('buildings', id);
+        if (!b) return;
+        openDrawer('Chi tiết tòa nhà', buildingDetailHtml(b));
+        detailBuildingId = id;
+    };
+
+    // Re-renders a read-only detail drawer after the source data changed
+    // (e.g. another tab edited it). Forms are left alone so input isn't lost.
+    function refreshOpenDrawer() {
+        var overlay = byId('rhDrawerOverlay');
+        if (!overlay || !overlay.classList.contains('show') || !detailBuildingId) return false;
+        var b = RHD.get('buildings', detailBuildingId);
+        if (!b) { closeDrawer(); return true; }
+        var body = byId('rhDrawerBody');
+        var scroll = body.scrollTop;
+        body.innerHTML = buildingDetailHtml(b);
+        body.scrollTop = scroll;
+        return true;
+    }
 
     // ============================================================ APARTMENTS
 
@@ -1389,6 +1576,7 @@
     global.RHUI = Object.assign(RHUI, {
         openDrawer: openDrawer,
         closeDrawer: closeDrawer,
+        refreshOpenDrawer: refreshOpenDrawer,
         renderBuildingsTab: renderBuildingsTab,
         renderApartmentsTab: renderApartmentsTab,
         renderCustomersTab: renderCustomersTab,

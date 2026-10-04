@@ -688,8 +688,11 @@
         if (!buildingId || !apartmentId) {
             return { ok: false, error: 'Vui lòng chọn tòa nhà và căn hộ.' };
         }
-        if (global.RHD && !global.RHD.get('apartments', apartmentId)) {
-            return { ok: false, error: 'Căn hộ đã chọn không hợp lệ. Vui lòng chọn lại.' };
+        if (global.RHD) {
+            var chosenApartment = global.RHD.get('apartments', apartmentId);
+            if (!global.RHD.get('buildings', buildingId) || !chosenApartment || chosenApartment.buildingId !== buildingId) {
+                return { ok: false, error: 'Căn hộ đã chọn không hợp lệ. Vui lòng chọn lại.' };
+            }
         }
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
@@ -755,6 +758,9 @@
         }
         if (!residentId) {
             return { ok: false, error: 'Vui lòng liên kết một hồ sơ cư dân trước khi phê duyệt.' };
+        }
+        if (global.RHD && !global.RHD.get('customers', residentId)) {
+            return { ok: false, error: 'Hồ sơ cư dân đã chọn không còn tồn tại. Vui lòng chọn lại.' };
         }
         var conflictingUser = readUsers().filter(function (u) { return u.role === ROLES.RESIDENT && u.residentId === residentId; })[0];
         if (conflictingUser) {
