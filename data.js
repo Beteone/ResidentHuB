@@ -207,6 +207,40 @@
         return readings[0] || null;
     }
 
+    // ---- relationship resolvers ---------------------------------------------
+    // Building.managerId -> manager login account (auth.js users). Only the id is
+    // stored on the building; name/email/phone are always resolved from here.
+    // Demo Mode never reads real accounts: its only "staff" is the demo session
+    // itself (RH_SESSION set by dashboard.html), so the picker still works there.
+    function managerAccounts() {
+        if (mode() === 'demo') {
+            var s = global.RH_SESSION;
+            return s && s.demo ? [{ id: s.id, name: s.name, email: s.email || '', phone: '', role: 'manager', status: 'active' }] : [];
+        }
+        if (!global.RH) return [];
+        return global.RH.getUsers().filter(function (u) { return u.role === 'manager'; });
+    }
+
+    function buildingManager(building) {
+        if (!building || !building.managerId) return null;
+        return managerAccounts().filter(function (u) { return u.id === building.managerId; })[0] || null;
+    }
+
+    // Resident Profile (customer) -> its contracts, and through the newest
+    // non-ended one the Apartment and Building. Customers carry no copy of
+    // apartment/building data, so this is the single place that walks the links.
+    function residentPlacement(customerId) {
+        var customer = customerId ? get('customers', customerId) : null;
+        if (!customer) return null;
+        var contracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id; })
+            .sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var active = contracts.filter(function (c) { return c.status !== 'ended'; })[0] || null;
+        var ref = active || contracts[0] || null;
+        var apartment = ref ? get('apartments', ref.apartmentId) : null;
+        var building = apartment ? get('buildings', apartment.buildingId) : (ref ? get('buildings', ref.buildingId) : null);
+        return { customer: customer, contracts: contracts, contract: active, lastContract: ref, apartment: apartment, building: building };
+    }
+
     function findApartmentByUnit(unitText) {
         var norm = String(unitText || '').trim().toLowerCase();
         if (!norm) return null;
@@ -597,6 +631,8 @@
             var building = {
                 id: genId('building'), code: 'TN0001', name: 'Chung cư Riverside Residence', shortName: 'CT1',
                 province: 'Thái Nguyên', ward: 'Phường Tích Lương', addressDetail: 'Tổ 14',
+                // The demo dataset's only staff account is the demo session (see managerAccounts).
+                managerId: 'demo',
                 services: [
                     { id: genId('svc'), name: 'Tiền thuê nhà', feeType: 'rent', calcMethod: 'fixed', unitPrice: 0, taxRate: 0 },
                     { id: genId('svc'), name: 'Tiền điện', feeType: 'electricity', calcMethod: 'meter', unitPrice: 3800, taxRate: 8 },
@@ -738,6 +774,9 @@
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
         findApartmentByUnit: findApartmentByUnit,
+        managerAccounts: managerAccounts,
+        buildingManager: buildingManager,
+        residentPlacement: residentPlacement,
         residentContext: residentContext,
         SETTINGS_DEFAULTS: SETTINGS_DEFAULTS,
         getSettings: getSettings,

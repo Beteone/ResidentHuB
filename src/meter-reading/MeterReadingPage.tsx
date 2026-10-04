@@ -10,25 +10,17 @@ import { AddRecordModal } from './components/AddRecordModal';
 import { PhotoViewer } from './components/PhotoViewer';
 import { RecordDrawer } from './components/RecordDrawer';
 import { ContentAreaContext } from './components/Overlay';
-
-const rowRecords = (row: Pick<TableRow, 'dien' | 'nuoc'>): MeterRecord[] => [row.dien, row.nuoc].filter((r): r is MeterRecord => !!r);
+import { approvableReadings, matchesApprovalFilter } from './approval';
 
 /** Closing: an apartment is "đã_chốt" once both meters have a reading for the period. */
 function rowClosing(row: Pick<TableRow, 'dien' | 'nuoc'>): ClosingStatus {
     return row.dien && row.nuoc ? 'đã_chốt' : 'chưa_chốt';
 }
 
-/** Approval: "đã_duyệt" only when every recorded reading is approved; null when nothing is recorded. */
-function rowApproval(row: Pick<TableRow, 'dien' | 'nuoc'>): ApprovalStatus | null {
-    const list = rowRecords(row);
-    if (!list.length) return null;
-    return list.every(r => r.approvalStatus === 'đã_duyệt') ? 'đã_duyệt' : 'chưa_duyệt';
-}
-
 function matchesStatus(row: TableRow, filter: StatusFilter): boolean {
     if (filter === 'all') return true;
     if (filter === 'chưa_chốt' || filter === 'đã_chốt') return row.closing === filter;
-    return row.approval === filter;
+    return matchesApprovalFilter(row, filter);
 }
 
 /**
@@ -107,22 +99,24 @@ export function MeterReadingPage() {
     );
 
     // One row per apartment: its Điện and Nước readings merged into a single object.
+    // Each side is the reading of slot apartmentId + kind + period (latest wins,
+    // same rule as meterService.findRecord used by the modal).
     const apartmentRows = useMemo<TableRow[]>(() => {
         const byApartment = new Map<string, Pick<TableRow, 'buildingId' | 'apartmentId' | 'dien' | 'nuoc'>>();
         const latestAt = new Map<string, number>();
         monthRecords.forEach(r => {
             const row = byApartment.get(r.apartmentId) || { buildingId: r.buildingId, apartmentId: r.apartmentId, dien: null, nuoc: null };
-            row[r.kind] = r;
+            row[r.kind] = meterService.latestOf(row[r.kind], r);
             byApartment.set(r.apartmentId, row);
             latestAt.set(r.apartmentId, Math.max(latestAt.get(r.apartmentId) || 0, r.recordedAt));
         });
         const recorded: TableRow[] = Array.from(byApartment.values())
-            .map(row => ({ ...row, key: row.apartmentId, closing: rowClosing(row), approval: rowApproval(row) }))
+            .map(row => ({ ...row, key: row.apartmentId, closing: rowClosing(row) }))
             .sort((a, b) => (latestAt.get(b.apartmentId) || 0) - (latestAt.get(a.apartmentId) || 0));
         // Apartments with no reading at all this month.
         const pending: TableRow[] = scopedApartments
             .filter(a => !byApartment.has(a.id))
-            .map(a => ({ key: a.id, buildingId: a.buildingId, apartmentId: a.id, dien: null, nuoc: null, closing: 'chưa_chốt', approval: null }));
+            .map(a => ({ key: a.id, buildingId: a.buildingId, apartmentId: a.id, dien: null, nuoc: null, closing: 'chưa_chốt' }));
         return recorded.concat(pending);
     }, [monthRecords, scopedApartments]);
 
@@ -135,11 +129,14 @@ export function MeterReadingPage() {
             chuaDuyet: count('chưa_duyệt'),
             daDuyet: count('đã_duyệt'),
             total: apartmentRows.length,
-            recorded: apartmentRows.filter(r => r.approval).length
+            recorded: apartmentRows.filter(r => r.dien || r.nuoc).length
         };
     }, [apartmentRows]);
 
     const rows = useMemo<TableRow[]>(() => apartmentRows.filter(r => matchesStatus(r, statusFilter)), [apartmentRows, statusFilter]);
+
+    // "Duyệt tất cả" scope = exactly the rows on screen (month + building + room + status card).
+    const approvable = useMemo(() => approvableReadings(rows, selectedMonth), [rows, selectedMonth]);
 
     // The drawer follows the live row, so approving or editing refreshes it in place.
     const detailRow = useMemo(() => (detailKey ? apartmentRows.find(r => r.key === detailKey) || null : null), [apartmentRows, detailKey]);
@@ -167,14 +164,43 @@ export function MeterReadingPage() {
         setNotice(result.ok ? (approval === 'đã_duyệt' ? 'Đã duyệt chỉ số ' : 'Đã bỏ duyệt chỉ số ') + subject + '.' : result.error || '');
     };
 
-    // Table switch acts on the whole apartment (Điện + Nước).
-    const handleToggleApprove = (row: TableRow) => {
-        if (!row.approval) return;
-        handleSetApproval(rowRecords(row), row.approval === 'đã_duyệt' ? 'chưa_duyệt' : 'đã_duyệt', 'căn ' + (apartmentMap.get(row.apartmentId)?.name || ''));
+    // Per-meter switch in the table: one reading (apartment + kind + period) at a time.
+    const handleToggleMeter = (record: MeterRecord) => {
+        const subject = KIND_META[record.kind].label.toLowerCase() + ' căn ' + (apartmentMap.get(record.apartmentId)?.name || '');
+        handleSetApproval([record], record.approvalStatus === 'đã_duyệt' ? 'chưa_duyệt' : 'đã_duyệt', subject);
+    };
+
+    // Room switch in the "Tất cả" tab: ON = every closed reading of the room is
+    // approved. Turning it on approves the pending ones (a meter with no reading
+    // yet is skipped); turning it off revokes both.
+    const handleToggleRoom = (row: TableRow) => {
+        const list = [row.dien, row.nuoc].filter((r): r is MeterRecord => !!r);
+        if (!list.length) return;
+        const allApproved = list.every(r => r.approvalStatus === 'đã_duyệt');
+        handleSetApproval(list, allApproved ? 'chưa_duyệt' : 'đã_duyệt', 'điện & nước căn ' + (apartmentMap.get(row.apartmentId)?.name || ''));
+    };
+
+    /** Batch-approves the closed, not-yet-approved readings of the visible list — each reading independently. */
+    const handleApproveAll = () => {
+        if (!approvable.length) return;
+        const scope = [
+            monthLabel(selectedMonth),
+            buildingFilter ? buildingMap.get(buildingFilter)?.name : 'tất cả tòa nhà',
+            apartmentFilter ? 'phòng ' + (apartmentMap.get(apartmentFilter)?.name || '') : 'tất cả phòng'
+        ].join(' · ');
+        const rooms = new Set(approvable.map(r => r.apartmentId)).size;
+        if (!window.confirm('Duyệt ' + approvable.length + ' chỉ số đã chốt của ' + rooms + ' phòng trong danh sách hiện tại (' + scope + ')?\n\nCông tơ chưa chốt (chưa có chỉ số kỳ này) sẽ được bỏ qua.')) return;
+        const result = meterService.approveMany(approvable);
+        reload();
+        setNotice(result.ok
+            ? 'Đã duyệt ' + result.saved.length + ' chỉ số' + (result.skipped ? ' (bỏ qua ' + result.skipped + ' đã thay đổi).' : '.')
+            : (result.error || '') + (result.saved.length ? ' (Đã duyệt ' + result.saved.length + ' chỉ số trước đó.)' : ''));
     };
 
     const handleDelete = (row: TableRow) => {
-        const list = rowRecords(row);
+        // Every reading of this room's slots for the month, stale duplicates included,
+        // so an older copy cannot resurface after the visible one is deleted.
+        const list = monthRecords.filter(r => r.apartmentId === row.apartmentId);
         if (!list.length) return;
         const where = apartmentMap.get(row.apartmentId)?.name || '';
         if (!window.confirm('Xoá bản ghi chỉ số (điện & nước) căn ' + where + ' (' + monthLabel(selectedMonth) + ')?')) return;
@@ -248,7 +274,10 @@ export function MeterReadingPage() {
                     apartments={apartmentMap}
                     selectedKey={detailRow ? detailRow.key : null}
                     onOpen={row => setDetailKey(row.key)}
-                    onToggleApprove={handleToggleApprove}
+                    onToggleMeter={handleToggleMeter}
+                    onToggleRoom={handleToggleRoom}
+                    approvableCount={approvable.length}
+                    onApproveAll={handleApproveAll}
                     onEdit={row => openFor(row)}
                     onDelete={handleDelete}
                     onRecord={row => openFor(row)}

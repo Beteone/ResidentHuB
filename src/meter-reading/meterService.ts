@@ -56,6 +56,17 @@ function notifyOtherModules(): void {
 
 const str = (v: unknown): string => (typeof v === 'string' ? v : '');
 
+/** Of two readings of the same slot, the one recorded last. */
+function latestOf(a: MeterRecord | null, b: MeterRecord): MeterRecord {
+    return !a || b.recordedAt > a.recordedAt ? b : a;
+}
+
+/** A stored reading counts as closed ("đã_chốt") only if it carries this period's index. */
+function isClosedRow(row: RhdMeterRow): boolean {
+    const v = row.latestIndex;
+    return !!row.periodMonth && v !== undefined && v !== null && v !== '' && Number.isFinite(Number(v));
+}
+
 export const meterService = {
     listRecords(): MeterRecord[] {
         return window.RHD.list('meters').map(fromRow);
@@ -93,10 +104,16 @@ export const meterService = {
             .sort((a, b) => b.periodMonth.localeCompare(a.periodMonth) || b.recordedAt - a.recordedAt)[0] || null;
     },
 
-    /** Existing record of a meter for the period — saving again updates it (no duplicates). */
+    /**
+     * Existing record of a meter for the period — saving again updates it (no
+     * duplicates). One slot = apartmentId + meter kind + period; should older
+     * data hold several, the latest one wins everywhere (table, modal, approval).
+     */
     findRecord(records: MeterRecord[], apartmentId: string, kind: MeterKind, periodMonth: MonthKey): MeterRecord | null {
-        return records.find(r => r.apartmentId === apartmentId && r.kind === kind && r.periodMonth === periodMonth) || null;
+        return records.filter(r => r.apartmentId === apartmentId && r.kind === kind && r.periodMonth === periodMonth).reduce<MeterRecord | null>(latestOf, null);
     },
+
+    latestOf,
 
     /**
      * Persists one apartment payload (Điện + Nước together). Saving a reading
@@ -153,6 +170,27 @@ export const meterService = {
         }
         notifyOtherModules();
         return { ok: true, saved };
+    },
+
+    /**
+     * "Duyệt tất cả": approves each reading on its own (no shared room status).
+     * Every reading is re-read from the store first, so a reading deleted,
+     * un-closed or already approved meanwhile (e.g. from another tab) is
+     * skipped rather than overwritten.
+     */
+    approveMany(records: MeterRecord[]): SaveResult & { skipped: number } {
+        const saved: MeterRecord[] = [];
+        let skipped = 0;
+        const actor = currentActor();
+        for (const r of records) {
+            const fresh = window.RHD.get('meters', r.id) as RhdMeterRow | null;
+            if (!fresh || !isClosedRow(fresh) || normalizeApproval(fresh) === 'đã_duyệt') { skipped++; continue; }
+            const res = window.RHD.update('meters', r.id, { status: undefined, approvalStatus: 'đã_duyệt', approvedAt: Date.now(), approvedById: actor.id, approvedBy: actor.name });
+            if (!res.ok || !res.item) { notifyOtherModules(); return { ok: false, error: res.error || 'Không thể duyệt chỉ số.', saved, skipped }; }
+            saved.push(fromRow(res.item));
+        }
+        notifyOtherModules();
+        return { ok: true, saved, skipped };
     },
 
     /** Deletes every meter reading of an apartment row. */

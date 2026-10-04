@@ -3,7 +3,7 @@ import type { Apartment, ApartmentContext, ApprovalStatus, Building, MeterKind, 
 import { KIND_META } from '../types';
 import { cx, dateLabel, dateTimeLabel, formatNumber, monthLabel } from '../format';
 import { Overlay } from './Overlay';
-import { ApprovalToggle, ClosingBadge } from './StatusBadges';
+import { ApprovalSummaryBar, ApprovalToggle, ClosingBadge } from './StatusBadges';
 
 interface RecordDrawerProps {
     row: TableRow;
@@ -152,19 +152,8 @@ export function RecordDrawer({ row, month, building, apartment, context, onClose
                         <div className="flex flex-wrap items-center gap-2 rounded-xl bg-slate-50 px-3 py-2 text-xs text-slate-600">
                             <span className="font-semibold">Cả căn:</span>
                             <ClosingBadge status={row.closing} />
-                            {row.approval ? (
-                                <ApprovalToggle
-                                    status={row.approval}
-                                    subject={'căn ' + aptName}
-                                    onToggle={() => onSetApproval(
-                                        [row.dien, row.nuoc].filter((r): r is MeterRecord => !!r),
-                                        row.approval === 'đã_duyệt' ? 'chưa_duyệt' : 'đã_duyệt',
-                                        'căn ' + aptName
-                                    )}
-                                />
-                            ) : (
-                                <span className="text-slate-400">Chưa có số để duyệt</span>
-                            )}
+                            {/* Display only — approve each meter with its own switch below. */}
+                            <ApprovalSummaryBar row={row} />
                         </div>
                     </section>
 

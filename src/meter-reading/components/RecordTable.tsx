@@ -2,7 +2,7 @@ import type { KeyboardEvent, ReactNode } from 'react';
 import type { Apartment, Building, MeterKind, MeterRecord, TableRow, TypeFilter } from '../types';
 import { KIND_META } from '../types';
 import { cx, dateTimeLabel, formatNumber } from '../format';
-import { ApprovalToggle, ClosingBadge, Tag } from './StatusBadges';
+import { ApprovalToggle, ClosingBadge, RoomApprovalStatus, Tag } from './StatusBadges';
 
 interface RecordTableProps {
     rows: TableRow[];
@@ -12,7 +12,13 @@ interface RecordTableProps {
     apartments: Map<string, Apartment>;
     selectedKey: string | null;
     onOpen: (row: TableRow) => void;
-    onToggleApprove: (row: TableRow) => void;
+    /** Approve / revoke ONE reading (apartment + meter kind + period). */
+    onToggleMeter: (record: MeterRecord) => void;
+    /** "Tất cả" tab: approve both readings of the room at once, or revoke both. */
+    onToggleRoom: (row: TableRow) => void;
+    /** Closed, not-yet-approved readings in the visible list ("Duyệt tất cả"). */
+    approvableCount: number;
+    onApproveAll: () => void;
     onEdit: (row: TableRow) => void;
     onDelete: (row: TableRow) => void;
     onRecord: (row: TableRow) => void;
@@ -126,15 +132,43 @@ export function RecordTable(props: RecordTableProps) {
         );
     };
 
+    // "Tất cả" tab: ONE switch approving both meters of the room at once, plus a
+    // status strip showing which meter is approved (per-meter approval lives in
+    // the Công tơ điện / Công tơ nước tabs).
+    // Điện / Nước tabs: one switch for the meter in view.
     const approvalCell = (row: TableRow) => {
-        if (!row.approval) return <span className="text-xs text-slate-400">Chưa có số để duyệt</span>;
         const a = lastApproved(row);
-        return (
-            <div className="flex flex-col items-start gap-1">
-                <ApprovalToggle status={row.approval} subject={'căn ' + place(row).apartment} onToggle={() => props.onToggleApprove(row)} />
-                <div className="text-[11px] leading-tight text-slate-500">
-                    {row.approval === 'đã_duyệt' && a ? <>{a.approvedBy || '—'} · {dateTimeLabel(a.approvedAt || 0)}</> : 'Chờ người duyệt'}
+        const apt = place(row).apartment;
+        if (typeFilter === 'all') {
+            const recorded = [row.dien, row.nuoc].filter((r): r is MeterRecord => !!r);
+            if (!recorded.length) return <span className="text-xs text-slate-400">Chưa có số</span>;
+            const allApproved = recorded.every(r => r.approvalStatus === 'đã_duyệt');
+            return (
+                <div className="flex flex-col items-start gap-1.5">
+                    <ApprovalToggle
+                        status={allApproved ? 'đã_duyệt' : 'chưa_duyệt'}
+                        label={allApproved ? 'Đã duyệt tất cả' : 'Duyệt tất cả'}
+                        subject={'điện và nước căn ' + apt}
+                        onToggle={() => props.onToggleRoom(row)}
+                    />
+                    <RoomApprovalStatus row={row} />
+                    {a && <div className="text-[11px] leading-tight text-slate-500">{a.approvedBy ? a.approvedBy + ' · ' : ''}{dateTimeLabel(a.approvedAt || 0)}</div>}
                 </div>
+            );
+        }
+        return (
+            <div className="flex flex-col items-start gap-1.5">
+                {stacked(
+                    row,
+                    (m, kind) => (
+                        <span title={m.approvalStatus === 'đã_duyệt' ? 'Duyệt bởi ' + (m.approvedBy || '—') + ' lúc ' + dateTimeLabel(m.approvedAt || 0) : 'Chờ người duyệt'}>
+                            <ApprovalToggle status={m.approvalStatus} subject={KIND_META[kind].label.toLowerCase() + ' căn ' + apt} onToggle={() => props.onToggleMeter(m)} />
+                        </span>
+                    ),
+                    'left',
+                    () => <span className="text-xs text-slate-400">Chưa có số</span>
+                )}
+                {a && <div className="text-[11px] leading-tight text-slate-500">{a.approvedBy ? a.approvedBy + ' · ' : ''}{dateTimeLabel(a.approvedAt || 0)}</div>}
             </div>
         );
     };
@@ -167,8 +201,7 @@ export function RecordTable(props: RecordTableProps) {
                 e.preventDefault();
                 props.onOpen(row);
             },
-            'data-closing': row.closing,
-            'data-approval': row.approval || 'none'
+            'data-closing': row.closing
         };
     };
 
@@ -179,7 +212,21 @@ export function RecordTable(props: RecordTableProps) {
                     <h2 className="text-base font-bold text-slate-900">Danh sách bản ghi</h2>
                     <p className="text-xs text-slate-500">{rows.length} dòng theo bộ lọc hiện tại · bấm vào một dòng để xem chi tiết</p>
                 </div>
-                <TypeTabs value={typeFilter} onChange={onTypeChange} />
+                <div className="flex flex-wrap items-center gap-2">
+                    {typeFilter === 'all' && (
+                        <button
+                            type="button" id="mr-approve-all"
+                            onClick={props.onApproveAll}
+                            disabled={!props.approvableCount}
+                            title={props.approvableCount ? 'Duyệt mọi chỉ số đã chốt đang chờ duyệt trong danh sách hiện tại' : 'Không có chỉ số đã chốt nào chờ duyệt trong danh sách hiện tại'}
+                            className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-semibold text-emerald-700 transition-all hover:bg-emerald-100 disabled:cursor-not-allowed disabled:border-slate-200 disabled:bg-slate-50 disabled:text-slate-400 sm:text-sm"
+                        >
+                            <i className="fas fa-check-double" aria-hidden="true" /> Duyệt tất cả
+                            <span className="rounded-full bg-white/80 px-1.5 text-[11px] font-bold">{props.approvableCount}</span>
+                        </button>
+                    )}
+                    <TypeTabs value={typeFilter} onChange={onTypeChange} />
+                </div>
             </div>
 
             {rows.length === 0 ? (

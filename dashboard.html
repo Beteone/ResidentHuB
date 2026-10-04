@@ -14,6 +14,7 @@
     <script src="auth.js"></script>
     <script src="templates.js"></script>
     <script src="data.js"></script>
+    <script src="searchable-select.js"></script>
     <script src="manager-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
     <style>
@@ -2300,6 +2301,16 @@
         @keyframes rhDrawerIn{from{transform:translateX(24px);opacity:0}to{transform:translateX(0);opacity:1}}
         .rh-drawer-header{align-items:center;background:#fff;border-bottom:1px solid var(--line);display:flex;justify-content:space-between;padding:1.15rem 1.5rem;position:sticky;top:0;z-index:2}
         .rh-drawer-body{flex:1;overflow-y:auto;padding:1.5rem}
+        @media(max-width:640px){.rh-drawer-header{padding:1rem}.rh-drawer-body{padding:1rem}}
+        .rh-click-row{cursor:pointer;transition:background .15s ease}.rh-click-row:hover td,.rh-click-row:focus-visible td{background:#f5faff}.rh-click-row:focus-visible{outline:2px solid #1683ff;outline-offset:-2px}
+        .rh-detail-kpis{display:grid;gap:.6rem;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:1.25rem}
+        .rh-detail-kpis>div{background:#f5f8fc;border:1px solid #e7eef6;border-radius:12px;padding:.7rem .8rem}
+        .rh-detail-kpis strong{color:#10213c;display:block;font:800 1.3rem 'Plus Jakarta Sans',sans-serif}
+        .rh-detail-kpis span{color:#61708a;font-size:.72rem;font-weight:600}
+        .rh-detail-status{display:grid;gap:.5rem;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:.9rem}
+        .rh-detail .table-container td,.rh-detail .table-container th{padding:.6rem .75rem}
+        @media(max-width:560px){.rh-detail-kpis,.rh-detail-status{grid-template-columns:repeat(2,minmax(0,1fr))}}
+        .rh-link-panel{background:#f5f8fc;border:1px solid #e4eaf2;border-radius:12px;margin-top:.75rem;padding:.9rem 1rem}
         .rh-section{border-top:1px solid var(--line);margin-top:1.5rem;padding-top:1.25rem}
         .rh-section-title{color:#94a3b8;font-size:.75rem;font-weight:700;letter-spacing:.08em;margin-bottom:.75rem;text-transform:uppercase}
         .rh-grid-2{display:grid;gap:1rem;grid-template-columns:repeat(2,minmax(0,1fr))}
@@ -4753,38 +4764,93 @@
             }).join('') || '<tr><td colspan="7" style="text-align:center;color:#94a3b8;padding:1.5rem;">' + (accountRequestFilter === 'pending' ? 'Không có yêu cầu nào đang chờ phê duyệt' : 'Chưa có yêu cầu đăng ký nào') + '</td></tr>';
         }
 
+        // Resident Profiles a registration can be linked to: every customer not
+        // already linked to another login account. Read on each dropdown open.
+        function residentProfileOptions() {
+            const linkedIds = RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId; }).map(function (u) { return u.residentId; });
+            return RHD.list('customers').filter(function (c) { return linkedIds.indexOf(c.id) === -1; }).map(function (c) {
+                const place = RHD.residentPlacement(c.id);
+                const where = place && place.apartment ? 'Căn ' + place.apartment.name + (place.building ? ' – ' + (place.building.shortName || place.building.name) : '') : 'Chưa có hợp đồng';
+                return {
+                    value: c.id,
+                    label: c.fullName || '(Chưa có tên)',
+                    sub: [c.phone, c.email, where].filter(Boolean).join(' · '),
+                    keywords: [c.id, c.idNumber, place && place.lastContract ? place.lastContract.code : '']
+                };
+            });
+        }
+
+        function sameContact(a, b) {
+            const norm = function (v) { return String(v).trim().toLowerCase().replace(/\s+/g, ''); };
+            return !!a && !!b && norm(a) === norm(b);
+        }
+
+        function vnDate(iso) {
+            return iso ? new Date(iso + 'T00:00:00').toLocaleDateString('vi-VN') : '?';
+        }
+
+        // Everything shown here is resolved from the chosen residentId through
+        // Contract -> Apartment -> Building; nothing is copied into the request.
+        function renderResidentLinkPreview(request, residentId) {
+            const box = document.getElementById('reqResidentPreview');
+            if (!box) return;
+            const field = function (label, value, warn) {
+                return '<div><div style="font-size:0.72rem;color:#94a3b8;">' + label + '</div><div style="font-weight:600;color:' + (warn ? '#a5680c' : '#10213c') + ';word-break:break-word;">' + (value || '<span style="color:#cbd5e1;font-weight:400;">—</span>') + (warn ? ' <i class="fas fa-triangle-exclamation" title="Khác với thông tin đăng ký"></i>' : '') + '</div></div>';
+            };
+            if (!residentId) {
+                const dup = RHD.list('customers').filter(function (c) { return sameContact(c.phone, request.phone) || sameContact(c.email, request.email) || sameContact(c.idNumber, request.idNumber); });
+                box.innerHTML = '<div style="font-size:0.85rem;color:#475569;"><i class="fas fa-user-plus" style="color:#1683ff;"></i> Chưa chọn hồ sơ — khi phê duyệt, hệ thống sẽ <strong>tạo hồ sơ cư dân mới</strong> từ thông tin đăng ký.</div>' +
+                    (dup.length ? '<div style="color:#a5680c;font-size:0.82rem;margin-top:0.5rem;"><i class="fas fa-triangle-exclamation"></i> Đã có ' + dup.length + ' hồ sơ trùng SĐT/email/CCCD (' + dup.map(function (c) { return escapeHtml(c.fullName); }).join(', ') + '). Hãy chọn hồ sơ đó để tránh tạo trùng.</div>' : '');
+                return;
+            }
+            const place = RHD.residentPlacement(residentId);
+            if (!place) { box.innerHTML = '<div style="color:#ef4444;font-size:0.85rem;">Hồ sơ cư dân không còn tồn tại.</div>'; return; }
+            const c = place.customer;
+            const contract = place.contract || place.lastContract;
+            const contractLabel = contract
+                ? escapeHtml(contract.code || '—') + '<div style="font-weight:400;font-size:0.78rem;color:#61708a;">' + vnDate(contract.startDate) + ' → ' + vnDate(contract.endDate) + (place.contract ? '' : ' · đã kết thúc') + '</div>'
+                : '';
+            const aptMismatch = !!(place.contract && place.apartment && request.apartmentId && place.apartment.id !== request.apartmentId);
+            box.innerHTML =
+                '<div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:0.75rem;">' +
+                field('Họ tên hồ sơ', escapeHtml(c.fullName)) +
+                field('Mã cư dân', '<span style="font-family:monospace;font-size:0.78rem;">' + escapeHtml(c.id) + '</span>') +
+                field('Số điện thoại', escapeHtml(c.phone || ''), !!(c.phone && request.phone && !sameContact(c.phone, request.phone))) +
+                field('Email', escapeHtml(c.email || ''), !!(c.email && request.email && !sameContact(c.email, request.email))) +
+                field('CCCD', escapeHtml(c.idNumber || ''), !!(c.idNumber && request.idNumber && !sameContact(c.idNumber, request.idNumber))) +
+                field('Loại khách', escapeHtml(c.customerType || '')) +
+                field('Tòa nhà', place.building ? escapeHtml(place.building.name) : '') +
+                field('Căn hộ', place.apartment ? escapeHtml(place.apartment.name) + (place.apartment.floor ? ' · ' + escapeHtml(place.apartment.floor) : '') : '', aptMismatch) +
+                field('Hợp đồng', contractLabel) +
+                '</div>' +
+                (aptMismatch ? '<div style="color:#a5680c;font-size:0.8rem;margin-top:0.6rem;"><i class="fas fa-circle-info"></i> Căn hộ theo hợp đồng khác căn cư dân đã chọn khi đăng ký — tài khoản sẽ gắn theo căn trong hợp đồng.</div>' : '') +
+                (!place.contract ? '<div style="color:#a5680c;font-size:0.8rem;margin-top:0.6rem;"><i class="fas fa-circle-info"></i> Hồ sơ chưa có hợp đồng hiệu lực — tài khoản sẽ gắn theo căn cư dân đã chọn khi đăng ký.</div>' : '');
+        }
+
         function openAccountRequestDrawer(id) {
             const r = RH.getAccountRequest(id);
             if (!r) return;
             const building = RHD.get('buildings', r.buildingId);
             const apartment = RHD.get('apartments', r.apartmentId);
-            const linkedIds = RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId; }).map(function (u) { return u.residentId; });
-            // Profiles already linked to another login account can't be linked twice.
-            const customers = RHD.list('customers').filter(function (c) { return linkedIds.indexOf(c.id) === -1; });
             const contract = apartment ? RHD.activeContractFor(apartment.id) : null;
-
-            const customerOptions = '<option value="">— Tạo hồ sơ cư dân mới —</option>' + customers.map(function (c) {
-                const cContract = RHD.list('contracts').filter(function (k) { return k.customerId === c.id && k.status !== 'ended'; })[0];
-                const cApt = cContract ? RHD.get('apartments', cContract.apartmentId) : null;
-                return '<option value="' + c.id + '"' + (c.id === r.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + (cApt ? ' • Căn ' + escapeHtml(cApt.name) : '') + '</option>';
-            }).join('');
 
             const html = '<div style="display:grid;gap:0.9rem;">' +
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">Họ tên đăng ký</label><div style="font-weight:600;">' + escapeHtml(r.fullName) + '</div></div>' +
                 '<div style="display:grid;grid-template-columns:1fr 1fr;gap:0.9rem;">' +
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">Số điện thoại</label><div style="font-weight:600;">' + escapeHtml(r.phone || '—') + '</div></div>' +
-                '<div><label style="font-size:0.78rem;color:#94a3b8;">Email</label><div style="font-weight:600;">' + escapeHtml(r.email) + '</div></div>' +
+                '<div><label style="font-size:0.78rem;color:#94a3b8;">Email</label><div style="font-weight:600;word-break:break-all;">' + escapeHtml(r.email) + '</div></div>' +
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">CCCD</label><div style="font-weight:600;">' + escapeHtml(r.idNumber || '—') + '</div></div>' +
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">Ngày đăng ký</label><div style="font-weight:600;">' + new Date(r.submittedAt).toLocaleString('vi-VN') + '</div></div>' +
                 '</div>' +
                 '<div><label style="font-size:0.78rem;color:#94a3b8;">Tòa nhà / Căn hộ đã chọn</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</div></div>' +
                 (contract ? '<div><label style="font-size:0.78rem;color:#94a3b8;">Hợp đồng đang hiệu lực của căn</label><div style="font-weight:600;">' + escapeHtml(contract.code) + '</div></div>' : '') +
                 '<div style="border-top:1px solid var(--line);padding-top:0.9rem;">' +
-                (r.residentId
-                    ? '<div style="color:#18a878;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-circle-check"></i> Đã tìm thấy hồ sơ cư dân phù hợp — tài khoản sẽ được liên kết, không tạo hồ sơ trùng.</div>'
-                    : '<div style="color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-triangle-exclamation"></i> Không tự tìm thấy hồ sơ cư dân phù hợp. Chọn hồ sơ đã nhập ở Khách hàng, hoặc để trống để tạo hồ sơ mới.</div>') +
-                '<label style="font-size:0.8rem;font-weight:600;color:#475569;">Liên kết hồ sơ cư dân</label>' +
-                '<select id="reqResidentSelect" style="width:100%;margin-top:0.35rem;padding:0.6rem 0.75rem;border:1px solid var(--line);border-radius:8px;font:inherit;">' + customerOptions + '</select>' +
+                (r.residentId && RHD.get('customers', r.residentId)
+                    ? '<div style="color:#18a878;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-circle-check"></i> Đã tự tìm thấy hồ sơ cư dân phù hợp — kiểm tra thông tin bên dưới trước khi phê duyệt.</div>'
+                    : '<div style="color:#ef4444;font-size:0.85rem;margin-bottom:0.5rem;"><i class="fas fa-triangle-exclamation"></i> Không tự tìm thấy hồ sơ cư dân phù hợp. Tìm và chọn hồ sơ đã nhập ở Khách hàng, hoặc để trống để tạo hồ sơ mới.</div>') +
+                '<label style="font-size:0.8rem;font-weight:600;color:#475569;display:block;margin-bottom:0.35rem;">Liên kết hồ sơ cư dân</label>' +
+                '<div id="reqResidentField"></div>' +
+                '<div id="reqResidentPreview" class="rh-link-panel"></div>' +
                 '</div>' +
                 '<div id="reqActionError" style="color:#ef4444;font-size:0.85rem;"></div>' +
                 '<div style="display:flex;gap:0.6rem;flex-wrap:wrap;">' +
@@ -4794,6 +4860,19 @@
                 '</div>' +
                 '</div>';
             RHUI.openDrawer('Yêu cầu đăng ký — ' + r.fullName, html);
+            RHSelect.create(document.getElementById('reqResidentField'), {
+                inputId: 'reqResidentSelect',
+                value: r.residentId || '',
+                placeholder: '— Tạo hồ sơ cư dân mới —',
+                searchPlaceholder: 'Tìm theo tên, SĐT, email, CCCD, mã cư dân...',
+                noOptionsText: 'Chưa có hồ sơ cư dân nào chưa liên kết',
+                options: residentProfileOptions,
+                onChange: function (value) {
+                    document.getElementById('reqActionError').textContent = '';
+                    renderResidentLinkPreview(r, value);
+                }
+            });
+            renderResidentLinkPreview(r, document.getElementById('reqResidentSelect').value);
         }
 
         function refreshAccountViews() {
@@ -5059,8 +5138,9 @@
         // and the open tab reflect it without a manual reload.
         function refreshFromStorage() {
             RHUI.renderDashboardCounts();
-            if (['support', 'accounts', 'invoices', 'contracts', 'customers'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab]) {
-                if (document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
+            const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
+            if (['support', 'accounts', 'invoices', 'contracts', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab]) {
+                if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }
         }
