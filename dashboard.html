@@ -14,7 +14,9 @@
     <script src="auth.js"></script>
     <script src="templates.js"></script>
     <script src="data.js"></script>
+    <script src="searchable-select.js"></script>
     <script src="manager-modules.js"></script>
+    <script src="dist/meter-reading.js"></script>
     <style>
         * {
             margin: 0;
@@ -1650,8 +1652,8 @@
         .rh-support-form select,.rh-support-form textarea{border:1px solid var(--line);border-radius:10px;font:inherit;padding:.7rem .8rem;width:100%}
         .rh-support-form textarea{min-height:100px;resize:vertical}
         .rh-support-footer{display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem}
-        @media (max-width: 900px){ .rh-support-toolbar{grid-template-columns:1fr 1fr}. .rh-support-detail-grid{grid-template-columns:1fr} }
-        @media (max-width: 600px){ .rh-support-toolbar{grid-template-columns:1fr}. .rh-support-header{align-items:flex-start;flex-direction:column}. }
+        @media(max-width:900px){.rh-support-toolbar{grid-template-columns:1fr 1fr}.rh-support-detail-grid{grid-template-columns:1fr}}
+        @media(max-width:600px){.rh-support-toolbar{grid-template-columns:1fr}.rh-support-header{align-items:flex-start;flex-direction:column}}
         .rh-row-btn{background:none;border:1px solid var(--line);border-radius:6px;color:#475569;cursor:pointer;margin-right:.35rem;padding:.35rem .55rem}.rh-row-btn:hover{background:#f1f7fd}.rh-row-btn.danger{border-color:#fecaca;color:#ef4444}.rh-row-btn.danger:hover{background:#fee2e2}
         .rh-link-btn{background:none;border:0;color:#1683ff;cursor:pointer;font:inherit;font-weight:700;font-size:.82rem}.rh-link-btn:hover{color:#0d65d5}
         .rh-drawer-overlay{background:rgba(11,36,71,.45);bottom:0;display:none;justify-content:flex-end;left:0;position:fixed;right:0;top:0;z-index:300}
@@ -1738,6 +1740,12 @@
             <div class="sidebar-menu-item" onclick="switchTab('support')">
                 <i class="fas fa-tools"></i>
                 <span>Yêu cầu hỗ trợ</span>
+                <span id="rhNavSupportCount" data-display="inline-flex" style="display:none;margin-left:auto;background:#ef4444;color:#fff;min-width:20px;height:20px;padding:0 5px;border-radius:999px;align-items:center;justify-content:center;font-size:.72rem;">0</span>
+            </div>
+            <div class="sidebar-menu-item" id="rhAccountsMenuItem" onclick="switchTab('accounts')">
+                <i class="fas fa-user-shield"></i>
+                <span>Duyệt tài khoản</span>
+                <span id="rhNavAccountsCount" data-display="inline-flex" style="display:none;margin-left:auto;background:#ef4444;color:#fff;min-width:20px;height:20px;padding:0 5px;border-radius:999px;align-items:center;justify-content:center;font-size:.72rem;">0</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('reports')">
                 <i class="fas fa-chart-bar"></i>
@@ -1796,7 +1804,7 @@
                 </button>
                 <button class="btn-icon" title="Thông báo">
                     <i class="fas fa-bell"></i>
-                    <span style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; width: 20px; height: 20px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.75rem;">3</span>
+                    <span id="rhBellCount" data-display="flex" style="display:none;position:absolute;top:-5px;right:-5px;background:#ef4444;color:#fff;min-width:20px;height:20px;padding:0 4px;border-radius:999px;align-items:center;justify-content:center;font-size:.72rem;">0</span>
                 </button>
                 <div class="dropdown">
                     <button class="btn-icon" onclick="toggleDropdown()" title="Tài khoản">
@@ -1824,6 +1832,21 @@
 
         <!-- Dashboard Tab -->
         <div id="dashboard-tab">
+            <div class="card" style="margin-bottom:1.25rem;">
+                <div style="align-items:center;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1rem;">
+                    <div><h2 style="color:#10213c;font-size:1.15rem;font-weight:700;">Tổng quan vận hành</h2><p style="color:#64748b;font-size:.82rem;margin-top:.25rem;">Số liệu trực tiếp từ dữ liệu tòa nhà, căn hộ, cư dân và yêu cầu.</p></div>
+                    <select id="dashBuildingFilter" aria-label="Lọc tổng quan theo tòa nhà" onchange="RHUI.renderDashboardCounts()" style="border:1px solid var(--line);border-radius:9px;padding:.6rem .75rem;font:inherit;"><option value="">Tất cả tòa nhà</option></select>
+                </div>
+                <div class="grid-2">
+                    <div class="card"><div class="stat-label">Tòa nhà</div><div class="stat-value" id="kpiBuildings">0</div><div class="stat-label">Căn hộ <strong id="kpiApartments">0</strong></div></div>
+                    <div class="card"><div class="stat-label">Cư dân</div><div class="stat-value" id="kpiCustomers">0</div><div class="stat-label">Tỷ lệ sử dụng <strong id="kpiOccupancy">0%</strong></div></div>
+                    <div class="card"><div class="stat-label">Căn hộ đang ở</div><div class="stat-value" id="dAptOccupied">0</div><div class="stat-label">Trống <strong id="kpiVacant">0</strong> · Bảo trì <strong id="dAptMaintenance">0</strong></div></div>
+                    <div class="card"><div class="stat-label">Yêu cầu hỗ trợ mới</div><div class="stat-value" id="dReqNew">0</div><div class="stat-label">Đã xử lý tháng này <strong id="dReqDone">0</strong> · Chờ duyệt tài khoản <strong id="dAccPending">0</strong></div></div>
+                </div>
+                <div class="table-container" style="margin-top:1rem;">
+                    <table><thead><tr><th>Hoạt động</th><th>Chi tiết</th><th>Thời gian</th></tr></thead><tbody id="dashActivityBody"><tr><td colspan="3">Đang tải hoạt động…</td></tr></tbody></table>
+                </div>
+            </div>
             <!-- Stats Cards -->
             <div class="grid-2">
                 <div class="card stat-card-editable" role="button" tabindex="0" onclick="openBuildingList()" onkeydown="handleBuildingCardKeydown(event)">
@@ -2653,6 +2676,20 @@
 
         <div id="contracts-tab" style="display: none;"></div>
 
+        <div id="accounts-tab" style="display: none;">
+            <div class="card" style="margin-bottom:1rem;">
+                <h2 style="color:#10213c;font-size:1.4rem;font-weight:700;">Yêu cầu đăng ký tài khoản cư dân</h2>
+                <p style="color:#64748b;margin-top:.35rem;">Đối chiếu thông tin đăng ký với hồ sơ cư dân trước khi phê duyệt.</p>
+                <div id="accountRequestFilters" style="display:flex;flex-wrap:wrap;gap:.55rem;margin-top:1rem;"></div>
+            </div>
+            <div class="card" style="padding:0;overflow-x:auto;">
+                <table style="width:100%;min-width:900px;border-collapse:collapse;">
+                    <thead><tr><th>Người đăng ký</th><th>Liên hệ</th><th>Tòa nhà / Căn hộ</th><th>Hồ sơ cư dân</th><th>Trạng thái</th><th>Ngày đăng ký</th><th>Thao tác</th></tr></thead>
+                    <tbody id="accountRequestsTableBody"></tbody>
+                </table>
+            </div>
+        </div>
+
         <div id="reports-tab" style="display: none;">
             <div class="card">
                 <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Báo cáo</h2>
@@ -3174,6 +3211,13 @@
                 revenueChart.data.datasets[0].data[11] = dashboardData.revenue;
                 revenueChart.update();
             }
+        }
+
+        function updateDashboardCharts(stats) {
+            if (!revenueChart || !stats || !Array.isArray(stats.revenue12)) return;
+            revenueChart.data.labels = stats.revenue12.map(month => 'T' + Number(month.month.slice(5)) + '/' + month.month.slice(2, 4));
+            revenueChart.data.datasets[0].data = stats.revenue12.map(month => Number(month.billed) || 0);
+            revenueChart.update();
         }
 
         function saveDashboardData(event) {
@@ -3805,7 +3849,8 @@
             meters: () => RHUI.renderMetersTab(),
             contracts: () => RHUI.renderContractsTab(),
             invoices: () => RHUI.renderInvoicesTab(),
-            support: () => renderSupportRequestsTab()
+            support: () => RHUI.renderSupportTab(),
+            accounts: () => renderAccountRequestsTable()
         };
 
         const editableStats = {
@@ -4398,6 +4443,7 @@
                 'invoices': 'Hóa đơn',
                 'residents': 'Khách hàng',
                 'support': 'Yêu cầu hỗ trợ',
+                'accounts': 'Duyệt tài khoản',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
                 'workflows': 'Quy trình làm việc',
@@ -4483,6 +4529,88 @@
             return String(str).replace(/[&<>"']/g, function (c) {
                 return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c];
             });
+        }
+
+        let accountRequestFilter = 'pending';
+        const accountRequestStatusLabels = { pending: 'Chờ phê duyệt', approved: 'Đã phê duyệt', rejected: 'Đã từ chối' };
+
+        function renderAccountRequestsTable(filter) {
+            const body = document.getElementById('accountRequestsTableBody');
+            if (!body) return;
+            if (filter && (filter === 'all' || accountRequestStatusLabels[filter])) accountRequestFilter = filter;
+            const requests = typeof RH.listAccountRequests === 'function' ? RH.listAccountRequests() : [];
+            const filters = document.getElementById('accountRequestFilters');
+            const statuses = ['pending', 'approved', 'rejected', 'all'];
+            if (filters) filters.innerHTML = statuses.map(status => {
+                const count = status === 'all' ? requests.length : requests.filter(item => item.status === status).length;
+                const label = status === 'all' ? 'Tất cả' : accountRequestStatusLabels[status];
+                return '<button type="button" class="apartment-status-chip ' + (accountRequestFilter === status ? 'active' : '') + '" onclick="renderAccountRequestsTable(\'' + status + '\')">' + label + ' <span class="apartment-status-count">' + count + '</span></button>';
+            }).join('');
+
+            const visible = accountRequestFilter === 'all' ? requests : requests.filter(item => item.status === accountRequestFilter);
+            body.innerHTML = visible.map(request => {
+                const building = RHD.get('buildings', request.buildingId);
+                const apartment = RHD.get('apartments', request.apartmentId);
+                const linkedCustomer = request.residentId ? RHD.get('customers', request.residentId) : null;
+                const submittedAt = request.submittedAt ? new Date(request.submittedAt).toLocaleString('vi-VN') : '—';
+                const statusColor = request.status === 'approved' ? '#18a878' : request.status === 'rejected' ? '#ef4444' : '#a5680c';
+                const statusBg = request.status === 'approved' ? '#e6f8ef' : request.status === 'rejected' ? '#fee2e2' : '#fff4df';
+                const action = request.status === 'pending'
+                    ? '<button type="button" class="btn-primary" onclick="openAccountRequestDrawer(\'' + escapeHtml(request.id) + '\')">Xem và xử lý</button>'
+                    : '<span style="color:#64748b;font-size:.8rem;">' + (request.reviewedAt ? new Date(request.reviewedAt).toLocaleString('vi-VN') : '—') + (request.rejectionReason ? '<br>Lý do: ' + escapeHtml(request.rejectionReason) : '') + '</span>';
+                return '<tr><td>' + escapeHtml(request.fullName || '—') + '</td>' +
+                    '<td>' + escapeHtml(request.phone || '—') + '<small style="display:block;color:#94a3b8;">' + escapeHtml(request.email || '') + '</small></td>' +
+                    '<td>' + escapeHtml(building ? (building.shortName || building.name) : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</td>' +
+                    '<td>' + (linkedCustomer ? escapeHtml(linkedCustomer.fullName || linkedCustomer.name) : '<span style="color:#94a3b8;">Chưa liên kết</span>') + '</td>' +
+                    '<td><span style="background:' + statusBg + ';color:' + statusColor + ';border-radius:999px;padding:.25rem .6rem;font-size:.75rem;font-weight:700;">' + (accountRequestStatusLabels[request.status] || '—') + '</span></td>' +
+                    '<td>' + submittedAt + '</td><td>' + action + '</td></tr>';
+            }).join('') || '<tr><td colspan="7" style="padding:1.5rem;text-align:center;color:#94a3b8;">' + (accountRequestFilter === 'pending' ? 'Không có yêu cầu đang chờ phê duyệt.' : 'Chưa có yêu cầu đăng ký nào.') + '</td></tr>';
+        }
+
+        function openAccountRequestDrawer(id) {
+            const request = typeof RH.getAccountRequest === 'function' ? RH.getAccountRequest(id) : null;
+            if (!request) return;
+            const existingLinks = RH.getUsers().filter(user => user.role === 'resident' && user.residentId).map(user => user.residentId);
+            const customers = RHD.list('customers').filter(customer => !existingLinks.includes(customer.id) || customer.id === request.residentId);
+            const options = '<option value="">Tạo hồ sơ cư dân mới khi phê duyệt</option>' + customers.map(customer =>
+                '<option value="' + escapeHtml(customer.id) + '"' + (customer.id === request.residentId ? ' selected' : '') + '>' + escapeHtml(customer.fullName || customer.name || 'Cư dân') + (customer.phone ? ' · ' + escapeHtml(customer.phone) : '') + '</option>'
+            ).join('');
+            const building = RHD.get('buildings', request.buildingId);
+            const apartment = RHD.get('apartments', request.apartmentId);
+            const content = '<div style="display:grid;gap:.85rem;">' +
+                '<div><strong>' + escapeHtml(request.fullName || '—') + '</strong><div style="color:#64748b;">' + escapeHtml(request.email || '') + ' · ' + escapeHtml(request.phone || 'Chưa có số điện thoại') + '</div></div>' +
+                '<div><strong>Căn hộ đăng ký:</strong> ' + escapeHtml(building ? (building.shortName || building.name) : '—') + ' / ' + escapeHtml(apartment ? apartment.name : '—') + '</div>' +
+                '<label style="display:grid;gap:.4rem;font-weight:600;">Liên kết hồ sơ cư dân<select id="accountRequestResidentId" style="padding:.65rem;border:1px solid var(--line);border-radius:8px;">' + options + '</select></label>' +
+                '<div id="accountRequestActionError" style="color:#ef4444;font-size:.85rem;"></div>' +
+                '<div style="display:flex;flex-wrap:wrap;gap:.6rem;"><button class="btn-primary" type="button" onclick="submitApproveAccountRequest(\'' + escapeHtml(request.id) + '\')">Phê duyệt</button><button class="btn-secondary" type="button" onclick="promptRejectAccountRequest(\'' + escapeHtml(request.id) + '\')">Từ chối</button></div></div>';
+            RHUI.openDrawer('Duyệt đăng ký — ' + (request.fullName || ''), content);
+        }
+
+        function refreshAccountViews() {
+            renderAccountRequestsTable();
+            renderAccountsTable();
+            if (RHUI.renderDashboardCounts) RHUI.renderDashboardCounts();
+        }
+
+        function submitApproveAccountRequest(id) {
+            const residentId = document.getElementById('accountRequestResidentId')?.value || '';
+            const result = RH.approveAccountRequest(id, RH_SESSION ? RH_SESSION.id : null, residentId ? { residentId } : { createNewProfile: true });
+            if (!result || !result.ok) {
+                const error = document.getElementById('accountRequestActionError');
+                if (error) error.textContent = result && result.error || 'Không thể phê duyệt yêu cầu.';
+                return;
+            }
+            RHUI.closeDrawer();
+            refreshAccountViews();
+        }
+
+        function promptRejectAccountRequest(id) {
+            const reason = prompt('Lý do từ chối (không bắt buộc):', '');
+            if (reason === null) return;
+            const result = RH.rejectAccountRequest(id, RH_SESSION ? RH_SESSION.id : null, reason);
+            if (!result || !result.ok) { alert(result && result.error || 'Không thể từ chối yêu cầu.'); return; }
+            RHUI.closeDrawer();
+            refreshAccountViews();
         }
 
         function openAccountForm(id) {
