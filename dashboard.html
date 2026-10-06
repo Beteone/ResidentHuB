@@ -1448,6 +1448,33 @@
         .apartment-table td { color: #526275; vertical-align: middle; }
         .apartment-table td strong { color: #10213c; }
         .apartment-table .apartment-actions { margin-top: 0; }
+        .apartment-page-header { align-items: center; display: flex; justify-content: space-between; gap: 1rem; }
+        .apartment-title-wrap { flex: 1; }
+        .apartment-header-actions { align-items: center; display: flex; gap: .75rem; }
+        .apartment-toolbar-button { align-items: center; background: #f2f6fb; border: 1px solid #dfeaf7; border-radius: 12px; color: #1c3356; cursor: pointer; display: inline-flex; font-size: 1rem; height: 44px; justify-content: center; width: 44px; }
+        .apartment-toolbar-button:hover { background: #eaf3ff; border-color: #c9dcff; }
+        .apartment-search-panel { margin-top: 1rem; }
+        .apartment-search-box { align-items: center; background: #f7fafd; border: 1px solid #dceaf7; border-radius: 14px; display: flex; gap: .75rem; padding: .75rem 1rem; }
+        .apartment-search-box i { color: #7a8dac; }
+        .apartment-search-box input { background: transparent; border: 0; color: #10213c; flex: 1; font: inherit; outline: none; }
+        .apartment-search-box input::placeholder { color: #8aa0bc; }
+        .apartment-chip-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.2rem; overflow-x: auto; padding-bottom: .1rem; }
+        .apartment-status-chip { align-items: center; background: #f5f8fc; border: 1px solid #dfeaf7; border-radius: 999px; color: #476484; cursor: pointer; display: inline-flex; gap: .55rem; font: 600 .83rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; min-height: 40px; padding: .55rem .9rem; white-space: nowrap; }
+        .apartment-status-chip.active { background: linear-gradient(135deg, #eaf6ff 0%, #dff2ff 100%); border-color: #8ec5ff; color: #0d62c4; box-shadow: inset 0 0 0 1px rgba(13,98,196,.08); }
+        .apartment-status-count { align-items: center; background: #e6edf8; border-radius: 999px; color: #486383; display: inline-flex; font-size: .75rem; justify-content: center; min-width: 1.8rem; padding: .2rem .5rem; }
+        .apartment-status-chip.active .apartment-status-count { background: #d7ebff; color: #0d62c4; }
+        .apartment-advanced-filter { background: #fbfdff; border: 1px solid #e5edf8; border-radius: 16px; margin-top: 1rem; padding: 1rem; }
+        .apartment-filter-grid { display: grid; gap: .9rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
+        .apartment-filter-field { display: grid; gap: .45rem; }
+        .apartment-filter-field label { color: #61708a; font-size: .77rem; font-weight: 700; }
+        .apartment-filter-field input, .apartment-filter-field select { background: #fff; border: 1px solid #d8e3f0; border-radius: 11px; color: #10213c; font: inherit; padding: .68rem .75rem; }
+        .apartment-filter-field input:focus, .apartment-filter-field select:focus { border-color: #1683ff; box-shadow: 0 0 0 3px rgba(22, 131, 255, .12); outline: none; }
+        .apartment-filter-actions { display: flex; gap: .75rem; justify-content: flex-end; margin-top: 1rem; }
+        .apartment-filter-actions .btn-secondary { border-radius: 12px; }
+        .apartment-empty-state { align-items: center; color: #536b88; display: flex; flex-direction: column; gap: .7rem; justify-content: center; min-height: 220px; padding: 2rem; text-align: center; }
+        .apartment-empty-state i { color: #b3c3d8; font-size: 3rem; }
+        .apartment-empty-state h3 { color: #10213c; font-size: 1.1rem; margin: 0; }
+        .apartment-empty-state p { color: #70839d; margin: 0; max-width: 420px; }
         .mobile-menu-button { display: none; }
         .meter-page { max-width: 1120px; margin: 0 auto; }
         .meter-header { align-items: center; display: flex; justify-content: space-between; margin-bottom: 1.5rem; }
@@ -1578,6 +1605,50 @@
         .rh-demo-banner.warn .rh-demo-tag{background:#a5680c}
         .rh-demo-banner.blocked .rh-demo-tag{background:#c0392b}
         .rh-empty{color:#94a3b8;padding:3rem 1rem;text-align:center}.rh-empty i{font-size:2rem;margin-bottom:.75rem;opacity:.6}
+        .rh-support-card{padding:1.5rem}
+        .rh-support-header{align-items:center;display:flex;justify-content:space-between;gap:1rem;margin-bottom:1.25rem}
+        .rh-support-header h2{color:#10213c;font-size:1.6rem;font-weight:800;margin:0}
+        .rh-support-header p{color:#64748b;margin:.35rem 0 0}
+        .rh-support-summary{background:#eaf3ff;border:1px solid #cfe3ff;border-radius:999px;color:#0d65d5;font-size:.8rem;font-weight:700;padding:.45rem .8rem}
+        .rh-support-toolbar{display:grid;gap:.75rem;grid-template-columns: minmax(220px, 2fr) repeat(3, minmax(130px, 1fr));margin-bottom:1rem}
+        .rh-support-toolbar input,.rh-support-toolbar select{border:1px solid var(--line);border-radius:10px;font:inherit;padding:.7rem .8rem}
+        .rh-support-table-wrap{overflow:auto;border:1px solid var(--line);border-radius:12px}
+        .rh-support-table{border-collapse:collapse;min-width:980px;width:100%}
+        .rh-support-table th,.rh-support-table td{border-bottom:1px solid var(--line);padding:.8rem .75rem;text-align:left;vertical-align:top}
+        .rh-support-table th{background:#f8fafc;color:#475569;font-size:.75rem;letter-spacing:.06em;text-transform:uppercase}
+        .rh-support-table tbody tr:hover{background:#f8fbff}
+        .rh-support-badge{border-radius:999px;display:inline-block;font-size:.72rem;font-weight:700;padding:.28rem .7rem}
+        .rh-support-badge.pending{background:#fff4df;color:#a5680c}
+        .rh-support-badge.processing{background:#eaf3ff;color:#0d65d5}
+        .rh-support-badge.resolved{background:#e6f8ef;color:#11804f}
+        .rh-support-badge.closed{background:#e2e8f0;color:#475569}
+        .rh-support-priority{border-radius:999px;display:inline-block;font-size:.72rem;font-weight:700;padding:.28rem .6rem;background:#f1f5f9;color:#475569}
+        .rh-support-priority.low{background:#eaf3ff;color:#0d65d5}
+        .rh-support-priority.medium{background:#fff4df;color:#a5680c}
+        .rh-support-priority.high{background:#fee2e2;color:#b91c1c}
+        .rh-support-action{background:#eff6ff;border:1px solid #d7ebff;border-radius:8px;color:#0d65d5;cursor:pointer;font:inherit;font-weight:700;padding:.5rem .7rem}
+        .rh-support-modal{align-items:center;background:rgba(15,23,42,.52);display:none;inset:0;justify-content:center;padding:1rem;position:fixed;z-index:400}
+        .rh-support-modal.is-open{display:flex}
+        .rh-support-dialog{background:#fff;border-radius:18px;box-shadow:0 28px 60px rgba(15,23,42,.2);max-height:90vh;max-width:780px;overflow:auto;padding:1.5rem;position:relative;width:min(780px, 100%)}
+        .rh-support-close{position:absolute;right:1rem;top:1rem;background:none;border:0;color:#64748b;font-size:1.1rem;cursor:pointer}
+        .rh-support-detail-grid{display:grid;gap:1rem;grid-template-columns:1fr 1fr}
+        .rh-support-detail-section{border:1px solid var(--line);border-radius:12px;padding:1rem}
+        .rh-support-detail-section h4{color:#10213c;font-size:1rem;margin:0 0 .8rem}
+        .rh-support-metadata{display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(140px,1fr));margin-top:1rem}
+        .rh-support-meta-box{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:.7rem .8rem}
+        .rh-support-meta-box small{color:#64748b;display:block;margin-bottom:.2rem}
+        .rh-support-meta-box strong{color:#10213c}
+        .rh-support-history{display:grid;gap:.7rem;margin-top:1rem}
+        .rh-support-history-item{background:#f8fafc;border:1px solid var(--line);border-radius:10px;padding:.75rem}
+        .rh-support-history-item strong{display:block;margin-bottom:.2rem}
+        .rh-support-history-item small{color:#64748b}
+        .rh-support-form{display:grid;gap:.85rem;margin-top:1rem}
+        .rh-support-form label{color:#475569;display:block;font-size:.8rem;font-weight:600;margin-bottom:.35rem}
+        .rh-support-form select,.rh-support-form textarea{border:1px solid var(--line);border-radius:10px;font:inherit;padding:.7rem .8rem;width:100%}
+        .rh-support-form textarea{min-height:100px;resize:vertical}
+        .rh-support-footer{display:flex;gap:.7rem;justify-content:flex-end;margin-top:1rem}
+        @media (max-width: 900px){ .rh-support-toolbar{grid-template-columns:1fr 1fr}. .rh-support-detail-grid{grid-template-columns:1fr} }
+        @media (max-width: 600px){ .rh-support-toolbar{grid-template-columns:1fr}. .rh-support-header{align-items:flex-start;flex-direction:column}. }
         .rh-row-btn{background:none;border:1px solid var(--line);border-radius:6px;color:#475569;cursor:pointer;margin-right:.35rem;padding:.35rem .55rem}.rh-row-btn:hover{background:#f1f7fd}.rh-row-btn.danger{border-color:#fecaca;color:#ef4444}.rh-row-btn.danger:hover{background:#fee2e2}
         .rh-link-btn{background:none;border:0;color:#1683ff;cursor:pointer;font:inherit;font-weight:700;font-size:.82rem}.rh-link-btn:hover{color:#0d65d5}
         .rh-drawer-overlay{background:rgba(11,36,71,.45);bottom:0;display:none;justify-content:flex-end;left:0;position:fixed;right:0;top:0;z-index:300}
@@ -1941,12 +2012,67 @@
 
         <div id="apartments-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem; padding: 2rem 2.25rem;">
-                <div style="align-items: center; display: flex; justify-content: space-between; gap: 1.5rem;">
-                    <div>
-                        <h2 style="color: #10213c; font: 800 2rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Căn hộ</h2>
+                <div class="apartment-page-header">
+                    <div class="apartment-title-wrap">
+                        <h2 style="color: #10213c; font: 800 2rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif;">Danh sách căn hộ</h2>
                         <p style="color: #8aa0bc; font-size: 1.05rem; margin-top: 0.45rem;">Thông tin căn hộ và cư dân sẽ được sử dụng khi lập hợp đồng và hóa đơn.</p>
                     </div>
-                    <button class="btn-primary" onclick="openApartmentModal()" style="font-size: 1.05rem; padding: .9rem 1.25rem; white-space: nowrap;" type="button"><i class="fas fa-plus"></i> Thêm căn hộ</button>
+                    <div class="apartment-header-actions">
+                        <button class="apartment-toolbar-button" id="apartment-search-toggle" title="Tìm kiếm căn hộ" type="button" aria-label="Tìm kiếm căn hộ"><i class="fas fa-magnifying-glass"></i></button>
+                        <button class="apartment-toolbar-button" id="apartment-filter-toggle" title="Bộ lọc căn hộ" type="button" aria-label="Bộ lọc căn hộ"><i class="fas fa-filter"></i></button>
+                        <button class="btn-primary" onclick="openApartmentModal()" style="font-size: 1.05rem; padding: .9rem 1.25rem; white-space: nowrap;" type="button"><i class="fas fa-plus"></i> Thêm căn hộ</button>
+                    </div>
+                </div>
+                <div class="apartment-search-panel" id="apartment-search-panel" hidden>
+                    <div class="apartment-search-box">
+                        <i class="fas fa-magnifying-glass"></i>
+                        <input id="apartment-search-input" type="search" placeholder="Tìm theo mã căn hộ, tên căn hộ hoặc tên cư dân..." aria-label="Tìm kiếm căn hộ">
+                    </div>
+                </div>
+                <div class="apartment-chip-row" id="apartment-status-chips" aria-label="Lọc nhanh căn hộ"></div>
+                <div class="apartment-advanced-filter" id="apartment-advanced-filter" hidden>
+                    <div class="apartment-filter-grid">
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-status">Trạng thái</label>
+                            <select id="apartment-filter-status"><option value="">Tất cả trạng thái</option></select>
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-building">Tòa nhà</label>
+                            <select id="apartment-filter-building"><option value="">Tất cả tòa nhà</option></select>
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-floor">Tầng</label>
+                            <select id="apartment-filter-floor"><option value="">Tất cả tầng</option></select>
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-code">Mã căn hộ</label>
+                            <input id="apartment-filter-code" type="text" placeholder="VD: OH562">
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-area-min">Diện tích từ</label>
+                            <input id="apartment-filter-area-min" type="number" min="0" placeholder="m² từ">
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-area-max">Diện tích đến</label>
+                            <input id="apartment-filter-area-max" type="number" min="0" placeholder="m² đến">
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-rent-min">Giá thuê từ</label>
+                            <input id="apartment-filter-rent-min" type="number" min="0" placeholder="VNĐ từ">
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-rent-max">Giá thuê đến</label>
+                            <input id="apartment-filter-rent-max" type="number" min="0" placeholder="VNĐ đến">
+                        </div>
+                        <div class="apartment-filter-field">
+                            <label for="apartment-filter-occupants">Số người đang ở</label>
+                            <input id="apartment-filter-occupants" type="number" min="0" placeholder="VD: 2">
+                        </div>
+                    </div>
+                    <div class="apartment-filter-actions">
+                        <button class="btn-secondary" id="apartment-filter-clear" type="button">Xóa bộ lọc</button>
+                        <button class="btn-primary" id="apartment-filter-apply" type="button">Áp dụng bộ lọc</button>
+                    </div>
                 </div>
             </div>
             <div class="card" style="padding: 0;">
@@ -1997,6 +2123,7 @@
                     </div>
                 </form>
             </div>
+        </div>
         <div class="stat-update-modal" id="buildingFormModal" role="dialog" aria-modal="true" aria-labelledby="buildingFormTitle" onclick="closeBuildingFormOnBackdrop(event)">
             <form class="stat-update-dialog building-form-dialog" onsubmit="saveBuilding(event)">
                 <h2 id="buildingFormTitle">Thêm thông tin tòa nhà</h2>
@@ -2452,9 +2579,67 @@
         </div>
 
         <div id="support-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Yêu cầu Hỗ trợ</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung yêu cầu hỗ trợ sẽ hiển thị ở đây</p>
+            <div class="card rh-support-card">
+                <div class="rh-support-header">
+                    <div>
+                        <h2>Yêu cầu &amp; Hỗ trợ</h2>
+                        <p>Quản lý toàn bộ yêu cầu được cư dân gửi lên</p>
+                    </div>
+                    <span class="rh-support-summary" id="rhSupportSummary">0 yêu cầu</span>
+                </div>
+
+                <div class="rh-support-toolbar">
+                    <input type="search" id="rhSupportSearch" placeholder="Tìm kiếm mã, căn hộ, cư dân, tiêu đề..." aria-label="Tìm kiếm yêu cầu hỗ trợ">
+                    <select id="rhSupportStatusFilter">
+                        <option value="all">Tất cả trạng thái</option>
+                        <option value="pending">Chờ xử lý</option>
+                        <option value="processing">Đang xử lý</option>
+                        <option value="resolved">Đã xử lý</option>
+                        <option value="closed">Đã đóng</option>
+                    </select>
+                    <select id="rhSupportTypeFilter">
+                        <option value="all">Tất cả loại</option>
+                        <option value="Sửa chữa căn hộ">Sửa chữa căn hộ</option>
+                        <option value="Điện/nước">Điện/nước</option>
+                        <option value="Vệ sinh">Vệ sinh</option>
+                        <option value="An ninh">An ninh</option>
+                        <option value="Thang máy">Thang máy</option>
+                        <option value="Phản ánh">Phản ánh</option>
+                        <option value="Khác">Khác</option>
+                    </select>
+                    <select id="rhSupportPriorityFilter">
+                        <option value="all">Tất cả mức độ</option>
+                        <option value="low">Thấp</option>
+                        <option value="medium">Trung bình</option>
+                        <option value="high">Cao</option>
+                    </select>
+                </div>
+
+                <div class="rh-support-table-wrap">
+                    <table class="rh-support-table">
+                        <thead>
+                            <tr>
+                                <th>Mã yêu cầu</th>
+                                <th>Căn hộ</th>
+                                <th>Tên cư dân</th>
+                                <th>Loại</th>
+                                <th>Tiêu đề</th>
+                                <th>Ngày gửi</th>
+                                <th>Mức độ</th>
+                                <th>Trạng thái</th>
+                                <th>Thao tác</th>
+                            </tr>
+                        </thead>
+                        <tbody id="rhSupportTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="rh-support-modal" id="rhSupportModal" aria-hidden="true">
+                <div class="rh-support-dialog" role="dialog" aria-modal="true" aria-labelledby="rhSupportDialogTitle">
+                    <button class="rh-support-close" type="button" aria-label="Đóng" onclick="closeSupportRequestModal()"><i class="fas fa-times"></i></button>
+                    <div id="rhSupportModalContent"></div>
+                </div>
             </div>
         </div>
 
@@ -3239,16 +3424,251 @@
             editingApartmentIndex = null;
         }
 
+        const apartmentListState = {
+            search: '',
+            quickStatus: 'all',
+            showSearch: false,
+            showAdvancedFilter: false,
+            advanced: {
+                status: '',
+                building: '',
+                floor: '',
+                code: '',
+                areaMin: '',
+                areaMax: '',
+                rentMin: '',
+                rentMax: '',
+                occupants: ''
+            }
+        };
+
+        function normalizeApartmentStatus(apartment) {
+            if (!apartment) return 'occupied';
+            const raw = String(apartment.status || apartment.apartmentStatus || apartment.state || apartment.roomStatus || '').trim().toLowerCase();
+            if (!raw && apartment.active === false) return 'maintenance';
+            if (['đang ở', 'occupied', 'rented', 'leased', 'đang thuê', 'da_thue'].includes(raw) || /occupied|đang ở|đang thuê|rented|leased/.test(raw)) return 'occupied';
+            if (['trống', 'vacant', 'available', 'empty'].includes(raw) || /vacant|trống|available|empty/.test(raw)) return 'vacant';
+            if (['bảo trì', 'sửa chữa', 'maintenance', 'repair', 'fixing', 'under repair'].includes(raw) || /maintenance|bảo trì|sửa chữa|repair|fixing/.test(raw)) return 'maintenance';
+            if (apartment.active === false) return 'maintenance';
+            if (apartment.owner || apartment.tenantName || apartment.residentName || apartment.renterName || apartment.customerName || apartment.tenants?.length) return 'occupied';
+            return 'occupied';
+        }
+
+        function getApartmentStatusMeta(status) {
+            const STATUS_META = {
+                occupied: { label: 'Đang ở', className: 'badge-success' },
+                vacant: { label: 'Trống', className: 'badge-danger' },
+                maintenance: { label: 'Bảo trì', className: 'badge-warning' }
+            };
+            return STATUS_META[status] || { label: 'Đang ở', className: 'badge-success' };
+        }
+
+        function getApartmentDisplayFloor(apartment) {
+            const floorValue = apartment.floor ?? apartment.level ?? apartment.roomFloor ?? apartment.floorNumber ?? '';
+            if (floorValue === '' || floorValue === null || floorValue === undefined) return '-';
+            const normalized = String(floorValue).trim();
+            return normalized.toLowerCase().startsWith('tầng') ? normalized : `Tầng ${normalized}`;
+        }
+
+        function getApartmentSearchText(apartment) {
+            if (!apartment) return '';
+            const candidateValues = [
+                apartment.code,
+                apartment.name,
+                apartment.title,
+                apartment.building,
+                apartment.buildingName,
+                apartment.owner,
+                apartment.tenantName,
+                apartment.residentName,
+                apartment.renterName,
+                apartment.customerName,
+                apartment.roomName,
+                apartment.unitCode,
+                apartment.tenants && Array.isArray(apartment.tenants) ? apartment.tenants.map(tenant => tenant && (tenant.name || tenant.fullName || tenant.residentName)).filter(Boolean).join(' ') : ''
+            ];
+            return candidateValues.filter(Boolean).join(' ');
+        }
+
+        function getStoredApartments() {
+            const storedApartments = localStorage.getItem('residenthub-apartments');
+            const apartments = storedApartments ? JSON.parse(storedApartments) : [{ code: 'A-1208', building: 'Riverside', owner: 'Nguyễn Thị Hoa', status: 'Đang ở', active: true }];
+            if (!storedApartments) localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
+            return Array.isArray(apartments) ? apartments : [];
+        }
+
+        function matchesApartmentSearch(apartment, query) {
+            if (!query) return true;
+            return getApartmentSearchText(apartment).toLowerCase().includes(query.toLowerCase());
+        }
+
+        function matchesApartmentAdvancedFilters(apartment, filters) {
+            if (!filters) return true;
+            if (filters.status && normalizeApartmentStatus(apartment) !== filters.status) return false;
+            if (filters.building && String(apartment.building || '').trim().toLowerCase() !== String(filters.building).trim().toLowerCase()) return false;
+            if (filters.floor) {
+                const apartmentFloor = String(apartment.floor || apartment.level || '').trim().toLowerCase();
+                const targetFloor = String(filters.floor).trim().toLowerCase();
+                if (!apartmentFloor || apartmentFloor !== targetFloor && !apartmentFloor.startsWith(targetFloor)) return false;
+            }
+            if (filters.code && !String(apartment.code || '').toLowerCase().includes(String(filters.code).trim().toLowerCase())) return false;
+            const areaValue = Number(apartment.area || 0);
+            if (filters.areaMin !== '' && areaValue < Number(filters.areaMin)) return false;
+            if (filters.areaMax !== '' && areaValue > Number(filters.areaMax)) return false;
+            const rentValue = Number(apartment.rent || apartment.rentPrice || 0);
+            if (filters.rentMin !== '' && rentValue < Number(filters.rentMin)) return false;
+            if (filters.rentMax !== '' && rentValue > Number(filters.rentMax)) return false;
+            const occupantsValue = Number(apartment.currentResidents || apartment.occupants || apartment.residentCount || apartment.tenantCount || apartment.rentedCount || 0);
+            if (filters.occupants !== '' && occupantsValue !== Number(filters.occupants)) return false;
+            return true;
+        }
+
+        function getFilteredApartments() {
+            const apartments = getStoredApartments();
+            return apartments.filter(apartment => {
+                if (!matchesApartmentSearch(apartment, apartmentListState.search)) return false;
+                if (apartmentListState.quickStatus !== 'all' && normalizeApartmentStatus(apartment) !== apartmentListState.quickStatus) return false;
+                return matchesApartmentAdvancedFilters(apartment, apartmentListState.advanced);
+            });
+        }
+
+        function populateApartmentFilterOptions() {
+            const apartments = getStoredApartments();
+            const statusSelect = document.getElementById('apartment-filter-status');
+            const buildingSelect = document.getElementById('apartment-filter-building');
+            const floorSelect = document.getElementById('apartment-filter-floor');
+            if (!statusSelect || !buildingSelect || !floorSelect) return;
+
+            const statusOptions = ['occupied', 'vacant', 'maintenance'];
+            statusSelect.replaceChildren(new Option('Tất cả trạng thái', ''));
+            statusOptions.forEach(status => {
+                const meta = getApartmentStatusMeta(status);
+                statusSelect.add(new Option(meta.label, status));
+            });
+            statusSelect.value = apartmentListState.advanced.status || '';
+
+            const buildings = [...new Set(apartments.map(apartment => apartment.building).filter(Boolean))];
+            buildingSelect.replaceChildren(new Option('Tất cả tòa nhà', ''));
+            buildings.forEach(building => buildingSelect.add(new Option(building, building)));
+            buildingSelect.value = apartmentListState.advanced.building || '';
+
+            const floors = [...new Set(apartments.map(apartment => apartment.floor || apartment.level || '').filter(Boolean))];
+            floorSelect.replaceChildren(new Option('Tất cả tầng', ''));
+            floors.forEach(floor => {
+                const value = String(floor).trim();
+                floorSelect.add(new Option(value.startsWith('Tầng') || value.startsWith('tầng') ? value : `Tầng ${value}`, value));
+            });
+            floorSelect.value = apartmentListState.advanced.floor || '';
+        }
+
+        function syncApartmentFilterInputs() {
+            const searchInput = document.getElementById('apartment-search-input');
+            if (searchInput) searchInput.value = apartmentListState.search;
+
+            const panel = document.getElementById('apartment-advanced-filter');
+            if (panel) panel.hidden = !apartmentListState.showAdvancedFilter;
+            const searchPanel = document.getElementById('apartment-search-panel');
+            if (searchPanel) searchPanel.hidden = !apartmentListState.showSearch;
+
+            const filterButton = document.getElementById('apartment-filter-toggle');
+            if (filterButton) filterButton.style.background = apartmentListState.showAdvancedFilter ? '#dff2ff' : '#f2f6fb';
+            const searchButton = document.getElementById('apartment-search-toggle');
+            if (searchButton) searchButton.style.background = apartmentListState.showSearch ? '#dff2ff' : '#f2f6fb';
+
+            const filterStatus = document.getElementById('apartment-filter-status');
+            if (filterStatus) filterStatus.value = apartmentListState.advanced.status || '';
+            const filterBuilding = document.getElementById('apartment-filter-building');
+            if (filterBuilding) filterBuilding.value = apartmentListState.advanced.building || '';
+            const filterFloor = document.getElementById('apartment-filter-floor');
+            if (filterFloor) filterFloor.value = apartmentListState.advanced.floor || '';
+            const filterCode = document.getElementById('apartment-filter-code');
+            if (filterCode) filterCode.value = apartmentListState.advanced.code || '';
+            const filterAreaMin = document.getElementById('apartment-filter-area-min');
+            if (filterAreaMin) filterAreaMin.value = apartmentListState.advanced.areaMin || '';
+            const filterAreaMax = document.getElementById('apartment-filter-area-max');
+            if (filterAreaMax) filterAreaMax.value = apartmentListState.advanced.areaMax || '';
+            const filterRentMin = document.getElementById('apartment-filter-rent-min');
+            if (filterRentMin) filterRentMin.value = apartmentListState.advanced.rentMin || '';
+            const filterRentMax = document.getElementById('apartment-filter-rent-max');
+            if (filterRentMax) filterRentMax.value = apartmentListState.advanced.rentMax || '';
+            const filterOccupants = document.getElementById('apartment-filter-occupants');
+            if (filterOccupants) filterOccupants.value = apartmentListState.advanced.occupants || '';
+        }
+
+        function updateApartmentStatusChips() {
+            const container = document.getElementById('apartment-status-chips');
+            if (!container) return;
+            const apartments = getStoredApartments();
+            const counts = { all: apartments.length, occupied: 0, vacant: 0, maintenance: 0 };
+            apartments.forEach(apartment => {
+                const status = normalizeApartmentStatus(apartment);
+                if (counts[status] !== undefined) counts[status] += 1;
+            });
+
+            const chips = [
+                { value: 'all', label: 'Tất cả căn hộ', count: counts.all },
+                { value: 'occupied', label: 'Đang ở', count: counts.occupied },
+                { value: 'vacant', label: 'Trống', count: counts.vacant },
+                { value: 'maintenance', label: 'Bảo trì', count: counts.maintenance }
+            ];
+
+            container.innerHTML = chips.map(chip => `
+                <button class="apartment-status-chip ${apartmentListState.quickStatus === chip.value ? 'active' : ''}" data-apartment-status="${chip.value}" type="button">
+                    <span>${chip.label}</span>
+                    <span class="apartment-status-count">${chip.count}</span>
+                </button>
+            `).join('');
+
+            container.querySelectorAll('[data-apartment-status]').forEach(button => {
+                button.addEventListener('click', () => {
+                    apartmentListState.quickStatus = button.dataset.apartmentStatus;
+                    renderSavedApartments();
+                });
+            });
+        }
+
+        function readApartmentAdvancedFiltersFromForm() {
+            return {
+                status: document.getElementById('apartment-filter-status')?.value || '',
+                building: document.getElementById('apartment-filter-building')?.value || '',
+                floor: document.getElementById('apartment-filter-floor')?.value || '',
+                code: document.getElementById('apartment-filter-code')?.value || '',
+                areaMin: document.getElementById('apartment-filter-area-min')?.value || '',
+                areaMax: document.getElementById('apartment-filter-area-max')?.value || '',
+                rentMin: document.getElementById('apartment-filter-rent-min')?.value || '',
+                rentMax: document.getElementById('apartment-filter-rent-max')?.value || '',
+                occupants: document.getElementById('apartment-filter-occupants')?.value || ''
+            };
+        }
+
+        function clearApartmentAdvancedFilters() {
+            apartmentListState.advanced = {
+                status: '',
+                building: '',
+                floor: '',
+                code: '',
+                areaMin: '',
+                areaMax: '',
+                rentMin: '',
+                rentMax: '',
+                occupants: ''
+            };
+            apartmentListState.search = '';
+            apartmentListState.quickStatus = 'all';
+            syncApartmentFilterInputs();
+            renderSavedApartments();
+        }
+
         function createApartmentRow(apartment, index) {
             const row = document.createElement('tr');
-            const isActive = apartment.active !== false;
-            const statusClass = isActive ? 'badge-success' : 'badge-warning';
+            const status = normalizeApartmentStatus(apartment);
+            const statusMeta = getApartmentStatusMeta(status);
             row.dataset.apartmentIndex = index;
-            row.innerHTML = `<td><strong></strong></td><td></td><td></td><td><span class="badge ${statusClass}"></span></td><td><div class="apartment-actions"><button class="apartment-action edit" title="Chỉnh sửa" type="button"><i class="fas fa-pen"></i></button><button class="apartment-action delete" title="Xóa" type="button"><i class="fas fa-trash"></i></button></div></td>`;
-            row.querySelector('strong').textContent = apartment.code;
-            row.querySelector('td:nth-child(2)').textContent = apartment.building;
-            row.querySelector('td:nth-child(3)').textContent = apartment.floor ? `Tầng ${apartment.floor}` : '-';
-            row.querySelector('.badge').textContent = isActive ? 'Đang hoạt động' : 'Ngừng hoạt động';
+            row.innerHTML = `<td><strong></strong></td><td></td><td></td><td><span class="badge ${statusMeta.className}"></span></td><td><div class="apartment-actions"><button class="apartment-action edit" title="Chỉnh sửa" type="button"><i class="fas fa-pen"></i></button><button class="apartment-action delete" title="Xóa" type="button"><i class="fas fa-trash"></i></button></div></td>`;
+            row.querySelector('strong').textContent = apartment.code || 'Căn hộ';
+            row.querySelector('td:nth-child(2)').textContent = apartment.building || '—';
+            row.querySelector('td:nth-child(3)').textContent = getApartmentDisplayFloor(apartment);
+            row.querySelector('.badge').textContent = statusMeta.label;
             row.querySelector('.edit').addEventListener('click', () => editApartment(index));
             row.querySelector('.delete').addEventListener('click', () => deleteApartment(index));
             return row;
@@ -3257,11 +3677,54 @@
         function renderSavedApartments() {
             const list = document.getElementById('apartments-list');
             if (!list) return;
-            const storedApartments = localStorage.getItem('residenthub-apartments');
-            const apartments = storedApartments ? JSON.parse(storedApartments) : [{ code: 'A-1208', building: 'Riverside', owner: 'Nguyễn Thị Hoa', status: 'Đang ở' }];
-            if (!storedApartments) localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
-            list.replaceChildren(...apartments.map((apartment, index) => createApartmentRow(apartment, index)));
+            const apartments = getStoredApartments();
+            const filteredApartments = getFilteredApartments();
+            updateApartmentStatusChips();
+            populateApartmentFilterOptions();
+            syncApartmentFilterInputs();
+
+            if (!filteredApartments.length) {
+                list.innerHTML = '<tr><td colspan="5"><div class="apartment-empty-state"><i class="fas fa-magnifying-glass"></i><h3>Không tìm thấy căn hộ phù hợp</h3><p>Vui lòng thử lại với từ khóa khác hoặc xóa bộ lọc hiện tại.</p></div></td></tr>';
+                return;
+            }
+
+            const rows = filteredApartments.map((apartment) => {
+                const originalIndex = apartments.findIndex(item => item === apartment);
+                return createApartmentRow(apartment, originalIndex >= 0 ? originalIndex : 0);
+            });
+            list.replaceChildren(...rows);
         }
+
+        document.getElementById('apartment-search-toggle')?.addEventListener('click', () => {
+            apartmentListState.showSearch = !apartmentListState.showSearch;
+            if (apartmentListState.showSearch) {
+                const input = document.getElementById('apartment-search-input');
+                setTimeout(() => input && input.focus(), 0);
+            }
+            syncApartmentFilterInputs();
+        });
+
+        document.getElementById('apartment-filter-toggle')?.addEventListener('click', () => {
+            apartmentListState.showAdvancedFilter = !apartmentListState.showAdvancedFilter;
+            syncApartmentFilterInputs();
+        });
+
+        document.getElementById('apartment-search-input')?.addEventListener('input', (event) => {
+            apartmentListState.search = event.target.value.trim();
+            renderSavedApartments();
+        });
+
+        document.getElementById('apartment-filter-apply')?.addEventListener('click', () => {
+            apartmentListState.advanced = readApartmentAdvancedFiltersFromForm();
+            apartmentListState.showAdvancedFilter = false;
+            renderSavedApartments();
+        });
+
+        document.getElementById('apartment-filter-clear')?.addEventListener('click', () => {
+            clearApartmentAdvancedFilters();
+            apartmentListState.showAdvancedFilter = false;
+            syncApartmentFilterInputs();
+        });
 
         function saveApartment(event) {
             event.preventDefault();
@@ -3284,12 +3747,7 @@
                 apartments[editingApartmentIndex] = apartment;
             }
             localStorage.setItem('residenthub-apartments', JSON.stringify(apartments));
-            const list = document.getElementById('apartments-list');
-            if (editingApartmentIndex === null) {
-                list.appendChild(createApartmentRow(apartment, apartments.length - 1));
-            } else {
-                renderSavedApartments();
-            }
+            renderSavedApartments();
             closeApartmentModal();
         }
 
@@ -3327,7 +3785,8 @@
             customers: () => RHUI.renderCustomersTab(),
             meters: () => RHUI.renderMetersTab(),
             contracts: () => RHUI.renderContractsTab(),
-            invoices: () => RHUI.renderInvoicesTab()
+            invoices: () => RHUI.renderInvoicesTab(),
+            support: () => renderSupportRequestsTab()
         };
 
         const editableStats = {
@@ -4077,21 +4536,153 @@
         window.addEventListener('load', function() {
             loadSavedStats();
             initCharts();
-            document.getElementById('dashboardDataForm').addEventListener('submit', saveDashboardData);
-            document.getElementById('apartment-form').addEventListener('submit', saveApartment);
-            document.getElementById('apartment-building').addEventListener('change', () => {
-                const floorSelect = document.getElementById('apartment-floor');
-                floorSelect.replaceChildren(new Option('Chọn tầng', ''));
-                getFloorsForBuilding(document.getElementById('apartment-building').value).forEach(floor => floorSelect.add(new Option(`Tầng ${floor}`, floor)));
+
+            const dashboardForm = document.getElementById('dashboardDataForm');
+            if (dashboardForm) dashboardForm.addEventListener('submit', saveDashboardData);
+
+            const apartmentForm = document.getElementById('apartment-form');
+            if (apartmentForm) apartmentForm.addEventListener('submit', saveApartment);
+
+            const apartmentBuilding = document.getElementById('apartment-building');
+            if (apartmentBuilding) {
+                apartmentBuilding.addEventListener('change', () => {
+                    const floorSelect = document.getElementById('apartment-floor');
+                    if (!floorSelect) return;
+                    floorSelect.replaceChildren(new Option('Chọn tầng', ''));
+                    getFloorsForBuilding(apartmentBuilding.value).forEach(floor => floorSelect.add(new Option(`Tầng ${floor}`, floor)));
+                });
+            }
+
+            const apartmentActive = document.getElementById('apartment-active');
+            if (apartmentActive) apartmentActive.addEventListener('change', updateActiveLabel);
+
+            const supportSearch = document.getElementById('rhSupportSearch');
+            const supportStatusFilter = document.getElementById('rhSupportStatusFilter');
+            const supportTypeFilter = document.getElementById('rhSupportTypeFilter');
+            const supportPriorityFilter = document.getElementById('rhSupportPriorityFilter');
+            [supportSearch, supportStatusFilter, supportTypeFilter, supportPriorityFilter].forEach(function (element) {
+                if (!element) return;
+                const eventName = element.tagName === 'SELECT' ? 'change' : 'input';
+                element.addEventListener(eventName, renderSupportRequestsTab);
             });
-            document.getElementById('apartment-active').addEventListener('change', updateActiveLabel);
+
             renderSavedApartments();
             renderDashboardData();
             renderWorkflows();
+            renderSupportRequestsTab();
             renderCurrentUser();
             if (!RH_IS_DEMO) renderAccountsTable();
             RHUI.renderDashboardCounts();
         });
+
+        function renderSupportRequestsTab() {
+            const body = document.getElementById('rhSupportTableBody');
+            const search = document.getElementById('rhSupportSearch');
+            const statusFilter = document.getElementById('rhSupportStatusFilter');
+            const typeFilter = document.getElementById('rhSupportTypeFilter');
+            const priorityFilter = document.getElementById('rhSupportPriorityFilter');
+            if (!body) return;
+
+            const allRequests = RH.getAllSupportRequests ? RH.getAllSupportRequests() : [];
+            const normalized = allRequests.map(function (request) {
+                const status = RH.normalizeSupportStatus ? RH.normalizeSupportStatus(request.status) : request.status;
+                return Object.assign({}, request, {
+                    status: status,
+                    priority: String(request.priority || 'medium').toLowerCase() === 'normal' ? 'medium' : String(request.priority || 'medium').toLowerCase(),
+                    residentName: request.residentName || 'Cư dân',
+                    apartmentCode: request.apartmentCode || request.location || '—',
+                    title: request.title || 'Yêu cầu mới'
+                });
+            });
+
+            const query = (search ? search.value : '').toLowerCase();
+            const filtered = normalized.filter(function (request) {
+                const matchesSearch = [request.id, request.residentName, request.apartmentCode, request.title, request.type].join(' ').toLowerCase().includes(query);
+                const matchesStatus = statusFilter && statusFilter.value !== 'all' ? request.status === statusFilter.value : true;
+                const matchesType = typeFilter && typeFilter.value !== 'all' ? request.type === typeFilter.value : true;
+                const matchesPriority = priorityFilter && priorityFilter.value !== 'all' ? request.priority === priorityFilter.value : true;
+                return matchesSearch && matchesStatus && matchesType && matchesPriority;
+            });
+
+            const summary = document.getElementById('rhSupportSummary');
+            if (summary) summary.textContent = filtered.length + ' yêu cầu';
+
+            body.innerHTML = filtered.length ? filtered.map(function (request) {
+                const statusClass = request.status === 'pending' ? 'pending' : request.status === 'processing' ? 'processing' : request.status === 'resolved' ? 'resolved' : 'closed';
+                const priorityClass = request.priority === 'low' ? 'low' : request.priority === 'medium' ? 'medium' : 'high';
+                const statusLabel = RH.supportStatusLabel ? RH.supportStatusLabel(request.status) : request.status;
+                const priorityLabel = RH.supportPriorityLabel ? RH.supportPriorityLabel(request.priority) : request.priority;
+                return '<tr>' +
+                    '<td><strong>' + escapeHtml(request.id || '—') + '</strong></td>' +
+                    '<td>' + escapeHtml(request.apartmentCode || '—') + '</td>' +
+                    '<td>' + escapeHtml(request.residentName || '—') + '</td>' +
+                    '<td>' + escapeHtml(request.type || '—') + '</td>' +
+                    '<td>' + escapeHtml(request.title || '—') + '</td>' +
+                    '<td>' + escapeHtml(new Date(request.updatedAt || request.createdAt || Date.now()).toLocaleDateString('vi-VN')) + '</td>' +
+                    '<td><span class="rh-support-priority ' + priorityClass + '">' + escapeHtml(priorityLabel) + '</span></td>' +
+                    '<td><span class="rh-support-badge ' + statusClass + '">' + escapeHtml(statusLabel) + '</span></td>' +
+                    '<td><button class="rh-support-action" type="button" onclick="openSupportRequestModal(\'' + request.id + '\')">Xem</button></td>' +
+                    '</tr>';
+            }).join('') : '<tr><td colspan="9" style="padding: 1.5rem; text-align:center; color:#94a3b8;">Chưa có yêu cầu nào phù hợp với bộ lọc hiện tại.</td></tr>';
+        }
+
+        function openSupportRequestModal(requestId) {
+            const modal = document.getElementById('rhSupportModal');
+            if (!modal) return;
+            const request = (RH.getAllSupportRequests ? RH.getAllSupportRequests() : []).find(function (item) { return item.id === requestId; });
+            if (!request) return;
+            const normalizedStatus = RH.normalizeSupportStatus ? RH.normalizeSupportStatus(request.status) : request.status;
+            const history = Array.isArray(request.history) && request.history.length ? request.history : [{ actor: 'Hệ thống', time: new Date(request.updatedAt || request.createdAt || Date.now()).toLocaleString('vi-VN'), message: 'Yêu cầu mới được gửi lên hệ thống.' }];
+            const modalContent = '<div style="padding-right: 1.5rem;">' +
+                '<h3 id="rhSupportDialogTitle" style="color:#10213c; margin:0 0 1rem; font-size:1.25rem;">' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</h3>' +
+                '<div class="rh-support-detail-grid"><div class="rh-support-detail-section"><h4>Thông tin cư dân</h4><div class="rh-support-metadata">' +
+                '<div class="rh-support-meta-box"><small>Căn hộ</small><strong>' + escapeHtml(request.apartmentCode || request.location || '—') + '</strong></div>' +
+                '<div class="rh-support-meta-box"><small>Tên cư dân</small><strong>' + escapeHtml(request.residentName || '—') + '</strong></div>' +
+                '<div class="rh-support-meta-box"><small>Loại yêu cầu</small><strong>' + escapeHtml(request.type || '—') + '</strong></div>' +
+                '<div class="rh-support-meta-box"><small>Ngày gửi</small><strong>' + escapeHtml(new Date(request.createdAt || Date.now()).toLocaleString('vi-VN')) + '</strong></div>' +
+                '<div class="rh-support-meta-box"><small>Mức độ ưu tiên</small><strong>' + escapeHtml(RH.supportPriorityLabel ? RH.supportPriorityLabel(request.priority) : (request.priority || 'medium')) + '</strong></div>' +
+                '<div class="rh-support-meta-box"><small>Trạng thái</small><strong>' + escapeHtml(RH.supportStatusLabel ? RH.supportStatusLabel(normalizedStatus) : normalizedStatus) + '</strong></div>' +
+                '</div><p style="margin:1rem 0 0; color:#475569; line-height:1.7;">' + escapeHtml(request.description || 'Không có nội dung mô tả.') + '</p></div>' +
+                '<div class="rh-support-detail-section"><h4>Lịch sử xử lý</h4><div class="rh-support-history">' + history.map(function (item) {
+                    return '<div class="rh-support-history-item"><strong>' + escapeHtml(item.actor || 'Hệ thống') + '</strong><small>' + escapeHtml(item.time || '') + '</small><div style="margin-top:.35rem; color:#475569;">' + escapeHtml(item.message || '') + '</div></div>';
+                }).join('') + '</div></div></div>' +
+                '<div class="rh-support-form"><div><label for="rhSupportStatusSelect">Cập nhật trạng thái</label><select id="rhSupportStatusSelect"><option value="pending" ' + (normalizedStatus === 'pending' ? 'selected' : '') + '>Chờ xử lý</option><option value="processing" ' + (normalizedStatus === 'processing' ? 'selected' : '') + '>Đang xử lý</option><option value="resolved" ' + (normalizedStatus === 'resolved' ? 'selected' : '') + '>Đã xử lý</option><option value="closed" ' + (normalizedStatus === 'closed' ? 'selected' : '') + '>Đã đóng</option></select></div>' +
+                '<div><label for="rhSupportReply">Phản hồi cho cư dân</label><textarea id="rhSupportReply" placeholder="Nhập nội dung phản hồi hoặc hướng dẫn xử lý...">' + escapeHtml(request.response || '') + '</textarea></div></div>' +
+                '<div class="rh-support-footer"><button class="btn-secondary" type="button" onclick="closeSupportRequestModal()">Hủy</button><button class="btn-primary" type="button" onclick="saveSupportRequestUpdate(\'' + request.id + '\')">Lưu cập nhật</button></div>' +
+            '</div>';
+            document.getElementById('rhSupportModalContent').innerHTML = modalContent;
+            modal.classList.add('is-open');
+            modal.setAttribute('aria-hidden', 'false');
+        }
+
+        function closeSupportRequestModal() {
+            const modal = document.getElementById('rhSupportModal');
+            if (!modal) return;
+            modal.classList.remove('is-open');
+            modal.setAttribute('aria-hidden', 'true');
+        }
+
+        function saveSupportRequestUpdate(requestId) {
+            const request = (RH.getAllSupportRequests ? RH.getAllSupportRequests() : []).find(function (item) { return item.id === requestId; });
+            if (!request) return;
+            const nextStatus = document.getElementById('rhSupportStatusSelect') ? document.getElementById('rhSupportStatusSelect').value : request.status;
+            const reply = document.getElementById('rhSupportReply') ? document.getElementById('rhSupportReply').value.trim() : '';
+            const patch = {};
+            if (nextStatus && nextStatus !== request.status) patch.status = nextStatus;
+            if (reply && reply !== (request.response || '')) patch.response = reply;
+            if (!Object.keys(patch).length) {
+                alert('Không có thay đổi nào để lưu.');
+                return;
+            }
+            const result = RH.updateSupportRequest(requestId, patch);
+            if (!result || !result.ok) {
+                alert(result && result.error ? result.error : 'Không thể cập nhật yêu cầu.');
+                return;
+            }
+            closeSupportRequestModal();
+            renderSupportRequestsTab();
+            alert('Cập nhật yêu cầu thành công.');
+        }
 
         function renderWorkflows() {
             const workflowTab = document.getElementById('workflows-tab');
