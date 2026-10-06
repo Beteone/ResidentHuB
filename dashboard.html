@@ -1453,16 +1453,19 @@
         .apartment-header-actions { align-items: center; display: flex; gap: .75rem; }
         .apartment-toolbar-button { align-items: center; background: #f2f6fb; border: 1px solid #dfeaf7; border-radius: 12px; color: #1c3356; cursor: pointer; display: inline-flex; font-size: 1rem; height: 44px; justify-content: center; width: 44px; }
         .apartment-toolbar-button:hover { background: #eaf3ff; border-color: #c9dcff; }
-        .apartment-search-panel { margin-top: 1rem; }
-        .apartment-search-box { align-items: center; background: #f7fafd; border: 1px solid #dceaf7; border-radius: 14px; display: flex; gap: .75rem; padding: .75rem 1rem; }
+        .apartment-toolbar-row { align-items: center; display: flex; gap: .9rem; margin-top: 1rem; }
+        .apartment-search-panel { flex: 1; }
+        .apartment-search-box { align-items: center; background: linear-gradient(180deg, #f6fafc 0%, #edf6ff 100%); border: 1px solid #d9e9f8; border-radius: 16px; box-shadow: 0 8px 18px rgba(27, 74, 120, .06); display: flex; gap: .75rem; padding: .82rem 1rem; }
         .apartment-search-box i { color: #7a8dac; }
         .apartment-search-box input { background: transparent; border: 0; color: #10213c; flex: 1; font: inherit; outline: none; }
         .apartment-search-box input::placeholder { color: #8aa0bc; }
+        .apartment-filter-button { background: linear-gradient(135deg, #f6f9fc 0%, #eef5ff 100%); border: 1px solid #dfeaf7; border-radius: 14px; color: #1c3356; cursor: pointer; display: inline-flex; align-items: center; gap: .5rem; font-weight: 700; min-height: 48px; padding: 0 .9rem; }
+        .apartment-filter-button.active { background: linear-gradient(135deg, #deefff 0%, #dcecff 100%); border-color: #b7d7ff; }
         .apartment-chip-row { display: flex; flex-wrap: wrap; gap: .75rem; margin-top: 1.2rem; overflow-x: auto; padding-bottom: .1rem; }
-        .apartment-status-chip { align-items: center; background: #f5f8fc; border: 1px solid #dfeaf7; border-radius: 999px; color: #476484; cursor: pointer; display: inline-flex; gap: .55rem; font: 600 .83rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; min-height: 40px; padding: .55rem .9rem; white-space: nowrap; }
-        .apartment-status-chip.active { background: linear-gradient(135deg, #eaf6ff 0%, #dff2ff 100%); border-color: #8ec5ff; color: #0d62c4; box-shadow: inset 0 0 0 1px rgba(13,98,196,.08); }
-        .apartment-status-count { align-items: center; background: #e6edf8; border-radius: 999px; color: #486383; display: inline-flex; font-size: .75rem; justify-content: center; min-width: 1.8rem; padding: .2rem .5rem; }
-        .apartment-status-chip.active .apartment-status-count { background: #d7ebff; color: #0d62c4; }
+        .apartment-status-chip { align-items: center; background: #f1f7fb; border: 1px solid #dfeaf7; border-radius: 999px; color: #476484; cursor: pointer; display: inline-flex; gap: .55rem; font: 600 .83rem 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; min-height: 48px; padding: .55rem .9rem; white-space: nowrap; }
+        .apartment-status-chip.active { background: linear-gradient(135deg, #eafaf0 0%, #dcf7e7 100%); border-color: #9ce0b6; color: #0d7a4f; }
+        .apartment-status-count { align-items: center; background: rgba(91, 122, 164, 0.10); border-radius: 999px; color: #486383; display: inline-flex; font-size: .75rem; justify-content: center; min-width: 1.8rem; padding: .2rem .5rem; }
+        .apartment-status-chip.active .apartment-status-count { background: rgba(13, 122, 79, 0.12); color: #0d7a4f; }
         .apartment-advanced-filter { background: #fbfdff; border: 1px solid #e5edf8; border-radius: 16px; margin-top: 1rem; padding: 1rem; }
         .apartment-filter-grid { display: grid; gap: .9rem; grid-template-columns: repeat(4, minmax(0, 1fr)); }
         .apartment-filter-field { display: grid; gap: .45rem; }
@@ -2023,14 +2026,19 @@
                         <button class="btn-primary" onclick="openApartmentModal()" style="font-size: 1.05rem; padding: .9rem 1.25rem; white-space: nowrap;" type="button"><i class="fas fa-plus"></i> Thêm căn hộ</button>
                     </div>
                 </div>
-                <div class="apartment-search-panel" id="apartment-search-panel" hidden>
-                    <div class="apartment-search-box">
-                        <i class="fas fa-magnifying-glass"></i>
-                        <input id="apartment-search-input" type="search" placeholder="Tìm theo mã căn hộ, tên căn hộ hoặc tên cư dân..." aria-label="Tìm kiếm căn hộ">
+                <div class="apartment-toolbar-row">
+                    <div class="apartment-search-panel" id="apartment-search-panel">
+                        <div class="apartment-search-box">
+                            <i class="fas fa-magnifying-glass"></i>
+                            <input id="apartment-search-input" type="search" placeholder="Tìm theo mã căn hộ, tên căn hộ hoặc tên cư dân..." aria-label="Tìm kiếm căn hộ">
+                        </div>
                     </div>
+                    <button class="apartment-filter-button active" id="apartment-filter-button" type="button" aria-label="Bộ lọc nâng cao">
+                        <i class="fas fa-filter"></i> Lọc
+                    </button>
                 </div>
                 <div class="apartment-chip-row" id="apartment-status-chips" aria-label="Lọc nhanh căn hộ"></div>
-                <div class="apartment-advanced-filter" id="apartment-advanced-filter" hidden>
+                <div class="apartment-advanced-filter" id="apartment-advanced-filter">
                     <div class="apartment-filter-grid">
                         <div class="apartment-filter-field">
                             <label for="apartment-filter-status">Trạng thái</label>
@@ -3427,8 +3435,8 @@
         const apartmentListState = {
             search: '',
             quickStatus: 'all',
-            showSearch: false,
-            showAdvancedFilter: false,
+            showSearch: true,
+            showAdvancedFilter: true,
             advanced: {
                 status: '',
                 building: '',
@@ -3706,6 +3714,17 @@
 
         document.getElementById('apartment-filter-toggle')?.addEventListener('click', () => {
             apartmentListState.showAdvancedFilter = !apartmentListState.showAdvancedFilter;
+            const button = document.getElementById('apartment-filter-button');
+            if (button) button.classList.toggle('active', apartmentListState.showAdvancedFilter);
+            syncApartmentFilterInputs();
+        });
+
+        document.getElementById('apartment-filter-button')?.addEventListener('click', () => {
+            apartmentListState.showAdvancedFilter = !apartmentListState.showAdvancedFilter;
+            const headerButton = document.getElementById('apartment-filter-toggle');
+            if (headerButton) headerButton.style.background = apartmentListState.showAdvancedFilter ? '#dff2ff' : '#f2f6fb';
+            const button = document.getElementById('apartment-filter-button');
+            if (button) button.classList.toggle('active', apartmentListState.showAdvancedFilter);
             syncApartmentFilterInputs();
         });
 
