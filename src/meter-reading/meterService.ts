@@ -3,6 +3,7 @@
 // from — so this file is the "API". Components never touch window.RHD directly.
 import type { Actor, Apartment, ApartmentContext, ApartmentPayload, ApprovalStatus, Building, MeterKind, MeterRecord, MonthKey, SaveResult, StoredMeterType } from './types';
 import { KIND_META } from './types';
+import { canMeter, deniedMessage, inBuildingScope } from './permissions';
 
 const KINDS: MeterKind[] = ['dien', 'nuoc'];
 
@@ -68,12 +69,13 @@ function isClosedRow(row: RhdMeterRow): boolean {
 }
 
 export const meterService = {
+    // Reads are narrowed to the signed-in user's building scope (permissions.js).
     listRecords(): MeterRecord[] {
-        return window.RHD.list('meters').map(fromRow);
+        return window.RHD.list('meters').filter(m => inBuildingScope(m.buildingId)).map(fromRow);
     },
 
     listBuildings(): Building[] {
-        return window.RHD.list('buildings').map(b => ({
+        return window.RHD.list('buildings').filter(b => inBuildingScope(b.id)).map(b => ({
             id: b.id,
             name: b.name,
             shortName: b.shortName,
@@ -82,7 +84,7 @@ export const meterService = {
     },
 
     listApartments(): Apartment[] {
-        return window.RHD.list('apartments').map(a => ({ id: a.id, buildingId: a.buildingId, name: a.name, floor: a.floor, active: a.active }));
+        return window.RHD.list('apartments').filter(a => inBuildingScope(a.buildingId)).map(a => ({ id: a.id, buildingId: a.buildingId, name: a.name, floor: a.floor, active: a.active }));
     },
 
     /** Active contract and tenant of an apartment (managed by Hợp đồng / Khách hàng). */
@@ -124,6 +126,11 @@ export const meterService = {
      */
     saveApartment(p: ApartmentPayload): SaveResult {
         const saved: MeterRecord[] = [];
+        if (!inBuildingScope(p.buildingId)) return { ok: false, error: 'Tòa nhà này nằm ngoài phạm vi bạn phụ trách.', saved };
+        for (const kind of KINDS) {
+            const action = p[kind]?.recordId ? 'update' : 'create';
+            if (p[kind] && !canMeter(action)) return { ok: false, error: deniedMessage(action), saved };
+        }
         const actor = currentActor();
         for (const kind of KINDS) {
             const m = p[kind];
@@ -159,6 +166,7 @@ export const meterService = {
     /** Approve ("đã_duyệt") or revoke approval ("chưa_duyệt") of the given readings. Never touches the closer. */
     setApproval(records: MeterRecord[], approval: ApprovalStatus): SaveResult {
         const saved: MeterRecord[] = [];
+        if (!canMeter('approve')) return { ok: false, error: deniedMessage('approve'), saved };
         const actor = currentActor();
         const patch: Partial<RhdMeterRow> = approval === 'đã_duyệt'
             ? { status: undefined, approvalStatus: approval, approvedAt: Date.now(), approvedById: actor.id, approvedBy: actor.name }
@@ -181,6 +189,7 @@ export const meterService = {
     approveMany(records: MeterRecord[]): SaveResult & { skipped: number } {
         const saved: MeterRecord[] = [];
         let skipped = 0;
+        if (!canMeter('approve')) return { ok: false, error: deniedMessage('approve'), saved, skipped };
         const actor = currentActor();
         for (const r of records) {
             const fresh = window.RHD.get('meters', r.id) as RhdMeterRow | null;
@@ -195,6 +204,7 @@ export const meterService = {
 
     /** Deletes every meter reading of an apartment row. */
     remove(records: MeterRecord[]): { ok: boolean; error?: string } {
+        if (!canMeter('delete')) return { ok: false, error: deniedMessage('delete') };
         for (const r of records) {
             const res = window.RHD.remove('meters', r.id);
             if (!res.ok) { notifyOtherModules(); return { ok: false, error: res.error }; }

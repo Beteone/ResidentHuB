@@ -4,6 +4,7 @@ import { KIND_META } from '../types';
 import { cx, dateLabel, dateTimeLabel, formatNumber, monthLabel } from '../format';
 import { Overlay } from './Overlay';
 import { ApprovalSummaryBar, ApprovalToggle, ClosingBadge } from './StatusBadges';
+import type { MeterPermissions } from '../permissions';
 
 interface RecordDrawerProps {
     row: TableRow;
@@ -16,6 +17,7 @@ interface RecordDrawerProps {
     onEdit: (row: TableRow, kind?: MeterKind) => void;
     onDelete: (row: TableRow) => void;
     onViewPhoto: (record: MeterRecord) => void;
+    perms: MeterPermissions;
 }
 
 const KINDS: MeterKind[] = ['dien', 'nuoc'];
@@ -40,7 +42,7 @@ const dash = <span className="text-slate-400">—</span>;
  * Right-hand side panel with everything known about one apartment's readings
  * for the period. It reads the live row, so approving here updates it in place.
  */
-export function RecordDrawer({ row, month, building, apartment, context, onClose, onSetApproval, onEdit, onDelete, onViewPhoto }: RecordDrawerProps) {
+export function RecordDrawer({ row, month, building, apartment, context, onClose, onSetApproval, onEdit, onDelete, onViewPhoto, perms }: RecordDrawerProps) {
     const aptName = apartment?.name || '—';
     const hasRecords = !!(row.dien || row.nuoc);
 
@@ -59,9 +61,9 @@ export function RecordDrawer({ row, month, building, apartment, context, onClose
                 {!r ? (
                     <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-dashed border-slate-300 bg-white px-3 py-3 text-sm text-slate-500">
                         Chưa có chỉ số kỳ này.
-                        <button type="button" onClick={() => onEdit(row, kind)} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
+                        {perms.create && <button type="button" onClick={() => onEdit(row, kind)} className="inline-flex items-center gap-1.5 rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
                             <i className="fas fa-pen-to-square" aria-hidden="true" /> Ghi số
-                        </button>
+                        </button>}
                     </div>
                 ) : (
                     <div className="flex flex-col gap-4">
@@ -97,6 +99,7 @@ export function RecordDrawer({ row, month, building, apartment, context, onClose
                                     status={r.approvalStatus}
                                     subject={meta.label.toLowerCase() + ' căn ' + aptName}
                                     onToggle={() => onSetApproval([r], r.approvalStatus === 'đã_duyệt' ? 'chưa_duyệt' : 'đã_duyệt', meta.label.toLowerCase() + ' căn ' + aptName)}
+                                    disabled={!perms.approve}
                                 />
                             </div>
                             <dl className="grid grid-cols-2 gap-x-4 gap-y-3">
@@ -161,15 +164,17 @@ export function RecordDrawer({ row, month, building, apartment, context, onClose
                 </div>
 
                 <footer className="flex shrink-0 flex-wrap justify-end gap-2 border-t border-slate-200 bg-white px-5 py-4">
-                    {hasRecords && (
+                    {hasRecords && perms.delete && (
                         <button type="button" onClick={() => onDelete(row)} className="mr-auto inline-flex items-center gap-2 rounded-lg border border-red-100 px-4 py-2 text-sm font-medium text-red-500 hover:bg-red-50">
                             <i className="fas fa-trash" aria-hidden="true" /> Xoá
                         </button>
                     )}
                     <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">Đóng</button>
-                    <button type="button" onClick={() => onEdit(row)} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 px-5 py-2 text-sm font-semibold text-white shadow hover:opacity-95">
-                        <i className={cx('fas', hasRecords ? 'fa-pen' : 'fa-pen-to-square')} aria-hidden="true" /> {hasRecords ? 'Sửa chỉ số' : 'Ghi số'}
-                    </button>
+                    {(hasRecords ? perms.update : perms.create) && (
+                        <button type="button" onClick={() => onEdit(row)} className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 px-5 py-2 text-sm font-semibold text-white shadow hover:opacity-95">
+                            <i className={cx('fas', hasRecords ? 'fa-pen' : 'fa-pen-to-square')} aria-hidden="true" /> {hasRecords ? 'Sửa chỉ số' : 'Ghi số'}
+                        </button>
+                    )}
                 </footer>
             </aside>
         </Overlay>

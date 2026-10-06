@@ -12,7 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests', 'assets', 'assetTypes'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -23,7 +23,9 @@
         customers: 10,
         meters: 12,
         contracts: 6,
-        invoices: 10
+        invoices: 10,
+        assets: 15,
+        assetTypes: 20
     };
 
     var DEMO_LIMIT_LABELS = {
@@ -32,7 +34,9 @@
         customers: 'khách hàng',
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
-        invoices: 'hóa đơn'
+        invoices: 'hóa đơn',
+        assets: 'tài sản',
+        assetTypes: 'loại tài sản'
     };
 
     var FEE_TYPES = [
@@ -65,6 +69,15 @@
     ];
 
     var VEHICLE_TYPES = ['Ô tô', 'Ô tô điện', 'Xe máy', 'Xe máy điện', 'Xe đạp'];
+
+    // Tình trạng tài sản (Tài sản module).
+    var ASSET_CONDITIONS = [
+        { id: 'new', label: 'Mới', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'in_use', label: 'Đang sử dụng', color: '#18a878', bg: '#e6f8ef' },
+        { id: 'repair', label: 'Cần sửa chữa', color: '#a5680c', bg: '#fff4df' },
+        { id: 'broken', label: 'Hỏng', color: '#ef4444', bg: '#fee2e2' },
+        { id: 'disposed', label: 'Đã thanh lý', color: '#61708a', bg: '#f1f5f9' }
+    ];
 
     var PAYMENT_CYCLES = [
         { id: 'monthly', label: 'Hàng tháng' },
@@ -207,8 +220,12 @@
         return readings[0] || null;
     }
 
+    function assetsOf(field, id) {
+        return readAll('assets').filter(function (a) { return a[field] === id; });
+    }
+
     // ---- relationship resolvers ---------------------------------------------
-    // Building.managerId -> manager login account (auth.js users). Only the id is
+    // Building.managerId -> staff login account (auth.js users). Only the id is
     // stored on the building; name/email/phone are always resolved from here.
     // Demo Mode never reads real accounts: its only "staff" is the demo session
     // itself (RH_SESSION set by dashboard.html), so the picker still works there.
@@ -219,6 +236,15 @@
         }
         if (!global.RH) return [];
         return global.RH.getUsers().filter(function (u) { return u.role === 'manager'; });
+    }
+
+    // Accounts that may be picked as a building's manager: staff whose account
+    // type grants "buildings.assignable" (permissions.js). Resolution of an
+    // existing managerId still uses managerAccounts(), so a past assignment
+    // keeps showing even if that permission is later removed.
+    function eligibleManagers() {
+        if (mode() === 'demo' || !global.RHP) return managerAccounts();
+        return global.RHP.eligibleManagers();
     }
 
     function buildingManager(building) {
@@ -436,6 +462,8 @@
     // Everything the Dashboard shows, computed from the entity stores on every
     // call (optionally scoped to one building). Nothing is cached or stored, so
     // records added in any module show up automatically.
+    // buildingId: '' / null = all buildings, a single id, or an array of ids
+    // (the signed-in user's building scope, see permissions.js).
     function dashboardStats(buildingId) {
         var settings = getSettings();
         var now = new Date();
@@ -444,9 +472,10 @@
         var prevMonth = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
         var soon = new Date(); soon.setDate(soon.getDate() + settings.contractExpiringDays);
         var soonStr = isoDate(soon);
-        var inScope = function (r) { return !buildingId || r.buildingId === buildingId; };
+        var scopeIds = Array.isArray(buildingId) ? buildingId : (buildingId ? [buildingId] : null);
+        var inScope = function (r) { return !scopeIds || scopeIds.indexOf(r.buildingId) !== -1; };
 
-        var buildings = readAll('buildings').filter(function (b) { return !buildingId || b.id === buildingId; });
+        var buildings = readAll('buildings').filter(function (b) { return !scopeIds || scopeIds.indexOf(b.id) !== -1; });
         var apartments = readAll('apartments').filter(inScope);
         var contracts = readAll('contracts').filter(inScope);
         var invoices = readAll('invoices').filter(inScope);
@@ -455,7 +484,7 @@
         var allCustomers = readAll('customers');
         var customerIdsInBuilding = {};
         contracts.forEach(function (c) { customerIdsInBuilding[c.customerId] = true; });
-        var customers = buildingId ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
+        var customers = scopeIds ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
         var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
 
         // Apartments by status
@@ -513,7 +542,7 @@
         var topAssignee = topBy(openRequests, function (r) { return r.assignee; });
 
         return {
-            buildingId: buildingId || '',
+            buildingId: Array.isArray(buildingId) ? '' : (buildingId || ''),
             buildings: buildings.length,
             apartments: apartments,
             aptStatus: aptStatus,
@@ -590,6 +619,15 @@
         var year = new Date().getFullYear();
         var seq = readAll('invoices').length + 1;
         return 'HD' + year + '-' + pad(seq, 4);
+    }
+
+    function nextAssetCode() {
+        var max = 0;
+        readAll('assets').forEach(function (a) {
+            var n = parseInt(String(a.code || '').replace(/\D/g, ''), 10);
+            if (n > max) max = n;
+        });
+        return 'TS' + pad(max + 1, 4);
     }
 
     function nextSupportCode() {
@@ -708,6 +746,15 @@
                 createdAt: Date.now() - 3 * 3600000, updatedAt: Date.now() - 1800000
             };
             writeAll('supportRequests', [request1]);
+
+            var assetTypes = ['Bàn ghế', 'Tủ lạnh', 'Điều hòa', 'Máy giặt', 'Giường', 'Tủ quần áo'].map(function (name) {
+                return { id: genId('assetType'), name: name, createdAt: Date.now() };
+            });
+            writeAll('assetTypes', assetTypes);
+            writeAll('assets', [
+                { id: genId('asset'), code: 'TS0001', name: 'Điều hòa phòng khách', typeId: assetTypes[2].id, brand: 'Daikin', color: 'Trắng', model: '2024', origin: 'Thái Lan', value: 8500000, quantity: 1, condition: 'repair', warrantyUntil: '2027-06-30', supplier: 'Điện máy Xanh', buildingId: building.id, apartmentId: apt1.id, location: 'Phòng khách', note: 'Đang chờ kỹ thuật kiểm tra (YC-0001).', photos: [], createdAt: Date.now() },
+                { id: genId('asset'), code: 'TS0002', name: 'Tủ lạnh', typeId: assetTypes[1].id, brand: 'Panasonic', color: 'Bạc', model: '2025', origin: 'Việt Nam', value: 6200000, quantity: 1, condition: 'in_use', warrantyUntil: '2027-01-15', supplier: 'Điện máy Xanh', buildingId: building.id, apartmentId: apt1.id, location: 'Bếp', note: '', photos: [], createdAt: Date.now() }
+            ]);
         } finally {
             global.RHD_MODE = prevMode;
         }
@@ -754,6 +801,7 @@
         CALC_METHODS: CALC_METHODS,
         APARTMENT_STATUSES: APARTMENT_STATUSES,
         VEHICLE_TYPES: VEHICLE_TYPES,
+        ASSET_CONDITIONS: ASSET_CONDITIONS,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,
         SUPPORT_STATUSES: SUPPORT_STATUSES,
@@ -775,6 +823,9 @@
         latestMeter: latestMeter,
         findApartmentByUnit: findApartmentByUnit,
         managerAccounts: managerAccounts,
+        eligibleManagers: eligibleManagers,
+        assetsOf: assetsOf,
+        nextAssetCode: nextAssetCode,
         buildingManager: buildingManager,
         residentPlacement: residentPlacement,
         residentContext: residentContext,

@@ -11,6 +11,7 @@ import { PhotoViewer } from './components/PhotoViewer';
 import { RecordDrawer } from './components/RecordDrawer';
 import { ContentAreaContext } from './components/Overlay';
 import { approvableReadings, matchesApprovalFilter } from './approval';
+import { meterPermissions } from './permissions';
 
 /** Closing: an apartment is "đã_chốt" once both meters have a reading for the period. */
 function rowClosing(row: Pick<TableRow, 'dien' | 'nuoc'>): ClosingStatus {
@@ -49,6 +50,8 @@ export function MeterReadingPage() {
     const buildings = useMemo(() => meterService.listBuildings(), [refreshKey]);
     const apartments = useMemo(() => meterService.listApartments(), [refreshKey]);
     const buildingMap = useMemo(() => new Map(buildings.map(b => [b.id, b])), [buildings]);
+    // Re-read with the data: an account-type change elsewhere applies on the next reload.
+    const perms = useMemo(() => meterPermissions(), [refreshKey]);
     const apartmentMap = useMemo(() => new Map(apartments.map(a => [a.id, a])), [apartments]);
 
     const reload = useCallback(() => {
@@ -253,14 +256,14 @@ export function MeterReadingPage() {
                                     ) : null;
                                 })}
                         </select>
-                        <button
+                        {perms.create && <button
                             type="button" id="mr-add"
                             disabled={!hasSetup}
                             onClick={() => setModal({ buildingId: buildingFilter || apartmentMap.get(apartmentFilter)?.buildingId || undefined, apartmentId: apartmentFilter || undefined, periodMonth: selectedMonth })}
                             className="inline-flex items-center gap-2 rounded-lg bg-emerald-500 px-4 py-2 text-sm font-semibold text-white shadow hover:bg-emerald-600 disabled:cursor-not-allowed disabled:opacity-50"
                         >
                             <i className="fas fa-plus" aria-hidden="true" /> Thêm bản ghi
-                        </button>
+                        </button>}
                     </div>
                 </header>
 
@@ -283,6 +286,7 @@ export function MeterReadingPage() {
                     onRecord={row => openFor(row)}
                     onViewPhoto={setPhoto}
                     emptyText={emptyText}
+                    perms={perms}
                 />
 
                 {detailRow && (
@@ -297,6 +301,7 @@ export function MeterReadingPage() {
                         onEdit={openFor}
                         onDelete={handleDelete}
                         onViewPhoto={setPhoto}
+                        perms={perms}
                     />
                 )}
                 {modal && (
