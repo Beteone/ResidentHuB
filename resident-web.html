@@ -1151,6 +1151,17 @@
         .contract-progress-step.done::before,.contract-progress-step.current::before { background:#1683ff; }
         .contract-progress-step.current { color:#1d4ed8; font-weight:700; }
         .contract-progress-step.done { color:#166534; }
+        .payment-summary { display:flex; align-items:center; justify-content:space-between; gap:1rem; padding:.85rem 1rem; border:1px solid #dbeafe; border-radius:10px; background:#f8fbff; color:#526174; font-size:.82rem; }
+        .payment-summary strong { color:#10213c; font-size:1.1rem; }
+        .payment-qr { display:block; width:min(280px,100%); aspect-ratio:1; object-fit:contain; margin:1rem auto .5rem; border:1px solid var(--line); border-radius:10px; background:#fff; }
+        .payment-bank-list,.payment-confirm-note { display:block; color:#718096; font-size:.73rem; line-height:1.5; }
+        .payment-account { display:grid; gap:.55rem; margin-top:.85rem; }
+        .payment-account > div { display:flex; justify-content:space-between; align-items:flex-start; gap:1rem; padding:.65rem .75rem; border:1px solid var(--line); border-radius:8px; background:#fbfcfe; }
+        .payment-account small { color:#718096; }
+        .payment-account strong { color:#10213c; text-align:right; overflow-wrap:anywhere; }
+        .payment-qr-placeholder { display:grid; justify-items:center; gap:.55rem; padding:1.5rem 1rem; margin-top:.8rem; border:1px dashed #cbd9e8; border-radius:10px; color:#718096; text-align:center; font-size:.8rem; }
+        .payment-qr-placeholder i { color:#94a3b8; font-size:2rem; }
+        .payment-error { color:#b91c1c; font-size:.82rem; }
         .resident-feature-modal { display:none; position:fixed; inset:0; z-index:80; align-items:center; justify-content:center; padding:1rem; background:rgba(15,35,64,.48); }.resident-feature-modal.open { display:flex; }
         .resident-feature-dialog { width:min(500px,100%); max-height:90vh; overflow:auto; padding:1.4rem; border-radius:16px; background:#fff; box-shadow:0 30px 70px rgba(15,35,64,.24); }.resident-feature-dialog header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }.resident-feature-dialog h4 { margin:0; color:#10213c; font-size:1.12rem; }.resident-feature-close { border:0; background:transparent; color:#64748b; font-size:1.2rem; cursor:pointer; }.payment-method { width:100%; margin-top:.7rem; padding:.85rem; border:1px solid var(--line); border-radius:10px; background:#fff; text-align:left; cursor:pointer; color:#334155; font:600 .82rem 'Be Vietnam Pro',sans-serif; }.payment-method:hover { border-color:#60a5fa; background:#f8fbff; }
         @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}#contractsSection .contract-history-row{grid-template-columns:1fr auto}#contractsSection .contract-history-row small{grid-column:1/-1;text-align:left}}
@@ -1511,14 +1522,15 @@
             const invoices = (RH_CTX && RH_CTX.invoices) || [];
             tbody.innerHTML = invoices.length ? invoices.map(inv => {
                 const statusBucket = inv.status === 'paid' ? 'paid' : 'pending';
-                const badgeClass = inv.status === 'paid' ? 'badge-paid' : (inv.status === 'overdue' ? 'badge-overdue' : 'badge-pending');
-                const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán');
+                const isOverdue = inv.status === 'overdue' || (inv.status !== 'paid' && inv.dueDate && inv.dueDate < todayIso());
+                const badgeClass = inv.status === 'paid' ? 'badge-paid' : (isOverdue ? 'badge-overdue' : 'badge-pending');
+                const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (isOverdue ? 'Quá hạn' : 'Chưa thanh toán');
                 const breakdown = inv.items.map(it => it.label + ': ' + money(it.amount)).join('|');
                 const actions = inv.status === 'paid'
                     ? '<button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button>'
                     : '<button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button>' + (RH_SETTINGS.residentOnlinePayment ? ' <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button>' : '');
                 return '<tr data-billing-status="' + statusBucket + '" data-billing-breakdown="' + breakdown.replace(/"/g, '&quot;') + '">' +
-                    '<td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu ' + (inv.period || '') + '</span></td>' +
+                    '<td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu ' + (inv.period && /^\d{4}-\d{2}$/.test(inv.period) ? inv.period.split('-').reverse().join('/') : (inv.period || '')) + '</span></td>' +
                     '<td><strong>' + (REAL_BUILDING ? REAL_BUILDING.shortName || REAL_BUILDING.name : '—') + '</strong></td>' +
                     '<td><strong>' + (REAL_APARTMENT ? REAL_APARTMENT.name : '—') + '</strong></td>' +
                     '<td>' + inv.code + '</td>' +
@@ -2704,15 +2716,41 @@
             // RH_CTX.invoices (the same RHD data the manager side writes) — this
             // feature only adds search/filter/payment-modal behavior on top of it.
             const storedInvoices = (RH_CTX && RH_CTX.invoices) || [];
+            const sampleNow = new Date();
+            const samplePeriodKey = sampleNow.getFullYear() + '-' + String(sampleNow.getMonth() + 1).padStart(2, '0');
+            const sampleDue = new Date(sampleNow.getFullYear(), sampleNow.getMonth() + 1, 5);
+            const sampleDueIso = sampleDue.getFullYear() + '-' + String(sampleDue.getMonth() + 1).padStart(2, '0') + '-' + String(sampleDue.getDate()).padStart(2, '0');
+            const sampleAmount = 2200000;
+            const sampleUnit = REAL_APARTMENT ? REAL_APARTMENT.name : (RH_SESSION && RH_SESSION.unit) || '502';
+            const sampleInvoice = storedInvoices.length ? null : { code: 'HD-MAU-' + samplePeriodKey.replace('-', ''), period: samplePeriodKey, dueDate: sampleDueIso, total: sampleAmount };
+            if (sampleInvoice) {
+                const tbody = document.getElementById('billingRows');
+                if (tbody) tbody.innerHTML = '<tr data-billing-status="pending" data-billing-period="' + sampleInvoice.period + '" data-billing-due-date="' + sampleInvoice.dueDate + '" data-billing-sample="true" data-billing-breakdown="Tiền thuê: ' + money(sampleAmount) + '"><td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu ' + sampleInvoice.period.split('-').reverse().join('/') + ' <span class="new-badge">MẪU</span></span></td><td><strong>Tham khảo</strong></td><td><strong>' + escapeHtml(sampleUnit) + '</strong></td><td>' + sampleInvoice.code + '</td><td>' + sampleDueIso.split('-').reverse().join('/') + '</td><td><strong>' + money(sampleAmount) + '</strong></td><td><span class="badge badge-pending">Chưa thanh toán · Mẫu</span></td><td><button class="billing-action billing-detail" title="Xem chi tiết mẫu"><i class="fas fa-eye"></i></button>' + (RH_SETTINGS.residentOnlinePayment ? ' <button class="billing-action billing-pay" title="Thông tin hóa đơn mẫu"><i class="fas fa-circle-info"></i></button>' : '') + '</td></tr>';
+                document.querySelector('#invoicesSection .billing-toolbar')?.insertAdjacentHTML('afterend', '<p class="billing-sample-note" id="billingDemoNotice">Hóa đơn mẫu tham khảo, không phải công nợ thật và không thể thanh toán.</p>');
+            }
             const rows = Array.from(document.querySelectorAll('#billingRows tr:not(.billing-empty-row)'));
-            rows.forEach((row, index) => { if (storedInvoices[index]) row.dataset.billingId = storedInvoices[index].id || ''; });
+            rows.forEach((row, index) => {
+                if (!storedInvoices[index]) return;
+                row.dataset.billingId = storedInvoices[index].id || '';
+                row.dataset.billingPeriod = storedInvoices[index].period || '';
+                row.dataset.billingDueDate = storedInvoices[index].dueDate || '';
+            });
             const search = document.getElementById('billingSearch');
             const count = document.getElementById('billingCount');
+            const now = new Date();
+            const currentPeriodKey = now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0');
+            const billingPeriodFilter = document.createElement('select');
+            billingPeriodFilter.id = 'billingPeriodFilter';
+            billingPeriodFilter.className = 'billing-filter';
+            billingPeriodFilter.setAttribute('aria-label', 'Lọc hóa đơn theo kỳ');
+            const availablePeriods = Array.from(new Set([currentPeriodKey].concat(storedInvoices.map(invoice => invoice.period).filter(Boolean)))).sort().reverse();
+            billingPeriodFilter.innerHTML = '<option value="all">Mọi kỳ thu</option>' + availablePeriods.map(period => '<option value="' + period + '">' + period.split('-').reverse().join('/') + '</option>').join('');
+            document.querySelector('#invoicesSection .billing-filters')?.appendChild(billingPeriodFilter);
             const normalizeUnit = value => String(value || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
             const residentUnit = normalizeUnit(REAL_APARTMENT ? REAL_APARTMENT.name : (RH_SESSION && RH_SESSION.unit));
             const unitNumber = value => normalizeUnit(value).replace(/\D/g, '');
-            const residentRows = rows.filter(row => row.children[2] && (normalizeUnit(row.children[2].innerText) === residentUnit || (unitNumber(row.children[2].innerText) && unitNumber(row.children[2].innerText) === unitNumber(residentUnit))));
-            let filter = 'all'; let selectedInvoices = [];
+            const residentRows = rows.filter(row => row.dataset.billingSample === 'true' || (row.children[2] && (normalizeUnit(row.children[2].innerText) === residentUnit || (unitNumber(row.children[2].innerText) && unitNumber(row.children[2].innerText) === unitNumber(residentUnit)))));
+            let filter = 'all'; let selectedPeriod = 'all'; let selectedInvoices = [];
             const open = (heading, html) => { title.textContent = heading; content.innerHTML = html; modal.classList.add('open'); };
             // Contract and invoices are independent: a linked resident can have a
             // contract before the first invoice is issued (and vice versa).
@@ -2720,32 +2758,72 @@
                 const contractsSection = document.getElementById('contractsSection');
                 if (contractsSection) contractsSection.innerHTML = '<div class="resident-feature"><div class="resident-feature-hero"><div><div><h3>Hợp đồng thuê nhà</h3><p>Hợp đồng sẽ xuất hiện khi ban quản lý lập hợp đồng cho hồ sơ cư dân của bạn.</p></div><i class="fas fa-file-signature resident-feature-icon"></i></div></div><div class="contract-workspace"><div class="card"><div class="notice-list"><div class="notice-item"><div style="font-weight:700; margin-bottom:.35rem;">Chưa có hợp đồng nào</div><div style="color:#64748b; line-height:1.55;">Chưa có hợp đồng nào được lập cho tài khoản này.</div></div></div></div></div></div>';
             }
-            const latestPeriod = storedInvoices.map(inv => inv.period).filter(Boolean).sort().pop();
             const currentPeriodEl = document.querySelector('.billing-summary .billing-summary-item:nth-child(3) strong');
             const currentPeriodNote = document.querySelector('.billing-summary .billing-summary-item:nth-child(3) span');
-            if (currentPeriodEl) currentPeriodEl.textContent = latestPeriod ? latestPeriod.split('-').reverse().join('/') : '—';
-            const nextDueInvoice = dueInvoices()[0];
-            if (currentPeriodNote) currentPeriodNote.textContent = nextDueInvoice ? 'Hạn thanh toán gần nhất ' + nextDueInvoice.dueDate.split('-').reverse().join('/') : 'Chưa có kỳ thu cần thanh toán';
+            const currentInvoices = storedInvoices.filter(invoice => invoice.period === currentPeriodKey);
+            const latestPeriod = storedInvoices.map(invoice => invoice.period).filter(Boolean).sort().pop();
+            if (currentPeriodEl) currentPeriodEl.textContent = currentPeriodKey.split('-').reverse().join('/');
+            if (currentPeriodNote) currentPeriodNote.textContent = currentInvoices.length
+                ? currentInvoices.length + ' hóa đơn kỳ này · ' + (currentInvoices.some(invoice => invoice.status !== 'paid') ? 'cần thanh toán' : 'đã thanh toán')
+                : sampleInvoice ? '1 hóa đơn mẫu tham khảo · không phát sinh công nợ thật'
+                    : latestPeriod ? 'Chưa phát hành kỳ này · Hóa đơn mới nhất ' + latestPeriod.split('-').reverse().join('/') : 'Chưa phát hành hóa đơn kỳ này';
             if (!storedInvoices.length) {
-                document.getElementById('billingDue').textContent = money(0);
+                document.getElementById('billingDue').textContent = money(sampleInvoice ? sampleAmount : 0);
                 document.getElementById('billingPaid').textContent = money(0);
-                document.getElementById('billingDueNote').textContent = 'Bạn không có hóa đơn cần thanh toán';
-                document.getElementById('billingCount').textContent = 'Hiển thị 0 hóa đơn';
-                document.querySelector('.billing-pay-all').disabled = true;
+                document.getElementById('billingDueNote').textContent = sampleInvoice ? 'Giá trị minh họa, không phải công nợ thật' : 'Bạn không có hóa đơn cần thanh toán';
+                document.getElementById('billingCount').textContent = 'Hiển thị ' + (sampleInvoice ? 1 : 0) + ' hóa đơn';
+                document.querySelector('.billing-pay-all').disabled = !sampleInvoice;
                 document.getElementById('billingSampleHistory').hidden = false;
-                if (!REAL_CONTRACT) return;
             }
             const contractDetails = document.querySelector('#contractsSection .contract-detail-grid');
             if (contractDetails) contractDetails.insertAdjacentHTML('beforeend', '<div class="meta-box"><small>Hạn thanh toán tiếp theo</small><strong>' + (nextDueInvoice ? nextDueInvoice.dueDate.split('-').reverse().join('/') : 'Không có') + '</strong><button class="contract-inline-link contract-invoice-link">Xem hóa đơn <i class="fas fa-arrow-right"></i></button></div>');
             const close = () => modal.classList.remove('open');
             const amount = row => Number(row.children[5].innerText.replace(/[^0-9]/g, ''));
-            const refresh = () => { const term = search.value.toLowerCase(); let shown = 0; rows.forEach(row => { const belongsToResident = residentRows.includes(row); const visible = belongsToResident && (filter === 'all' || row.dataset.billingStatus === filter) && row.innerText.toLowerCase().includes(term); row.style.display = visible ? '' : 'none'; if (visible) shown++; }); count.textContent = `Hiển thị ${shown} hóa đơn`; const pending = residentRows.filter(row => row.dataset.billingStatus === 'pending'); const paid = residentRows.filter(row => row.dataset.billingStatus === 'paid'); document.getElementById('billingDue').textContent = money(pending.reduce((sum,row) => sum + amount(row),0)); document.getElementById('billingPaid').textContent = money(paid.reduce((sum,row) => sum + amount(row),0)); const nextDueText = pending.length ? pending.map(row => row.children[4].innerText).sort()[0] : ''; document.getElementById('billingDueNote').textContent = pending.length ? `${pending.length} hóa đơn, hạn thanh toán ${nextDueText}` : 'Bạn không có hóa đơn cần thanh toán'; const payAll = document.querySelector('.billing-pay-all'); if (payAll && !RH_SETTINGS.residentOnlinePayment) payAll.style.display = 'none'; if (payAll) { payAll.disabled = pending.length === 0; payAll.innerHTML = `<i class="fas fa-credit-card"></i> Thanh toán ${pending.length} hóa đơn`; } };
+            const visiblePendingRows = () => {
+                const term = search.value.toLowerCase();
+                return residentRows.filter(row => row.dataset.billingStatus === 'pending'
+                    && (filter === 'all' || row.dataset.billingStatus === filter)
+                    && (selectedPeriod === 'all' || row.dataset.billingPeriod === selectedPeriod)
+                    && row.innerText.toLowerCase().includes(term));
+            };
+            const refresh = () => { const term = search.value.toLowerCase(); let shown = 0; rows.forEach(row => { const belongsToResident = residentRows.includes(row); const visible = belongsToResident && (filter === 'all' || row.dataset.billingStatus === filter) && (selectedPeriod === 'all' || row.dataset.billingPeriod === selectedPeriod) && row.innerText.toLowerCase().includes(term); row.style.display = visible ? '' : 'none'; if (visible) shown++; }); count.textContent = `Hiển thị ${shown} hóa đơn`; const pending = residentRows.filter(row => row.dataset.billingStatus === 'pending'); const visiblePending = visiblePendingRows(); const paid = residentRows.filter(row => row.dataset.billingStatus === 'paid'); document.getElementById('billingDue').textContent = money(pending.reduce((sum,row) => sum + amount(row),0)); document.getElementById('billingPaid').textContent = money(paid.reduce((sum,row) => sum + amount(row),0)); const nextDue = pending.slice().sort((a,b) => (a.dataset.billingDueDate || '').localeCompare(b.dataset.billingDueDate || ''))[0]; const nextDueText = nextDue ? nextDue.children[4].innerText : ''; document.getElementById('billingDueNote').textContent = pending.length ? `${pending.length} hóa đơn, hạn thanh toán ${nextDueText}` : 'Bạn không có hóa đơn cần thanh toán'; const payAll = document.querySelector('.billing-pay-all'); if (payAll && !RH_SETTINGS.residentOnlinePayment) payAll.style.display = 'none'; if (payAll) { payAll.disabled = visiblePending.length === 0; payAll.innerHTML = `<i class="fas fa-credit-card"></i> Thanh toán ${visiblePending.length} hóa đơn`; } };
             document.querySelectorAll('[data-billing-filter]').forEach(button => button.addEventListener('click', () => { filter = button.dataset.billingFilter; document.querySelectorAll('[data-billing-filter]').forEach(item => item.classList.toggle('active', item === button)); refresh(); }));
+            billingPeriodFilter.addEventListener('change', () => { selectedPeriod = billingPeriodFilter.value; refresh(); });
             search.addEventListener('input', refresh);
-            document.querySelectorAll('.billing-detail').forEach(button => button.addEventListener('click', () => { const row = button.closest('tr'); const paid = row.dataset.billingStatus === 'paid'; const breakdown = row.dataset.billingBreakdown.split('|').map(item => `<div style="display:flex;justify-content:space-between;gap:1rem;margin-top:.5rem"><span>${item.split(': ')[0]}</span><strong>${item.split(': ')[1]}</strong></div>`).join(''); open('Chi tiết hóa đơn phòng', `<div class="support-card"><div style="display:flex;justify-content:space-between"><span>Tòa nhà</span><strong>${row.children[1].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.5rem"><span>Phòng</span><strong>${row.children[2].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.75rem"><span>Kỳ thu</span><strong>${row.children[0].innerText.replace('Kỳ thu ', '')}</strong></div><div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><strong>Các khoản cấu thành</strong>${breakdown}</div><div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><span>Tổng thanh toán</span><strong style="color:#1683ff">${row.children[5].innerText}</strong></div></div><p style="color:#64748b;font-size:.84rem;line-height:1.55">${paid ? 'Giao dịch đã được ghi nhận. Bạn có thể tải chứng từ điện tử.' : 'Hóa đơn được thu một lần trong khoảng từ ngày 28 đến ngày 05 tháng sau. Vui lòng thanh toán trước ngày 05.'}</p><button class="btn-primary resident-feature-close" style="width:100%">${paid ? 'Đóng' : 'Đã hiểu'}</button>`); }));
-            const choosePayment = invoiceIds => { selectedInvoices = invoiceIds; const total = residentRows.filter(row => invoiceIds.includes(row.children[3].innerText)).reduce((sum,row) => sum + amount(row),0); open('Chọn phương thức thanh toán', `<p style="color:#64748b;font-size:.84rem">Tổng cần thanh toán: <strong style="color:#10213c">${money(total)}</strong></p><button class="payment-method" data-method="Chuyển khoản ngân hàng"><i class="fas fa-building-columns" style="color:#1683ff"></i> Chuyển khoản ngân hàng</button><button class="payment-method" data-method="Quét mã QR"><i class="fas fa-qrcode" style="color:#1683ff"></i> Quét mã QR thanh toán</button><button class="payment-method" data-method="Ví điện tử"><i class="fas fa-wallet" style="color:#1683ff"></i> Ví điện tử</button>`); };
+            document.querySelectorAll('.billing-detail').forEach(button => button.addEventListener('click', () => { const row = button.closest('tr'); const paid = row.dataset.billingStatus === 'paid'; const sample = row.dataset.billingSample === 'true'; const breakdown = row.dataset.billingBreakdown.split('|').map(item => `<div style="display:flex;justify-content:space-between;gap:1rem;margin-top:.5rem"><span>${item.split(': ')[0]}</span><strong>${item.split(': ')[1]}</strong></div>`).join(''); open(sample ? 'Chi tiết hóa đơn mẫu' : 'Chi tiết hóa đơn phòng', `<div class="support-card"><div style="display:flex;justify-content:space-between"><span>Tòa nhà</span><strong>${row.children[1].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.5rem"><span>Phòng</span><strong>${row.children[2].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.75rem"><span>Kỳ thu</span><strong>${row.children[0].innerText.replace('Kỳ thu ', '')}</strong></div><div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><strong>Các khoản cấu thành</strong>${breakdown}</div><div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><span>Tổng thanh toán</span><strong style="color:#1683ff">${row.children[5].innerText}</strong></div></div><p style="color:#64748b;font-size:.84rem;line-height:1.55">${sample ? 'Đây là dữ liệu mẫu để xem giao diện, không tạo công nợ hay giao dịch thật.' : paid ? 'Giao dịch đã được ghi nhận. Bạn có thể tải chứng từ điện tử.' : 'Hóa đơn được thu một lần trong khoảng từ ngày 28 đến ngày 05 tháng sau. Vui lòng thanh toán trước ngày 05.'}</p><button class="btn-primary resident-feature-close" style="width:100%">${paid || sample ? 'Đóng' : 'Đã hiểu'}</button>`); }));
+            const choosePayment = invoiceIds => {
+                selectedInvoices = invoiceIds;
+                const selectedRows = residentRows.filter(row => invoiceIds.includes(row.children[3].innerText));
+                if (selectedRows.some(row => row.dataset.billingSample === 'true')) {
+                    open('Hóa đơn mẫu', '<p style="color:#64748b;line-height:1.55">Đây chỉ là dữ liệu tham khảo. Không thể thanh toán và không tạo yêu cầu đối soát cho hóa đơn mẫu.</p><button type="button" class="btn-primary resident-feature-close" style="width:100%">Đóng</button>');
+                    return;
+                }
+                const total = selectedRows.reduce((sum, row) => sum + amount(row), 0);
+                const paymentConfig = REAL_BUILDING && (REAL_BUILDING.config || REAL_BUILDING) || {};
+                const bankName = String(paymentConfig.bankName || '').trim();
+                const accountNumber = String(paymentConfig.bankAccountNumber || '').trim();
+                const accountHolder = String(paymentConfig.bankAccountHolder || '').trim();
+                const normalizedBankName = bankName.toLowerCase().replace(/[^a-z0-9]/g, '');
+                const bankCodes = { vietcombank: 'VCB', bidv: 'BIDV', vietinbank: 'CTG', agribank: 'VBA', techcombank: 'TCB', mbbank: 'MBB', mb: 'MBB', acb: 'ACB', vpbank: 'VPB', sacombank: 'STB', tpbank: 'TPB', hdbank: 'HDB', shb: 'SHB', vib: 'VIB', msb: 'MSB', seabank: 'SSB', ocb: 'OCB', eximbank: 'EIB', lpbank: 'LPB', pvcombank: 'PVCB', vietabank: 'VAB', bacabank: 'BAB', bvbank: 'BVB' };
+                const bankCode = bankCodes[normalizedBankName] || (/^[A-Z]{3,6}$/.test(bankName) ? bankName.toUpperCase() : '');
+                const transferNote = 'Thanh toan ' + invoiceIds.join(' ');
+                const qrUrl = bankCode && accountNumber
+                    ? 'https://img.vietqr.io/image/' + bankCode + '-' + encodeURIComponent(accountNumber) + '-compact2.png?amount=' + total + '&addInfo=' + encodeURIComponent(transferNote) + (accountHolder ? '&accountName=' + encodeURIComponent(accountHolder) : '')
+                    : '';
+                const bankApps = 'Vietcombank, BIDV, VietinBank, Agribank, Techcombank, MB Bank, ACB, VPBank, Sacombank, TPBank, HDBank, SHB, VIB, MSB, OCB';
+                const paymentDetails = accountNumber
+                    ? '<div class="payment-account"><div><small>Ngân hàng nhận</small><strong>' + escapeHtml(bankName || 'Chưa cập nhật') + '</strong></div><div><small>Số tài khoản</small><strong>' + escapeHtml(accountNumber) + '</strong></div><div><small>Chủ tài khoản</small><strong>' + escapeHtml(accountHolder || 'Chưa cập nhật') + '</strong></div><div><small>Nội dung chuyển khoản</small><strong>' + escapeHtml(transferNote) + '</strong></div></div>'
+                    : '<div class="notice-item">Ban quản lý chưa cấu hình tài khoản nhận tiền cho tòa nhà này. Vui lòng liên hệ Ban quản lý để lấy thông tin thanh toán.</div>';
+                const qrMarkup = qrUrl
+                    ? '<img class="payment-qr" src="' + escapeHtml(qrUrl) + '" alt="Mã QR thanh toán hóa đơn" referrerpolicy="no-referrer"><p class="payment-bank-list">Quét bằng ứng dụng ngân hàng hỗ trợ VietQR: ' + bankApps + '.</p>'
+                    : '<div class="payment-qr-placeholder"><i class="fas fa-qrcode"></i><span>Chưa thể tạo QR khi thiếu tài khoản nhận tiền hoặc mã ngân hàng hợp lệ.</span></div>';
+                const reportAction = accountNumber
+                    ? '<button type="button" class="btn-primary payment-confirm-transfer" style="width:100%;margin-top:.8rem">Tôi đã chuyển khoản</button><small class="payment-confirm-note">Hóa đơn chỉ chuyển sang đã thanh toán sau khi Ban quản lý đối soát.</small>'
+                    : '';
+                open('Thanh toán hóa đơn', '<div class="payment-summary"><span>' + selectedRows.length + ' hóa đơn</span><strong>' + money(total) + '</strong></div>' + qrMarkup + paymentDetails + reportAction);
+            };
             document.querySelectorAll('.billing-pay').forEach(button => button.addEventListener('click', () => choosePayment([button.closest('tr').children[3].innerText])));
-            document.querySelector('.billing-pay-all')?.addEventListener('click', () => choosePayment(residentRows.filter(row => row.dataset.billingStatus === 'pending').map(row => row.children[3].innerText)));
+            document.querySelector('.billing-pay-all')?.addEventListener('click', () => choosePayment(visiblePendingRows().map(row => row.children[3].innerText)));
             const renewalSteps = ['Đã gửi yêu cầu', 'Ban quản lý đang xem xét', 'Chờ ký phụ lục', 'Hoàn tất'];
             const renewalStep = () => ({ draft: -1, submitted: 0, reviewing: 1, signing: 2, completed: 3 }[contractData.renewalStatus]);
             const renewalStatusText = () => ({ draft: 'Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và gửi phụ lục để ký nếu được duyệt.', submitted: 'Yêu cầu đã được gửi. Ban quản lý sẽ tiếp nhận và phản hồi trong 2 ngày làm việc.', reviewing: 'Ban quản lý đang xem xét điều kiện gia hạn của hợp đồng.', signing: 'Yêu cầu đã được duyệt. Vui lòng ký phụ lục khi nhận được thông báo.', completed: 'Phụ lục gia hạn đã hoàn tất và được lưu trong hồ sơ hợp đồng.' }[contractData.renewalStatus]);
@@ -2816,16 +2894,30 @@
             });
             renderContractRenewal();
             document.querySelector('.contract-invoice-link')?.addEventListener('click', () => document.querySelector('.nav-item[data-target="invoices"]')?.click());
-            document.addEventListener('click', event => { if (event.target.closest('.resident-feature-close')) { close(); return; } const option = event.target.closest('.payment-method'); if (!option) return; residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText)).forEach(row => { row.dataset.billingStatus = 'paid'; row.children[6].innerHTML = '<span class="badge badge-paid">Đã thanh toán</span>'; row.children[7].innerHTML = '<button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button>'; }); refresh(); open('Thanh toán thành công', '<div style="text-align:center;padding:.5rem"><i class="fas fa-circle-check" style="font-size:3rem;color:#18a878"></i><p style="color:#64748b;line-height:1.55">Giao dịch đã được ghi nhận. Hóa đơn điện tử sẽ được lưu trong lịch sử thanh toán.</p><button class="btn-primary resident-feature-close" style="width:100%">Hoàn tất</button></div>'); });
+            document.addEventListener('click', event => { if (event.target.closest('.resident-feature-close')) close(); });
             document.addEventListener('click', event => {
-                if (!event.target.closest('.payment-method')) return;
-                // Persist to the same RHD invoice the manager sees (Hóa đơn + Dashboard).
-                residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText)).forEach(row => {
-                    if (row.dataset.billingId) RHD.update('invoices', row.dataset.billingId, { status: 'paid', paidAt: Date.now() });
+                const button = event.target.closest('.payment-confirm-transfer');
+                if (!button) return;
+                const paymentConfig = REAL_BUILDING && (REAL_BUILDING.config || REAL_BUILDING) || {};
+                const selectedRows = residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText));
+                const result = RHD.create('supportRequests', {
+                    code: RHD.nextSupportCode(),
+                    buildingId: REAL_APARTMENT ? REAL_APARTMENT.buildingId : '',
+                    apartmentId: REAL_APARTMENT ? REAL_APARTMENT.id : '',
+                    customerId: REAL_CUSTOMER ? REAL_CUSTOMER.id : '',
+                    residentEmail: RH_SESSION ? RH_SESSION.email : '',
+                    residentName: RH_SESSION ? RH_SESSION.name : '',
+                    category: 'Phí & thanh toán',
+                    title: 'Đối soát chuyển khoản hóa đơn ' + selectedRows.map(row => row.children[3].innerText).join(', '),
+                    description: 'Cư dân đã gửi xác nhận chuyển khoản ' + money(selectedRows.reduce((sum, row) => sum + amount(row), 0)) + ' qua ' + (paymentConfig.bankName || 'ngân hàng') + ', tài khoản ' + (paymentConfig.bankAccountNumber || '') + '. Nội dung: Thanh toan ' + selectedRows.map(row => row.children[3].innerText).join(' ') + '. Vui lòng đối soát giao dịch trước khi cập nhật trạng thái hóa đơn.',
+                    location: (REAL_APARTMENT ? 'Phòng ' + REAL_APARTMENT.name : 'Căn hộ chưa gán'),
+                    priority: 'normal', status: 'new', assignee: '', attachments: 0, messages: []
                 });
-                refreshResidentContext();
-                renderOverview();
-                renderCalendarReminders();
+                if (!result || !result.ok) { content.insertAdjacentHTML('beforeend', '<p class="payment-error">' + escapeHtml(result && result.error || 'Không gửi được xác nhận. Vui lòng thử lại.') + '</p>'); return; }
+                close();
+                notificationToast('Đã gửi yêu cầu đối soát ' + result.item.code + '. Hóa đơn chờ Ban quản lý xác nhận.');
+                refreshRequestData();
+                renderRequests();
             });
             modal.addEventListener('click', event => { if (event.target === modal) close(); });
             refresh();
