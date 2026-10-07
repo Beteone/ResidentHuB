@@ -1491,10 +1491,9 @@
             ...(REAL_CONTRACT || {}),
             id: REAL_CONTRACT ? REAL_CONTRACT.id || REAL_CONTRACT.code : '',
             code: REAL_CONTRACT ? REAL_CONTRACT.code || REAL_CONTRACT.id : '',
-            // No invented dates: without a linked contract these stay empty and the
-            // contract screens show their empty state instead.
-            startDate: (REAL_CONTRACT && REAL_CONTRACT.startDate) || '',
-            endDate: (REAL_CONTRACT && REAL_CONTRACT.endDate) || '',
+            // Use the requested six-month reference period only when the record has no dates.
+            startDate: (REAL_CONTRACT && REAL_CONTRACT.startDate) || '2026-07-01',
+            endDate: (REAL_CONTRACT && REAL_CONTRACT.endDate) || '2026-12-31',
             signDate: (REAL_CONTRACT && REAL_CONTRACT.signDate) || '',
             rentPrice: Number(REAL_CONTRACT && REAL_CONTRACT.rentPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.rentPrice) || 0,
             depositPrice: Number(REAL_CONTRACT && REAL_CONTRACT.depositPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.depositPrice) || 0,
@@ -2880,10 +2879,12 @@
             const statusClass = contractData.status === 'ended' || contractData.status === 'terminated' ? 'badge-overdue' : contractData.status === 'draft' || !REAL_CONTRACT ? 'badge-pending' : 'badge-paid';
             const paymentCycleLabels = { monthly: 'hàng tháng', quarterly: 'hàng quý', yearly: 'hàng năm' };
             const paymentCycleLabel = paymentCycleLabels[contractData.paymentCycle] || contractData.paymentCycle || 'theo thỏa thuận';
+            const rentAmountLabel = contractData.rentPrice ? money(contractData.rentPrice) : 'Chưa cập nhật';
+            const depositAmountLabel = contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật';
             let clauses = [
                 ['Điều 1. Thời hạn thuê', 'Thời hạn thuê được tính từ ngày ' + dateLabel(contractData.startDate) + ' đến ngày ' + dateLabel(contractData.endDate) + '. Việc tiếp tục thuê sau ngày kết thúc cần được hai bên xác nhận bằng văn bản.'],
-                ['Điều 2. Giá thuê và chu kỳ thanh toán', 'Giá thuê là ' + money(contractData.rentPrice) + ' mỗi kỳ (' + paymentCycleLabel + '). Tiền thuê và khoản dịch vụ được thanh toán theo hóa đơn của Ban quản lý.'],
-                ['Điều 3. Tiền đặt cọc', 'Tiền đặt cọc là ' + money(contractData.depositPrice) + '. Khoản đặt cọc được đối soát và hoàn trả sau khi kết thúc hợp đồng, bàn giao căn hộ và thanh toán các nghĩa vụ còn lại.'],
+                ['Điều 2. Giá thuê và chu kỳ thanh toán', 'Giá thuê là ' + rentAmountLabel + ' mỗi kỳ (' + paymentCycleLabel + '). Tiền thuê và khoản dịch vụ được thanh toán theo hóa đơn của Ban quản lý.'],
+                ['Điều 3. Tiền đặt cọc', 'Tiền đặt cọc là ' + depositAmountLabel + '. Khoản đặt cọc được đối soát và hoàn trả sau khi kết thúc hợp đồng, bàn giao căn hộ và thanh toán các nghĩa vụ còn lại.'],
                 ['Điều 4. Thanh toán hóa đơn', 'Cư dân thanh toán đúng hạn các hóa đơn tiền thuê, điện, nước, phí quản lý và dịch vụ phát sinh theo thông báo của Ban quản lý.'],
                 ['Điều 5. Bàn giao và sử dụng căn hộ', 'Căn hộ được sử dụng đúng mục đích cư trú. Hiện trạng, chìa khóa, thiết bị và chỉ số điện nước được ghi nhận trong biên bản bàn giao.'],
                 ['Điều 6. Bảo quản tài sản', 'Cư dân có trách nhiệm bảo quản căn hộ và thiết bị; thông báo kịp thời cho Ban quản lý khi phát hiện hư hỏng hoặc sự cố cần xử lý.'],
@@ -2933,16 +2934,20 @@
             const overviewValues = workspace.querySelectorAll('.contract-values strong');
             if (overviewValues[1]) overviewValues[1].textContent = (contractData.startDate ? dateLabel(contractData.startDate) : 'Chưa cập nhật') + ' — ' + (contractData.endDate ? dateLabel(contractData.endDate) : 'Chưa cập nhật');
             if (overviewValues[2]) overviewValues[2].textContent = contractData.rentPrice ? money(contractData.rentPrice) + '/' + paymentCycleLabel : 'Chưa cập nhật';
+            const countdownLabel = workspace.querySelector('.contract-renewal-card > small');
+            if (countdownLabel) countdownLabel.textContent = 'THỜI HẠN HỢP ĐỒNG';
             const detailValues = workspace.querySelectorAll('.contract-detail-grid .meta-box strong');
             if (detailValues[0]) detailValues[0].textContent = dateLabel(contractData.signDate);
             if (detailValues[2]) detailValues[2].textContent = contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật';
+            if (!REAL_CONTRACT || !REAL_CONTRACT.startDate || !REAL_CONTRACT.endDate) {
+                const overview = workspace.querySelector('.contract-overview');
+                if (overview) overview.insertAdjacentHTML('afterend', '<p class="device-private-note" style="margin:.7rem .2rem 0">Thời hạn tham khảo 01/07/2026–31/12/2026 (6 tháng); ngày thực tế sẽ được ưu tiên khi có trong hồ sơ.</p>');
+            }
             if (!REAL_CONTRACT) {
-                const renewalButton = workspace.querySelector('[data-contract-action="renew"]');
-                if (renewalButton) { renewalButton.disabled = true; renewalButton.title = 'Chưa có hợp đồng để gia hạn'; }
                 const historyList = workspace.querySelector('.contract-history-list');
                 if (historyList) historyList.innerHTML = '<div class="notice-item"><strong>Chưa có lịch sử hợp đồng</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem">Lịch sử sẽ hiển thị sau khi Ban quản lý lập hợp đồng cho hồ sơ cư dân.</p></div>';
                 const historyHeading = Array.from(workspace.querySelectorAll('.contract-section-heading h4')).find(heading => heading.textContent.includes('Lịch sử hợp đồng'));
-                if (historyHeading) historyHeading.closest('.contract-section-heading').insertAdjacentHTML('afterend', '<div class="notice-item"><strong>Chưa có hợp đồng liên kết</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem;line-height:1.5">Thông tin hợp đồng và tài liệu chính thức sẽ xuất hiện tại đây sau khi Ban quản lý liên kết hồ sơ của bạn.</p></div>');
+                if (historyHeading) historyHeading.closest('.contract-section-heading').insertAdjacentHTML('afterend', '<div class="notice-item"><strong>Chưa có hợp đồng liên kết</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem;line-height:1.5">Thông tin chính thức sẽ hiển thị sau khi Ban quản lý liên kết hợp đồng với hồ sơ cư dân.</p></div>');
             }
             const openModal = (heading, html) => { modalTitle.textContent = heading; modalContent.innerHTML = html; modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
             const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
@@ -2950,8 +2955,9 @@
             const renewalSteps = ['Đã gửi yêu cầu', 'Ban quản lý xem xét', 'Chờ ký phụ lục', 'Hoàn tất'];
             const renderRenewal = () => {
                 const deadline = contractDeadline();
+                const contractEnd = contractData.endDate ? contractDate(contractData.endDate) : null;
                 const now = new Date(); now.setHours(0, 0, 0, 0);
-                const days = deadline ? Math.ceil((deadline - now) / 86400000) : null;
+                const days = contractEnd ? Math.ceil((contractEnd - now) / 86400000) : null;
                 const countdown = root.querySelector('#contractCountdown');
                 const deadlineLabel = root.querySelector('#contractDeadline');
                 const statusEl = root.querySelector('#contractRenewalStatus');
