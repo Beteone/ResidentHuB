@@ -1498,7 +1498,7 @@
             signDate: (REAL_CONTRACT && REAL_CONTRACT.signDate) || '',
             rentPrice: Number(REAL_CONTRACT && REAL_CONTRACT.rentPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.rentPrice) || 0,
             depositPrice: Number(REAL_CONTRACT && REAL_CONTRACT.depositPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.depositPrice) || 0,
-            version: (REAL_CONTRACT && (REAL_CONTRACT.version || REAL_CONTRACT.revision)) || 'v1.0',
+            version: (REAL_CONTRACT && (REAL_CONTRACT.version || REAL_CONTRACT.revision)) || 'Chưa cập nhật',
             // Per-contract value wins; otherwise Cài đặt > Hợp đồng > "Số ngày báo trước".
             noticeDays: Number(REAL_CONTRACT && REAL_CONTRACT.noticeDays) || Number(RH_SETTINGS.contractNoticeDays) || 30,
             files: REAL_CONTRACT && Array.isArray(REAL_CONTRACT.files) ? REAL_CONTRACT.files : [],
@@ -2862,8 +2862,7 @@
             const modal = document.getElementById('residentFeatureModal');
             const modalTitle = document.getElementById('residentFeatureTitle');
             const modalContent = document.getElementById('residentFeatureContent');
-            // No linked contract: keep the "Chưa có hợp đồng" empty state instead of a blank workspace.
-            if (!REAL_CONTRACT || !workspace || !modal || !modalTitle || !modalContent) return;
+            if (!workspace || !modal || !modalTitle || !modalContent) return;
 
             const escapeHtml = value => String(value == null ? '' : value).replace(/[&<>"']/g, character => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character]));
             const dateLabel = value => {
@@ -2881,7 +2880,7 @@
             const statusClass = contractData.status === 'ended' || contractData.status === 'terminated' ? 'badge-overdue' : contractData.status === 'draft' || !REAL_CONTRACT ? 'badge-pending' : 'badge-paid';
             const paymentCycleLabels = { monthly: 'hàng tháng', quarterly: 'hàng quý', yearly: 'hàng năm' };
             const paymentCycleLabel = paymentCycleLabels[contractData.paymentCycle] || contractData.paymentCycle || 'theo thỏa thuận';
-            const clauses = [
+            let clauses = [
                 ['Điều 1. Thời hạn thuê', 'Thời hạn thuê được tính từ ngày ' + dateLabel(contractData.startDate) + ' đến ngày ' + dateLabel(contractData.endDate) + '. Việc tiếp tục thuê sau ngày kết thúc cần được hai bên xác nhận bằng văn bản.'],
                 ['Điều 2. Giá thuê và chu kỳ thanh toán', 'Giá thuê là ' + money(contractData.rentPrice) + ' mỗi kỳ (' + paymentCycleLabel + '). Tiền thuê và khoản dịch vụ được thanh toán theo hóa đơn của Ban quản lý.'],
                 ['Điều 3. Tiền đặt cọc', 'Tiền đặt cọc là ' + money(contractData.depositPrice) + '. Khoản đặt cọc được đối soát và hoàn trả sau khi kết thúc hợp đồng, bàn giao căn hộ và thanh toán các nghĩa vụ còn lại.'],
@@ -2897,10 +2896,16 @@
                 ['Điều 13. Bồi thường và xử lý vi phạm', 'Thiệt hại tài sản và nghĩa vụ phát sinh do vi phạm hợp đồng được hai bên xác minh, đối soát và xử lý theo thỏa thuận cùng quy định pháp luật.'],
                 ['Điều 14. Thay đổi và giải quyết tranh chấp', 'Mọi thay đổi được lập thành văn bản hoặc phụ lục có xác nhận của các bên. Tranh chấp được ưu tiên giải quyết thông qua thương lượng trước khi thực hiện các thủ tục pháp lý.']
             ];
+            const storedClauses = contractData.terms || contractData.clauses || contractData.contractTerms;
+            if (Array.isArray(storedClauses) && storedClauses.length) {
+                clauses = storedClauses.map((clause, index) => Array.isArray(clause)
+                    ? clause
+                    : [clause.title || clause.name || 'Điều khoản ' + (index + 1), clause.content || clause.text || clause.description || 'Chưa có nội dung']);
+            }
             const termsPreview = clauses.slice(0, 4).map(clause => '<div class="notice-item"><strong>' + escapeHtml(clause[0]) + '</strong><p style="margin:.35rem 0 0;color:#475569;font-size:.84rem;line-height:1.55">' + escapeHtml(clause[1]) + '</p></div>').join('');
             const uploadedFiles = contractData.files.map((file, index) => ({
                 name: file.name || 'Tài liệu hợp đồng ' + (index + 1),
-                dataUrl: file.dataUrl || file.url || '',
+                dataUrl: file.dataUrl || file.url || file.href || file.path || '',
                 type: file.type || '',
                 description: file.description || 'Tệp do Ban quản lý cung cấp',
                 generated: false
@@ -2913,7 +2918,9 @@
                 uploadedFiles.push({ name: 'Danh-muc-ban-giao-mau.html', dataUrl: 'data:text/html;charset=utf-8,' + encodeURIComponent(handoverHtml), type: 'text/html', description: 'Mẫu tham khảo · chưa phải biên bản đã ký', generated: true });
             }
             const appendices = Array.isArray(contractData.appendices) ? contractData.appendices : contractData.appendices ? [contractData.appendices] : [];
-            const normalizedAppendices = appendices.map((item, index) => typeof item === 'string' ? { name: item, description: 'Phụ lục hợp đồng' } : Object.assign({ name: 'Phụ lục ' + (index + 1), description: 'Phụ lục hợp đồng' }, item));
+            const normalizedAppendices = appendices.map((item, index) => typeof item === 'string'
+                ? { name: item.split(/[\\/]/).pop() || 'Phụ lục ' + (index + 1), dataUrl: /^(data:|https?:\/\/|\/)/i.test(item) ? item : '', description: 'Phụ lục hợp đồng' }
+                : Object.assign({ name: 'Phụ lục ' + (index + 1), description: 'Phụ lục hợp đồng' }, item));
 
             const fileRows = uploadedFiles.map((file, index) => '<div class="contract-document"><div class="contract-document-info"><i class="fas ' + (/\.pdf($|\?)/i.test(file.name) || file.type === 'application/pdf' ? 'fa-file-pdf' : 'fa-file-lines') + '"></i><span><strong>' + escapeHtml(file.name) + '</strong><small>' + escapeHtml(file.description) + (file.generated ? '' : ' · Tài liệu hợp đồng') + '</small></span></div><div class="contract-doc-actions"><button type="button" class="billing-action" data-contract-action="preview-file" data-file-index="' + index + '" aria-label="Xem ' + escapeHtml(file.name) + '" title="Xem"><i class="fas fa-eye"></i></button><button type="button" class="billing-action" data-contract-action="download-file" data-file-index="' + index + '" aria-label="Tải xuống ' + escapeHtml(file.name) + '" title="Tải xuống"><i class="fas fa-download"></i></button></div></div>').join('');
             const appendixRows = normalizedAppendices.map((appendix, index) => '<div class="contract-document"><div class="contract-document-info"><i class="fas fa-file-signature"></i><span><strong>' + escapeHtml(appendix.name || appendix.title) + '</strong><small>' + escapeHtml(appendix.description || 'Phụ lục đã ký') + (appendix.signedAt ? ' · Ký ngày ' + escapeHtml(dateLabel(appendix.signedAt)) : '') + '</small></span></div><div class="contract-doc-actions"><button type="button" class="billing-action" data-contract-action="preview-appendix" data-appendix-index="' + index + '" aria-label="Xem phụ lục" title="Xem"><i class="fas fa-eye"></i></button><button type="button" class="billing-action" data-contract-action="download-appendix" data-appendix-index="' + index + '" aria-label="Tải phụ lục" title="Tải xuống"><i class="fas fa-download"></i></button></div></div>').join('');
@@ -2923,6 +2930,20 @@
 
             workspace.innerHTML = '<div class="card contract-main-card"><div class="contract-overview"><div class="contract-overview-head"><div><small>HỒ SƠ HỢP ĐỒNG</small><h4>' + escapeHtml(contractData.code ? 'Hợp đồng ' + contractData.code : 'Hợp đồng thuê nhà') + '</h4></div><span class="badge ' + statusClass + '" id="contractStatusBadge">' + escapeHtml(contractStatus) + '</span></div><div class="contract-values"><div>Căn hộ<strong>' + escapeHtml(roomName + ' · ' + buildingLabel) + '</strong></div><div>Thời hạn<strong>' + escapeHtml(dateLabel(contractData.startDate) + ' — ' + dateLabel(contractData.endDate)) + '</strong></div><div>Giá thuê<strong>' + escapeHtml(contractData.rentPrice ? money(contractData.rentPrice) + '/tháng' : 'Chưa cập nhật') + '</strong></div></div><div class="contract-detail-grid"><div class="meta-box"><small>Ngày ký</small><strong>' + escapeHtml(dateLabel(contractData.signDate)) + '</strong></div><div class="meta-box"><small>Bên cho thuê</small><strong>' + escapeHtml(landlordName) + '</strong></div><div class="meta-box"><small>Tiền đặt cọc</small><strong>' + escapeHtml(contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật') + '</strong></div><div class="meta-box"><small>Phiên bản</small><strong>' + escapeHtml(contractData.version) + '</strong></div><div class="meta-box"><small>Bên thuê</small><strong>' + escapeHtml(residentName) + '</strong></div><div class="meta-box"><small>Thời hạn báo trước</small><strong>' + escapeHtml(contractData.noticeDays + ' ngày') + '</strong></div></div></div><div class="contract-section-heading"><h4>Điều khoản cần lưu ý</h4><button type="button" class="billing-filter" data-contract-action="show-terms">Xem đầy đủ (' + clauses.length + ')</button></div><div class="notice-list">' + termsPreview + '</div><div class="contract-section-heading"><h4>Lịch sử hợp đồng</h4></div><div class="contract-history-list">' + historyRows + '</div></div><div class="contract-side-column"><div class="card contract-renewal-card"><small style="color:#64748b;font-weight:700">ĐẾN HẠN GIA HẠN</small><div class="contract-countdown" id="contractCountdown">Đang tính...</div><p class="contract-deadline" id="contractDeadline">Đang tính hạn chót theo điều khoản...</p><button type="button" class="btn-primary contract-renew" data-contract-action="renew" style="width:100%;padding:.7rem">Yêu cầu gia hạn</button><div class="contract-status" id="contractRenewalStatus"></div><div class="contract-progress" id="contractProgress" aria-label="Tiến trình gia hạn"></div></div><div class="card"><div class="contract-section-heading" style="margin:0 0 .85rem"><h4>Tài liệu hợp đồng</h4><button type="button" class="billing-filter" data-contract-action="download-all">Tải tất cả</button></div><p class="contract-resource-note">' + (uploadedFiles.some(file => file.generated) ? 'Chưa có file chính thức được tải lên; các tài liệu mẫu được đánh dấu rõ bên dưới.' : 'Tài liệu trong hồ sơ hợp đồng.') + '</p><div class="contract-resource-list">' + fileRows + '</div><div class="contract-section-heading"><h4>Phụ lục đã ký</h4><span class="badge badge-info">' + normalizedAppendices.length + ' phụ lục</span></div><div class="contract-resource-list">' + appendixContent + '</div></div></div></div>';
 
+            const overviewValues = workspace.querySelectorAll('.contract-values strong');
+            if (overviewValues[1]) overviewValues[1].textContent = (contractData.startDate ? dateLabel(contractData.startDate) : 'Chưa cập nhật') + ' — ' + (contractData.endDate ? dateLabel(contractData.endDate) : 'Chưa cập nhật');
+            if (overviewValues[2]) overviewValues[2].textContent = contractData.rentPrice ? money(contractData.rentPrice) + '/' + paymentCycleLabel : 'Chưa cập nhật';
+            const detailValues = workspace.querySelectorAll('.contract-detail-grid .meta-box strong');
+            if (detailValues[0]) detailValues[0].textContent = dateLabel(contractData.signDate);
+            if (detailValues[2]) detailValues[2].textContent = contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật';
+            if (!REAL_CONTRACT) {
+                const renewalButton = workspace.querySelector('[data-contract-action="renew"]');
+                if (renewalButton) { renewalButton.disabled = true; renewalButton.title = 'Chưa có hợp đồng để gia hạn'; }
+                const historyList = workspace.querySelector('.contract-history-list');
+                if (historyList) historyList.innerHTML = '<div class="notice-item"><strong>Chưa có lịch sử hợp đồng</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem">Lịch sử sẽ hiển thị sau khi Ban quản lý lập hợp đồng cho hồ sơ cư dân.</p></div>';
+                const historyHeading = Array.from(workspace.querySelectorAll('.contract-section-heading h4')).find(heading => heading.textContent.includes('Lịch sử hợp đồng'));
+                if (historyHeading) historyHeading.closest('.contract-section-heading').insertAdjacentHTML('afterend', '<div class="notice-item"><strong>Chưa có hợp đồng liên kết</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem;line-height:1.5">Thông tin hợp đồng và tài liệu chính thức sẽ xuất hiện tại đây sau khi Ban quản lý liên kết hồ sơ của bạn.</p></div>');
+            }
             const openModal = (heading, html) => { modalTitle.textContent = heading; modalContent.innerHTML = html; modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
             const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
             const contractRenewalStatus = () => ({ draft: 'Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và phản hồi.', submitted: 'Yêu cầu gia hạn đã được gửi đến Ban quản lý.', reviewing: 'Ban quản lý đang xem xét yêu cầu gia hạn.', signing: 'Yêu cầu đã được duyệt; đang chờ ký phụ lục.', completed: 'Phụ lục gia hạn đã hoàn tất.' }[contractData.renewalStatus] || 'Trạng thái yêu cầu: ' + contractData.renewalStatus);
