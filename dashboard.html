@@ -4542,8 +4542,9 @@
             const customers = RHD.list('customers');
             const contract = apartment ? RHD.activeContractFor(apartment.id) : null;
 
+            const linkedResidentId = contract ? contract.customerId : r.residentId;
             const customerOptions = '<option value="">— Tạo hồ sơ cư dân mới —</option>' + customers.map(function (c) {
-                return '<option value="' + c.id + '"' + (c.id === r.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + '</option>';
+                return '<option value="' + c.id + '"' + (c.id === linkedResidentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + '</option>';
             }).join('');
 
             const html = '<div style="display:grid;gap:0.9rem;">' +

@@ -75,6 +75,7 @@
     var INVOICE_STATUSES = [
         { id: 'unpaid', label: 'Chưa thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'sent', label: 'Đã gửi', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'payment_pending', label: 'Chờ xác nhận thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'paid', label: 'Đã thanh toán', color: '#18a878', bg: '#e6f8ef' },
         { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
     ];
@@ -253,20 +254,29 @@
         var contracts = allContracts.filter(function (item) {
             return item.status !== 'ended' && item.status !== 'terminated' && item.status !== 'expired';
         });
-        var contractCandidates = contracts.filter(function (item) {
-            return apartment ? item.apartmentId === apartment.id && (!customer || item.customerId === customer.id) : customer && item.customerId === customer.id;
+        var contractCandidates = apartment ? contracts.filter(function (item) { return item.apartmentId === apartment.id; }) : contracts.filter(function (item) { return customer && item.customerId === customer.id; });
+        contractCandidates.sort(function (a, b) {
+            if (customer && apartment) {
+                var aMatchesCustomer = a.customerId === customer.id ? 1 : 0;
+                var bMatchesCustomer = b.customerId === customer.id ? 1 : 0;
+                if (aMatchesCustomer !== bMatchesCustomer) return bMatchesCustomer - aMatchesCustomer;
+            }
+            return (b.createdAt || 0) - (a.createdAt || 0);
         });
-        contractCandidates.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
         var contract = contractCandidates[0] || null;
         if (!apartment && contract) apartment = get('apartments', contract.apartmentId);
         if (!apartment) return { apartment: null, building: null, contract: null, customer: customer, invoices: [], supportRequests: [] };
         var building = get('buildings', apartment.buildingId);
-        if (!customer && contract) customer = get('customers', contract.customerId);
+        if (contract) customer = get('customers', contract.customerId) || customer;
+        var residentContracts = contract ? allContracts.filter(function (item) {
+            return item.apartmentId === apartment.id && item.customerId === contract.customerId;
+        }) : [];
+        var residentContractIds = residentContracts.reduce(function (ids, item) { ids[item.id] = true; return ids; }, {});
         var invoices = readAll('invoices').filter(function (inv) {
             if (inv.apartmentId !== apartment.id) return false;
             if (inv.contractId) {
                 var invoiceContract = allContracts.filter(function (item) { return item.id === inv.contractId; })[0];
-                return !!(customer && invoiceContract && invoiceContract.apartmentId === apartment.id && invoiceContract.customerId === customer.id);
+                return !!(invoiceContract && residentContractIds[invoiceContract.id]);
             }
             return !!(customer && inv.customerId === customer.id);
         })

@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
     <script src="data.js"></script>
+    <script src="app-clock.js"></script>
     <style>
         :root {
             --bg-soft: #f5f8fc;
@@ -298,6 +299,7 @@
 
         .badge-paid { background: #dcfce7; color: #166534; }
         .badge-pending { background: #fef3c7; color: #b45309; }
+        .badge-waiting { background: #fff7ed; color: #9a3412; }
         .badge-overdue { background: #fee2e2; color: #991b1b; }
         .badge-info { background: #dbeafe; color: #0c4a6e; }
 
@@ -1193,6 +1195,7 @@
             <div class="topbar-search"><i class="fas fa-search"></i><input type="search" placeholder="Tìm kiếm..." aria-label="Tìm kiếm"><kbd>Ctrl K</kbd><span id="pageTitle" hidden>Tổng quan</span><span id="residentGreeting" hidden>Xin chào, Hương</span></div>
 
             <div class="topbar-actions">
+                <div class="resident-live-clock" aria-label="Ngày giờ Việt Nam"><span id="residentClockDate"></span><strong id="residentClockTime"></strong></div>
                 <button class="icon-btn" title="Tìm kiếm"><i class="fas fa-search"></i></button>
                 <button class="icon-btn" title="Thông báo">
                     <i class="fas fa-bell"></i>
@@ -1342,7 +1345,7 @@
             <div class="resident-feature">
                 <div class="resident-feature-hero"><div><div><h3>Hóa đơn & thanh toán</h3><p>Quản lý hóa đơn theo từng tòa nhà và phòng; mỗi kỳ thu gồm tiền nhà, dịch vụ, điện nước và các khoản phí khác.</p></div><i class="fas fa-receipt resident-feature-icon"></i></div></div>
                 <div class="billing-summary"><div class="billing-summary-item"><small><i class="fas fa-wallet" style="color:#f59e0b"></i> CẦN THANH TOÁN</small><strong id="billingDue">0 ₫</strong><span id="billingDueNote">Bạn không có hóa đơn cần thanh toán</span></div><div class="billing-summary-item"><small><i class="fas fa-circle-check" style="color:#18a878"></i> ĐÃ THANH TOÁN</small><strong id="billingPaid">0 ₫</strong><span>Tổng chi phí trong 3 tháng gần đây</span></div><div class="billing-summary-item"><small><i class="fas fa-calendar-days" style="color:#1683ff"></i> KỲ HIỆN TẠI</small><strong>09/2026</strong><span>Thu từ 28/08 đến 05/09/2026</span></div></div>
-                <div class="card"><div class="billing-toolbar"><div class="billing-filters"><button class="billing-filter active" data-billing-filter="all">Tất cả</button><button class="billing-filter" data-billing-filter="pending">Chưa thanh toán</button><button class="billing-filter" data-billing-filter="paid">Đã thanh toán</button></div><label class="billing-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hoặc khoản thu"></label></div>
+                <div class="card"><div class="billing-toolbar"><div class="billing-filters"><button class="billing-filter active" data-billing-filter="all">Tất cả</button><button class="billing-filter" data-billing-filter="pending">Chưa thanh toán</button><button class="billing-filter" data-billing-filter="waiting">Chờ xác nhận</button><button class="billing-filter" data-billing-filter="paid">Đã thanh toán</button></div><label class="billing-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hoặc khoản thu"></label></div>
                     <div class="table-wrap"><table><thead><tr><th>Hóa đơn theo phòng</th><th>Tòa nhà</th><th>Số phòng</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody id="billingRows"></tbody></table></div><div style="display:flex; align-items:center; justify-content:space-between; gap:1rem; margin-top:1rem; color:#718096; font-size:.78rem"><span id="billingCount">Hiển thị 0 hóa đơn</span><button class="btn-primary billing-pay-all" style="padding:.65rem 1rem" disabled><i class="fas fa-credit-card"></i> Thanh toán hóa đơn</button></div></div>
                 <div class="card" id="billingSampleHistory" hidden><h4 style="margin:0;color:#10213c;font-size:1rem">Một số hóa đơn cũ (mẫu tham khảo)</h4><p class="billing-sample-note">Dữ liệu minh họa để xem lịch sử; không thuộc công nợ hay tài khoản của bạn.</p><div class="table-wrap"><table><thead><tr><th>Kỳ thu</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th></tr></thead><tbody><tr><td>06/2026</td><td>HD2026-0006</td><td>05/07/2026</td><td>2.650.000 ₫</td><td><span class="badge badge-paid">Đã thanh toán</span></td></tr><tr><td>07/2026</td><td>HD2026-0007</td><td>05/08/2026</td><td>2.784.000 ₫</td><td><span class="badge badge-paid">Đã thanh toán</span></td></tr><tr><td>08/2026</td><td>HD2026-0008</td><td>05/09/2026</td><td>2.912.000 ₫</td><td><span class="badge badge-paid">Đã thanh toán</span></td></tr></tbody></table></div></div>
             </div>
@@ -1488,19 +1491,19 @@
             appendices: REAL_CONTRACT && (REAL_CONTRACT.appendices || REAL_CONTRACT.addenda || REAL_CONTRACT.signedAppendices) || [],
             renewalStatus: localStorage.getItem('residenthub_contract_renewal_status_' + (RH_SESSION ? RH_SESSION.id : '')) || 'draft'
         };
-        function money(value) { return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + ' ₫'; }
+        function money(value) { return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + ' đ'; }
         function renderRealBillingRows() {
             const tbody = document.getElementById('billingRows');
             if (!tbody) return;
             const invoices = (RH_CTX && RH_CTX.invoices) || [];
             tbody.innerHTML = invoices.length ? invoices.map(inv => {
-                const statusBucket = inv.status === 'paid' ? 'paid' : 'pending';
-                const badgeClass = inv.status === 'paid' ? 'badge-paid' : (inv.status === 'overdue' ? 'badge-overdue' : 'badge-pending');
-                const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán');
+                const statusBucket = inv.status === 'paid' ? 'paid' : (inv.status === 'payment_pending' ? 'waiting' : 'pending');
+                const badgeClass = inv.status === 'paid' ? 'badge-paid' : (inv.status === 'payment_pending' ? 'badge-waiting' : (inv.status === 'overdue' ? 'badge-overdue' : 'badge-pending'));
+                const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (inv.status === 'payment_pending' ? 'Chờ ban quản lý xác nhận' : (inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán'));
                 const breakdown = inv.items.map(it => it.label + ': ' + money(it.amount)).join('|');
                 const actions = inv.status === 'paid'
                     ? '<button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button>'
-                    : '<button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button> <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button>';
+                    : '<button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button>' + (inv.status === 'payment_pending' ? '' : ' <button class="billing-action billing-pay" title="Thanh toán"><i class="fas fa-credit-card"></i></button>');
                 return '<tr data-billing-status="' + statusBucket + '" data-billing-breakdown="' + breakdown.replace(/"/g, '&quot;') + '">' +
                     '<td><span class="billing-name"><i class="fas fa-file-invoice-dollar"></i>Kỳ thu ' + (inv.period || '') + '</span></td>' +
                     '<td><strong>' + (REAL_BUILDING ? REAL_BUILDING.shortName || REAL_BUILDING.name : '—') + '</strong></td>' +
@@ -1557,8 +1560,8 @@
             const invRows = document.getElementById('ovInvoiceRows');
             if (invRows) {
                 invRows.innerHTML = invoices.slice(0, 2).map(inv => {
-                    const badgeClass = inv.status === 'paid' ? 'badge-paid' : (inv.status === 'overdue' ? 'badge-overdue' : 'badge-pending');
-                    const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán');
+                    const badgeClass = inv.status === 'paid' ? 'badge-paid' : (inv.status === 'payment_pending' ? 'badge-waiting' : (inv.status === 'overdue' ? 'badge-overdue' : 'badge-pending'));
+                    const badgeLabel = inv.status === 'paid' ? 'Đã thanh toán' : (inv.status === 'payment_pending' ? 'Chờ xác nhận' : (inv.status === 'overdue' ? 'Quá hạn' : 'Chưa thanh toán'));
                     return '<tr><td>Hóa đơn căn ' + (REAL_APARTMENT ? REAL_APARTMENT.name : '—') + '</td><td>' + (inv.period || '—') + '</td><td>' + money(inv.total) + '</td><td>' + (inv.dueDate ? inv.dueDate.split('-').reverse().join('/') : '—') + '</td><td><span class="badge ' + badgeClass + '">' + badgeLabel + '</span></td></tr>';
                 }).join('') || '<tr><td colspan="5" style="text-align:center;color:#94a3b8;">Chưa có hóa đơn nào.</td></tr>';
             }
@@ -1581,9 +1584,9 @@
             if (!list) return;
             // Reminders come straight from Invoice.dueDate/total/status — no separate
             // calendar/event store. Only invoices not yet paid show up here.
-            const invoices = ((RH_CTX && RH_CTX.invoices) || []).filter(inv => inv.status !== 'paid');
+            const invoices = ((RH_CTX && RH_CTX.invoices) || []).filter(inv => AppClock.invoiceStatus(inv) !== 'paid');
             list.innerHTML = invoices.length ? invoices.map(inv => {
-                const isOverdue = inv.status === 'overdue' || (inv.dueDate && inv.dueDate < new Date().toISOString().slice(0, 10));
+                const isOverdue = AppClock.invoiceStatus(inv) === 'overdue';
                 return '<div class="notice-item" style="' + (isOverdue ? 'border-color:#fecaca;background:#fff5f5;' : '') + '">' +
                     '<div style="font-weight:700;margin-bottom:.25rem;' + (isOverdue ? 'color:#991b1b;' : '') + '">Thanh toán tiền thuê + dịch vụ kỳ ' + (inv.period || '') + '</div>' +
                     '<div style="font-size:.82rem;color:#64748b;">' + (inv.dueDate ? inv.dueDate.split('-').reverse().join('/') : '—') + ' · ' + money(inv.total) + ' · ' + (isOverdue ? 'Quá hạn' : 'Chưa thanh toán') + '</div>' +
@@ -1591,8 +1594,8 @@
             }).join('') : '<div class="notice-item" style="color:#94a3b8;text-align:center;">Không có hóa đơn cần thanh toán.</div>';
         }
         renderCalendarReminders();
-        const contractDate = value => { const parts = value.split('-').map(Number); return new Date(parts[0], parts[1] - 1, parts[2]); };
-        const contractFormatDate = value => { const date = contractDate(value); return String(date.getDate()).padStart(2, '0') + '/' + String(date.getMonth() + 1).padStart(2, '0') + '/' + date.getFullYear(); };
+        const contractDate = value => { const key = AppClock.dateKey(value); return key ? new Date(key + 'T12:00:00Z') : null; };
+        const contractFormatDate = value => AppClock.formatDate(value);
         function getCurrentResidentUserId() {
             const session = RH && RH.getSession ? RH.getSession() : null;
             return session ? session.id : (RH && RH.getCurrentUserId ? RH.getCurrentUserId() : null);
@@ -1615,6 +1618,8 @@
             if (typeof renderNotifications === 'function') renderNotifications();
         }
 
+        let isSubmittingInvoicePayment = false;
+
         function refreshResidentUserData() {
             const userId = getCurrentResidentUserId();
             const notifications = userId && RH && RH.getNotificationsForUser ? RH.getNotificationsForUser(userId) : [];
@@ -1622,16 +1627,13 @@
         }
         const contractDeadline = () => {
             if (!contractData || !contractData.endDate) return null;
-            const date = contractDate(contractData.endDate);
-            date.setDate(date.getDate() - (contractData.noticeDays || 30));
-            return date;
+            const deadline = AppClock.addDays(contractData.endDate, -(contractData.noticeDays || 30));
+            return deadline ? contractDate(deadline) : null;
         };
         const contractDaysRemaining = () => {
             const deadline = contractDeadline();
             if (!deadline) return 0;
-            const today = new Date();
-            today.setHours(0, 0, 0, 0);
-            return Math.ceil((deadline - today) / 86400000);
+            return AppClock.daysRemaining(AppClock.dateKey(deadline));
         };
         refreshResidentUserData();
         let notificationFilter = 'ALL';
@@ -1682,11 +1684,23 @@
             syncResidentDashboardData();
         });
         window.addEventListener('residenthub:business-data-changed', event => {
+            if (event.detail && ['invoices', 'contracts'].includes(event.detail.entity)) {
+                RH_CTX = RHD.residentContext(RH_SESSION);
+                if (typeof window.refreshResidentWorkspace === 'function') window.refreshResidentWorkspace(event.detail);
+                syncResidentDashboardData();
+                return;
+            }
             if (event.detail && event.detail.mode === 'live') window.location.reload();
         });
         window.addEventListener('storage', event => {
             if (event.key === 'residenthub_internal_data' || event.key === 'residenthub_users' || (event.key && (event.key.indexOf('rh_db_') === 0 || event.key.indexOf('residenthub_live_') === 0))) {
-                if (event.key === 'residenthub_users' || event.key.indexOf('rh_db_') === 0 || event.key.indexOf('residenthub_live_') === 0) {
+                if (event.key === 'residenthub_live_invoices' || event.key === 'residenthub_live_contracts' || event.key === 'residenthub_demo_invoices') {
+                    RH_CTX = RHD.residentContext(RH_SESSION);
+                    if (typeof window.refreshResidentWorkspace === 'function') window.refreshResidentWorkspace({ entity: event.key.indexOf('invoices') !== -1 ? 'invoices' : 'contracts' });
+                    syncResidentDashboardData();
+                    return;
+                }
+                if (event.key === 'residenthub_users' || event.key.indexOf('rh_db_') === 0 || event.key.indexOf('residenthub_live_') === 0 || event.key === 'residenthub_demo_invoices') {
                     window.location.reload();
                     return;
                 }
@@ -2632,7 +2646,21 @@
             document.querySelectorAll('[data-billing-filter]').forEach(button => button.addEventListener('click', () => { filter = button.dataset.billingFilter; document.querySelectorAll('[data-billing-filter]').forEach(item => item.classList.toggle('active', item === button)); refresh(); }));
             search.addEventListener('input', refresh);
             document.querySelectorAll('.billing-detail').forEach(button => button.addEventListener('click', () => { const row = button.closest('tr'); const paid = row.dataset.billingStatus === 'paid'; const breakdown = row.dataset.billingBreakdown.split('|').map(item => `<div style="display:flex;justify-content:space-between;gap:1rem;margin-top:.5rem"><span>${item.split(': ')[0]}</span><strong>${item.split(': ')[1]}</strong></div>`).join(''); open('Chi tiết hóa đơn phòng', `<div class="support-card"><div style="display:flex;justify-content:space-between"><span>Tòa nhà</span><strong>${row.children[1].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.5rem"><span>Phòng</span><strong>${row.children[2].innerText}</strong></div><div style="display:flex;justify-content:space-between;margin-top:.75rem"><span>Kỳ thu</span><strong>${row.children[0].innerText.replace('Kỳ thu ', '')}</strong></div><div style="margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><strong>Các khoản cấu thành</strong>${breakdown}</div><div style="display:flex;justify-content:space-between;margin-top:1rem;padding-top:.75rem;border-top:1px solid #e4eaf2"><span>Tổng thanh toán</span><strong style="color:#1683ff">${row.children[5].innerText}</strong></div></div><p style="color:#64748b;font-size:.84rem;line-height:1.55">${paid ? 'Giao dịch đã được ghi nhận. Bạn có thể tải chứng từ điện tử.' : 'Hóa đơn được thu một lần trong khoảng từ ngày 28 đến ngày 05 tháng sau. Vui lòng thanh toán trước ngày 05.'}</p><button class="btn-primary resident-feature-close" style="width:100%">${paid ? 'Đóng' : 'Đã hiểu'}</button>`); }));
-            const choosePayment = invoiceIds => { selectedInvoices = invoiceIds; const total = residentRows.filter(row => invoiceIds.includes(row.children[3].innerText)).reduce((sum,row) => sum + amount(row),0); open('Chọn phương thức thanh toán', `<p style="color:#64748b;font-size:.84rem">Tổng cần thanh toán: <strong style="color:#10213c">${money(total)}</strong></p><button class="payment-method" data-method="Chuyển khoản ngân hàng"><i class="fas fa-building-columns" style="color:#1683ff"></i> Chuyển khoản ngân hàng</button><button class="payment-method" data-method="Quét mã QR"><i class="fas fa-qrcode" style="color:#1683ff"></i> Quét mã QR thanh toán</button><button class="payment-method" data-method="Ví điện tử"><i class="fas fa-wallet" style="color:#1683ff"></i> Ví điện tử</button>`); };
+            const receiverBank = REAL_BUILDING && REAL_BUILDING.config ? REAL_BUILDING.config : {};
+            const supportedBanks = ['Vietcombank', 'VietinBank', 'BIDV', 'Agribank', 'Techcombank', 'MB Bank', 'ACB', 'VPBank', 'TPBank', 'Sacombank', 'HDBank', 'VIB', 'SHB', 'MSB', 'OCB', 'Eximbank', 'LPBank'];
+            const bankBin = name => ({ vietcombank: '970436', vietinbank: '970415', bidv: '970418', agribank: '970405', techcombank: '970407', mbbank: '970422', acb: '970416', vpbank: '970432', tpbank: '970423', sacombank: '970403', hdbank: '970437', vib: '970441', shb: '970443', msb: '970426', ocb: '970448', eximbank: '970431', lpbank: '970449' })[String(name || '').toLowerCase().replace(/[^a-z]/g, '')] || '';
+            const showTransferDetails = method => {
+                const invoiceRows = residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText));
+                const total = invoiceRows.reduce((sum, row) => sum + amount(row), 0);
+                const codes = invoiceRows.map(row => row.children[3].innerText).join(', ');
+                const code = bankBin(receiverBank.bankName);
+                const qrUrl = code && receiverBank.bankAccountNumber
+                    ? 'https://img.vietqr.io/image/' + code + '-' + encodeURIComponent(receiverBank.bankAccountNumber) + '-compact2.png?amount=' + total + '&addInfo=' + encodeURIComponent(codes) + '&accountName=' + encodeURIComponent(receiverBank.bankAccountHolder || '')
+                    : '';
+                const qrBlock = qrUrl ? '<img src="' + qrUrl + '" alt="QR chuyển khoản hóa đơn" style="display:block;width:190px;height:190px;object-fit:contain;margin:1rem auto;border:1px solid #e2e8f0;border-radius:8px">' : '<p style="padding:.8rem;background:#fff7ed;border-radius:8px;color:#9a3412;font-size:.82rem">Ban quản lý chưa cấu hình đủ ngân hàng và số tài khoản nhận tiền để tạo QR.</p>';
+                open(method === 'Quét mã QR' ? 'Quét mã QR thanh toán' : 'Chuyển khoản ngân hàng', '<div style="color:#64748b;font-size:.84rem;line-height:1.6"><p>Ngân hàng nhận: <strong style="color:#10213c">' + escapeHtml(receiverBank.bankName || 'Chưa cấu hình') + '</strong></p><p>Số tài khoản: <strong style="color:#10213c">' + escapeHtml(receiverBank.bankAccountNumber || 'Chưa cấu hình') + '</strong></p><p>Chủ tài khoản: <strong style="color:#10213c">' + escapeHtml(receiverBank.bankAccountHolder || 'Chưa cấu hình') + '</strong></p><p>Số tiền: <strong style="color:#10213c">' + money(total) + '</strong></p><p>Nội dung: <strong style="color:#10213c">' + escapeHtml(codes) + '</strong></p></div>' + qrBlock + '<p style="color:#64748b;font-size:.78rem;line-height:1.5">Có thể chuyển từ: ' + supportedBanks.join(', ') + ' hoặc ngân hàng hỗ trợ chuyển khoản liên ngân hàng.</p><button class="btn-primary submit-payment-proof" style="width:100%">Tôi đã chuyển khoản</button>');
+            };
+            const choosePayment = invoiceIds => { selectedInvoices = invoiceIds; const total = residentRows.filter(row => invoiceIds.includes(row.children[3].innerText)).reduce((sum,row) => sum + amount(row),0); open('Chọn phương thức thanh toán', `<p style="color:#64748b;font-size:.84rem">Tổng cần thanh toán: <strong style="color:#10213c">${money(total)}</strong></p><button class="payment-method" data-method="Chuyển khoản ngân hàng"><i class="fas fa-building-columns" style="color:#1683ff"></i> Chuyển khoản ngân hàng</button><button class="payment-method" data-method="Quét mã QR"><i class="fas fa-qrcode" style="color:#1683ff"></i> Quét mã QR thanh toán</button>`); };
             document.querySelectorAll('.billing-pay').forEach(button => button.addEventListener('click', () => choosePayment([button.closest('tr').children[3].innerText])));
             document.querySelector('.billing-pay-all').addEventListener('click', () => choosePayment(residentRows.filter(row => row.dataset.billingStatus === 'pending').map(row => row.children[3].innerText)));
             const renewalSteps = ['Đã gửi yêu cầu', 'Ban quản lý đang xem xét', 'Chờ ký phụ lục', 'Hoàn tất'];
@@ -2705,14 +2733,27 @@
             });
             renderContractRenewal();
             document.querySelector('.contract-invoice-link')?.addEventListener('click', () => document.querySelector('.nav-item[data-target="invoices"]')?.click());
-            document.addEventListener('click', event => { if (event.target.closest('.resident-feature-close')) { close(); return; } const option = event.target.closest('.payment-method'); if (!option) return; residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText)).forEach(row => { row.dataset.billingStatus = 'paid'; row.children[6].innerHTML = '<span class="badge badge-paid">Đã thanh toán</span>'; row.children[7].innerHTML = '<button class="billing-action billing-detail" title="Tải hóa đơn"><i class="fas fa-file-arrow-down"></i></button>'; }); refresh(); open('Thanh toán thành công', '<div style="text-align:center;padding:.5rem"><i class="fas fa-circle-check" style="font-size:3rem;color:#18a878"></i><p style="color:#64748b;line-height:1.55">Giao dịch đã được ghi nhận. Hóa đơn điện tử sẽ được lưu trong lịch sử thanh toán.</p><button class="btn-primary resident-feature-close" style="width:100%">Hoàn tất</button></div>'); });
             document.addEventListener('click', event => {
-                if (!event.target.closest('.payment-method')) return;
-                residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText)).forEach(row => {
-                    if (currentUserId && RH.updateInvoiceForUser && row.dataset.billingId) {
-                        RH.updateInvoiceForUser(currentUserId, row.dataset.billingId, { status: 'paid', paidAt: new Date().toISOString() });
-                    }
-                });
+                const option = event.target.closest('.payment-method');
+                if (option) { showTransferDetails(option.dataset.method); return; }
+                if (event.target.closest('.submit-payment-proof')) {
+                    residentRows.filter(row => selectedInvoices.includes(row.children[3].innerText)).forEach(row => {
+                        if (!row.dataset.billingId) return;
+                        isSubmittingInvoicePayment = true;
+                        try {
+                            RHD.update('invoices', row.dataset.billingId, { status: 'payment_pending', paymentMethod: 'bank_transfer', paymentRequestedAt: Date.now() });
+                        } finally {
+                            isSubmittingInvoicePayment = false;
+                        }
+                        row.dataset.billingStatus = 'waiting';
+                        row.children[6].innerHTML = '<span class="badge badge-waiting">Chờ ban quản lý xác nhận</span>';
+                        row.children[7].innerHTML = '<button class="billing-action billing-detail" title="Xem chi tiết"><i class="fas fa-eye"></i></button>';
+                    });
+                    refresh();
+                    open('Đã gửi yêu cầu xác nhận', '<div style="text-align:center;padding:.5rem"><i class="fas fa-hourglass-half" style="font-size:2.6rem;color:#d97706"></i><p style="color:#64748b;line-height:1.55">Yêu cầu đã gửi đến ban quản lý. Hóa đơn chỉ được ghi nhận đã thanh toán sau khi ban quản lý xác nhận đã nhận tiền.</p><button class="btn-primary resident-feature-close" style="width:100%">Đóng</button></div>');
+                    return;
+                }
+                if (event.target.closest('.resident-feature-close')) close();
             });
             modal.addEventListener('click', event => { if (event.target === modal) close(); });
             refresh();
@@ -2760,7 +2801,7 @@
             const buildingName = REAL_BUILDING && (REAL_BUILDING.name || REAL_BUILDING.shortName) || 'Chưa cập nhật tòa nhà';
             const buildingLabel = REAL_BUILDING && (REAL_BUILDING.shortName || REAL_BUILDING.name) || 'Chưa cập nhật';
             const landlordName = contractData.landlordName || contractData.lessorName || contractData.landlord || (REAL_BUILDING && (REAL_BUILDING.landlordName || REAL_BUILDING.ownerName)) || 'Ban quản lý ResidentHub';
-            const statusLabels = { active: 'Đang hiệu lực', signed: 'Đã ký', draft: 'Bản dự thảo', pending: 'Chờ xác nhận', ended: 'Đã kết thúc', terminated: 'Đã chấm dứt' };
+            const statusLabels = { active: 'Đang hiệu lực', signed: 'Đã ký', draft: 'Bản nháp · chờ ban quản lý', pending: 'Chờ xác nhận', ended: 'Đã kết thúc', terminated: 'Đã chấm dứt' };
             const contractStatus = statusLabels[contractData.status] || (contractData.status ? String(contractData.status) : REAL_CONTRACT ? 'Đang hiệu lực' : 'Chưa có hợp đồng');
             const statusClass = contractData.status === 'ended' || contractData.status === 'terminated' ? 'badge-overdue' : contractData.status === 'draft' || !REAL_CONTRACT ? 'badge-pending' : 'badge-paid';
             const paymentCycleLabels = { monthly: 'hàng tháng', quarterly: 'hàng quý', yearly: 'hàng năm' };
@@ -2893,6 +2934,7 @@
             renderRenewal();
         })();
     </script>
+    <script src="resident-live-workspaces.js"></script>
 </body>
 </html>
 

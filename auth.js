@@ -294,6 +294,7 @@
             var userData = data.users[user.id] || ensureUserContainer(user.id);
             userData[collection] = Array.isArray(userData[collection]) ? userData[collection] : [];
             var mapped = Object.assign({}, record, { managerRecordId: record.id, userId: user.id });
+            var changed = !existing || JSON.stringify(existing) !== JSON.stringify(mapped);
             if (existing) {
                 userData[collection] = userData[collection].map(function (item) { return item.id === existing.id ? Object.assign({}, item, mapped) : item; });
             } else {
@@ -301,18 +302,84 @@
             }
             data.users[user.id] = userData;
             writeDataStore(data);
-            createNotificationForUser(user.id, {
-                type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
-                subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
-                title: kind === 'contract' ? 'Hợp đồng đã được cập nhật' : 'Hóa đơn mới đã được cập nhật',
-                body: kind === 'contract' ? 'Ban quản lý đã cập nhật hợp đồng của bạn.' : 'Ban quản lý đã tạo hoặc cập nhật hóa đơn của bạn.',
-                refType: kind === 'contract' ? 'contract' : 'invoice',
-                refId: record.id,
-                actionUrl: kind === 'contract' ? 'contracts' : 'invoices',
-                actionLabel: kind === 'contract' ? 'Xem hợp đồng' : 'Xem hóa đơn'
-            });
+            if (changed) {
+                createNotificationForUser(user.id, {
+                    type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
+                    subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
+                    title: kind === 'contract' ? 'Hợp đồng đã được cập nhật' : 'Hóa đơn mới đã được cập nhật',
+                    body: kind === 'contract' ? 'Ban quản lý đã cập nhật hợp đồng của bạn.' : 'Ban quản lý đã tạo hoặc cập nhật hóa đơn của bạn.',
+                    refType: kind === 'contract' ? 'contract' : 'invoice',
+                    refId: record.id,
+                    actionUrl: kind === 'contract' ? 'contracts' : 'invoices',
+                    actionLabel: kind === 'contract' ? 'Xem hợp đồng' : 'Xem hóa đơn'
+                });
+            }
         });
         return { ok: true, count: targets.length };
+    }
+
+    function syncResidentApartmentRecords(user) {
+        if (!user || user.role !== ROLES.RESIDENT || !user.apartmentId || !global.RHD || global.RHD.mode() === 'demo') return;
+        var contracts = managerStore('contracts').filter(function (contract) {
+            return contract.apartmentId === user.apartmentId && contract.status !== 'ended' && contract.status !== 'terminated' && contract.status !== 'expired';
+        });
+        contracts.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        if (!contracts.length && user.residentId && global.RHD) {
+            var apartment = global.RHD.get('apartments', user.apartmentId);
+            var building = apartment && global.RHD.get('buildings', apartment.buildingId);
+            var customer = global.RHD.get('customers', user.residentId);
+            if (apartment && customer) {
+                var start = new Date();
+                var startDate = [start.getFullYear(), String(start.getMonth() + 1).padStart(2, '0'), String(start.getDate()).padStart(2, '0')].join('-');
+                var end = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                end.setFullYear(end.getFullYear() + 1);
+                var endDate = [end.getFullYear(), String(end.getMonth() + 1).padStart(2, '0'), String(end.getDate()).padStart(2, '0')].join('-');
+                var draft = global.RHD.create('contracts', {
+                    code: global.RHD.nextContractCode && building ? global.RHD.nextContractCode(building, apartment) : 'HD-' + Date.now(),
+                    buildingId: apartment.buildingId,
+                    apartmentId: apartment.id,
+                    customerId: customer.id,
+                    startDate: startDate,
+                    endDate: endDate,
+                    signDate: '',
+                    noticeDays: 30,
+                    rentPrice: Number(apartment.rentPrice) || 0,
+                    depositPrice: Number(apartment.depositPrice) || 0,
+                    paymentCycle: 'monthly',
+                    files: [],
+                    status: 'draft',
+                    note: 'Bản nháp được tạo khi duyệt tài khoản cư dân; ban quản lý cần rà soát và xác nhận trước khi ký.'
+                });
+                if (draft && draft.ok) contracts.push(draft.item);
+            }
+        }
+        if (!contracts.length) return;
+        var customerContracts = user.residentId ? contracts.filter(function (contract) { return contract.customerId === user.residentId; }) : [];
+        var currentContract = customerContracts[0] || contracts[0];
+        var linkedContracts = contracts.filter(function (contract) { return contract.customerId === currentContract.customerId; });
+        var linkedContractIds = {};
+        linkedContracts.forEach(function (contract) { linkedContractIds[contract.id] = true; });
+        var invoices = managerStore('invoices').filter(function (invoice) {
+            if (invoice.apartmentId !== user.apartmentId) return false;
+            if (invoice.contractId) return !!linkedContractIds[invoice.contractId];
+            return invoice.customerId === currentContract.customerId;
+        });
+        var linkedInvoiceIds = {};
+        invoices.forEach(function (invoice) { linkedInvoiceIds[invoice.id] = true; });
+        var data = readDataStore();
+        var userData = data.users && data.users[user.id];
+        if (userData) {
+            ['contracts', 'invoices'].forEach(function (collection) {
+                var allowed = collection === 'contracts' ? linkedContractIds : linkedInvoiceIds;
+                userData[collection] = (userData[collection] || []).filter(function (record) {
+                    return !record.managerRecordId || !!allowed[record.managerRecordId];
+                });
+            });
+            data.users[user.id] = userData;
+            writeDataStore(data);
+        }
+        linkedContracts.forEach(function (contract) { syncManagerRecord(contract, 'contract'); });
+        invoices.forEach(function (invoice) { syncManagerRecord(invoice, 'invoice'); });
     }
 
     function removeManagerRecord(record, kind) {
@@ -501,6 +568,7 @@
         var users = readUsers();
         users.push(user);
         writeUsers(users);
+        syncResidentApartmentRecords(user);
         return { ok: true, user: user };
     }
 
@@ -537,6 +605,8 @@
 
         users[index] = user;
         writeUsers(users);
+
+        syncResidentApartmentRecords(user);
 
         var session = getSession();
         if (session && session.id === id) {

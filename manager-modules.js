@@ -787,13 +787,16 @@
             var building = RHD.get('buildings', c.buildingId);
             var apt = RHD.get('apartments', c.apartmentId);
             var cus = RHD.get('customers', c.customerId);
+            var contractStatusLabel = c.status === 'active' ? 'Đang hiệu lực' : c.status === 'draft' ? 'Bản nháp' : c.status === 'signed' ? 'Đã ký' : 'Đã kết thúc';
+            var contractStatusColor = c.status === 'active' || c.status === 'signed' ? '#18a878' : c.status === 'draft' ? '#a5680c' : '#61708a';
+            var contractStatusBg = c.status === 'active' || c.status === 'signed' ? '#e6f8ef' : c.status === 'draft' ? '#fff4df' : '#f1f5f9';
             return '<tr>' +
                 '<td><strong>' + escapeHtml(c.code) + '</strong></td>' +
                 '<td>' + escapeHtml(building ? building.shortName : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</td>' +
                 '<td>' + escapeHtml(cus ? cus.fullName : '—') + '</td>' +
                 '<td>' + fmtDate(c.startDate) + ' → ' + fmtDate(c.endDate) + '</td>' +
                 '<td>' + money(c.rentPrice) + '</td>' +
-                '<td>' + badge(c.status === 'active' ? 'Đang hiệu lực' : 'Đã kết thúc', c.status === 'active' ? '#18a878' : '#61708a', c.status === 'active' ? '#e6f8ef' : '#f1f5f9') + '</td>' +
+                '<td>' + badge(contractStatusLabel, contractStatusColor, contractStatusBg) + '</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
                 '<button onclick="RHUI.openContractForm(\'' + c.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
                 '<button onclick="RHUI.deleteContract(\'' + c.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
@@ -983,7 +986,7 @@
                 '<td style="text-align:right;white-space:nowrap;">' +
                 '<button onclick="RHUI.previewInvoice(\'' + inv.id + '\')" class="rh-row-btn" title="Xem trước"><i class="fas fa-eye"></i></button>' +
                 '<button onclick="RHUI.openInvoiceForm(\'' + inv.id + '\')" class="rh-row-btn" title="Sửa"><i class="fas fa-pen"></i></button>' +
-                '<button onclick="RHUI.markInvoicePaid(\'' + inv.id + '\')" class="rh-row-btn" title="Đánh dấu đã thanh toán"><i class="fas fa-check"></i></button>' +
+                (inv.status === 'payment_pending' ? '<button onclick="RHUI.markInvoicePaid(\'' + inv.id + '\')" class="rh-row-btn" title="Xác nhận đã nhận tiền"><i class="fas fa-check"></i></button>' : '') +
                 '<button onclick="RHUI.deleteInvoice(\'' + inv.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button>' +
                 '</td></tr>';
         }).join('');
@@ -1151,6 +1154,7 @@
         var result = RHD.update('invoices', id, { status: 'paid', paidAt: Date.now() });
         if (result.ok && window.RH && RH.syncManagerRecord) RH.syncManagerRecord(result.item, 'invoice');
         renderInvoicesTab();
+        renderDashboardCounts();
     };
 
     RHUI.sendSelectedInvoices = function () {
@@ -1457,6 +1461,12 @@
         if (typeof updateDashboardCharts === 'function') updateDashboardCharts();
         renderRecentActivity();
     }
+
+    global.addEventListener('storage', function (event) {
+        if (event.key !== 'residenthub_live_invoices') return;
+        renderInvoicesTab();
+        renderDashboardCounts();
+    });
 
     global.RHUI = Object.assign(RHUI, {
         openDrawer: openDrawer,
