@@ -14,3 +14,10 @@ npm run dev        # build lại tự động khi sửa file trong src/
 - Mã nguồn: `src/meter-reading/` (`MeterReadingPage` giữ state; `DashboardCards`, `RecordTable`, `AddRecordModal`, `MeterBlock`, `PhotoViewer`).
 - `dist/meter-reading.js` được commit vào repo để web vẫn chạy tĩnh không cần build. Sửa code trong `src/` thì nhớ chạy `npm run build` và commit cả file trong `dist/`.
 - Class Tailwind do Tailwind CDN trong `dashboard.html` sinh ra lúc chạy.
+
+## Phân quyền (Loại tài khoản)
+
+- `permissions.js` (`RHP`) là nơi **duy nhất** khai báo quyền: `PERMISSION_SCHEMA` = danh sách module + `actions` (view/create/update/delete) + `extra` (quyền nghiệp vụ). Ma trận trong *Tài khoản › Loại tài khoản* tự render từ đây.
+- Thêm module mới: thêm 1 mục vào `PERMISSION_SCHEMA`, rồi dùng `RHP.can('module.action')` để ẩn nút và `RHP.guard('module.action')` ở đầu mỗi hàm ghi dữ liệu. Admin (`fullAccess`) tự có quyền mới.
+- Phạm vi dữ liệu: người dùng có `allBuildings` hoặc chỉ các `buildingIds` + tòa mà họ là `managerId`. Lọc danh sách bằng `RHP.scopeList(entity, items)`.
+- Trang (menu / tab) dùng `data-perm` và `TAB_PERMS` trong `dashboard.html`.
