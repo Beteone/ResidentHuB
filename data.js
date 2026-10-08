@@ -12,7 +12,8 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests', 'assets', 'assetTypes'];
+    // billingRuns = ledger of automatically generated invoice periods (billing.js).
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -85,12 +86,23 @@
         { id: 'yearly', label: 'Hàng năm' }
     ];
 
+    // draft/approved = not issued yet (manager only); cancelled = voided after issue.
+    // Only ISSUED_INVOICE_STATUSES are shown to residents and counted on the Dashboard.
     var INVOICE_STATUSES = [
+        { id: 'draft', label: 'Bản nháp', color: '#61708a', bg: '#f1f5f9' },
+        { id: 'approved', label: 'Đã duyệt', color: '#7c3aed', bg: '#f3e8ff' },
         { id: 'unpaid', label: 'Chưa thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'sent', label: 'Đã gửi', color: '#0d65d5', bg: '#eaf3ff' },
         { id: 'paid', label: 'Đã thanh toán', color: '#18a878', bg: '#e6f8ef' },
-        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
+        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' },
+        { id: 'cancelled', label: 'Đã hủy', color: '#94a3b8', bg: '#f1f5f9' }
     ];
+    var ISSUED_INVOICE_STATUSES = ['unpaid', 'sent', 'paid', 'overdue'];
+
+    // Invoices without a status predate the draft workflow and were issued on save.
+    function isIssuedInvoice(inv) {
+        return !!inv && ISSUED_INVOICE_STATUSES.indexOf(inv.status || 'unpaid') !== -1;
+    }
 
     // Canonical status vocabulary shared by both roles: manager's Yêu cầu hỗ trợ tab
     // uses these ids directly; resident-web.html maps its own legacy status words
@@ -429,6 +441,7 @@
     }
 
     function invoiceVisibleToResident(inv) {
+        if (!isIssuedInvoice(inv)) return false; // drafts / approved / cancelled stay internal
         return !getSettings().invoiceRequireSend || inv.status !== 'unpaid';
     }
 
@@ -478,7 +491,7 @@
         var buildings = readAll('buildings').filter(function (b) { return !scopeIds || scopeIds.indexOf(b.id) !== -1; });
         var apartments = readAll('apartments').filter(inScope);
         var contracts = readAll('contracts').filter(inScope);
-        var invoices = readAll('invoices').filter(inScope);
+        var invoices = readAll('invoices').filter(function (i) { return inScope(i) && isIssuedInvoice(i); });
         var requests = readAll('supportRequests').filter(inScope);
         var meters = readAll('meters').filter(inScope);
         var allCustomers = readAll('customers');
@@ -615,10 +628,19 @@
         return buildingTag + '-' + aptTag + '-' + year + '-' + pad(seq, 3);
     }
 
+    // Max-based (not count-based) so deleting a draft never reissues an existing code.
     function nextInvoiceCode() {
         var year = new Date().getFullYear();
-        var seq = readAll('invoices').length + 1;
-        return 'HD' + year + '-' + pad(seq, 4);
+        var prefix = 'HD' + year + '-';
+        var max = 0;
+        readAll('invoices').forEach(function (inv) {
+            var code = String(inv.code || '');
+            if (code.indexOf(prefix) === 0) {
+                var n = parseInt(code.slice(prefix.length), 10);
+                if (n > max) max = n;
+            }
+        });
+        return prefix + pad(max + 1, 4);
     }
 
     function nextAssetCode() {
@@ -671,6 +693,9 @@
                 province: 'Thái Nguyên', ward: 'Phường Tích Lương', addressDetail: 'Tổ 14',
                 // The demo dataset's only staff account is the demo session (see managerAccounts).
                 managerId: 'demo',
+                // Auto-billing on: the demo shows a generated draft flagged for review
+                // (the seeded September readings are closed but not approved yet).
+                active: true, billingDay: 5, autoInvoice: true, autoInvoiceFrom: isoDate(new Date()).slice(0, 7), meterPeriod: 'previous',
                 services: [
                     { id: genId('svc'), name: 'Tiền thuê nhà', feeType: 'rent', calcMethod: 'fixed', unitPrice: 0, taxRate: 0 },
                     { id: genId('svc'), name: 'Tiền điện', feeType: 'electricity', calcMethod: 'meter', unitPrice: 3800, taxRate: 8 },
@@ -708,6 +733,8 @@
                 startDate: '2026-01-01', endDate: '2026-12-31', signDate: '2025-12-28',
                 contractTemplateId: building.contractTemplateId, invoiceTemplateId: building.invoiceTemplateId,
                 rentPrice: apt1.rentPrice, depositPrice: apt1.depositPrice, paymentCycle: 'monthly',
+                // Services billed monthly with the rent (electricity/water from approved readings).
+                serviceIds: building.services.filter(function (s) { return s.feeType !== 'rent' && s.feeType !== 'deposit'; }).map(function (s) { return s.id; }), serviceOverrides: {},
                 referrer: '', collaborator: 'Trần Văn Bình', note: '', files: [], status: 'active', createdAt: Date.now()
             };
             writeAll('contracts', [contract1]);
@@ -790,6 +817,7 @@
         });
         localStorage.removeItem('residenthub_demo_templates');
         localStorage.removeItem('residenthub_demo_settings');
+        localStorage.removeItem('residenthub_demo_billingMeta');
         if (global.RHT) global.RHT.seed();
         seedDataset('demo');
     }
@@ -804,6 +832,8 @@
         ASSET_CONDITIONS: ASSET_CONDITIONS,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,
+        ISSUED_INVOICE_STATUSES: ISSUED_INVOICE_STATUSES,
+        isIssuedInvoice: isIssuedInvoice,
         SUPPORT_STATUSES: SUPPORT_STATUSES,
         SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
         SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,

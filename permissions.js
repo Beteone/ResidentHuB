@@ -42,7 +42,7 @@
             extra: [{ id: 'approve', label: 'Duyệt / bỏ duyệt chỉ số' }] },
         { id: 'contracts', label: 'Hợp đồng', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'invoices', label: 'Hóa đơn', actions: ['view', 'create', 'update', 'delete'],
-            extra: [{ id: 'send', label: 'Gửi hóa đơn cho cư dân' }, { id: 'collect', label: 'Xác nhận đã thu tiền' }] },
+            extra: [{ id: 'approve', label: 'Duyệt hóa đơn nháp' }, { id: 'issue', label: 'Phát hành hóa đơn' }, { id: 'send', label: 'Gửi hóa đơn cho cư dân' }, { id: 'collect', label: 'Xác nhận đã thu tiền' }, { id: 'adjust', label: 'Điều chỉnh / hủy hóa đơn đã phát hành' }] },
         { id: 'support', label: 'Yêu cầu hỗ trợ', actions: ['view', 'update'] },
         { id: 'reports', label: 'Báo cáo', actions: ['view'] },
         { id: 'roles', label: 'Loại tài khoản', actions: ['view', 'create', 'update', 'delete'] },
@@ -87,7 +87,7 @@
                 'customers.view', 'customers.create', 'customers.update', 'customers.delete',
                 'meters.view', 'meters.create', 'meters.update', 'meters.delete', 'meters.approve',
                 'contracts.view', 'contracts.create', 'contracts.update', 'contracts.delete',
-                'invoices.view', 'invoices.create', 'invoices.update', 'invoices.delete', 'invoices.send', 'invoices.collect',
+                'invoices.view', 'invoices.create', 'invoices.update', 'invoices.delete', 'invoices.approve', 'invoices.issue', 'invoices.send', 'invoices.collect', 'invoices.adjust',
                 'support.view', 'support.update', 'reports.view', 'users.view', 'users.approveResident', 'templates.view']
         },
         {
