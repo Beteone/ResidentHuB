@@ -74,6 +74,52 @@
         return (getUserData(userId) || { requests: [] }).requests;
     }
 
+    function normalizeSupportStatus(value) {
+        var raw = String(value || '').trim().toLowerCase();
+        var aliases = {
+            waiting: 'pending',
+            'chờ xử lý': 'pending',
+            'cho xu ly': 'pending',
+            pending: 'pending',
+            processing: 'processing',
+            'đang xử lý': 'processing',
+            'dang xu ly': 'processing',
+            resolved: 'resolved',
+            completed: 'resolved',
+            'đã xử lý': 'resolved',
+            'da xu ly': 'resolved',
+            closed: 'closed',
+            'đã đóng': 'closed',
+            'da dong': 'closed'
+        };
+        if (!raw) return 'pending';
+        return aliases[raw] || raw;
+    }
+
+    function supportStatusLabel(value) {
+        var normalized = normalizeSupportStatus(value);
+        var labels = {
+            pending: 'Chờ xử lý',
+            processing: 'Đang xử lý',
+            resolved: 'Đã xử lý',
+            closed: 'Đã đóng'
+        };
+        return labels[normalized] || String(value || 'Chờ xử lý');
+    }
+
+    function supportPriorityLabel(value) {
+        var raw = String(value || '').trim().toLowerCase();
+        var labels = {
+            low: 'Thấp',
+            medium: 'Trung bình',
+            high: 'Cao',
+            normal: 'Trung bình',
+            needed: 'Cao',
+            urgent: 'Cao'
+        };
+        return labels[raw] || String(value || 'Trung bình');
+    }
+
     function getContractsForUser(userId) {
         return (getUserData(userId) || { contracts: [] }).contracts;
     }
@@ -115,20 +161,28 @@
         if (!title || !description) {
             return { ok: false, error: 'Vui lòng nhập tiêu đề và mô tả.' };
         }
+        var normalizedPriority = String((payload && payload.priority) || 'medium').toLowerCase();
+        var normalizedStatus = normalizeSupportStatus(payload && payload.status ? payload.status : 'pending');
         var result = createRecordForUser(userId, 'requests', {
             id: payload && payload.id ? payload.id : genInternalId('REQ'),
             title: title,
             type: payload && payload.type ? payload.type : 'Sửa chữa căn hộ',
             subType: payload && payload.subType ? payload.subType : '',
-            priority: payload && payload.priority ? payload.priority : 'normal',
-            status: payload && payload.status ? payload.status : 'processing',
+            priority: normalizedPriority === 'normal' || normalizedPriority === 'needed' || normalizedPriority === 'urgent' ? (normalizedPriority === 'normal' ? 'medium' : 'high') : normalizedPriority,
+            status: normalizedStatus,
+            response: payload && payload.response ? payload.response : '',
+            history: Array.isArray(payload && payload.history) ? payload.history : [{
+                actor: 'Cư dân',
+                time: new Date().toLocaleString('vi-VN'),
+                message: 'Cư dân gửi yêu cầu mới.'
+            }],
             date: payload && payload.date ? payload.date : new Date().toLocaleDateString('vi-VN'),
             time: payload && payload.time ? payload.time : new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
             description: description,
             location: payload && payload.location ? payload.location : '',
             assignee: payload && payload.assignee ? payload.assignee : 'Đang phân công',
             expected: payload && payload.expected ? payload.expected : 'Chưa xác định',
-            step: payload && payload.step ? payload.step : 2,
+            step: Number(payload && payload.step ? payload.step : 1),
             attachments: Number(payload && payload.attachments ? payload.attachments : 0),
             messages: Array.isArray(payload && payload.messages) ? payload.messages : [],
             cost: payload && payload.cost ? payload.cost : ''
@@ -206,29 +260,131 @@
         var data = readDataStore();
         var userData = data.users && data.users[userId];
         if (!userData || !Array.isArray(userData.requests)) return { ok: false, error: 'Không tìm thấy dữ liệu yêu cầu.' };
+        var requestIndex = -1;
         for (var i = 0; i < userData.requests.length; i++) {
             if (userData.requests[i].id === requestId) {
-                userData.requests[i] = Object.assign({}, userData.requests[i], patch, {
-                    updatedAt: Date.now()
-                });
-                data.users[userId] = userData;
-                writeDataStore(data);
-                if (patch && (patch.status || patch.messages || patch.assignee || patch.step)) {
-                    createNotificationForUser(userId, {
-                        type: 'REQUEST',
-                        subType: 'REQUEST_UPDATED',
-                        title: 'Yêu cầu đã được cập nhật',
-                        body: patch.status ? 'Trạng thái yêu cầu đã chuyển sang ' + patch.status + '.' : 'Ban quản lý đã phản hồi yêu cầu của bạn.',
-                        refType: 'request',
-                        refId: requestId,
-                        actionUrl: 'requests',
-                        actionLabel: 'Xem yêu cầu'
-                    });
-                }
-                return { ok: true, item: userData.requests[i] };
+                requestIndex = i;
+                break;
             }
         }
-        return { ok: false, error: 'Không tìm thấy yêu cầu.' };
+        if (requestIndex === -1) return { ok: false, error: 'Không tìm thấy yêu cầu.' };
+
+        var existing = Object.assign({}, userData.requests[requestIndex]);
+        var next = Object.assign({}, existing, patch, { updatedAt: Date.now() });
+        if (patch && patch.status) {
+            next.status = normalizeSupportStatus(patch.status);
+            if (next.step === undefined) {
+                next.step = next.status === 'pending' ? 1 : next.status === 'processing' ? 2 : next.status === 'resolved' ? 4 : 5;
+            }
+        }
+        if (patch && patch.priority) {
+            var priority = String(patch.priority).toLowerCase();
+            next.priority = priority === 'normal' ? 'medium' : (priority === 'needed' || priority === 'urgent' ? 'high' : (priority === 'low' ? 'low' : priority));
+        }
+        if (patch && patch.response && patch.response !== existing.response) {
+            var historyEntry = { actor: 'Quản lý', time: new Date().toLocaleString('vi-VN'), message: patch.response };
+            next.history = Array.isArray(existing.history) ? existing.history.concat([historyEntry]) : [historyEntry];
+        }
+        userData.requests[requestIndex] = next;
+        data.users[userId] = userData;
+        writeDataStore(data);
+        if (patch && (patch.status || patch.messages || patch.assignee || patch.step || patch.response)) {
+            createNotificationForUser(userId, {
+                type: 'REQUEST',
+                subType: 'REQUEST_UPDATED',
+                title: 'Yêu cầu đã được cập nhật',
+                body: patch.response ? patch.response : (patch.status ? 'Trạng thái yêu cầu đã chuyển sang ' + supportStatusLabel(patch.status) + '.' : 'Ban quản lý đã phản hồi yêu cầu của bạn.'),
+                refType: 'request',
+                refId: requestId,
+                actionUrl: 'requests',
+                actionLabel: 'Xem yêu cầu'
+            });
+        }
+        return { ok: true, item: next };
+    }
+
+    function getAllSupportRequests() {
+        var data = readDataStore();
+        var users = readUsers();
+        var allRequests = [];
+        Object.keys(data.users || {}).forEach(function (userId) {
+            var userData = data.users[userId] || {};
+            var requests = Array.isArray(userData.requests) ? userData.requests : [];
+            var user = users.filter(function (item) { return item.id === userId; })[0] || {};
+            requests.forEach(function (request) {
+                allRequests.push(Object.assign({}, request, {
+                    userId: userId,
+                    residentName: user.name || 'Cư dân',
+                    apartmentCode: user.unit || request.location || '—',
+                    status: normalizeSupportStatus(request.status),
+                    priority: String(request.priority || 'medium').toLowerCase() === 'normal' ? 'medium' : String(request.priority || 'medium').toLowerCase(),
+                    response: request.response || '',
+                    history: Array.isArray(request.history) ? request.history : []
+                }));
+            });
+        });
+        return allRequests.sort(function (a, b) {
+            var aTime = new Date(a.updatedAt || a.createdAt || Date.now()).getTime();
+            var bTime = new Date(b.updatedAt || b.createdAt || Date.now()).getTime();
+            return bTime - aTime;
+        });
+    }
+
+    function getSupportRequestById(requestId) {
+        var requests = getAllSupportRequests();
+        return requests.filter(function (item) { return item.id === requestId; })[0] || null;
+    }
+
+    function updateSupportRequest(requestId, patch) {
+        var data = readDataStore();
+        var requestFound = false;
+        var updated = null;
+        Object.keys(data.users || {}).forEach(function (userId) {
+            if (!data.users[userId] || !Array.isArray(data.users[userId].requests)) return;
+            for (var i = 0; i < data.users[userId].requests.length; i++) {
+                var item = data.users[userId].requests[i];
+                if (item.id !== requestId) continue;
+                requestFound = true;
+                var nextItem = Object.assign({}, item, patch, { updatedAt: Date.now() });
+                if (patch && patch.status) nextItem.status = normalizeSupportStatus(patch.status);
+                if (patch && patch.priority) {
+                    var priority = String(patch.priority).toLowerCase();
+                    nextItem.priority = priority === 'normal' ? 'medium' : (priority === 'needed' || priority === 'urgent' ? 'high' : (priority === 'low' ? 'low' : priority));
+                }
+                if (patch && patch.response && patch.response !== item.response) {
+                    var historyEntry = { actor: 'Quản lý', time: new Date().toLocaleString('vi-VN'), message: patch.response };
+                    nextItem.response = patch.response;
+                    nextItem.history = Array.isArray(item.history) ? item.history.concat([historyEntry]) : [historyEntry];
+                }
+                if (patch && patch.status && patch.status !== item.status) {
+                    var statusHistory = {
+                        actor: 'Quản lý',
+                        time: new Date().toLocaleString('vi-VN'),
+                        message: 'Trạng thái chuyển sang ' + supportStatusLabel(patch.status) + '.'
+                    };
+                    nextItem.history = Array.isArray(nextItem.history) ? nextItem.history.concat([statusHistory]) : [statusHistory];
+                }
+                data.users[userId].requests[i] = nextItem;
+                updated = nextItem;
+                break;
+            }
+        });
+        if (!requestFound) return { ok: false, error: 'Không tìm thấy yêu cầu cần cập nhật.' };
+        writeDataStore(data);
+        var userId = updated && updated.userId ? updated.userId : null;
+        if (userId) {
+            createNotificationForUser(userId, {
+                type: 'REQUEST',
+                subType: 'REQUEST_UPDATED',
+                title: 'Yêu cầu của bạn đã được cập nhật',
+                body: patch && patch.response ? patch.response : (patch && patch.status ? 'Trạng thái yêu cầu đã chuyển sang ' + supportStatusLabel(patch.status) + '.' : 'Ban quản lý đã cập nhật yêu cầu của bạn.'),
+                refType: 'request',
+                refId: requestId,
+                actionUrl: 'requests',
+                actionLabel: 'Xem chi tiết'
+            });
+        }
+        return { ok: true, item: updated };
     }
 
     function updateNotificationForUser(userId, notificationId, patch) {
@@ -1021,6 +1177,12 @@
         requireRole: requireRole,
         getUserData: getUserData,
         getCurrentUserId: getCurrentUserId,
+        normalizeSupportStatus: normalizeSupportStatus,
+        supportStatusLabel: supportStatusLabel,
+        supportPriorityLabel: supportPriorityLabel,
+        getAllSupportRequests: getAllSupportRequests,
+        getSupportRequestById: getSupportRequestById,
+        updateSupportRequest: updateSupportRequest,
         getRequestsForUser: getRequestsForUser,
         getContractsForUser: getContractsForUser,
         getInvoicesForUser: getInvoicesForUser,

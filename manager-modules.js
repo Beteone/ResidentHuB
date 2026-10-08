@@ -45,6 +45,44 @@
         return { label: id || '—', color: '#61708a', bg: '#f1f5f9' };
     }
 
+    function apartmentDetailStatus(apartment) {
+        var status = apartment && apartment.status ? apartment.status : (apartment && apartment.active === false ? 'maintenance' : 'vacant');
+        return statusMeta(RHD.APARTMENT_STATUSES || [], status);
+    }
+
+    function apartmentDetailLeaseStatus(contract) {
+        if (!contract) return { label: 'Chưa thuê', color: '#64748b', bg: '#f1f5f9' };
+        var map = {
+            active: { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' },
+            pending: { label: 'Chờ ký', color: '#a5680c', bg: '#fff4df' },
+            ended: { label: 'Đã kết thúc', color: '#64748b', bg: '#f1f5f9' },
+            terminated: { label: 'Đã thanh lý', color: '#ef4444', bg: '#fee2e2' },
+            draft: { label: 'Bản nháp', color: '#61708a', bg: '#f1f5f9' }
+        };
+        return map[contract.status] || { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' };
+    }
+
+    function normalizeApartmentRecord(apartment) {
+        if (!apartment) return null;
+        return {
+            id: apartment.id || apartment.code || '',
+            name: apartment.name || apartment.code || 'Căn hộ',
+            code: apartment.code || apartment.unitCode || '',
+            buildingId: apartment.buildingId || apartment.building_id || '',
+            buildingName: apartment.buildingName || apartment.building || '',
+            buildingCode: apartment.buildingCode || apartment.codeBuilding || '',
+            floor: apartment.floor || (apartment.level ? 'Tầng ' + apartment.level : ''),
+            area: apartment.area || apartment.square || apartment.size || 0,
+            rentPrice: apartment.rentPrice != null ? apartment.rentPrice : (apartment.rent != null ? apartment.rent : 0),
+            depositPrice: apartment.depositPrice != null ? apartment.depositPrice : (apartment.deposit != null ? apartment.deposit : 0),
+            status: apartment.status || (apartment.active === false ? 'maintenance' : 'vacant'),
+            active: apartment.active !== false,
+            photos: Array.isArray(apartment.photos) ? apartment.photos : (Array.isArray(apartment.images) ? apartment.images : []),
+            address: apartment.address || apartment.location || '',
+            note: apartment.note || ''
+        };
+    }
+
     function readFileAsDataUrl(input, cb) {
         var file = input.files && input.files[0];
         if (!file) { cb(''); return; }
@@ -531,40 +569,248 @@
         var tab = byId('apartments-tab');
         if (!tab) return;
         var buildings = scoped('buildings');
-        var apartments = scoped('apartments');
+        var apartments = scoped('apartments').map(normalizeApartmentRecord);
 
         if (!buildings.length) {
             tab.innerHTML = renderDemoBanner('apartments') + '<div class="card">' + emptyState('fa-building', 'Hãy tạo tòa nhà trước khi thêm căn hộ.') + '</div>';
             return;
         }
 
-        var rows = apartments.map(function (a) {
-            var building = RHD.get('buildings', a.buildingId);
-            var st = statusMeta(RHD.APARTMENT_STATUSES, a.status);
-            var isActive = a.active !== false;
-            return '<tr>' +
-                '<td><strong>' + escapeHtml(a.name) + '</strong>' + (a.photos && a.photos.length ? ' <i class="fas fa-image" style="color:#94a3b8;" title="Có ảnh"></i>' : '') + '</td>' +
-                '<td>' + escapeHtml(building ? building.shortName || building.name : '—') + '</td>' +
-                '<td>' + escapeHtml(a.floor || '—') + '</td>' +
-                '<td>' + (a.area || '—') + ' m²</td>' +
-                '<td>' + money(a.rentPrice) + '</td>' +
-                '<td>' + badge(isActive ? st.label : 'Ngừng hoạt động', isActive ? st.color : '#64748b', isActive ? st.bg : '#f1f5f9') + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
-                rowButton('apartments.update', "RHUI.openApartmentForm('" + a.id + "')", 'fa-pen', 'Sửa') +
-                rowButton('apartments.delete', "RHUI.deleteApartment('" + a.id + "')", 'fa-trash', 'Xoá', true) +
-                '</td></tr>';
+        var contracts = RHD.list('contracts');
+        var viewApartments = apartments.map(function (apartment) {
+            var building = RHD.get('buildings', apartment.buildingId);
+            var contract = contracts.filter(function (item) {
+                return item.apartmentId === apartment.id && item.status !== 'ended' && item.status !== 'terminated';
+            }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); })[0];
+            var customer = contract && contract.customerId ? RHD.get('customers', contract.customerId) : null;
+            apartment.buildingLabel = building ? (building.shortName || building.name) : (apartment.buildingName || '—');
+            apartment.residentName = customer ? (customer.fullName || customer.name || '') : (contract && contract.customerName || '');
+            apartment.statusGroup = apartment.status === 'maintenance' ? 'maintenance' : (apartment.status === 'deposited' ? 'deposited' : (apartment.status === 'occupied' || contract && contract.status === 'active' ? 'occupied' : 'vacant'));
+            return apartment;
+        });
+        var statusCounts = { all: viewApartments.length, occupied: 0, vacant: 0, maintenance: 0, deposited: 0 };
+        viewApartments.forEach(function (apartment) { statusCounts[apartment.statusGroup] += 1; });
+        var buildingOptions = buildings.map(function (building) {
+            return '<option value="' + escapeHtml(building.id) + '">' + escapeHtml(building.shortName || building.name) + '</option>';
         }).join('');
+        var floors = viewApartments.map(function (apartment) { return apartment.floor; }).filter(Boolean).filter(function (floor, index, all) { return all.indexOf(floor) === index; });
+        var floorOptions = floors.map(function (floor) { return '<option value="' + escapeHtml(floor) + '">' + escapeHtml(floor) + '</option>'; }).join('');
 
         tab.innerHTML = renderDemoBanner('apartments') +
-            '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Căn hộ</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Giá thuê và tiền cọc ở đây sẽ tự động điền khi lập hợp đồng.</p></div>' +
-            addButton('Thêm căn hộ', "RHUI.openApartmentForm()", 'apartments', 'apartments.create') +
-            '</div>' +
-            (apartments.length ? '<div class="table-container"><table><thead><tr><th>Căn hộ</th><th>Tòa nhà</th><th>Tầng</th><th>Diện tích</th><th>Giá thuê</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-door-open', 'Chưa có căn hộ nào.')) +
-            '</div>';
+            '<style>' +
+            '.apartment-browser{padding:1.25rem!important;margin-bottom:1rem!important}.apartment-browser [hidden]{display:none!important}.apartment-browser-head{align-items:center;display:flex;justify-content:space-between;gap:1rem}.apartment-browser-title h2{color:#10213c;font:800 1.55rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif;margin:0}.apartment-browser-title p{color:#8aa0bc;font-size:.9rem;margin:.35rem 0 0}.apartment-browser-tools{align-items:center;display:flex;gap:.55rem}.apartment-browser-icon{align-items:center;background:#f2f6fb;border:1px solid #dfeaf7;border-radius:12px;color:#1c3356;cursor:pointer;display:inline-flex;height:42px;justify-content:center;width:42px}.apartment-browser-icon.active{background:#e5f1ff;border-color:#bddaff;color:#0d65d5}.apartment-browser-search{margin-top:1rem}.apartment-browser-search input,.apartment-browser-filters input,.apartment-browser-filters select{background:#fff;border:1px solid #d8e3f0;border-radius:10px;color:#10213c;font:inherit;min-height:42px;padding:.6rem .75rem;width:100%}.apartment-browser-search input:focus,.apartment-browser-filters input:focus,.apartment-browser-filters select:focus{border-color:#1683ff;box-shadow:0 0 0 3px rgba(22,131,255,.12);outline:none}.apartment-browser-filters{background:#fbfdff;border:1px solid #e5edf8;border-radius:14px;display:grid;gap:.8rem;grid-template-columns:repeat(4,minmax(0,1fr));margin-top:1rem;padding:1rem}.apartment-browser-filter-actions{display:flex;gap:.6rem;grid-column:1/-1;justify-content:flex-end}.apartment-browser-chips{display:flex;gap:.65rem;margin-top:1rem;overflow-x:auto;padding-bottom:.25rem}.apartment-browser-chip{align-items:center;background:#f1f7fb;border:1px solid #dfeaf7;border-radius:999px;color:#476484;cursor:pointer;display:inline-flex;flex:none;font:600 .82rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif;gap:.5rem;min-height:42px;padding:.45rem .8rem;white-space:nowrap}.apartment-browser-chip.active{background:#eaf3ff;border-color:#b9d8ff;color:#0d65d5}.apartment-browser-chip[data-status="occupied"].active{background:#e6f8ef;border-color:#9ce0b6;color:#0d7a4f}.apartment-browser-chip-count{background:rgba(91,122,164,.11);border-radius:999px;font-size:.75rem;min-width:1.65rem;padding:.18rem .4rem;text-align:center}.apartment-browser-grid{display:grid;gap:.85rem;grid-template-columns:repeat(auto-fill,minmax(145px,1fr));padding:.15rem}.apartment-browser-tile{align-items:center;border:1px solid transparent;border-radius:12px;color:#fff;cursor:pointer;display:flex;flex-direction:column;justify-content:center;min-height:145px;padding:1rem .7rem;position:relative;text-align:center;transition:transform .15s,box-shadow .15s}.apartment-browser-tile:hover{box-shadow:0 8px 20px rgba(15,23,42,.14);transform:translateY(-2px)}.apartment-browser-tile.status-occupied{background:#218f58}.apartment-browser-tile.status-vacant{background:#ed5050}.apartment-browser-tile.status-maintenance{background:#d99120}.apartment-browser-tile.status-deposited{background:#3478c6}.apartment-browser-name{font-size:.95rem;font-weight:700;max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.apartment-browser-floor{font-size:.82rem;margin-top:.25rem;opacity:.78}.apartment-browser-status{font-size:.85rem;font-weight:700;margin-top:.12rem}.apartment-browser-card-tools{display:flex;gap:.35rem;position:absolute;right:.4rem;top:.4rem}.apartment-browser-card-tools button{align-items:center;background:rgba(255,255,255,.18);border:1px solid rgba(255,255,255,.28);border-radius:7px;color:#fff;cursor:pointer;display:inline-flex;height:28px;justify-content:center;width:29px}.apartment-browser-empty{color:#70839d;grid-column:1/-1;padding:2.5rem 1rem;text-align:center}.apartment-browser-results{color:#70839d;font-size:.82rem;margin:.85rem .2rem .25rem}@media(max-width:700px){.apartment-browser{padding:1rem!important}.apartment-browser-head{align-items:flex-start}.apartment-browser-title h2{font-size:1.25rem}.apartment-browser-title p{font-size:.78rem}.apartment-browser-tools{gap:.35rem}.apartment-browser-icon{height:38px;width:38px}.apartment-browser-filters{grid-template-columns:repeat(2,minmax(0,1fr));padding:.8rem}.apartment-browser-grid{gap:.6rem;grid-template-columns:repeat(auto-fill,minmax(125px,1fr))}.apartment-browser-tile{min-height:125px}}@media(max-width:420px){.apartment-browser-title p{display:none}.apartment-browser-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
+            '</style>' +
+            '<div class="card apartment-browser">' +
+            '<div class="apartment-browser-head"><div class="apartment-browser-title"><h2>Danh sách căn hộ</h2><p>Giá thuê và tiền cọc sẽ tự động điền khi lập hợp đồng.</p></div>' +
+            '<div class="apartment-browser-tools"><button class="apartment-browser-icon" id="apartmentBrowseSearchToggle" type="button" title="Tìm kiếm" aria-label="Tìm kiếm căn hộ"><i class="fas fa-magnifying-glass"></i></button>' +
+            '<button class="apartment-browser-icon" id="apartmentBrowseFilterToggle" type="button" title="Bộ lọc" aria-label="Lọc căn hộ"><i class="fas fa-sliders"></i></button>' +
+            addButton('Thêm', "RHUI.openApartmentForm()", 'apartments', 'apartments.create') + '</div></div>' +
+            '<div class="apartment-browser-search" id="apartmentBrowseSearch" hidden><input id="apartmentBrowseQuery" type="search" placeholder="Tìm mã căn hộ, tòa nhà hoặc cư dân..." aria-label="Tìm căn hộ"></div>' +
+            '<div class="apartment-browser-filters" id="apartmentBrowseFilters" hidden>' +
+            '<select id="apartmentBrowseBuilding" aria-label="Lọc theo tòa nhà"><option value="">Tất cả tòa nhà</option>' + buildingOptions + '</select>' +
+            '<select id="apartmentBrowseFloor" aria-label="Lọc theo tầng"><option value="">Tất cả tầng</option>' + floorOptions + '</select>' +
+            '<input id="apartmentBrowseAreaMin" type="number" min="0" placeholder="Diện tích từ (m²)" aria-label="Diện tích tối thiểu">' +
+            '<input id="apartmentBrowseAreaMax" type="number" min="0" placeholder="Diện tích đến (m²)" aria-label="Diện tích tối đa">' +
+            '<input id="apartmentBrowseRentMin" type="number" min="0" placeholder="Giá thuê từ" aria-label="Giá thuê tối thiểu">' +
+            '<input id="apartmentBrowseRentMax" type="number" min="0" placeholder="Giá thuê đến" aria-label="Giá thuê tối đa">' +
+            '<div class="apartment-browser-filter-actions"><button class="btn-secondary" id="apartmentBrowseClear" type="button">Xóa lọc</button><button class="btn-primary" id="apartmentBrowseApply" type="button">Áp dụng</button></div></div>' +
+            '<div class="apartment-browser-chips" id="apartmentBrowseChips">' +
+            '<button class="apartment-browser-chip active" data-status="all" type="button"><i class="fas fa-door-open"></i> Danh sách căn hộ <span class="apartment-browser-chip-count">' + statusCounts.all + '</span></button>' +
+            '<button class="apartment-browser-chip" data-status="occupied" type="button"><i class="far fa-circle-check"></i> Đang ở <span class="apartment-browser-chip-count">' + statusCounts.occupied + '</span></button>' +
+            '<button class="apartment-browser-chip" data-status="vacant" type="button"><i class="fas fa-door-closed"></i> Trống <span class="apartment-browser-chip-count">' + statusCounts.vacant + '</span></button>' +
+            '<button class="apartment-browser-chip" data-status="maintenance" type="button"><i class="fas fa-screwdriver-wrench"></i> Bảo trì <span class="apartment-browser-chip-count">' + statusCounts.maintenance + '</span></button>' +
+            (statusCounts.deposited ? '<button class="apartment-browser-chip" data-status="deposited" type="button"><i class="fas fa-file-signature"></i> Đã đặt cọc <span class="apartment-browser-chip-count">' + statusCounts.deposited + '</span></button>' : '') +
+            '</div></div>' +
+            '<div class="card" style="padding:1rem;"><div class="apartment-browser-results" id="apartmentBrowseResults"></div><div class="apartment-browser-grid" id="apartmentBrowseGrid"></div></div>';
+
+        var selectedStatus = 'all';
+        var appliedFilters = { building: '', floor: '', areaMin: '', areaMax: '', rentMin: '', rentMax: '' };
+        var searchToggle = byId('apartmentBrowseSearchToggle');
+        var filterToggle = byId('apartmentBrowseFilterToggle');
+        var searchPanel = byId('apartmentBrowseSearch');
+        var filterPanel = byId('apartmentBrowseFilters');
+        var queryInput = byId('apartmentBrowseQuery');
+
+        function renderApartmentCards() {
+            var query = (queryInput.value || '').trim().toLocaleLowerCase();
+            var filtered = viewApartments.filter(function (apartment) {
+                if (selectedStatus !== 'all' && apartment.statusGroup !== selectedStatus) return false;
+                if (appliedFilters.building && apartment.buildingId !== appliedFilters.building) return false;
+                if (appliedFilters.floor && apartment.floor !== appliedFilters.floor) return false;
+                if (appliedFilters.areaMin !== '' && Number(apartment.area || 0) < Number(appliedFilters.areaMin)) return false;
+                if (appliedFilters.areaMax !== '' && Number(apartment.area || 0) > Number(appliedFilters.areaMax)) return false;
+                if (appliedFilters.rentMin !== '' && Number(apartment.rentPrice || 0) < Number(appliedFilters.rentMin)) return false;
+                if (appliedFilters.rentMax !== '' && Number(apartment.rentPrice || 0) > Number(appliedFilters.rentMax)) return false;
+                var searchable = [apartment.name, apartment.code, apartment.id, apartment.buildingLabel, apartment.buildingName, apartment.buildingCode, apartment.floor, apartment.residentName].join(' ').toLocaleLowerCase();
+                return !query || searchable.indexOf(query) !== -1;
+            });
+            var grid = byId('apartmentBrowseGrid');
+            byId('apartmentBrowseResults').textContent = 'Hiển thị ' + filtered.length + ' / ' + viewApartments.length + ' căn hộ';
+            if (!filtered.length) {
+                grid.innerHTML = '<div class="apartment-browser-empty"><i class="fas fa-magnifying-glass"></i><p>Không tìm thấy căn hộ phù hợp. Hãy thử thay đổi từ khóa hoặc bộ lọc.</p></div>';
+                return;
+            }
+            grid.innerHTML = filtered.map(function (apartment) {
+                var status = statusMeta(RHD.APARTMENT_STATUSES || [], apartment.statusGroup);
+                var statusLabel = apartment.active ? status.label : 'Ngừng hoạt động';
+                return '<article class="apartment-browser-tile status-' + escapeHtml(apartment.statusGroup) + '" data-apartment-id="' + escapeHtml(apartment.id) + '" tabindex="0" role="button" aria-label="' + escapeHtml(apartment.name + ', ' + statusLabel) + '">' +
+                    '<div class="apartment-browser-card-tools">' +
+                    (can('apartments.update') ? '<button type="button" data-action="edit" title="Chỉnh sửa" aria-label="Chỉnh sửa căn hộ"><i class="fas fa-pen"></i></button>' : '') +
+                    (can('apartments.delete') ? '<button type="button" data-action="delete" title="Xóa" aria-label="Xóa căn hộ"><i class="fas fa-trash"></i></button>' : '') + '</div>' +
+                    '<span class="apartment-browser-name">' + escapeHtml(apartment.name) + '</span><span class="apartment-browser-floor">' + escapeHtml(apartment.floor || 'Chưa có tầng') + '</span>' +
+                    '<span class="apartment-browser-status">' + escapeHtml(statusLabel) + '</span>' +
+                    (apartment.photos.length ? '<i class="fas fa-image" style="margin-top:.4rem;opacity:.8" title="Có hình ảnh"></i>' : '') + '</article>';
+            }).join('');
+            grid.querySelectorAll('.apartment-browser-tile').forEach(function (card) {
+                var apartmentId = card.getAttribute('data-apartment-id');
+                card.addEventListener('click', function (event) {
+                    var action = event.target.closest('[data-action]');
+                    if (action) {
+                        event.stopPropagation();
+                        if (action.getAttribute('data-action') === 'edit') RHUI.openApartmentForm(apartmentId);
+                        else RHUI.deleteApartment(apartmentId);
+                        return;
+                    }
+                    RHUI.openApartmentDetail(apartmentId);
+                });
+                card.addEventListener('keydown', function (event) {
+                    if (event.key === 'Enter' || event.key === ' ') {
+                        event.preventDefault();
+                        RHUI.openApartmentDetail(apartmentId);
+                    }
+                });
+            });
+        }
+
+        searchToggle.addEventListener('click', function () {
+            searchPanel.hidden = !searchPanel.hidden;
+            searchToggle.classList.toggle('active', !searchPanel.hidden);
+            if (!searchPanel.hidden) queryInput.focus();
+        });
+        filterToggle.addEventListener('click', function () {
+            filterPanel.hidden = !filterPanel.hidden;
+            filterToggle.classList.toggle('active', !filterPanel.hidden);
+        });
+        queryInput.addEventListener('input', renderApartmentCards);
+        byId('apartmentBrowseChips').querySelectorAll('[data-status]').forEach(function (chip) {
+            chip.addEventListener('click', function () {
+                selectedStatus = chip.getAttribute('data-status');
+                byId('apartmentBrowseChips').querySelectorAll('.apartment-browser-chip').forEach(function (item) { item.classList.toggle('active', item === chip); });
+                renderApartmentCards();
+            });
+        });
+        byId('apartmentBrowseApply').addEventListener('click', function () {
+            appliedFilters = {
+                building: byId('apartmentBrowseBuilding').value,
+                floor: byId('apartmentBrowseFloor').value,
+                areaMin: byId('apartmentBrowseAreaMin').value,
+                areaMax: byId('apartmentBrowseAreaMax').value,
+                rentMin: byId('apartmentBrowseRentMin').value,
+                rentMax: byId('apartmentBrowseRentMax').value
+            };
+            filterPanel.hidden = true;
+            filterToggle.classList.toggle('active', false);
+            renderApartmentCards();
+        });
+        byId('apartmentBrowseClear').addEventListener('click', function () {
+            ['apartmentBrowseBuilding', 'apartmentBrowseFloor', 'apartmentBrowseAreaMin', 'apartmentBrowseAreaMax', 'apartmentBrowseRentMin', 'apartmentBrowseRentMax'].forEach(function (id) { byId(id).value = ''; });
+            appliedFilters = { building: '', floor: '', areaMin: '', areaMax: '', rentMin: '', rentMax: '' };
+            queryInput.value = '';
+            selectedStatus = 'all';
+            byId('apartmentBrowseChips').querySelectorAll('.apartment-browser-chip').forEach(function (item) { item.classList.toggle('active', item.getAttribute('data-status') === 'all'); });
+            renderApartmentCards();
+        });
+        renderApartmentCards();
     }
+
+    RHUI.openApartmentDetail = function (id) {
+        var apartment = normalizeApartmentRecord(RHD.get('apartments', id));
+        if (!apartment) return;
+
+        var building = RHD.get('buildings', apartment.buildingId);
+        var contractCandidates = scoped('contracts').filter(function (c) { return c.apartmentId === apartment.id; });
+        contractCandidates.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        var contract = contractCandidates[0] || null;
+        var customer = contract && contract.customerId ? RHD.get('customers', contract.customerId) : null;
+        var apartmentStatus = apartmentDetailStatus(apartment);
+        var leaseStatus = apartmentDetailLeaseStatus(contract);
+        var buildingName = building ? (building.shortName || building.name) : (apartment.buildingName || '—');
+        var buildingCode = building ? (building.code || building.shortName || building.name) : (apartment.buildingCode || '—');
+        var address = apartment.address || (building ? [building.addressDetail, building.ward, building.province].filter(Boolean).join(', ') : '—');
+        var photoList = apartment.photos && apartment.photos.length ? apartment.photos : [];
+
+        var infoRows = [
+            ['Số căn hộ', apartment.name || '—'],
+            ['Mã tòa nhà', buildingCode],
+            ['Tầng', apartment.floor || '—'],
+            ['Tòa nhà', buildingName],
+            ['Giá thuê', money(apartment.rentPrice)],
+            ['Đặt cọc', money(apartment.depositPrice)],
+            ['Diện tích', (apartment.area ? apartment.area + ' m²' : '—')],
+            ['Địa chỉ', address],
+            ['Tình trạng', badge(apartmentStatus.label, apartmentStatus.color, apartmentStatus.bg)],
+            ['Trạng thái thuê', badge(leaseStatus.label, leaseStatus.color, leaseStatus.bg)]
+        ];
+
+        var contractHtml = contract
+            ? '<button type="button" class="apartment-detail-link" onclick="event.stopPropagation(); RHUI.openContractForm(\'' + contract.id + '\')"><i class="fas fa-file-contract"></i><span>' + escapeHtml(contract.code || 'Hợp đồng') + '</span><span class="apartment-detail-link-text">' + escapeHtml(contract.customerName || (customer ? customer.fullName || customer.name : 'Khách thuê')) + '</span></button>'
+            : '<div class="apartment-detail-empty">Chưa có hợp đồng</div>';
+
+        var customerHtml = customer
+            ? '<button type="button" class="apartment-detail-link" onclick="event.stopPropagation(); RHUI.openCustomerForm(\'' + customer.id + '\')"><i class="fas fa-user"></i><span>' + escapeHtml(customer.fullName || customer.name || 'Khách thuê') + '</span><span class="apartment-detail-link-text">' + escapeHtml(customer.phone || customer.contactPhone || '—') + '</span></button>'
+            : '<div class="apartment-detail-empty">Chưa có khách thuê</div>';
+
+        var imagesHtml = photoList.length
+            ? '<div class="apartment-photo-grid">' + photoList.map(function (src) {
+                return '<button type="button" class="apartment-photo" onclick="window.open(\'' + escapeHtml(src) + '\', \'_blank\')" style="background-image:url(\'' + escapeHtml(src) + '\');"></button>';
+            }).join('') + '</div>'
+            : !can('apartments.update') ? '<p class="apartment-detail-empty-photo">Chưa có hình ảnh</p>'
+            : '<button type="button" class="apartment-detail-empty-photo" onclick="event.stopPropagation(); RHUI.openApartmentForm(\'' + apartment.id + '\')"><i class="fas fa-plus"></i> Thêm hình ảnh</button>';
+
+        var infoTable = infoRows.map(function (row) {
+            var label = row[0];
+            var value = row[1];
+            return '<div class="apartment-detail-row"><span class="apartment-detail-label">' + escapeHtml(label) + '</span><span class="apartment-detail-value">' + value + '</span></div>';
+        }).join('');
+
+        var body = '<style>' +
+            '.apartment-detail-topbar{align-items:center;display:grid;gap:.5rem;grid-template-columns:48px 1fr 48px;margin-bottom:1rem;padding:0 .15rem;position:sticky;top:0;z-index:2;}' +
+            '.apartment-detail-topbar button{align-items:center;background:#f1f5f9;border:1px solid #e4eaf2;border-radius:10px;color:#475569;cursor:pointer;display:inline-flex;height:40px;justify-content:center;width:40px;}' +
+            '.apartment-detail-topbar h3{color:#10213c;font:800 1.15rem "Plus Jakarta Sans",sans-serif;letter-spacing:.04em;margin:0;text-align:center;text-transform:uppercase;}' +
+            '.apartment-detail-shell{display:flex;flex-direction:column;gap:1.2rem;}' +
+            '.apartment-detail-box{background:#fff;border:1px solid #e8eef5;border-radius:16px;overflow:hidden;box-shadow:0 12px 28px rgba(15,23,42,.04);}' +
+            '.apartment-detail-header{display:flex;align-items:center;justify-content:space-between;gap:1rem;padding:1rem 1.1rem;border-bottom:1px solid #edf2f7;background:#fbfdff;}' +
+            '.apartment-detail-header h4{margin:0;color:#10213c;font:700 1rem "Plus Jakarta Sans",sans-serif;letter-spacing:.04em;text-transform:uppercase;}' +
+            '.apartment-detail-content{padding:0;}' +
+            '.apartment-detail-row{display:grid;grid-template-columns:minmax(150px, 220px) minmax(0, 1fr);padding:.9rem 1rem;border-bottom:1px solid #edf2f7;align-items:start;gap:1rem;}' +
+            '.apartment-detail-row:last-child{border-bottom:none;}' +
+            '.apartment-detail-label{color:#61708a;font-weight:600;}' +
+            '.apartment-detail-value{color:#10213c;font-weight:700;text-align:right;word-break:break-word;}' +
+            '.apartment-detail-section{padding:1rem 1rem 0;}' +
+            '.apartment-detail-section-title{color:#94a3b8;font-size:.72rem;font-weight:700;letter-spacing:.08em;margin:0 0 .85rem;text-transform:uppercase;}' +
+            '.apartment-detail-link{align-items:center;background:#fff;border:1px solid #e8eef5;border-radius:12px;color:#10213c;cursor:pointer;display:flex;gap:.8rem;justify-content:space-between;padding:.9rem 1rem;text-align:left;width:100%;}' +
+            '.apartment-detail-link i{background:#eef5ff;border-radius:10px;color:#0d65d5;display:inline-flex;height:36px;align-items:center;justify-content:center;width:36px;}' +
+            '.apartment-detail-link-text{color:#61708a;font-size:.82rem;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;}' +
+            '.apartment-detail-link span:nth-child(2){font-weight:700;flex:1;}' +
+            '.apartment-detail-empty{background:#f8fafc;border:1px dashed #dbe5f0;border-radius:12px;color:#61708a;padding:.9rem 1rem;text-align:center;}' +
+            '.apartment-detail-empty-photo{align-items:center;background:#f8fafc;border:1px dashed #dbe5f0;border-radius:16px;color:#0d65d5;cursor:pointer;display:flex;gap:.5rem;justify-content:center;padding:1.2rem 1rem;width:100%;font-weight:600;}' +
+            '.apartment-photo-grid{display:grid;grid-template-columns:repeat(3, minmax(0, 1fr));gap:.7rem;}' +
+            '.apartment-photo{background-position:center;background-repeat:no-repeat;background-size:cover;border:1px solid #e8eef5;border-radius:12px;cursor:pointer;height:120px;overflow:hidden;width:100%;}' +
+            '@media (max-width: 640px){.apartment-detail-row{grid-template-columns:1fr;gap:.35rem;padding:.8rem .9rem;}.apartment-detail-value{text-align:left;}.apartment-photo-grid{grid-template-columns:repeat(2, minmax(0, 1fr));}.apartment-detail-link{flex-wrap:wrap;}.apartment-detail-link-text{max-width:unset;white-space:normal;}}' +
+            '</style>' +
+            '<div class="apartment-detail-topbar"><button type="button" aria-label="Đóng" onclick="event.stopPropagation(); RHUI.closeDrawer();"><i class="fas fa-xmark"></i></button><h3>THÔNG TIN CĂN HỘ</h3><div></div></div>' +
+            '<div class="apartment-detail-shell">' +
+            '<div class="apartment-detail-box">' +
+            '<div class="apartment-detail-header"><h4>Thông tin cơ bản</h4></div>' +
+            '<div class="apartment-detail-content">' + infoTable + '</div>' +
+            '</div>' +
+            '<div class="apartment-detail-box"><div class="apartment-detail-header"><h4>Hợp đồng</h4></div><div class="apartment-detail-section">' + contractHtml + '</div></div>' +
+            '<div class="apartment-detail-box"><div class="apartment-detail-header"><h4>Khách hàng</h4></div><div class="apartment-detail-section">' + customerHtml + '</div></div>' +
+            '<div class="apartment-detail-box"><div class="apartment-detail-header"><h4>Hình ảnh căn hộ</h4></div><div class="apartment-detail-section" style="padding-bottom:1rem;">' + imagesHtml + '</div></div>' +
+            '</div>';
+
+        openDrawer('THÔNG TIN CĂN HỘ', body);
+    };
 
     RHUI.openApartmentForm = function (id) {
         if (!guard(id ? 'apartments.update' : 'apartments.create')) return;
@@ -680,13 +926,18 @@
         if (!tab) return;
         var customers = scoped('customers');
         var rows = customers.map(function (c) {
+            var residenceBuilding = RHD.get('buildings', c.residenceBuildingId);
+            var residenceApartment = RHD.get('apartments', c.residenceApartmentId);
             return '<tr>' +
                 '<td><strong>' + escapeHtml(c.fullName) + '</strong>' + (c.isForeigner ? ' ' + badge('Nước ngoài', '#0d65d5', '#eaf3ff') : '') + '</td>' +
                 '<td>' + escapeHtml(c.phone) + '</td>' +
                 '<td>' + escapeHtml(c.idNumber || '—') + '</td>' +
+                '<td>' + escapeHtml(residenceBuilding ? residenceBuilding.name : '—') + '</td>' +
+                '<td>' + escapeHtml(residenceApartment ? residenceApartment.name : '—') + '</td>' +
                 '<td>' + escapeHtml(c.customerType || '—') + '</td>' +
                 '<td>' + (c.vehicles ? c.vehicles.length : 0) + ' xe</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
+                rowButton('contracts.create', "RHUI.openContractForCustomer('" + c.id + "')", 'fa-file-circle-plus', 'Tạo hợp đồng') +
                 rowButton('customers.update', "RHUI.openCustomerForm('" + c.id + "')", 'fa-pen', 'Sửa') +
                 rowButton('customers.delete', "RHUI.deleteCustomer('" + c.id + "')", 'fa-trash', 'Xoá', true) +
                 '</td></tr>';
@@ -698,7 +949,7 @@
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Khách hàng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Hồ sơ khách hàng dùng để lập hợp đồng — không cần nhập lại thông tin.</p></div>' +
             addButton('Thêm khách hàng', "RHUI.openCustomerForm()", 'customers', 'customers.create') +
             '</div>' +
-            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Tòa nhà</th><th>Phòng ở</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                 : emptyState('fa-users', 'Chưa có khách hàng nào.')) +
             '</div>';
     }
@@ -713,6 +964,9 @@
         RHUI.drawerEntity = 'customers';
         RHUI.drawerId = id || null;
         RHUI.customerVehicles = c ? JSON.parse(JSON.stringify(c.vehicles || [])) : [];
+        var residenceBuildings = RHD.list('buildings');
+        var residenceBuildingId = c ? c.residenceBuildingId : '';
+        var residenceApartments = residenceBuildingId ? RHD.apartmentsOf(residenceBuildingId) : [];
         var existingTypes = [];
         RHD.list('customers').forEach(function (cc) { if (cc.customerType && existingTypes.indexOf(cc.customerType) === -1) existingTypes.push(cc.customerType); });
         ['Cá nhân', 'Công ty', 'Khách vãng lai'].forEach(function (t) { if (existingTypes.indexOf(t) === -1) existingTypes.push(t); });
@@ -736,6 +990,12 @@
             '<div class="rh-field"><label>Xã / Phường</label><input id="cfWard" list="rhCustWardSuggestions" value="' + escapeHtml(c ? c.ward : '') + '"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Địa chỉ chi tiết</label><input id="cfAddress" value="' + escapeHtml(c ? c.addressDetail : '') + '"></div>' +
             '</div><datalist id="rhCustWardSuggestions"></datalist></div>' +
+
+            '<div class="rh-section"><div class="rh-section-title">Lịch sử ở</div><div class="rh-grid-2">' +
+            '<div class="rh-field"><label>Tòa nhà</label><select id="cfResidenceBuilding">' + selectOptions(residenceBuildings, 'id', function (building) { return building.shortName || building.code; }, residenceBuildingId, 'Chọn tòa nhà') + '</select></div>' +
+            '<div class="rh-field"><label>Căn hộ</label><select id="cfResidenceApartment">' + selectOptions(residenceApartments, 'id', 'name', c ? c.residenceApartmentId : '', 'Chọn căn hộ') + '</select></div>' +
+            '<div class="rh-field"><label>Ngày vào ở</label><input id="cfMoveInDate" type="date" value="' + escapeHtml(c ? c.moveInDate : '') + '"></div>' +
+            '</div></div>' +
 
             '<div class="rh-section"><div class="rh-section-title">Thông tin bổ sung</div><div class="rh-grid-2">' +
             '<div class="rh-field"><label>Loại khách hàng</label><input id="cfType" list="rhCustTypeList" value="' + escapeHtml(c ? c.customerType : 'Cá nhân') + '"></div>' +
@@ -772,6 +1032,10 @@
             var wards = RHD.WARD_SUGGESTIONS[this.value] || [];
             byId('rhCustWardSuggestions').innerHTML = wards.map(function (w) { return '<option value="' + escapeHtml(w) + '">'; }).join('');
         });
+        byId('cfResidenceBuilding').addEventListener('change', function () {
+            var apartments = this.value ? RHD.apartmentsOf(this.value) : [];
+            byId('cfResidenceApartment').innerHTML = selectOptions(apartments, 'id', 'name', '', 'Chọn căn hộ');
+        });
         byId('cfIdFront').addEventListener('change', function () { readFileAsDataUrl(this, function (d) { byId('cfIdFrontData').value = d; }); });
         byId('cfIdBack').addEventListener('change', function () { readFileAsDataUrl(this, function (d) { byId('cfIdBackData').value = d; }); });
         var passportInput = byId('cfPassportPhoto');
@@ -795,6 +1059,9 @@
             province: byId('cfProvince').value,
             ward: byId('cfWard').value.trim(),
             addressDetail: byId('cfAddress').value.trim(),
+            residenceBuildingId: byId('cfResidenceBuilding').value,
+            residenceApartmentId: byId('cfResidenceApartment').value,
+            moveInDate: byId('cfMoveInDate').value,
             customerType: byId('cfType').value.trim(),
             note: byId('cfNote').value.trim(),
             consultantName: byId('cfConsultant').value.trim(),
@@ -810,9 +1077,15 @@
         };
         var res = RHUI.drawerId ? RHD.update('customers', RHUI.drawerId, data) : RHD.create('customers', data);
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
+        var createdCustomer = !RHUI.drawerId;
         closeDrawer();
         renderCustomersTab();
         renderDashboardCounts();
+        if (createdCustomer) {
+            if (typeof global.switchTab === 'function') global.switchTab('contracts');
+            if (can('contracts.create') && scoped('buildings').length && scoped('apartments').length) RHUI.openContractForm(null, res.item.id);
+            else alert('Đã lưu khách hàng. Cần tạo tòa nhà và căn hộ trước khi lập hợp đồng.');
+        }
     };
 
     RHUI.deleteCustomer = function (id) {
@@ -838,49 +1111,96 @@
 
     // ============================================================= CONTRACTS
 
+    function ensureContractsStyles() {
+        if (byId('rhContractsStyles')) return;
+        var style = document.createElement('style');
+        style.id = 'rhContractsStyles';
+        style.textContent = '#contracts-tab{position:relative;padding-bottom:5rem;color:#171923}#contracts-tab .rh-contract-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}#contracts-tab .rh-contract-head h2{font:700 1.35rem \'Plus Jakarta Sans\',sans-serif;color:#171923}#contracts-tab .rh-contract-tools{display:flex;gap:.5rem}#contracts-tab .rh-contract-icon-btn{width:40px;height:40px;border:1px solid #e6e8ed;background:#fff;border-radius:50%;color:#242833;cursor:pointer}#contracts-tab .rh-contract-icon-btn:hover{background:#f3f4f6}#contracts-tab .rh-contract-search{display:none;margin:0 0 1rem}#contracts-tab .rh-contract-search.open{display:block}#contracts-tab .rh-contract-search input,#contracts-tab .rh-contract-filter-panel select{width:100%;padding:.7rem .85rem;border:1px solid #e2e5eb;border-radius:8px;font:inherit}#contracts-tab .rh-contract-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#contracts-tab .rh-contract-kpi{display:flex;align-items:center;gap:.8rem;padding:1rem 1.1rem;border-radius:12px;background:#f4f5f7;min-width:0}#contracts-tab .rh-contract-kpi:nth-child(2){background:#eff3ff}#contracts-tab .rh-contract-kpi:nth-child(3){background:#fff1ef}#contracts-tab .rh-contract-kpi-icon{width:48px;height:48px;flex:0 0 48px;border-radius:12px;display:grid;place-items:center;background:#e6e8ec;color:#68717f;font-size:1.15rem}#contracts-tab .rh-contract-kpi:nth-child(2) .rh-contract-kpi-icon{background:#dfe7ff;color:#3866d9}#contracts-tab .rh-contract-kpi:nth-child(3) .rh-contract-kpi-icon{background:#ffe1dc;color:#c8443e}#contracts-tab .rh-contract-kpi strong{display:block;font-size:1.35rem;line-height:1.2}#contracts-tab .rh-contract-kpi span:last-child{display:block;color:#87909d;margin-top:.18rem;font-size:.9rem}#contracts-tab .rh-contract-tabs{display:flex;gap:.55rem;overflow-x:auto;padding:.25rem 0 .8rem;margin-bottom:1rem;scrollbar-width:thin}#contracts-tab .rh-contract-tab{display:inline-flex;align-items:center;gap:.5rem;flex:0 0 auto;border:0;border-radius:999px;background:#f1f2f4;color:#656d78;padding:.62rem .85rem;font:600 .85rem inherit;cursor:pointer;white-space:nowrap}#contracts-tab .rh-contract-tab b{display:grid;place-items:center;min-width:23px;height:23px;padding:0 .32rem;border-radius:50%;background:#e2e4e8;color:#535a64;font-size:.75rem}#contracts-tab .rh-contract-tab.active{background:#171923;color:white;box-shadow:0 5px 12px #17192324}#contracts-tab .rh-contract-tab.active b{background:#454956;color:white}#contracts-tab .rh-contract-filter-panel{display:none;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:.7rem;padding:0 0 1rem}#contracts-tab .rh-contract-filter-panel.open{display:grid}#contracts-tab .rh-contract-list{display:grid;gap:.65rem}#contracts-tab .rh-contract-row{display:grid;grid-template-columns:minmax(145px,1fr) minmax(145px,1.1fr) minmax(150px,1.2fr) minmax(150px,1fr) minmax(100px,.8fr) auto;align-items:center;gap:.75rem;padding:.9rem 1rem;border:1px solid #e7eaf0;border-radius:9px;background:#fff}#contracts-tab .rh-contract-cell small{display:block;color:#9299a4;font-size:.7rem;margin-bottom:.25rem}#contracts-tab .rh-contract-cell strong{font-size:.82rem;font-weight:600}#contracts-tab .rh-contract-actions{display:flex;gap:.35rem}#contracts-tab .rh-contract-actions .rh-row-btn{width:32px;height:32px}#contracts-tab .rh-contract-empty{min-height:220px;display:grid;place-content:center;text-align:center;color:#a0a5af;background:#f4f4f7;border-radius:0 0 10px 10px}#contracts-tab .rh-contract-empty i{font-size:3.5rem;margin-bottom:.75rem}#contracts-tab .rh-contract-fab{position:fixed;right:28px;bottom:28px;width:64px;height:64px;border:0;border-radius:50%;background:#41995d;color:#fff;font-size:2rem;box-shadow:0 8px 18px #19231e30;cursor:pointer;z-index:40}#contracts-tab .rh-contract-fab:hover{background:#34864f;transform:translateY(-2px)}#contracts-tab .rh-customer-preview{grid-column:1/-1;padding:.7rem .85rem;border-radius:8px;background:#f7f8fa;color:#6b7280;font-size:.82rem}#contracts-tab .rh-contract-search input:focus,#contracts-tab .rh-contract-filter-panel select:focus{outline:2px solid #c8d3ff;border-color:#7189d9}@media(max-width:900px){#contracts-tab .rh-contract-row{grid-template-columns:repeat(2,minmax(0,1fr))}#contracts-tab .rh-contract-actions{justify-content:flex-end}}@media(max-width:600px){#contracts-tab{padding-bottom:5.5rem}#contracts-tab .rh-contract-head h2{font-size:1.15rem}#contracts-tab .rh-contract-kpis{gap:.45rem}#contracts-tab .rh-contract-kpi{padding:.7rem .55rem;gap:.5rem;align-items:flex-start;flex-direction:column}#contracts-tab .rh-contract-kpi-icon{width:38px;height:38px;flex-basis:38px}#contracts-tab .rh-contract-row{gap:.55rem;padding:.75rem}#contracts-tab .rh-contract-cell strong{font-size:.76rem}#contracts-tab .rh-contract-fab{right:18px;bottom:20px;width:58px;height:58px}}';
+        style.textContent += '#contracts-tab .rh-contract-tab{font-family:"Be Vietnam Pro",sans-serif;font-size:.85rem;font-weight:600}';
+        style.textContent += '#invoices-tab .rh-invoice-clear,#invoices-tab .rh-invoice-tab{font-family:inherit;font-size:.82rem;font-weight:600}#invoices-tab .rh-invoice-period-chip{position:relative}#invoices-tab .rh-invoice-period-chip input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}';
+        document.head.appendChild(style);
+    }
+
+    function contractStatusKey(contract, today, expiringDays) {
+        var raw = String(contract.status || '').toLowerCase();
+        if (['ended', 'terminated', 'liquidated', 'settled', 'closed'].indexOf(raw) !== -1) return 'liquidated';
+        if (['deposit', 'deposited', 'forfeited', 'deposit_forfeited'].indexOf(raw) !== -1) return 'deposit';
+        if (['moving_out', 'move_out', 'notice_to_move'].indexOf(raw) !== -1 || contract.moveOutDate || contract.moveOutNoticeDate) return 'moving';
+        if (contract.endDate && contract.endDate < today) return 'overdue';
+        var remaining = contract.endDate ? Math.ceil((new Date(contract.endDate + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000) : Infinity;
+        if (remaining >= 0 && remaining <= expiringDays) return 'expiring';
+        return 'renting';
+    }
+
     function renderContractsTab(filter) {
         var tab = byId('contracts-tab');
         if (!tab) return;
-        var buildings = scoped('buildings');
-        var customers = scoped('customers');
-        if (!buildings.length || !scoped('apartments').length || !customers.length) {
-            tab.innerHTML = renderDemoBanner('contracts') + '<div class="card">' + emptyState('fa-file-contract', 'Cần có Tòa nhà, Căn hộ và Khách hàng trước khi lập hợp đồng.') + '</div>';
-            return;
+        ensureContractsStyles();
+        RHUI.contractFilters = RHUI.contractFilters || { status: 'all', search: '', building: '', searchOpen: false, filtersOpen: false };
+        if (filter) RHUI.contractFilters.status = filter === 'expiring' ? 'expiring' : filter;
+        var state = RHUI.contractFilters;
+        var contracts = scoped('contracts').slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        var today = new Date().toISOString().slice(0, 10);
+        var expiringDays = Number((RHD.getSettings() || {}).contractExpiringDays) || 30;
+        var categories = { all: contracts, renting: [], current: [], expiring: [], overdue: [], moving: [], liquidated: [], deposit: [] };
+        var statusByContract = {};
+        contracts.forEach(function (contract) {
+            var status = contractStatusKey(contract, today, expiringDays);
+            statusByContract[contract.id] = status;
+            categories[status].push(contract);
+            if (status === 'renting' || status === 'expiring' || status === 'moving') categories.current.push(contract);
+        });
+        var labels = [
+            ['all', 'Tất cả'], ['renting', 'Đang thuê'], ['current', 'Còn hạn'],
+            ['expiring', 'Sắp hết hạn'], ['overdue', 'Quá hạn'], ['moving', 'Sắp chuyển đi'],
+            ['liquidated', 'Đã thanh lý'], ['deposit', 'Bỏ cọc']
+        ];
+        var visible = categories[state.status] || contracts;
+        if (state.building) visible = visible.filter(function (c) { return c.buildingId === state.building; });
+        if (state.search) {
+            var term = state.search.toLocaleLowerCase();
+            visible = visible.filter(function (c) {
+                var customer = RHD.get('customers', c.customerId) || {};
+                var apartment = RHD.get('apartments', c.apartmentId) || {};
+                var building = RHD.get('buildings', c.buildingId) || {};
+                return [c.code, customer.fullName, customer.phone, apartment.name, building.name, building.shortName].join(' ').toLocaleLowerCase().indexOf(term) !== -1;
+            });
         }
-        var contracts = scoped('contracts').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var filterLabel = '';
-        if (filter === 'expiring') {
-            var stats = RHD.dashboardStats(scopeArg());
-            filterLabel = 'Đang lọc: Sắp hết hạn (trong ' + stats.expiringDays + ' ngày)';
-            contracts = stats.expiringContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
-        }
-        var rows = contracts.map(function (c) {
+        var rows = visible.map(function (c) {
             var building = RHD.get('buildings', c.buildingId);
-            var apt = RHD.get('apartments', c.apartmentId);
-            var cus = RHD.get('customers', c.customerId);
-            return '<tr>' +
-                '<td><strong>' + escapeHtml(c.code) + '</strong></td>' +
-                '<td>' + escapeHtml(building ? building.shortName : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</td>' +
-                '<td>' + escapeHtml(cus ? cus.fullName : '—') + '</td>' +
-                '<td>' + fmtDate(c.startDate) + ' → ' + fmtDate(c.endDate) + '</td>' +
-                '<td>' + money(c.rentPrice) + '</td>' +
-                '<td>' + badge(c.status === 'active' ? 'Đang hiệu lực' : 'Đã kết thúc', c.status === 'active' ? '#18a878' : '#61708a', c.status === 'active' ? '#e6f8ef' : '#f1f5f9') + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
+            var apartment = RHD.get('apartments', c.apartmentId);
+            var customer = RHD.get('customers', c.customerId);
+            var statusLabels = { renting: 'Đang thuê', expiring: 'Sắp hết hạn', overdue: 'Quá hạn', moving: 'Sắp chuyển đi', liquidated: 'Đã thanh lý', deposit: 'Bỏ cọc' };
+            var statusColors = { renting: ['#16875d', '#e7f7ef'], expiring: ['#a96a00', '#fff4d8'], overdue: ['#c33e3e', '#ffeded'], moving: ['#3866d9', '#edf2ff'], liquidated: ['#68717f', '#f0f1f3'], deposit: ['#8a5e15', '#fff4d8'] };
+            var contractStatus = statusByContract[c.id] || 'renting';
+            var tone = statusColors[contractStatus] || statusColors.renting;
+            return '<article class="rh-contract-row">' +
+                '<div class="rh-contract-cell"><small>MÃ HỢP ĐỒNG</small><strong>' + escapeHtml(c.code || '—') + '</strong></div>' +
+                '<div class="rh-contract-cell"><small>CĂN HỘ</small><strong>' + escapeHtml((building ? building.shortName || building.name : '—') + ' / ' + (apartment ? apartment.name : '—')) + '</strong></div>' +
+                '<div class="rh-contract-cell"><small>KHÁCH HÀNG</small><strong>' + escapeHtml(customer ? customer.fullName : '—') + '</strong></div>' +
+                '<div class="rh-contract-cell"><small>THỜI HẠN</small><strong>' + fmtDate(c.startDate) + ' → ' + fmtDate(c.endDate) + '</strong></div>' +
+                '<div class="rh-contract-cell"><small>TIỀN THUÊ</small><strong>' + money(c.rentPrice) + '</strong></div>' +
+                '<div class="rh-contract-actions"><span>' + badge(statusLabels[contractStatus] || 'Đang thuê', tone[0], tone[1]) + '</span>' +
                 rowButton('contracts.update', "RHUI.openContractForm('" + c.id + "')", 'fa-pen', 'Sửa') +
-                rowButton('contracts.delete', "RHUI.deleteContract('" + c.id + "')", 'fa-trash', 'Xoá', true) +
-                '</td></tr>';
+                rowButton('contracts.delete', "RHUI.deleteContract('" + c.id + "')", 'fa-trash', 'Xoá', true) + '</div></article>';
         }).join('');
-
+        var buildingOptions = '<option value="">Tất cả tòa nhà</option>' + scoped('buildings').map(function (b) { return '<option value="' + escapeHtml(b.id) + '"' + (state.building === b.id ? ' selected' : '') + '>' + escapeHtml(b.name) + '</option>'; }).join('');
+        var canAdd = scoped('buildings').length && scoped('apartments').length && scoped('customers').length;
         tab.innerHTML = renderDemoBanner('contracts') +
-            (filterLabel ? '<div style="align-items:center;background:#eaf3ff;border:1px solid #9ccaff;border-radius:10px;color:#0d65d5;display:flex;font-size:.85rem;font-weight:600;gap:.6rem;margin-bottom:1rem;padding:.6rem 1rem;">' + filterLabel + '<button onclick="RHUI.renderContractsTab()" style="background:none;border:0;color:#0d65d5;cursor:pointer;font:inherit;font-weight:700;margin-left:auto;">Xoá lọc ×</button></div>' : '') +
-            '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hợp đồng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Chọn Tòa nhà → Căn hộ → Khách hàng để tự động điền thông tin.</p></div>' +
-            addButton('Thêm hợp đồng', "RHUI.openContractForm()", 'contracts', 'contracts.create') +
-            '</div>' +
-            (contracts.length ? '<div class="table-container"><table><thead><tr><th>Mã HĐ</th><th>Căn hộ</th><th>Khách hàng</th><th>Thời hạn</th><th>Tiền thuê</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-file-contract', filter ? 'Không có hợp đồng phù hợp bộ lọc.' : 'Chưa có hợp đồng nào.')) +
-            '</div>';
+            '<section class="rh-contracts-module"><div class="rh-contract-head"><h2>Hợp đồng</h2><div class="rh-contract-tools"><button class="rh-contract-icon-btn" type="button" data-contract-search-toggle title="Tìm kiếm" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button><button class="rh-contract-icon-btn" type="button" data-contract-filter-toggle title="Bộ lọc" aria-label="Bộ lọc"><i class="fas fa-sliders"></i></button></div></div>' +
+            '<div class="rh-contract-search' + (state.searchOpen ? ' open' : '') + '"><input type="search" data-contract-search placeholder="Tìm mã hợp đồng, khách hàng, căn hộ..." value="' + escapeHtml(state.search) + '"></div>' +
+            '<div class="rh-contract-kpis"><div class="rh-contract-kpi"><span class="rh-contract-kpi-icon"><i class="fas fa-file-lines"></i></span><div><strong>' + contracts.length + '</strong><span>Hợp đồng</span></div></div><div class="rh-contract-kpi"><span class="rh-contract-kpi-icon"><i class="fas fa-house"></i></span><div><strong>' + categories.current.length + '</strong><span>Đang thuê</span></div></div><div class="rh-contract-kpi"><span class="rh-contract-kpi-icon"><i class="fas fa-triangle-exclamation"></i></span><div><strong>' + categories.overdue.length + '</strong><span>Quá hạn</span></div></div></div>' +
+            '<div class="rh-contract-tabs" role="tablist">' + labels.map(function (item) { return '<button type="button" class="rh-contract-tab' + (state.status === item[0] ? ' active' : '') + '" data-contract-status="' + item[0] + '">' + item[1] + '<b>' + (categories[item[0]] || []).length + '</b></button>'; }).join('') + '</div>' +
+            '<div class="rh-contract-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><select aria-label="Lọc theo tòa nhà" data-contract-building>' + buildingOptions + '</select></div>' +
+            (visible.length ? '<div class="rh-contract-list">' + rows + '</div>' : '<div class="rh-contract-empty"><i class="fas fa-file-lines"></i><p>' + (contracts.length ? 'Không có hợp đồng phù hợp.' : 'Chưa có hợp đồng nào.') + '</p>' + (!contracts.length && !canAdd ? '<small>Cần tạo tòa nhà, căn hộ và khách hàng trước.</small>' : '') + '</div>') +
+            '<button type="button" class="rh-contract-fab" data-contract-add title="Thêm hợp đồng" aria-label="Thêm hợp đồng"' + (canAdd ? '' : ' disabled style="opacity:.55"') + (can('contracts.create') ? '' : ' hidden') + '>+</button></section>';
+        var searchInput = tab.querySelector('[data-contract-search]');
+        if (searchInput) searchInput.addEventListener('input', function () { state.search = this.value; renderContractsTab(); var next = tab.querySelector('[data-contract-search]'); if (next) { next.focus(); next.setSelectionRange(state.search.length, state.search.length); } });
+        tab.querySelector('[data-contract-search-toggle]').addEventListener('click', function () { state.searchOpen = !state.searchOpen; renderContractsTab(); if (state.searchOpen) { var input = tab.querySelector('[data-contract-search]'); if (input) input.focus(); } });
+        tab.querySelector('[data-contract-filter-toggle]').addEventListener('click', function () { state.filtersOpen = !state.filtersOpen; renderContractsTab(); });
+        tab.querySelectorAll('[data-contract-status]').forEach(function (button) { button.addEventListener('click', function () { state.status = this.getAttribute('data-contract-status'); renderContractsTab(); }); });
+        tab.querySelector('[data-contract-building]').addEventListener('change', function () { state.building = this.value; renderContractsTab(); });
+        tab.querySelector('[data-contract-add]').addEventListener('click', function () { if (canAdd) RHUI.openContractForm(); else alert('Cần tạo tòa nhà, căn hộ và khách hàng trước khi lập hợp đồng.'); });
     }
 
     function refreshContractApartmentInfo() {
@@ -903,16 +1223,34 @@
         }).join('');
     }
 
-    RHUI.openContractForm = function (id) {
+    RHUI.openContractForCustomer = function (customerId) {
+        if (!guard('contracts.create')) return;
+        if (!scoped('buildings').length || !scoped('apartments').length) {
+            alert('Cần tạo tòa nhà và căn hộ trước khi lập hợp đồng.');
+            return;
+        }
+        if (typeof global.switchTab === 'function') global.switchTab('contracts');
+        RHUI.openContractForm(null, customerId);
+    };
+
+    RHUI.openContractForm = function (id, customerId) {
         if (!guard(id ? 'contracts.update' : 'contracts.create')) return;
         var c = id ? RHD.get('contracts', id) : null;
         RHUI.drawerEntity = 'contracts';
         RHUI.drawerId = id || null;
         var buildings = scoped('buildings');
         var customers = scoped('customers');
-        var defaultBuildingId = c ? c.buildingId : buildings[0].id;
+        var defaultBuildingId = c ? c.buildingId : '';
+        if (!c) {
+            for (var i = 0; i < buildings.length; i++) {
+                if (RHD.apartmentsOf(buildings[i].id).length) { defaultBuildingId = buildings[i].id; break; }
+            }
+        }
+        if (!defaultBuildingId) { alert('Cần tạo tòa nhà trước khi lập hợp đồng.'); return; }
         var apartments = RHD.apartmentsOf(defaultBuildingId);
         var building = RHD.get('buildings', defaultBuildingId);
+        if (!building) { alert('Không tìm thấy tòa nhà để lập hợp đồng.'); return; }
+        var selectedCustomerId = c ? c.customerId : (customerId || '');
         var checkedIds = c ? (c.serviceIds || []) : building.services.filter(function (s) { return s.feeType !== 'deposit' && s.feeType !== 'rent'; }).map(function (s) { return s.id; });
         var overrides = c ? (c.serviceOverrides || {}) : {};
 
@@ -920,7 +1258,7 @@
             '<div class="rh-grid-2">' +
             '<div class="rh-field"><label>Tòa nhà *</label><select id="cfBuildingSel" required>' + selectOptions(buildings, 'id', 'name', defaultBuildingId) + '</select></div>' +
             '<div class="rh-field"><label>Căn hộ *</label><select id="cfApartmentSel" required>' + selectOptions(apartments, 'id', 'name', c ? c.apartmentId : (apartments[0] && apartments[0].id)) + '</select></div>' +
-            '<div class="rh-field" style="grid-column:1/-1;"><label>Khách hàng *</label><select id="cfCustomerSel" required>' + selectOptions(customers, 'id', function (cu) { return cu.fullName + ' — ' + cu.phone; }, c ? c.customerId : '', 'Chọn khách hàng') + '</select></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Khách hàng *</label><select id="cfCustomerSel" required>' + selectOptions(customers, 'id', function (cu) { return cu.fullName + ' — ' + cu.phone; }, selectedCustomerId, 'Chọn khách hàng') + '</select><div id="cfCustomerPreview" class="rh-customer-preview"></div></div>' +
             '<div class="rh-field"><label>Mã hợp đồng</label><input id="cfCode" readonly value="' + escapeHtml(c ? c.code : '(tự động khi lưu)') + '" style="background:#f8fafc;color:#61708a;"></div>' +
             '<div class="rh-field"><label>Chu kỳ thanh toán</label><select id="cfCycle">' + selectOptions(RHD.PAYMENT_CYCLES, 'id', 'label', c ? c.paymentCycle : 'monthly') + '</select></div>' +
             '<div class="rh-field"><label>Ngày bắt đầu *</label><input id="cfStart" type="date" required value="' + escapeHtml(c ? c.startDate : '') + '"></div>' +
@@ -945,6 +1283,14 @@
             '</div></form>';
 
         openDrawer(c ? 'Sửa hợp đồng' : 'Thêm hợp đồng', html);
+        function refreshContractCustomerInfo() {
+            var customer = RHD.get('customers', byId('cfCustomerSel').value);
+            var preview = byId('cfCustomerPreview');
+            if (!preview) return;
+            preview.textContent = customer ? [customer.fullName, customer.phone, customer.email, customer.idNumber ? 'CCCD ' + customer.idNumber : ''].filter(Boolean).join(' · ') : 'Chọn khách hàng để liên kết hồ sơ và tự điền thông tin liên hệ.';
+        }
+        byId('cfCustomerSel').addEventListener('change', refreshContractCustomerInfo);
+        refreshContractCustomerInfo();
         byId('cfBuildingSel').addEventListener('change', function () {
             var apts = RHD.apartmentsOf(this.value);
             byId('cfApartmentSel').innerHTML = selectOptions(apts, 'id', 'name');
@@ -1020,57 +1366,132 @@
 
     // ============================================================== INVOICES
 
+    function ensureInvoiceStyles() {
+        if (byId('rhInvoiceStyles')) return;
+        var style = document.createElement('style');
+        style.id = 'rhInvoiceStyles';
+        style.textContent = '#invoices-tab .rh-invoices-module{position:relative;color:#172b45}#invoices-tab .rh-invoice-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}#invoices-tab .rh-invoice-head h2{font-size:1.45rem;font-weight:800;color:#10213c}#invoices-tab .rh-invoice-tools{display:flex;gap:.55rem}#invoices-tab .rh-invoice-icon{position:relative;width:40px;height:40px;display:grid;place-items:center;border:1px solid #e0e8f1;border-radius:10px;background:#fff;color:#53677f;cursor:pointer}#invoices-tab .rh-invoice-icon:hover{border-color:#9ccaff;color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}#invoices-tab .rh-invoice-search{display:none;margin:0 0 .85rem}#invoices-tab .rh-invoice-search.open{display:block}#invoices-tab .rh-invoice-search input{width:min(100%,420px);padding:.7rem .85rem;border:1px solid #dbe4ef;border-radius:8px;font:inherit}#invoices-tab .rh-invoice-period{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;padding:.8rem 1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-period>span{font-size:.82rem;font-weight:700;color:#718096}#invoices-tab .rh-invoice-period-chip{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem .7rem;border:1px solid #ccebdc;border-radius:7px;background:#f1fbf5;color:#18845c;font-size:.82rem;font-weight:700}#invoices-tab .rh-invoice-period-chip input{width:110px;border:0;background:transparent;color:#176d50;font:inherit;outline:0}#invoices-tab .rh-invoice-clear{margin-left:auto;border:0;background:none;color:#d54444;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#invoices-tab .rh-invoice-stat{min-width:0;padding:1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-stat small{display:block;color:#718096;font-size:.76rem;font-weight:700}#invoices-tab .rh-invoice-stat strong{display:block;margin-top:.55rem;font-size:1.25rem;line-height:1.3;color:#176fd1;overflow-wrap:anywhere}#invoices-tab .rh-invoice-stat.collected strong{color:#16875d}#invoices-tab .rh-invoice-stat.debt strong{color:#d54444}#invoices-tab .rh-invoice-progress{height:6px;margin-top:.7rem;overflow:hidden;border-radius:99px;background:#edf1f5}#invoices-tab .rh-invoice-progress span{display:block;height:100%;border-radius:inherit;background:#18a878;transition:width .2s}#invoices-tab .rh-invoice-rate{display:flex;justify-content:space-between;gap:.5rem;margin-top:.5rem;color:#718096;font-size:.72rem}#invoices-tab .rh-invoice-tabs{display:flex;gap:.4rem;overflow:auto;margin-bottom:.85rem;padding-bottom:.1rem}#invoices-tab .rh-invoice-tab{display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;padding:.58rem .8rem;border:1px solid #e0e8f1;border-radius:8px;background:#fff;color:#5c6b7d;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-tab b{font-size:.72rem;color:#8090a2}#invoices-tab .rh-invoice-tab.active{border-color:#17212e;background:#17212e;color:#fff}#invoices-tab .rh-invoice-tab.active b{color:#d6dee8}#invoices-tab .rh-invoice-filter-panel{display:none;gap:.6rem;margin-bottom:.85rem;padding:.75rem;border:1px solid #e3eaf2;border-radius:8px;background:#fff}#invoices-tab .rh-invoice-filter-panel.open{display:flex}#invoices-tab .rh-invoice-filter-panel select{max-width:100%;padding:.55rem .7rem;border:1px solid #dbe4ef;border-radius:7px;background:#fff;font:inherit;color:#44566c}#invoices-tab .rh-invoice-table-wrap{overflow-x:auto;border:1px solid #e3eaf2;border-radius:9px;background:#fff}#invoices-tab .rh-invoice-table{width:100%;border-collapse:collapse;min-width:760px;text-align:left}#invoices-tab .rh-invoice-table th{padding:.7rem .8rem;background:#f3f7fb;color:#718096;font-size:.69rem;letter-spacing:.04em;text-transform:uppercase}#invoices-tab .rh-invoice-table td{padding:.7rem .8rem;border-top:1px solid #edf1f5;font-size:.8rem}#invoices-tab .rh-invoice-actions{display:flex;justify-content:flex-end;gap:.3rem;white-space:nowrap}#invoices-tab .rh-invoice-actions button{width:30px;height:30px;border:1px solid #e0e8f1;border-radius:6px;background:#fff;color:#53708e;cursor:pointer}#invoices-tab .rh-invoice-actions button:hover{color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-actions button.danger{color:#dc4b4b}#invoices-tab .rh-invoice-empty{padding:2.5rem 1rem;text-align:center;color:#718096}#invoices-tab .rh-invoice-empty i{display:block;margin-bottom:.65rem;color:#9aabba;font-size:1.5rem}#invoices-tab .rh-invoice-fab{position:fixed;right:30px;bottom:28px;z-index:30;width:56px;height:56px;border:0;border-radius:50%;background:#18a878;color:#fff;font-size:1.7rem;line-height:1;box-shadow:0 8px 22px rgba(24,168,120,.28);cursor:pointer}#invoices-tab .rh-invoice-fab:hover{background:#11845d;transform:translateY(-2px)}#invoices-tab .rh-invoice-fab:disabled{opacity:.55;cursor:not-allowed}@media(max-width:850px){#invoices-tab .rh-invoice-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#invoices-tab .rh-invoice-head{align-items:flex-start}#invoices-tab .rh-invoice-head h2{font-size:1.25rem}#invoices-tab .rh-invoice-period{align-items:flex-start}#invoices-tab .rh-invoice-clear{margin-left:0}#invoices-tab .rh-invoice-summary{gap:.5rem}#invoices-tab .rh-invoice-stat{padding:.75rem}#invoices-tab .rh-invoice-stat strong{font-size:1rem}#invoices-tab .rh-invoice-fab{right:18px;bottom:18px;width:52px;height:52px}';
+        document.head.appendChild(style);
+    }
+
     function renderInvoicesTab(filter) {
         var tab = byId('invoices-tab');
         if (!tab) return;
+        ensureInvoiceStyles();
         RHD.markOverdueInvoices();
+        var state = RHUI.invoiceFilters || (RHUI.invoiceFilters = {
+            status: 'all', period: new Date().toISOString().slice(0, 7), search: '', building: '', searchOpen: false, filtersOpen: false, overdueOnly: false
+        });
+        if (filter === 'unpaid' || filter === 'overdue') {
+            state.status = 'debt';
+            state.overdueOnly = filter === 'overdue';
+        }
         var contracts = scoped('contracts');
-        if (!contracts.length) {
-            tab.innerHTML = renderDemoBanner('invoices') + '<div class="card">' + emptyState('fa-receipt', 'Cần có Hợp đồng trước khi lập hóa đơn.') + '</div>';
-            return;
-        }
         var todayStr = new Date().toISOString().slice(0, 10);
-        var invoices = scoped('invoices').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var filterLabel = '';
-        if (filter === 'overdue') {
-            filterLabel = 'Đang lọc: Quá hạn';
-            invoices = invoices.filter(function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); });
-        } else if (filter === 'unpaid') {
-            filterLabel = 'Đang lọc: Chưa thanh toán';
-            invoices = invoices.filter(function (i) { return i.status !== 'paid'; });
-        }
-        var rows = invoices.map(function (inv) {
+        var allInvoices = scoped('invoices').slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        var invoiceMonth = function (inv) {
+            if (inv.period) return inv.period;
+            if (inv.issueDate) return inv.issueDate.slice(0, 7);
+            return new Date(inv.createdAt || Date.now()).toISOString().slice(0, 7);
+        };
+        var baseInvoices = allInvoices.filter(function (inv) {
+            if (state.period && invoiceMonth(inv) !== state.period) return false;
+            if (state.building && inv.buildingId !== state.building) return false;
+            if (state.search) {
+                var apt = RHD.get('apartments', inv.apartmentId) || {};
+                var customer = RHD.get('customers', inv.customerId) || {};
+                var term = state.search.toLocaleLowerCase();
+                if ([inv.code, apt.name, customer.fullName, customer.phone, inv.period].join(' ').toLocaleLowerCase().indexOf(term) === -1) return false;
+            }
+            return true;
+        });
+        var debtInvoices = baseInvoices.filter(function (inv) { return inv.status !== 'paid'; });
+        var paidInvoices = baseInvoices.filter(function (inv) { return inv.status === 'paid'; });
+        var visibleInvoices = state.status === 'paid' ? paidInvoices : (state.status === 'debt' ? debtInvoices : baseInvoices);
+        if (state.overdueOnly) visibleInvoices = visibleInvoices.filter(function (inv) { return inv.status === 'overdue' || (inv.status !== 'paid' && inv.dueDate && inv.dueDate < todayStr); });
+        var sumTotal = function (items) { return items.reduce(function (sum, inv) { return sum + (Number(inv.total) || 0); }, 0); };
+        var billed = sumTotal(visibleInvoices);
+        var collected = sumTotal(visibleInvoices.filter(function (inv) { return inv.status === 'paid'; }));
+        var debt = sumTotal(visibleInvoices.filter(function (inv) { return inv.status !== 'paid'; }));
+        var collectionRate = billed ? Math.round(collected * 100 / billed) : 0;
+        var monthLabel = state.period ? state.period.slice(5, 7) + '-' + state.period.slice(0, 4) : 'Tất cả kỳ';
+        var rows = visibleInvoices.map(function (inv) {
             var apt = RHD.get('apartments', inv.apartmentId);
             var cus = RHD.get('customers', inv.customerId);
             var st = statusMeta(RHD.INVOICE_STATUSES, inv.status);
             return '<tr>' +
-                '<td><input type="checkbox" class="rh-invoice-check" value="' + inv.id + '"></td>' +
+                '<td><input type="checkbox" class="rh-invoice-check" value="' + escapeHtml(inv.id) + '" aria-label="Chọn hóa đơn ' + escapeHtml(inv.code) + '"></td>' +
                 '<td><strong>' + escapeHtml(inv.code) + '</strong></td>' +
                 '<td>' + escapeHtml(apt ? apt.name : '—') + '</td>' +
                 '<td>' + escapeHtml(cus ? cus.fullName : '—') + '</td>' +
-                '<td>' + escapeHtml(inv.period || '—') + '</td>' +
-                '<td>' + money(inv.total) + '</td>' +
+                '<td>' + escapeHtml(invoiceMonth(inv)) + '</td>' +
+                '<td><strong>' + money(inv.total) + '</strong></td>' +
                 '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
-                '<button onclick="RHUI.previewInvoice(\'' + inv.id + '\')" class="rh-row-btn" title="Xem trước"><i class="fas fa-eye"></i></button>' +
-                rowButton('invoices.update', "RHUI.openInvoiceForm('" + inv.id + "')", 'fa-pen', 'Sửa') +
-                (inv.status !== 'paid' ? rowButton('invoices.collect', "RHUI.markInvoicePaid('" + inv.id + "')", 'fa-check', 'Đánh dấu đã thanh toán') : '') +
-                rowButton('invoices.delete', "RHUI.deleteInvoice('" + inv.id + "')", 'fa-trash', 'Xoá', true) +
-                '</td></tr>';
+                '<td><div class="rh-invoice-actions">' +
+                '<button onclick="RHUI.previewInvoice(\'' + inv.id + '\')" title="Xem trước" aria-label="Xem trước"><i class="fas fa-eye"></i></button>' +
+                (can('invoices.update') ? '<button onclick="RHUI.openInvoiceForm(\'' + inv.id + '\')" title="Sửa" aria-label="Sửa"><i class="fas fa-pen"></i></button>' : '') +
+                (can('invoices.collect') && inv.status !== 'paid' ? '<button onclick="RHUI.markInvoicePaid(\'' + inv.id + '\')" title="Đánh dấu đã thanh toán" aria-label="Đánh dấu đã thanh toán"><i class="fas fa-check"></i></button>' : '') +
+                (can('invoices.delete') ? '<button class="danger" onclick="RHUI.deleteInvoice(\'' + inv.id + '\')" title="Xóa" aria-label="Xóa"><i class="fas fa-trash"></i></button>' : '') +
+                '</div></td></tr>';
         }).join('');
+        var buildingOptions = '<option value="">Tất cả tòa nhà</option>' + scoped('buildings').map(function (building) {
+            return '<option value="' + escapeHtml(building.id) + '"' + (state.building === building.id ? ' selected' : '') + '>' + escapeHtml(building.name) + '</option>';
+        }).join('');
+        var canAdd = contracts.length > 0 && !demoLimitReached('invoices');
+        var periodValue = state.period;
+        var emptyMessage = allInvoices.length ? 'Không có hóa đơn phù hợp bộ lọc.' : (contracts.length ? 'Chưa có hóa đơn nào.' : 'Cần có Hợp đồng trước khi lập hóa đơn.');
 
-        tab.innerHTML = renderDemoBanner('invoices') +
-            (filterLabel ? '<div style="align-items:center;background:#eaf3ff;border:1px solid #9ccaff;border-radius:10px;color:#0d65d5;display:flex;font-size:.85rem;font-weight:600;gap:.6rem;margin-bottom:1rem;padding:.6rem 1rem;">' + filterLabel + '<button onclick="RHUI.renderInvoicesTab()" style="background:none;border:0;color:#0d65d5;cursor:pointer;font:inherit;font-weight:700;margin-left:auto;">Xoá lọc ×</button></div>' : '') +
-            '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Hóa đơn</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Chọn Hợp đồng để tự động điền dịch vụ, phí và chỉ số điện/nước.</p></div>' +
-            '<div style="display:flex;gap:.6rem;">' +
-            (can('invoices.send') ? '<button onclick="RHUI.sendSelectedInvoices()" style="background:#fff;border:1px solid var(--line);border-radius:10px;padding:.65rem 1rem;font:inherit;font-weight:600;cursor:pointer;"><i class="fas fa-paper-plane"></i> Gửi hàng loạt</button>' : '') +
-            addButton('Thêm hóa đơn', "RHUI.openInvoiceForm()", 'invoices', 'invoices.create') +
+        tab.innerHTML = renderDemoBanner('invoices') + '<section class="rh-invoices-module">' +
+            '<div class="rh-invoice-head"><h2>Hoá đơn</h2><div class="rh-invoice-tools">' +
+            '<button type="button" class="rh-invoice-icon" data-invoice-search-toggle title="Tìm kiếm" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button>' +
+            (can('invoices.send') ? '<button type="button" class="rh-invoice-icon" onclick="RHUI.sendSelectedInvoices()" title="Gửi hàng loạt" aria-label="Gửi hàng loạt"><i class="fas fa-file-export"></i></button>' +
+            '<button type="button" class="rh-invoice-icon" onclick="RHUI.sendSelectedInvoices()" title="Gửi thông báo" aria-label="Gửi thông báo"><i class="fas fa-paper-plane"></i></button>' : '') +
+            '<button type="button" class="rh-invoice-icon" data-invoice-filter-toggle title="Bộ lọc nâng cao" aria-label="Bộ lọc nâng cao"><i class="fas fa-sliders"></i><span class="rh-invoice-dot"></span></button>' +
             '</div></div>' +
-            (invoices.length ? '<div class="table-container"><table><thead><tr><th style="width:36px;"></th><th>Mã HĐ</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-receipt', filter ? 'Không có hóa đơn phù hợp bộ lọc.' : 'Chưa có hóa đơn nào.')) +
-            '</div>';
+            '<div class="rh-invoice-search' + (state.searchOpen ? ' open' : '') + '"><input type="search" data-invoice-search placeholder="Tìm mã hóa đơn, căn hộ, khách hàng..." value="' + escapeHtml(state.search) + '"></div>' +
+            '<div class="rh-invoice-period"><span>Đang lọc theo:</span><label class="rh-invoice-period-chip"><i class="fas fa-circle-check"></i><span>Tháng: ' + escapeHtml(monthLabel) + '</span><input type="month" data-invoice-period aria-label="Chọn kỳ hóa đơn" value="' + escapeHtml(periodValue) + '"></label><button type="button" class="rh-invoice-clear" data-invoice-clear>Xóa lọc</button></div>' +
+            '<div class="rh-invoice-summary">' +
+            '<div class="rh-invoice-stat"><small>Phát sinh kỳ này</small><strong>' + money(billed) + '</strong></div>' +
+            '<div class="rh-invoice-stat collected"><small>Đã thu</small><strong>' + money(collected) + '</strong></div>' +
+            '<div class="rh-invoice-stat debt"><small>Cần thu + nợ</small><strong>' + money(debt) + '</strong></div>' +
+            '<div class="rh-invoice-stat"><small>Tỷ lệ đã thu</small><strong>' + collectionRate + '%</strong><div class="rh-invoice-progress"><span style="width:' + collectionRate + '%"></span></div><div class="rh-invoice-rate"><span>' + paidInvoices.length + ' đã thanh toán</span><span>' + visibleInvoices.length + ' hóa đơn</span></div></div>' +
+            '</div>' +
+            '<div class="rh-invoice-tabs" role="tablist" aria-label="Lọc trạng thái hóa đơn">' +
+            '<button type="button" class="rh-invoice-tab' + (state.status === 'all' ? ' active' : '') + '" data-invoice-status="all">Tất cả <b>' + baseInvoices.length + '</b></button>' +
+            '<button type="button" class="rh-invoice-tab' + (state.status === 'debt' ? ' active' : '') + '" data-invoice-status="debt">Còn nợ <b>' + debtInvoices.length + '</b></button>' +
+            '<button type="button" class="rh-invoice-tab' + (state.status === 'paid' ? ' active' : '') + '" data-invoice-status="paid">Đã tt <b>' + paidInvoices.length + '</b></button>' +
+            '</div>' +
+            '<div class="rh-invoice-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><select data-invoice-building aria-label="Lọc theo tòa nhà">' + buildingOptions + '</select></div>' +
+            (visibleInvoices.length ? '<div class="rh-invoice-table-wrap"><table class="rh-invoice-table"><thead><tr><th></th><th>Mã hóa đơn</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="rh-invoice-empty"><i class="fas fa-receipt"></i><p>' + emptyMessage + '</p></div>') +
+            '<button type="button" class="rh-invoice-fab" data-invoice-add title="Thêm hóa đơn" aria-label="Thêm hóa đơn"' + (canAdd ? '' : ' disabled') + (can('invoices.create') ? '' : ' hidden') + '>+</button></section>';
+
+        tab.querySelector('[data-invoice-search-toggle]').addEventListener('click', function () {
+            state.searchOpen = !state.searchOpen;
+            renderInvoicesTab();
+            if (state.searchOpen) { var input = tab.querySelector('[data-invoice-search]'); if (input) input.focus(); }
+        });
+        var searchInput = tab.querySelector('[data-invoice-search]');
+        if (searchInput) searchInput.addEventListener('input', function () {
+            state.search = this.value;
+            var cursor = this.selectionStart;
+            renderInvoicesTab();
+            var next = tab.querySelector('[data-invoice-search]');
+            if (next) { next.focus(); next.setSelectionRange(cursor, cursor); }
+        });
+        tab.querySelector('[data-invoice-filter-toggle]').addEventListener('click', function () { state.filtersOpen = !state.filtersOpen; renderInvoicesTab(); });
+        tab.querySelector('[data-invoice-period]').addEventListener('change', function () { state.period = this.value; state.overdueOnly = false; renderInvoicesTab(); });
+        tab.querySelector('[data-invoice-clear]').addEventListener('click', function () {
+            state.status = 'all'; state.period = ''; state.search = ''; state.building = ''; state.overdueOnly = false;
+            renderInvoicesTab();
+        });
+        tab.querySelector('[data-invoice-building]').addEventListener('change', function () { state.building = this.value; renderInvoicesTab(); });
+        tab.querySelectorAll('[data-invoice-status]').forEach(function (button) {
+            button.addEventListener('click', function () { state.status = this.getAttribute('data-invoice-status'); state.overdueOnly = false; renderInvoicesTab(); });
+        });
+        tab.querySelector('[data-invoice-add]').addEventListener('click', function () {
+            if (canAdd) RHUI.openInvoiceForm();
+            else alert(contracts.length ? 'Đã đạt giới hạn hóa đơn của bản Demo.' : 'Cần có Hợp đồng trước khi lập hóa đơn.');
+        });
     }
 
     function invoiceContractLabel(c) {
@@ -1354,11 +1775,23 @@
     // (RHD.create('supportRequests', ...)) lands here untouched, and a status
     // change made here is what the resident sees reflected on their side.
 
+    var supportListFilters = { search: '', status: 'all', category: 'all', priority: 'all' };
+
     function renderSupportTab() {
         var tab = byId('support-tab');
         if (!tab) return;
         var requests = scoped('supportRequests').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var rows = requests.map(function (r) {
+        var categories = RHD.SUPPORT_CATEGORIES || [];
+        var visibleRequests = requests.filter(function (r) {
+            var apt = RHD.get('apartments', r.apartmentId);
+            var building = RHD.get('buildings', r.buildingId);
+            var searchText = [r.code, r.residentName, r.title, r.category, r.location, apt && apt.name, building && building.name, building && building.shortName].join(' ').toLocaleLowerCase();
+            return (!supportListFilters.search || searchText.indexOf(supportListFilters.search.toLocaleLowerCase()) !== -1) &&
+                (supportListFilters.status === 'all' || r.status === supportListFilters.status) &&
+                (supportListFilters.category === 'all' || r.category === supportListFilters.category) &&
+                (supportListFilters.priority === 'all' || r.priority === supportListFilters.priority);
+        });
+        var rows = visibleRequests.map(function (r) {
             var apt = RHD.get('apartments', r.apartmentId);
             var building = RHD.get('buildings', r.buildingId);
             var st = statusMeta(RHD.SUPPORT_STATUSES, r.status);
@@ -1381,9 +1814,25 @@
             '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Yêu cầu hỗ trợ</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Yêu cầu do cư dân gửi từ ứng dụng — cập nhật trạng thái tại đây sẽ phản ánh ngay bên cư dân.</p></div>' +
             '</div>' +
-            (requests.length ? '<div class="table-container"><table><thead><tr><th>Mã YC</th><th>Người gửi</th><th>Căn hộ</th><th>Nội dung</th><th>Mức độ</th><th>Trạng thái</th><th>Người phụ trách</th><th>Thời gian gửi</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+            '<div style="display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:1rem;">' +
+            '<input id="rhSupportSearch" type="search" value="' + escapeHtml(supportListFilters.search) + '" placeholder="Tìm mã, cư dân, căn hộ, nội dung..." aria-label="Tìm yêu cầu hỗ trợ" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;">' +
+            '<select id="rhSupportStatusFilter" aria-label="Lọc trạng thái" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả trạng thái</option>' + (RHD.SUPPORT_STATUSES || []).map(function (s) { return '<option value="' + escapeHtml(s.id) + '"' + (supportListFilters.status === s.id ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>'; }).join('') + '</select>' +
+            '<select id="rhSupportTypeFilter" aria-label="Lọc loại yêu cầu" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả loại</option>' + categories.map(function (category) { return '<option value="' + escapeHtml(category) + '"' + (supportListFilters.category === category ? ' selected' : '') + '>' + escapeHtml(category) + '</option>'; }).join('') + '</select>' +
+            '<select id="rhSupportPriorityFilter" aria-label="Lọc mức độ ưu tiên" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả mức độ</option>' + (RHD.SUPPORT_PRIORITIES || []).map(function (priority) { return '<option value="' + escapeHtml(priority.id) + '"' + (supportListFilters.priority === priority.id ? ' selected' : '') + '>' + escapeHtml(priority.label) + '</option>'; }).join('') + '</select></div>' +
+            (requests.length ? '<div style="color:#70839d;font-size:.82rem;margin-bottom:.55rem;">Hiển thị ' + visibleRequests.length + ' / ' + requests.length + ' yêu cầu</div><div class="table-container"><table><thead><tr><th>Mã YC</th><th>Người gửi</th><th>Căn hộ</th><th>Nội dung</th><th>Mức độ</th><th>Trạng thái</th><th>Người phụ trách</th><th>Thời gian gửi</th><th></th></tr></thead><tbody>' + (rows || '<tr><td colspan="9" style="padding:1rem;text-align:center;color:#94a3b8;">Không có yêu cầu phù hợp với bộ lọc.</td></tr>') + '</tbody></table></div>'
                 : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.')) +
             '</div>';
+        ['rhSupportSearch', 'rhSupportStatusFilter', 'rhSupportTypeFilter', 'rhSupportPriorityFilter'].forEach(function (id) {
+            var input = byId(id);
+            if (!input) return;
+            input.addEventListener(id === 'rhSupportSearch' ? 'input' : 'change', function () {
+                supportListFilters.search = byId('rhSupportSearch').value.trim();
+                supportListFilters.status = byId('rhSupportStatusFilter').value;
+                supportListFilters.category = byId('rhSupportTypeFilter').value;
+                supportListFilters.priority = byId('rhSupportPriorityFilter').value;
+                renderSupportTab();
+            });
+        });
     }
 
     RHUI.openSupportForm = function (id) {
@@ -1401,6 +1850,7 @@
             '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
             '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
             '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Phản hồi cho cư dân</label><textarea id="srResponse" rows="4" placeholder="Nhập nội dung phản hồi hoặc hướng dẫn xử lý">' + escapeHtml(r.response || '') + '</textarea></div>' +
             '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
             '<button type="submit" class="btn-primary">Cập nhật</button>' +
@@ -1416,6 +1866,7 @@
         var res = RHD.update('supportRequests', RHUI.drawerId, {
             status: byId('srStatus').value,
             assignee: byId('srAssignee').value.trim(),
+            response: byId('srResponse').value.trim(),
             updatedAt: Date.now()
         });
         // Notify the resident account linked to this request (by residentId).
@@ -1648,6 +2099,7 @@
         renderMetersTab: renderMetersTab,
         renderContractsTab: renderContractsTab,
         renderInvoicesTab: renderInvoicesTab,
+        openApartmentDetail: RHUI.openApartmentDetail,
         renderSupportTab: renderSupportTab,
         renderDashboardCounts: renderDashboardCounts,
         renderDemoBanner: renderDemoBanner
