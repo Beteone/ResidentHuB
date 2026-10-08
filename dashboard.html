@@ -15,6 +15,7 @@
     <script src="permissions.js"></script>
     <script src="templates.js"></script>
     <script src="data.js"></script>
+    <script src="billing.js"></script>
     <script src="searchable-select.js"></script>
     <script src="manager-modules.js"></script>
     <script src="asset-module.js"></script>
@@ -2426,6 +2427,42 @@
         .uf-password{position:relative}
         .uf-password input{padding-right:2.5rem!important}
         .uf-password button{background:none;border:0;color:#94a3b8;cursor:pointer;position:absolute;right:.6rem;top:50%;transform:translateY(-50%)}
+        /* Tòa nhà: KPI + filters */
+        .bld-kpis{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:1.25rem}
+        .bld-kpi{align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;cursor:pointer;display:flex;font:inherit;gap:1rem;padding:1.1rem 1.25rem;text-align:left;transition:border-color .15s,box-shadow .15s}
+        .bld-kpi:hover{border-color:#b9d8ff}
+        .bld-kpi.active{border-color:#1683ff;box-shadow:0 0 0 3px rgba(22,131,255,.12)}
+        .bld-kpi strong{color:#10213c;display:block;font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;line-height:1.1}
+        .bld-kpi small{color:#61708a;font-size:.86rem}
+        .bld-filters{align-items:center;display:grid;gap:.6rem;grid-template-columns:minmax(200px,2fr) minmax(150px,1fr) minmax(170px,1.2fr) minmax(170px,1.2fr) auto;margin-bottom:1rem}
+        .bld-clear{background:none;border:0;color:#ef4444;cursor:pointer;font:inherit;font-size:.85rem;font-weight:600;white-space:nowrap}
+        @media(max-width:1000px){.bld-filters{grid-template-columns:1fr 1fr}}
+        @media(max-width:640px){.bld-kpis{grid-template-columns:1fr}.bld-filters{grid-template-columns:1fr}}
+        /* Hóa đơn: workflow */
+        .if-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.25rem}
+        .if-chips span{background:#eaf3ff;border-radius:999px;color:#0d65d5;font-size:.68rem;font-weight:700;padding:.1rem .45rem;white-space:nowrap}
+        .if-chips span.auto{background:#f3e8ff;color:#7c3aed}
+        .if-chips span.warn{background:#fff4df;color:#a5680c}
+        .if-issues{background:#fff8eb;border:1px solid #f6d9a6;border-radius:10px;color:#8a5a00;font-size:.84rem;margin-top:.75rem;padding:.65rem .9rem}
+        .if-issues ul{margin:.35rem 0 0 1.1rem;list-style:disc}
+        .if-lines input{border:1px solid var(--line);border-radius:6px;font:inherit;font-size:.85rem;padding:.4rem .5rem;width:100%}
+        .if-lines table{min-width:640px}
+        .if-lines input[type=number]{-moz-appearance:textfield;text-align:right}
+        .if-lines input[type=number]::-webkit-inner-spin-button,.if-lines input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
+        .if-lines td{vertical-align:top}
+        .if-line-missing td{background:#fffaf0}
+        .if-line-warn{color:#a5680c;font-size:.72rem;margin-top:.25rem}
+        .if-line-amount{font-weight:600;text-align:right;white-space:nowrap;padding-top:.85rem!important}
+        .if-workflow{border:1px solid var(--line);border-radius:12px;margin-bottom:1rem;padding:.9rem 1rem}
+        .if-workflow-head{align-items:center;display:flex;flex-wrap:wrap;gap:.4rem}
+        .if-workflow-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
+        .if-workflow-actions:empty{display:none}
+        .if-act{align-items:center;background:#fff;border:1px solid #cfe2fb;border-radius:8px;color:#0d65d5;cursor:pointer;display:inline-flex;font:inherit;font-size:.84rem;font-weight:600;gap:.4rem;padding:.45rem .8rem}
+        .if-act:hover{background:#f4f9ff}
+        .if-act.danger{border-color:#fecaca;color:#ef4444}
+        .if-history{margin-top:.8rem;font-size:.8rem;color:#61708a}
+        .if-history summary{cursor:pointer;font-weight:600;color:#10213c}
+        .if-history ul{margin:.4rem 0 0 1rem;list-style:disc;display:grid;gap:.2rem}
         .rh-noaccess{text-align:center;padding:3.5rem 1rem}
         .rh-noaccess i{color:#cbd5e1;font-size:2.6rem;margin-bottom:1rem}
         /* Shared hexagon icon (Bảng tin tiles + Cài đặt rows) */
@@ -2611,6 +2648,7 @@
             <div class="sidebar-menu-item" data-perm="invoices.view" onclick="switchTab('invoices', this)">
                 <i class="fas fa-receipt"></i>
                 <span>Hóa đơn</span>
+                <span class="rh-nav-badge" id="rhNavInvoiceReviewCount" style="display:none;" title="Hóa đơn nháp chờ duyệt">0</span>
             </div>
             <div class="sidebar-menu-item" data-perm="support.view" onclick="switchTab('support', this)">
                 <i class="fas fa-tools"></i>
@@ -5084,6 +5122,22 @@
             if (event.key.indexOf(prefix) === 0 || event.key === 'residenthub_account_requests' || event.key === 'residenthub_users' || event.key === 'residenthub_account_types') refreshFromStorage();
         });
 
+        // ---- auto-billing scheduler ---------------------------------------------
+        // No backend exists, so the generator (billing.js) runs whenever a manager
+        // workspace is open: on load, every hour and when the tab comes back into
+        // view. It is idempotent and catches up every period whose billing day
+        // passed while nothing was running, so no period is missed or duplicated.
+        const AUTO_BILLING_INTERVAL = 60 * 60 * 1000;
+        function runScheduledBilling() {
+            try {
+                const res = RHB.run();
+                if (res.created.length) {
+                    RHUI.renderDashboardCounts();
+                    if (currentTab === 'invoices' && TAB_RENDERERS.invoices && !document.querySelector('#rhDrawerOverlay.show')) TAB_RENDERERS.invoices(currentTabFilter);
+                }
+            } catch (e) { console.error('Tự động lập hóa đơn thất bại', e); }
+        }
+
         // Initialize on load
         window.addEventListener('load', function() {
             initCharts();
@@ -5091,6 +5145,12 @@
             renderCurrentUser();
             applyBrandLogo();
             applyNavPermissions();
+            runScheduledBilling();
+            setInterval(runScheduledBilling, AUTO_BILLING_INTERVAL);
+            document.addEventListener('visibilitychange', function () {
+                const last = RHB.lastRun().lastRunAt || 0;
+                if (document.visibilityState === 'visible' && Date.now() - last > AUTO_BILLING_INTERVAL) runScheduledBilling();
+            });
             RHUI.renderDashboardCounts();
             document.addEventListener('click', function (ev) {
                 const link = ev.target.closest('[data-goto-link]');
