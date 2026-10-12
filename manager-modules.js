@@ -841,6 +841,11 @@
         overlay.classList.add('open');
     }
 
+    function customerFilterCount() {
+        var filters = RHUI.customerFilters;
+        return [filters.name, filters.search, filters.dob, filters.idNumber, filters.apartment, filters.room].filter(Boolean).length + (RHUI.customerRegistrationFilter ? 1 : 0);
+    }
+
     function renderCustomersTab() {
         var tab = byId('customers-tab');
         if (!tab) return;
@@ -890,7 +895,7 @@
                 '<button onclick="RHUI.deleteCustomer(\'' + c.id + '\')" class="rh-row-btn danger" title="Xoá"><i class="fas fa-trash"></i></button></span></div></article>';
         }).join('');
         var filters = RHUI.customerFilters;
-        var filterCount = [filters.name, filters.dob, filters.idNumber, filters.apartment, filters.room].filter(Boolean).length;
+        var filterCount = customerFilterCount();
         var addDisabled = demoLimitReached('customers') ? ' disabled title="Đã đạt giới hạn bản Demo"' : '';
         tab.innerHTML = renderDemoBanner('customers') +
             '<section class="rh-customers-page"><header class="rh-customer-heading"><h2>Khách hàng</h2><div class="rh-customer-tools">' +
@@ -939,6 +944,7 @@
         Array.prototype.forEach.call(tab.querySelectorAll('[data-customer-status]'), function (button) {
             button.addEventListener('click', function () {
                 RHUI.customerStatusFilter = button.getAttribute('data-customer-status');
+                RHUI.customerRegistrationFilter = '';
                 renderCustomersTab();
             });
         });
