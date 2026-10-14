@@ -55,6 +55,7 @@
         var style = document.createElement('style');
         style.id = 'rhDepositsStyles';
         style.textContent = '#deposits-tab .rh-deposits{color:#172b45;position:relative;padding-bottom:5rem}#deposits-tab .rh-deposit-head{align-items:center;display:flex;justify-content:space-between;gap:1rem;margin-bottom:1rem}#deposits-tab .rh-deposit-head h2{color:#10213c;font-size:1.4rem;font-weight:800}#deposits-tab .rh-deposit-kpis{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#deposits-tab .rh-deposit-kpi{background:#fff;border:1px solid #e3eaf2;border-radius:12px;padding:1rem}#deposits-tab .rh-deposit-kpi small{color:#718096;display:block;font-size:.78rem;font-weight:700}#deposits-tab .rh-deposit-kpi strong{color:#10213c;display:block;font:800 1.25rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif;margin-top:.4rem}#deposits-tab .rh-deposit-tabs{display:flex;gap:.5rem;overflow-x:auto;padding:.2rem 0 .75rem}#deposits-tab .rh-deposit-tab{background:#fff;border:1px solid #e2e8f0;border-radius:8px;color:#536275;cursor:pointer;font:600 .8rem "Be Vietnam Pro",sans-serif;padding:.55rem .75rem;white-space:nowrap}#deposits-tab .rh-deposit-tab.active{background:#eaf3ff;border-color:#9ccaff;color:#0d65d5}#deposits-tab .rh-deposit-tab b{margin-left:.35rem}#deposits-tab .rh-deposit-filters{align-items:end;background:#fff;border:1px solid #e3eaf2;border-radius:10px;display:grid;gap:.65rem;grid-template-columns:1.2fr 1fr 1fr 1fr 1fr;padding:.8rem;margin-bottom:.8rem}#deposits-tab .rh-deposit-filters label,#deposits-tab .rh-deposit-field label{color:#475569;display:block;font-size:.77rem;font-weight:700;margin-bottom:.35rem}#deposits-tab .rh-deposit-filters input,#deposits-tab .rh-deposit-filters select,#deposits-tab .rh-deposit-field input,#deposits-tab .rh-deposit-field select,#deposits-tab .rh-deposit-field textarea{background:#fff;border:1px solid #dce3eb;border-radius:8px;color:#26374b;font:inherit;font-size:.84rem;min-height:40px;padding:.55rem .65rem;width:100%}#deposits-tab .rh-deposit-table-wrap{background:#fff;border:1px solid #e3eaf2;border-radius:10px;overflow:auto}#deposits-tab .rh-deposit-table{border-collapse:collapse;min-width:1050px;width:100%}#deposits-tab .rh-deposit-table th,#deposits-tab .rh-deposit-table td{border-bottom:1px solid #e8edf3;padding:.75rem .7rem;text-align:left;vertical-align:middle}#deposits-tab .rh-deposit-table th{background:#f7f9fc;color:#61708a;font-size:.72rem;white-space:nowrap}#deposits-tab .rh-deposit-table td{color:#334155;font-size:.82rem}#deposits-tab .rh-deposit-actions{display:flex;gap:.3rem;white-space:nowrap}#deposits-tab .rh-deposit-action{align-items:center;background:#fff;border:1px solid #dce3eb;border-radius:7px;color:#536275;cursor:pointer;display:inline-flex;height:32px;justify-content:center;width:32px}#deposits-tab .rh-deposit-action:hover{background:#eff6ff;border-color:#9ccaff;color:#0d65d5}#deposits-tab .rh-deposit-action.danger{color:#dc4b4b}#deposits-tab .rh-deposit-alert{background:#fff1f0;border-radius:999px;color:#c43f36;display:inline-block;font-size:.68rem;font-weight:700;margin-top:.35rem;padding:.2rem .45rem}#deposits-tab .rh-deposit-empty{color:#718096;padding:2rem;text-align:center}#deposits-tab .rh-deposit-fab{align-items:center;background:#18a878;border:0;border-radius:50%;bottom:1.1rem;box-shadow:0 10px 24px rgba(24,168,120,.25);color:#fff;cursor:pointer;display:flex;font-size:1.8rem;height:56px;justify-content:center;position:fixed;right:2rem;width:56px;z-index:20}#deposits-tab .rh-deposit-fab:disabled{cursor:not-allowed;opacity:.55}#deposits-tab .rh-deposit-form{display:grid;gap:1rem}#deposits-tab .rh-deposit-section{border-bottom:1px solid #e8edf3;padding-bottom:1rem}#deposits-tab .rh-deposit-section h4{color:#10213c;font-size:.9rem;margin:0 0 .75rem}#deposits-tab .rh-deposit-grid{display:grid;gap:.75rem;grid-template-columns:repeat(2,minmax(0,1fr))}#deposits-tab .rh-deposit-field{min-width:0}#deposits-tab .rh-deposit-field.full{grid-column:1/-1}#deposits-tab .rh-deposit-field small{color:#dc4b4b;display:block;font-size:.72rem;margin-top:.25rem;min-height:.9rem}#deposits-tab .rh-deposit-field [aria-invalid="true"]{border-color:#dc4b4b!important;box-shadow:0 0 0 2px rgba(220,75,75,.1)}#deposits-tab .rh-deposit-inline{align-items:center;display:flex;gap:.45rem}#deposits-tab .rh-deposit-inline input{min-width:0}#deposits-tab .rh-deposit-currency{color:#718096;flex:0 0 auto;font-size:.8rem;font-weight:700}#deposits-tab .rh-deposit-service-list{display:grid;gap:.55rem}#deposits-tab .rh-deposit-service{align-items:center;border:1px solid #e5ebf2;border-radius:8px;display:grid;gap:.6rem;grid-template-columns:24px minmax(0,1fr) 110px 86px;padding:.55rem}#deposits-tab .rh-deposit-service input[type="number"]{border:1px solid #dce3eb;border-radius:6px;min-width:0;padding:.45rem;width:100%}#deposits-tab .rh-deposit-form-error{color:#c43f36;font-size:.82rem;min-height:1rem}@media(max-width:850px){#deposits-tab .rh-deposit-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:600px){#deposits-tab .rh-deposit-kpis{grid-template-columns:1fr}#deposits-tab .rh-deposit-grid{grid-template-columns:1fr}#deposits-tab .rh-deposit-field.full{grid-column:auto}#deposits-tab .rh-deposit-service{grid-template-columns:24px minmax(0,1fr) 72px}#deposits-tab .rh-deposit-service .rh-deposit-quantity{grid-column:2/-1}#deposits-tab .rh-deposit-fab{bottom:1rem;right:1rem}}';
+        style.textContent += '#rhDrawerBody .rh-deposit-form{display:grid;gap:1.1rem;color:#26364b}#rhDrawerBody .rh-deposit-section{min-width:0;padding:1rem;border:1px solid #e5eaf1;border-radius:11px;background:#fff}#rhDrawerBody .rh-deposit-section h4{margin:0 0 .9rem;color:#183453;font-size:.94rem;font-weight:700}#rhDrawerBody .rh-deposit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}#rhDrawerBody .rh-deposit-field{display:grid;align-content:start;gap:.3rem;min-width:0}#rhDrawerBody .rh-deposit-field.full{grid-column:1/-1}#rhDrawerBody .rh-deposit-field>label{margin:0;color:#536276;font-size:.76rem;font-weight:650;line-height:1.4}#rhDrawerBody .rh-deposit-field input:not([type=checkbox]),#rhDrawerBody .rh-deposit-field select,#rhDrawerBody .rh-deposit-field textarea{box-sizing:border-box;width:100%;min-width:0;min-height:40px;padding:.58rem .68rem;border:1px solid #d8e0ea;border-radius:8px;background:#fff;color:#24364d;font:400 .82rem "Be Vietnam Pro",sans-serif}#rhDrawerBody .rh-deposit-field select[multiple]{min-height:112px;padding:.35rem}#rhDrawerBody .rh-deposit-field textarea{resize:vertical}#rhDrawerBody .rh-deposit-field input:focus,#rhDrawerBody .rh-deposit-field select:focus,#rhDrawerBody .rh-deposit-field textarea:focus{outline:2px solid #d8eaff;border-color:#70a8e5}#rhDrawerBody .rh-deposit-field input[readonly],#rhDrawerBody .rh-deposit-field input:disabled{background:#f3f6f9;color:#68788c}#rhDrawerBody .rh-deposit-field small{display:block;min-height:.1rem;margin-top:.1rem;color:#bd3939;font-size:.71rem;line-height:1.4}#rhDrawerBody .rh-deposit-field [aria-invalid=true]{border-color:#dc4b4b!important;box-shadow:0 0 0 2px rgba(220,75,75,.1)}#rhDrawerBody .rh-deposit-inline{display:flex;align-items:center;gap:.5rem;min-width:0}#rhDrawerBody .rh-deposit-inline input{flex:1 1 auto;min-width:0}#rhDrawerBody .rh-deposit-currency{flex:0 0 auto;color:#718096;font-size:.8rem;font-weight:700}#rhDrawerBody .rh-deposit-service-list{display:grid;gap:.55rem}#rhDrawerBody .rh-deposit-service{display:grid;grid-template-columns:24px minmax(0,1fr) minmax(90px,130px) 68px;align-items:center;gap:.55rem;padding:.6rem;border:1px solid #e5ebf2;border-radius:8px;background:#fbfcfe}#rhDrawerBody .rh-deposit-service>span{min-width:0;color:#35465b;font-size:.77rem;line-height:1.4}#rhDrawerBody .rh-deposit-service>span strong{font-weight:650}#rhDrawerBody .rh-deposit-service input[type=checkbox]{width:17px;height:17px;margin:0}#rhDrawerBody .rh-deposit-service input[type=text],#rhDrawerBody .rh-deposit-service input[type=number]{box-sizing:border-box;width:100%;min-width:0;height:36px;padding:.4rem .5rem;border:1px solid #dce3eb;border-radius:7px;background:#fff;font:400 .77rem "Be Vietnam Pro",sans-serif}#rhDrawerBody .rh-deposit-form-error{margin:.35rem 0;color:#bd3939;font-size:.78rem;line-height:1.45}#rhDrawerBody .rh-deposit-form>div[style*="justify-content:flex-end"]{display:flex;justify-content:flex-end;gap:.6rem;flex-wrap:wrap;margin-top:.2rem!important}#rhDrawerBody .rh-deposit-form button,#rhDrawerBody .rh-deposit-form-error button{font-family:"Be Vietnam Pro",sans-serif}@media(max-width:640px){#rhDrawerBody{padding:1rem!important}#rhDrawerBody .rh-deposit-form{gap:.8rem}#rhDrawerBody .rh-deposit-section{padding:.8rem}#rhDrawerBody .rh-deposit-grid{grid-template-columns:minmax(0,1fr);gap:.65rem}#rhDrawerBody .rh-deposit-field.full{grid-column:auto}#rhDrawerBody .rh-deposit-service{grid-template-columns:22px minmax(0,1fr) minmax(82px,105px)}#rhDrawerBody .rh-deposit-service .rh-deposit-quantity{grid-column:3;grid-row:2}#rhDrawerBody .rh-deposit-service>span{grid-column:2/4}#rhDrawerBody .rh-deposit-service input[type=checkbox]{grid-row:1}#rhDrawerBody .rh-deposit-form>div[style*="justify-content:flex-end"]{position:sticky;bottom:-1rem;padding:.8rem 0;background:linear-gradient(transparent,#fff 25%);z-index:1}}';
         document.head.appendChild(style);
     }
 
@@ -70,6 +71,7 @@
     function matchingDeposits(items) {
         var search = state.search.trim().toLocaleLowerCase();
         return items.filter(function (deposit) {
+            if (state.customerId && customerIds(deposit).indexOf(state.customerId) === -1) return false;
             if (state.status !== 'all' && deposit.status !== state.status) return false;
             if (state.buildingId && deposit.buildingId !== state.buildingId) return false;
             if (state.apartmentId && deposit.apartmentId !== state.apartmentId) return false;
@@ -122,6 +124,7 @@
                 (canEdit ? actionButton(deposit, 'edit', 'fa-pen', 'Sửa', false, false) : '') +
                 (canDelete ? actionButton(deposit, 'delete', 'fa-trash', 'Xóa', true, false) : '') +
                 (canSign ? actionButton(deposit, 'sign', 'fa-file-signature', 'Ký hợp đồng', false, false) : '') +
+                (deposit.contractId ? actionButton(deposit, 'contract', 'fa-link', 'Mở hợp đồng đã liên kết', false, false) : '') +
                 (canCancel ? actionButton(deposit, 'cancel', 'fa-ban', 'Hủy cọc', true, false) : '') +
                 actionButton(deposit, 'history', 'fa-clock-rotate-left', 'Lịch sử giao dịch', false, false) +
                 '</div></td></tr>';
@@ -166,6 +169,7 @@
                 if (action === 'cancel') openCancelForm(item);
                 if (action === 'history') openHistory(item);
                 if (action === 'sign') RHUI.openContractFromDeposit(item.id);
+                if (action === 'contract' && RHUI.openContractForDeposit) RHUI.openContractForDeposit(item.id);
             });
         });
     }
@@ -481,7 +485,32 @@
     RHUI.renderDepositsTab = renderDepositsTab;
     RHUI.openDepositForCustomer = function (customerId) {
         if (!util.guard('customers.create')) return;
-        global.switchTab('deposits', null, { customerId: customerId });
+        var holding = customerId && RHLease.listDeposits().filter(function (deposit) {
+            return deposit.status === 'holding' && customerIds(deposit).indexOf(customerId) !== -1;
+        }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); })[0];
+        if (holding) {
+            openDepositForm(holding.id);
+            return;
+        }
+        var contracted = customerId && RHLease.listDeposits().filter(function (deposit) {
+            return deposit.status === 'contracted' && customerIds(deposit).indexOf(customerId) !== -1;
+        }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); })[0];
+        if (contracted) {
+            global.switchTab('deposits', null, { customerId: customerId });
+            if (RHUI.openDepositRecord) RHUI.openDepositRecord(contracted.id);
+            return;
+        }
+        if (customerId) {
+            global.switchTab('deposits', null, { customerId: customerId });
+            openDepositForm(null, customerId);
+            return;
+        }
+        global.switchTab('deposits');
+        openDepositForm(null);
+    };
+    RHUI.openDepositRecord = function (depositId) {
+        var deposit = RHD.get('deposits', depositId);
+        if (deposit) openHistory(deposit);
     };
     RHUI.openDepositForm = openDepositForm;
     RHUI.openContractFromDeposit = function (depositId) {

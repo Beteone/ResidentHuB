@@ -4,6 +4,8 @@ import { fileURLToPath } from 'node:url';
 import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
+import { readSheet as readExcelSheet } from 'read-excel-file/browser';
+import writeExcelFile from 'write-excel-file/browser';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dataSource = readFileSync(resolve(root, 'data.js'), 'utf8');
@@ -12,6 +14,7 @@ const billingSource = readFileSync(resolve(root, 'billing.js'), 'utf8');
 const managerSource = readFileSync(resolve(root, 'manager-modules.js'), 'utf8');
 const depositsModuleSource = readFileSync(resolve(root, 'deposits-module.js'), 'utf8');
 const contractsModuleSource = readFileSync(resolve(root, 'contracts-module.js'), 'utf8');
+const excelToolsSource = readFileSync(resolve(root, 'src/excel-tools.js'), 'utf8');
 const dashboardSource = readFileSync(resolve(root, 'dashboard.html'), 'utf8');
 const meterServiceSource = readFileSync(resolve(root, 'src/meter-reading/meterService.ts'), 'utf8');
 
@@ -196,6 +199,17 @@ test('creates a contract from a deposit and stores linkage and transfer transact
     assert.equal(result.deposit.status, 'contracted');
     assert.equal(result.deposit.contractId, result.item.id);
     assert.equal(env.RHLease.listDepositTransactions(deposit.id).at(-1).type, 'transfer');
+    assert.equal(env.RHLease.currentResidence(env.customer.id).contract.id, result.item.id);
+    assert.equal(env.RHLease.currentResidence(env.customer.id).deposit, null);
+});
+
+test('preserves an explicit contract code when signing from a deposit', () => {
+    const env = setup();
+    const deposit = env.RHLease.createDeposit(depositInput(env)).item;
+    const result = env.RHLease.createContractFromDeposit(deposit.id, { code: 'CT1-501-IMPORT-001' });
+    assert.equal(result.ok, true);
+    assert.equal(result.item.code, 'CT1-501-IMPORT-001');
+    assert.match(env.RHLease.listDepositTransactions(deposit.id).at(-1).note, /CT1-501-IMPORT-001/);
 });
 
 test('blocks contract deletion when it has an invoice', () => {
@@ -395,7 +409,7 @@ test('contract workflow module replaces the legacy renderer with exclusive statu
         assert.match(contractsModuleSource, new RegExp('RHLease\\.' + action + '\\('));
     });
     assert.match(contractsModuleSource, /RHLease\.deleteContract\)/);
-    ['(1) Thông tin chung', '(2) Khách hàng', '(3) Tiền thuê & tiền cọc', '(4) Phí dịch vụ', '(5) Đính kèm hợp đồng'].forEach(section => {
+    ['(1) Thông tin chung', '(2) Khách hàng', '(3) Tiền thuê & tiền cọc', '(4) Phí dịch vụ', '(5) Hồ sơ hợp đồng'].forEach(section => {
         assert.ok(contractsModuleSource.includes(section));
     });
 });
@@ -413,9 +427,62 @@ test('contract workflow restores spaced responsive list and form styling', () =>
     assert.ok(contractsModuleSource.includes('#rhDrawerBody .rh-contract-form-grid{grid-template-columns:minmax(0,1fr)}'));
 });
 
-test('contract form imports Excel workbooks, previews full settlement costs, and scopes meter history', () => {
-    assert.match(contractsModuleSource, /accept="\.xlsx,\.csv/);
-    assert.match(contractsModuleSource, /async function readXlsxRows/);
+test('customer, deposit, and contract screens expose linked amounts and cross-navigation', () => {
+    assert.match(managerSource, /<th>Đặt cọc \/ Hợp đồng<\/th>/);
+    assert.match(managerSource, /customerContract\.depositHeldAmount/);
+    assert.match(depositsModuleSource, /RHUI\.openContractForDeposit\(item\.id\)/);
+    assert.match(depositsModuleSource, /RHUI\.openDepositRecord = function \(depositId\)/);
+    assert.match(contractsModuleSource, /RHLease\.createDeposit\(\{/);
+    assert.match(contractsModuleSource, /RHLease\.createContractFromDeposit\(createdDeposit\.item\.id, data, actor\(\)\)/);
+    assert.match(contractsModuleSource, /data-view-linked-deposit/);
+});
+
+test('contract form supports manual entry and optional drag-and-drop contract files', () => {
+    assert.match(contractsModuleSource, /Bạn có thể lưu hợp đồng bằng thông tin đã nhập/);
+    assert.match(contractsModuleSource, /data-contract-file-drop/);
+    assert.match(contractsModuleSource, /data-contract-file-picker/);
+    assert.match(contractsModuleSource, /fileZone\.addEventListener\('drop'/);
+    assert.match(contractsModuleSource, /data-contract-remove-file/);
+});
+
+test('deposit drawer form has its own responsive layout styles', () => {
+    assert.ok(depositsModuleSource.includes('#rhDrawerBody .rh-deposit-form{display:grid'));
+    assert.ok(depositsModuleSource.includes('#rhDrawerBody .rh-deposit-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr))'));
+    assert.ok(depositsModuleSource.includes('#rhDrawerBody .rh-deposit-inline{display:flex;align-items:center'));
+    assert.ok(depositsModuleSource.includes('@media(max-width:640px){#rhDrawerBody'));
+    assert.ok(depositsModuleSource.includes('#rhDrawerBody .rh-deposit-grid{grid-template-columns:minmax(0,1fr);'));
+});
+
+test('bulk contract import downloads a template, validates preview rows, and supports both error modes', () => {
+    assert.match(contractsModuleSource, /data-import-template/);
+    assert.match(contractsModuleSource, /data-import-drop/);
+    assert.match(contractsModuleSource, /RHExcelTools\.readSheet\(file\)/);
+    assert.match(contractsModuleSource, /RHExcelTools\.writeExcelFile/);
+    assert.match(contractsModuleSource, /Tiền thuê\/tháng \*/);
+    assert.match(contractsModuleSource, /format: '@'/);
+    assert.match(contractsModuleSource, /Dừng toàn bộ nếu có lỗi/);
+    assert.match(contractsModuleSource, /Bỏ qua dòng lỗi, nhập các dòng hợp lệ/);
+    assert.match(contractsModuleSource, /RHLease\.checkDepositAvailability/);
+    assert.match(contractsModuleSource, /createContractFromDeposit\(deposit\.item\.id/);
+    assert.match(dashboardSource, /<script src="dist\/excel-tools\.js"><\/script>/);
+    assert.match(excelToolsSource, /read-excel-file\/browser/);
+    assert.match(excelToolsSource, /write-excel-file\/browser/);
+});
+
+test('Excel workbook round-trip keeps apartment codes and phone numbers as text', async () => {
+    const workbook = await writeExcelFile([
+        ['Mã căn hộ', 'Số điện thoại'],
+        [
+            { value: '001', type: String, format: '@' },
+            { value: '0123456789', type: String, format: '@' }
+        ]
+    ]).toBlob();
+    const rows = await readExcelSheet(workbook);
+    assert.equal(rows[1][0], '001');
+    assert.equal(rows[1][1], '0123456789');
+});
+
+test('contract workflows keep settlement previews and meter history scoped', () => {
     assert.match(contractsModuleSource, /finalUtilityAmount: meterTotal\.amount/);
     assert.match(contractsModuleSource, /root\.addEventListener\('input', function \(event\) \{ if \(event\.target\.matches\('\[data-final-meter\]'\)\)/);
     assert.ok(contractsModuleSource.includes("!/đặt cọc|deposit/i.test((template.name || '') + ' ' + (template.category || ''))"));

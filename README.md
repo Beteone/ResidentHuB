@@ -7,12 +7,13 @@ Web chạy tĩnh (mở `index.html` hoặc dùng bất kỳ static server nào).
 
 ```bash
 npm install        # lần đầu
-npm run build      # kiểm tra kiểu TypeScript rồi build src/meter-reading → dist/meter-reading.js
+npm run build      # kiểm tra TypeScript, build Ghi chỉ số và bundle thư viện Excel cho dashboard tĩnh
+npm run build:excel # chỉ build dist/excel-tools.js sau khi sửa src/excel-tools.js
 npm run dev        # build lại tự động khi sửa file trong src/
 ```
 
 - Mã nguồn: `src/meter-reading/` (`MeterReadingPage` giữ state; `DashboardCards`, `RecordTable`, `AddRecordModal`, `MeterBlock`, `PhotoViewer`).
-- `dist/meter-reading.js` được commit vào repo để web vẫn chạy tĩnh không cần build. Sửa code trong `src/` thì nhớ chạy `npm run build` và commit cả file trong `dist/`.
+- `dist/meter-reading.js` và `dist/excel-tools.js` được commit vào repo để web vẫn chạy tĩnh không cần build. Sửa code trong `src/` thì nhớ chạy `npm run build` và commit cả file trong `dist/`.
 - Class Tailwind do Tailwind CDN trong `dashboard.html` sinh ra lúc chạy.
 
 ## Phân quyền (Loại tài khoản)

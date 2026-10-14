@@ -10,7 +10,7 @@ export default defineConfig({
     define: { 'process.env.NODE_ENV': JSON.stringify('production') },
     build: {
         outDir: 'dist',
-        emptyOutDir: true,
+        emptyOutDir: false,
         sourcemap: false,
         lib: {
             entry: 'src/meter-reading/main.tsx',

@@ -1472,17 +1472,36 @@
             var residence = RHLease.currentResidence(c.id);
             var residenceBuilding = RHD.get('buildings', residence ? residence.buildingId : c.residenceBuildingId);
             var residenceApartment = RHD.get('apartments', residence ? residence.apartmentId : c.residenceApartmentId);
+            var relatedDeposits = RHLease.listDeposits().filter(function (deposit) {
+                return (deposit.tenantIds || [deposit.customerId]).indexOf(c.id) !== -1;
+            }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+            var holdingDeposit = relatedDeposits.filter(function (deposit) { return deposit.status === 'holding'; })[0];
+            var contractedDeposit = relatedDeposits.filter(function (deposit) { return deposit.status === 'contracted'; })[0];
+            var customerContracts = scoped('contracts').filter(function (contract) {
+                return (contract.tenantIds || [contract.customerId]).indexOf(c.id) !== -1 && RHLease.isActiveContract(contract);
+            }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+            var customerContract = customerContracts[0];
+            var lifecycleSummary = customerContract
+                ? '<strong>' + escapeHtml(customerContract.code || 'Hợp đồng') + '</strong><div style="color:#718096;font-size:.72rem;">Cọc giữ ' + money(customerContract.depositHeldAmount || contractedDeposit && contractedDeposit.depositReceivedAmount || 0) + ' / ' + money(customerContract.depositPrice || contractedDeposit && contractedDeposit.depositFullAmount || 0) + '</div>'
+                : holdingDeposit
+                    ? '<strong>Đang giữ ' + money(holdingDeposit.depositReceivedAmount) + '</strong><div style="color:#718096;font-size:.72rem;">Cọc đủ ' + money(holdingDeposit.depositFullAmount) + ' · Còn thiếu ' + money(holdingDeposit.depositRemainingAmount) + '</div>'
+                    : contractedDeposit
+                        ? '<strong>Đã ký cọc ' + escapeHtml(contractedDeposit.code || '') + '</strong><div style="color:#718096;font-size:.72rem;">' + money(contractedDeposit.depositReceivedAmount) + ' / ' + money(contractedDeposit.depositFullAmount) + '</div>'
+                        : '<span style="color:#94a3b8;">Chưa đặt cọc</span>';
+            var depositActionTitle = holdingDeposit ? 'Sửa cọc đang giữ' : contractedDeposit ? 'Xem hồ sơ cọc' : 'Tạo đặt cọc';
+            var contractActionTitle = customerContract ? 'Xem hợp đồng ' + (customerContract.code || '') : holdingDeposit ? 'Ký hợp đồng từ cọc' : 'Tạo cọc để tiếp tục ký hợp đồng';
             return '<tr>' +
                 '<td><strong>' + escapeHtml(c.fullName) + '</strong>' + (c.isForeigner ? ' ' + badge('Nước ngoài', '#0d65d5', '#eaf3ff') : '') + '</td>' +
                 '<td>' + escapeHtml(c.phone) + '</td>' +
                 '<td>' + escapeHtml(c.idNumber || '—') + '</td>' +
                 '<td>' + escapeHtml(residenceBuilding ? residenceBuilding.name : '—') + '</td>' +
                 '<td>' + escapeHtml(residenceApartment ? residenceApartment.name : '—') + '</td>' +
+                '<td>' + lifecycleSummary + '</td>' +
                 '<td>' + escapeHtml(c.customerType || '—') + '</td>' +
                 '<td>' + (c.vehicles ? c.vehicles.length : 0) + ' xe</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
-                rowButton('customers.create', "RHUI.openDepositForCustomer('" + c.id + "')", 'fa-hand-holding-dollar', 'Tạo đặt cọc') +
-                rowButton('contracts.create', "RHUI.openContractForCustomer('" + c.id + "')", 'fa-file-circle-plus', 'Tạo hợp đồng') +
+                rowButton('customers.create', "RHUI.openDepositForCustomer('" + c.id + "')", 'fa-hand-holding-dollar', depositActionTitle) +
+                rowButton('contracts.create', "RHUI.openContractForCustomer('" + c.id + "')", customerContract ? 'fa-file-lines' : 'fa-file-circle-plus', contractActionTitle) +
                 rowButton('customers.update', "RHUI.openCustomerForm('" + c.id + "')", 'fa-pen', 'Sửa') +
                 rowButton('customers.delete', "RHUI.deleteCustomer('" + c.id + "')", 'fa-trash', 'Xoá', true) +
                 '</td></tr>';
@@ -1494,7 +1513,7 @@
             '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Khách hàng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Hồ sơ khách hàng dùng để lập hợp đồng — không cần nhập lại thông tin.</p></div>' +
             addButton('Thêm khách hàng', "RHUI.openCustomerForm()", 'customers', 'customers.create') +
             '</div>' +
-            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Tòa nhà</th><th>Phòng ở</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Tòa nhà</th><th>Phòng ở</th><th>Đặt cọc / Hợp đồng</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                 : emptyState('fa-users', 'Chưa có khách hàng nào.')) +
             '</div>';
     }

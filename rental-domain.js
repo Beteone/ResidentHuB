@@ -579,7 +579,8 @@
             lifecycleStatus: 'active'
         });
         delete contractData.id;
-        delete contractData.code;
+        if (overrides.code) contractData.code = String(overrides.code);
+        else delete contractData.code;
         var created = saveContract(contractData, null, actor, 'created_from_deposit');
         if (!created.ok) return created;
         var updated = global.RHD.update('deposits', id, { status: 'contracted', contractId: created.item.id, updatedAt: Date.now() });
