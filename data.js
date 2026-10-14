@@ -12,7 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'supportRequests'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -23,6 +23,8 @@
         customers: 10,
         meters: 12,
         contracts: 6,
+        deposits: 12,
+        depositTransactions: 24,
         invoices: 10
     };
 
@@ -32,6 +34,8 @@
         customers: 'khách hàng',
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
+        deposits: 'đặt cọc',
+        depositTransactions: 'giao dịch cọc',
         invoices: 'hóa đơn'
     };
 
@@ -195,8 +199,13 @@
         return readAll('contracts').filter(function (c) { return c.apartmentId === apartmentId; });
     }
 
+    function isActiveContract(contract) {
+        if (global.RHLease) return global.RHLease.isActiveContract(contract);
+        return contract && contract.status !== 'ended' && contract.status !== 'liquidated' && contract.status !== 'forfeited';
+    }
+
     function activeContractFor(apartmentId) {
-        var contracts = contractsOf(apartmentId).filter(function (c) { return c.status !== 'ended'; });
+        var contracts = contractsOf(apartmentId).filter(isActiveContract);
         contracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
         return contracts[0] || null;
     }
@@ -240,7 +249,9 @@
         var customer = residentId ? get('customers', residentId) : null;
         var contract = null;
         if (customer) {
-            var customerContracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id && c.status !== 'ended'; });
+            var customerContracts = readAll('contracts').filter(function (c) {
+                return isActiveContract(c) && (c.customerId === customer.id || (c.tenantIds || c.customerIds || []).indexOf(customer.id) !== -1);
+            });
             customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
             contract = customerContracts[0] || null;
         }
@@ -426,10 +437,15 @@
 
         // Apartments by status
         var aptStatus = {};
-        APARTMENT_STATUSES.forEach(function (st) { aptStatus[st.id] = apartments.filter(function (a) { return a.status === st.id; }).length; });
+        APARTMENT_STATUSES.forEach(function (st) {
+            aptStatus[st.id] = apartments.filter(function (apartment) {
+                var status = global.RHLease ? global.RHLease.apartmentStatus(apartment.id, todayStr) : apartment.status;
+                return status === st.id;
+            }).length;
+        });
 
         // Contracts
-        var isEnded = function (c) { return c.status === 'ended' || (c.endDate && c.endDate < todayStr); };
+        var isEnded = function (c) { return !isActiveContract(c); };
         var activeContracts = contracts.filter(function (c) { return !isEnded(c); });
         var expiringContracts = activeContracts.filter(function (c) { return c.endDate && c.endDate >= todayStr && c.endDate <= soonStr; });
 
@@ -467,7 +483,9 @@
         var linkedAccounts = (mode() !== 'demo' && global.RH)
             ? global.RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && customerIds[u.residentId]; }) : [];
         var activeCustomerIds = {};
-        activeContracts.forEach(function (c) { activeCustomerIds[c.customerId] = true; });
+        activeContracts.forEach(function (c) {
+            (c.tenantIds || c.customerIds || [c.customerId]).forEach(function (id) { if (id) activeCustomerIds[id] = true; });
+        });
 
         // Support requests
         var openRequests = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; });
@@ -735,6 +753,7 @@
         limitInfo: limitInfo,
         apartmentsOf: apartmentsOf,
         contractsOf: contractsOf,
+        isActiveContract: isActiveContract,
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
         findApartmentByUnit: findApartmentByUnit,

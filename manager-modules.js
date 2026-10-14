@@ -317,7 +317,7 @@
 
         var rows = apartments.map(function (a) {
             var building = RHD.get('buildings', a.buildingId);
-            var st = statusMeta(RHD.APARTMENT_STATUSES, a.status);
+            var st = statusMeta(RHD.APARTMENT_STATUSES, RHLease.apartmentStatus(a.id));
             var isActive = a.active !== false;
             return '<tr>' +
                 '<td><strong>' + escapeHtml(a.name) + '</strong>' + (a.photos && a.photos.length ? ' <i class="fas fa-image" style="color:#94a3b8;" title="Có ảnh"></i>' : '') + '</td>' +
@@ -453,8 +453,9 @@
         if (!tab) return;
         var customers = RHD.list('customers');
         var rows = customers.map(function (c) {
-            var residenceBuilding = RHD.get('buildings', c.residenceBuildingId);
-            var residenceApartment = RHD.get('apartments', c.residenceApartmentId);
+            var residence = RHLease.currentResidence(c.id);
+            var residenceBuilding = RHD.get('buildings', residence ? residence.buildingId : c.residenceBuildingId);
+            var residenceApartment = RHD.get('apartments', residence ? residence.apartmentId : c.residenceApartmentId);
             return '<tr>' +
                 '<td><strong>' + escapeHtml(c.fullName) + '</strong>' + (c.isForeigner ? ' ' + badge('Nước ngoài', '#0d65d5', '#eaf3ff') : '') + '</td>' +
                 '<td>' + escapeHtml(c.phone) + '</td>' +
@@ -646,14 +647,7 @@
     }
 
     function contractStatusKey(contract, today, expiringDays) {
-        var raw = String(contract.status || '').toLowerCase();
-        if (['ended', 'terminated', 'liquidated', 'settled', 'closed'].indexOf(raw) !== -1) return 'liquidated';
-        if (['deposit', 'deposited', 'forfeited', 'deposit_forfeited'].indexOf(raw) !== -1) return 'deposit';
-        if (['moving_out', 'move_out', 'notice_to_move'].indexOf(raw) !== -1 || contract.moveOutDate || contract.moveOutNoticeDate) return 'moving';
-        if (contract.endDate && contract.endDate < today) return 'overdue';
-        var remaining = contract.endDate ? Math.ceil((new Date(contract.endDate + 'T00:00:00') - new Date(today + 'T00:00:00')) / 86400000) : Infinity;
-        if (remaining >= 0 && remaining <= expiringDays) return 'expiring';
-        return 'renting';
+        return RHLease.contractAlertStatus(contract, today, expiringDays);
     }
 
     function renderContractsTab(filter) {
@@ -859,13 +853,11 @@
         };
         if (!data.customerId) { byId('cfError').textContent = 'Vui lòng chọn khách hàng.'; return; }
 
-        var res;
-        if (RHUI.drawerId) {
-            res = RHD.update('contracts', RHUI.drawerId, data);
-        } else {
-            data.code = RHD.nextContractCode(building, apartment);
-            res = RHD.create('contracts', data);
-        }
+        var session = global.RH && global.RH.getSession ? global.RH.getSession() : null;
+        var res = RHLease.saveContract(data, RHUI.drawerId, {
+            actorId: session && session.id || '',
+            actorName: session && session.name || ''
+        });
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
 
         if (!RHUI.drawerId && RHD.getSettings().autoOccupyOnContract && apartment && (apartment.status === 'vacant' || apartment.status === 'deposited')) {
@@ -880,8 +872,11 @@
     };
 
     RHUI.deleteContract = function (id) {
-        var hasInvoice = RHD.list('invoices').some(function (i) { return i.contractId === id; });
-        confirmDelete('contracts', id, function () { renderContractsTab(); renderDashboardCounts(); }, hasInvoice ? 'Không thể xoá: hợp đồng đang gắn với hóa đơn.' : null);
+        if (!confirm('Xoá bản ghi này? Hành động không thể hoàn tác.')) return;
+        var result = RHLease.deleteContract(id);
+        if (!result.ok) { alert(result.error); return; }
+        renderContractsTab();
+        renderDashboardCounts();
     };
 
     // ============================================================== INVOICES

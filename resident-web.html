@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
     <script src="data.js"></script>
+    <script src="rental-domain.js"></script>
     <style>
         :root {
             --bg-soft: #f5f8fc;
@@ -1163,6 +1164,7 @@
         // resolves the apartment/contract/customer/invoices/requests that belong to
         // THIS account from the same data source the manager side writes to.
         RHD.setMode('live');
+        RHLease.initialize();
         var RH_CTX = RHD.residentContext(RH_SESSION);
     </script>
     <aside class="sidebar">

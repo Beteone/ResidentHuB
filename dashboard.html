@@ -14,6 +14,7 @@
     <script src="auth.js"></script>
     <script src="templates.js"></script>
     <script src="data.js"></script>
+    <script src="rental-domain.js"></script>
     <script src="manager-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
     <style>
@@ -2490,6 +2491,7 @@
             ? { id: 'demo', name: 'Khách demo', email: '', role: 'manager', unit: '', demo: true }
             : RH.requireRole('manager');
         RHD.setMode(RH_IS_DEMO ? 'demo' : 'live');
+        RHLease.initialize();
     </script>
     <!-- Sidebar -->
     <div class="sidebar">
