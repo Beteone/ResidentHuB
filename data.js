@@ -326,13 +326,20 @@
         // for backward compatibility with accounts only ever linked by apartmentId.
         var customer = residentId ? get('customers', residentId) : null;
         var contract = null;
+        var residentDeposits = [];
         if (customer) {
             var customerContracts = readAll('contracts').filter(function (c) {
                 return isActiveContract(c) && (c.customerId === customer.id || (c.tenantIds || []).indexOf(customer.id) !== -1);
             });
             customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
             contract = customerContracts[0] || null;
+            residentDeposits = readAll('deposits').filter(function (deposit) {
+                return !deposit.isDeleted && (deposit.customerId === customer.id || (deposit.tenantIds || []).indexOf(customer.id) !== -1);
+            }).sort(function (a, b) { return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0); });
         }
+        var residentDeposit = contract && contract.depositId
+            ? get('deposits', contract.depositId)
+            : residentDeposits[0] || null;
 
         // The manager's Contract is the authoritative Building/Apartment link for a
         // linked resident — it wins over the apartment picked at registration time.
@@ -354,7 +361,7 @@
             if (session.email && r.residentEmail === session.email) return true;
             return !customer && apartment && r.apartmentId === apartment.id;
         }).sort(byNewest);
-        return { apartment: apartment, building: building, contract: contract, customer: customer, invoices: invoices, supportRequests: supportRequests };
+        return { apartment: apartment, building: building, contract: contract, deposit: residentDeposit, customer: customer, invoices: invoices, supportRequests: supportRequests };
     }
 
     // ---- system settings (Cài đặt) -------------------------------------------

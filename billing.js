@@ -92,9 +92,9 @@
         var value = row.recordedAt || row.createdAt || 0;
         return isFinite(Number(value)) ? Number(value) : Date.parse(value) || 0;
     }
-    function approvedReading(apartmentId, meterType, period) {
+    function approvedReading(apartmentId, meterType, period, meterCode) {
         var rows = RHD.list('meters').filter(function (m) {
-            return m.apartmentId === apartmentId && m.meterType === meterType && (m.readingPeriod || m.periodMonth) === period;
+            return m.apartmentId === apartmentId && m.meterType === meterType && (!meterCode || m.meterCode === meterCode) && (m.readingPeriod || m.periodMonth) === period;
         }).sort(function (a, b) { return readingTime(b) - readingTime(a); });
         var latest = rows[0] || null;
         if (!latest) return { reading: null, state: 'missing' };
@@ -148,7 +148,8 @@
         if (!building) return null;
         var periodStart = period + '-01';
         var periodEnd = period + '-' + pad(daysInMonth(period));
-        var month = occupiedShare(contract, periodStart, periodEnd);
+        var rentContract = Object.assign({}, contract, { startDate: contract.rentStartDate || contract.startDate });
+        var month = occupiedShare(rentContract, periodStart, periodEnd);
         if (!month.days) return null;
 
         var items = [];
@@ -156,36 +157,49 @@
 
         // Rent per contract cycle.
         var cycle = CYCLE_MONTHS[contract.paymentCycle] || 1;
-        var startMonth = monthOf(contract.startDate) || period;
+        var startMonth = monthOf(rentContract.startDate) || period;
         var offset = monthsBetween(startMonth, period);
         if (offset >= 0 && offset % cycle === 0) {
             var cycleEndPeriod = addMonths(period, cycle - 1);
             var cycleEnd = cycleEndPeriod + '-' + pad(daysInMonth(cycleEndPeriod));
             var months = 0;
+            var discountMonths = Math.max(0, Number(contract.discountMonths) || 0);
+            var discountPerMonth = Math.max(0, Number(contract.discountAmountPerMonth) || 0);
+            var discountStartMonth = startMonth;
+            var discountAmount = 0;
             for (var i = 0; i < cycle; i++) {
                 var p = addMonths(period, i);
-                months += occupiedShare(contract, p + '-01', p + '-' + pad(daysInMonth(p))).share;
+                var pStart = p + '-01', pEnd = p + '-' + pad(daysInMonth(p));
+                var monthShare = occupiedShare(rentContract, pStart, pEnd).share;
+                months += monthShare;
+                var discountOffset = monthsBetween(discountStartMonth, p);
+                if (discountPerMonth && discountOffset >= 0 && discountOffset < discountMonths) discountAmount += Math.min(discountPerMonth, Number(contract.rentPrice) || 0) * monthShare;
             }
             months = Math.round(months * 10000) / 10000;
+            discountAmount = Math.min(Math.round(months * (Number(contract.rentPrice) || 0)), Math.round(discountAmount));
             var rentLabel = 'Tiền thuê nhà ' + (cycle === 1 ? 'tháng ' + periodLabel(period) : periodLabel(period) + ' – ' + periodLabel(cycleEndPeriod) + ' (' + cycle + ' tháng)');
             if (months < cycle) rentLabel += cycle === 1 ? ' (' + month.days + '/' + month.total + ' ngày)' : ' (tính theo ngày ở thực tế)';
             items.push(line('rent', rentLabel, months, Number(contract.rentPrice) || 0, 0, { kind: 'rent', coverFrom: periodStart, coverTo: cycleEnd }));
+            if (discountAmount > 0) items.push(line('rent-discount', 'Giảm giá thuê theo hợp đồng', 1, -discountAmount, 0, { kind: 'discount', source: 'contract', coverFrom: periodStart, coverTo: cycleEnd }));
         }
 
         var serviceIds = contract.serviceIds || [];
         var overrides = contract.serviceOverrides || {};
         // Invoice period is the consumption period, never the date of closing.
         var consumption = period;
-        (building.services || []).forEach(function (s) {
+        var contractServices = (building.services || []).concat(contract.extraServices || []);
+        contractServices.forEach(function (s) {
             if (s.feeType === 'rent' || s.feeType === 'deposit' || serviceIds.indexOf(s.id) === -1) return;
             var unitPrice = overrides[s.id] != null && overrides[s.id] !== '' ? Number(overrides[s.id]) : Number(s.unitPrice) || 0;
             var policy = RHD.utilityPolicy(s);
             if (policy.metered) {
                 var meterType = policy.meterType || (s.feeType === 'water' ? 'water' : 'electricity');
+                var assignment = (contract.meterAssignments || []).filter(function (item) { return item.meterType === meterType; })[0];
+                var meterCode = assignment && assignment.meterCode || '';
                 // Tenant must have lived there during the consumption month.
                 var cStart = consumption + '-01', cEnd = consumption + '-' + pad(daysInMonth(consumption));
-                if (!occupiedShare(contract, cStart, cEnd).days) return;
-                var found = approvedReading(contract.apartmentId, meterType, consumption);
+                if (!occupiedShare(rentContract, cStart, cEnd).days) return;
+                var found = approvedReading(contract.apartmentId, meterType, consumption, meterCode);
                 var meta = METER_LABEL[meterType];
                 if (found.state === 'approved') {
                     var qty = Number(found.reading.latestIndex) - Number(found.reading.previousIndex);

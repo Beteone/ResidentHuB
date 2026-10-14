@@ -101,9 +101,35 @@ export const meterService = {
 
     /** Latest reading of a meter strictly before `periodMonth` (its "Chỉ số trước"). */
     previousReading(records: MeterRecord[], apartmentId: string, kind: MeterKind, periodMonth: MonthKey): MeterRecord | null {
-        return records
+        const previous = records
             .filter(r => r.apartmentId === apartmentId && r.kind === kind && (!r.periodMonth || r.periodMonth < periodMonth))
-            .sort((a, b) => b.periodMonth.localeCompare(a.periodMonth) || b.recordedAt - a.recordedAt)[0] || null;
+            .sort((a, b) => b.periodMonth.localeCompare(a.periodMonth) || b.recordedAt - a.recordedAt)[0];
+        if (previous) return previous;
+
+        const contract = window.RHD.activeContractFor?.(apartmentId);
+        const assignment = contract?.meterAssignments?.find(meter => meter.meterType === KIND_META[kind].stored);
+        if (!assignment) return null;
+        const initialIndex = num(assignment.initialIndex);
+        return {
+            id: 'contract-initial-' + (contract?.id || apartmentId) + '-' + kind,
+            kind,
+            buildingId: '',
+            apartmentId,
+            periodMonth: '',
+            closingDate: '',
+            meterCode: assignment.meterCode,
+            previousIndex: initialIndex,
+            latestIndex: initialIndex,
+            consumption: 0,
+            photo: '',
+            recordedAt: 0,
+            recordedById: '',
+            recordedBy: '',
+            approvalStatus: 'chưa_duyệt',
+            approvedAt: null,
+            approvedById: '',
+            approvedBy: ''
+        };
     },
 
     /**

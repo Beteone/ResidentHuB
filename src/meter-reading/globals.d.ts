@@ -52,7 +52,12 @@ interface RhdApi {
     update(entity: 'meters', id: string, patch: Partial<RhdMeterRow>): RhdResult<RhdMeterRow>;
     remove(entity: 'meters', id: string): RhdResult<never>;
     mode(): 'live' | 'demo';
-    activeContractFor?(apartmentId: string): { code?: string; customerId?: string } | null;
+    activeContractFor?(apartmentId: string): {
+        id?: string;
+        code?: string;
+        customerId?: string;
+        meterAssignments?: Array<{ meterType: 'electricity' | 'water'; meterCode: string; initialIndex: number }>;
+    } | null;
 }
 
 /** permissions.js — account-type permissions + building scope of the signed-in user. */

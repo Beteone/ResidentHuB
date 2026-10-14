@@ -45,9 +45,21 @@
         return isoDate(end);
     }
 
+    function addDays(dateString, days) {
+        var date = parseDate(dateString);
+        if (!date) return '';
+        date.setDate(date.getDate() + days);
+        return isoDate(date);
+    }
+
     function amount(value) {
         var number = Number(value);
         return Number.isFinite(number) ? Math.max(0, number) : 0;
+    }
+
+    function calculateDepositFull(rentPrice, depositMonths) {
+        var months = Number(depositMonths);
+        return amount(rentPrice) * (Number.isFinite(months) && months > 0 ? months : 1);
     }
 
     function unique(values) {
@@ -155,15 +167,38 @@
         return { ok: true };
     }
 
+    function checkDepositAvailability(input, existingId) {
+        initialize();
+        var existingHold = global.RHD.list('deposits').filter(function (deposit) {
+            return deposit.id !== existingId && holdingDeposit(deposit) && sameSpace(input, deposit);
+        })[0];
+        if (existingHold) {
+            var error = 'Căn hộ/phòng đã có đặt cọc giữ chỗ ' + (existingHold.code || existingHold.id) + '.';
+            return { ok: false, conflict: existingHold, error: error, fieldErrors: { apartmentId: error } };
+        }
+        var result = checkAvailability({
+            buildingId: input.buildingId,
+            apartmentId: input.apartmentId,
+            roomId: input.roomId,
+            bedId: input.bedId,
+            startDate: input.leaseStartDate || input.startDate,
+            endDate: input.leaseEndDate || input.endDate,
+            excludeContractId: input.excludeContractId,
+            excludeDepositId: existingId || input.excludeDepositId
+        });
+        if (!result.ok) result.fieldErrors = { apartmentId: result.error };
+        return result;
+    }
+
     function contractAlertStatus(contract, asOf, expiringDays) {
         var status = lifecycleStatus(contract);
         if (status === 'liquidated') return 'liquidated';
         if (status === 'forfeited') return 'deposit';
         if (status !== 'active') return 'liquidated';
         var now = asOf || today();
-        var moveOut = contract.expectedMoveOutDate || contract.moveOutDate || contract.moveOutNoticeDate;
-        if (moveOut && moveOut >= now) return 'moving';
         if (contract.endDate && contract.endDate < now) return 'overdue';
+        var moveOut = contract.expectedMoveOutDate || contract.moveOutDate || contract.moveOutNoticeDate;
+        if (moveOut) return 'moving';
         var end = parseDate(contract.endDate);
         if (end) {
             var remaining = Math.ceil((end.getTime() - parseDate(now).getTime()) / 86400000);
@@ -214,7 +249,7 @@
         var depositMonths = Number(input.depositMonths == null ? 1 : input.depositMonths);
         var rentPrice = amount(input.rentPrice == null ? apartment && apartment.rentPrice : input.rentPrice);
         var fullAmount = input.depositFullAmount == null
-            ? (existing && input.rentPrice == null && input.depositMonths == null ? amount(existing.depositFullAmount) : depositMonths * rentPrice)
+            ? (existing && input.rentPrice == null && input.depositMonths == null ? amount(existing.depositFullAmount) : calculateDepositFull(rentPrice, depositMonths))
             : amount(input.depositFullAmount);
         var selectedServices = Array.isArray(input.services) ? input.services : (building ? (building.services || []).filter(function (service) {
             return service.feeType !== 'rent' && service.feeType !== 'deposit';
@@ -250,44 +285,43 @@
     }
 
     function validateDeposit(item, existingId) {
-        if (!global.RHD.get('buildings', item.buildingId)) return { ok: false, error: 'Vui lòng chọn tòa nhà hợp lệ.' };
+        if (!global.RHD.get('buildings', item.buildingId)) return { ok: false, error: 'Vui lòng chọn tòa nhà hợp lệ.', fieldErrors: { buildingId: 'Vui lòng chọn tòa nhà.' } };
         var apartment = global.RHD.get('apartments', item.apartmentId);
-        if (!apartment || apartment.buildingId !== item.buildingId) return { ok: false, error: 'Căn hộ không thuộc tòa nhà đã chọn.' };
+        if (!apartment || apartment.buildingId !== item.buildingId) return { ok: false, error: 'Căn hộ không thuộc tòa nhà đã chọn.', fieldErrors: { apartmentId: 'Chọn căn hộ thuộc tòa nhà đã chọn.' } };
         if (!item.tenantIds.length || item.tenantIds.some(function (id) { return !global.RHD.get('customers', id); })) {
-            return { ok: false, error: 'Vui lòng chọn ít nhất một khách cọc hợp lệ.' };
+            return { ok: false, error: 'Vui lòng chọn ít nhất một khách cọc hợp lệ.', fieldErrors: { tenantIds: 'Chọn ít nhất một khách cọc.' } };
         }
-        if (!parseDate(item.depositDate) || !parseDate(item.moveInDate) || !parseDate(item.leaseStartDate) || !parseDate(item.leaseEndDate)) {
-            return { ok: false, error: 'Vui lòng nhập ngày đặt cọc, chuyển vào và thời hạn thuê hợp lệ.' };
-        }
-        if (item.leaseEndDate <= item.leaseStartDate) return { ok: false, error: 'Ngày kết thúc phải sau ngày bắt đầu.' };
-        if (item.depositReceivedAmount > item.depositFullAmount) return { ok: false, error: 'Cọc giữ không được lớn hơn cọc đầy đủ.' };
-        if (item.depositMonths <= 0 || item.rentPrice < 0 || item.depositFullAmount < 0) return { ok: false, error: 'Giá thuê và số tháng cọc không hợp lệ.' };
+        if (!parseDate(item.depositDate)) return { ok: false, error: 'Ngày đặt cọc không hợp lệ.', fieldErrors: { depositDate: 'Nhập ngày đặt cọc hợp lệ.' } };
+        if (!parseDate(item.moveInDate)) return { ok: false, error: 'Ngày chuyển vào không hợp lệ.', fieldErrors: { moveInDate: 'Nhập ngày chuyển vào hợp lệ.' } };
+        if (!parseDate(item.rentStartDate)) return { ok: false, error: 'Ngày bắt đầu tính tiền không hợp lệ.', fieldErrors: { rentStartDate: 'Nhập ngày bắt đầu tính tiền hợp lệ.' } };
+        if (!parseDate(item.leaseStartDate)) return { ok: false, error: 'Ngày bắt đầu thuê không hợp lệ.', fieldErrors: { leaseStartDate: 'Nhập ngày bắt đầu thuê hợp lệ.' } };
+        if (!parseDate(item.leaseEndDate)) return { ok: false, error: 'Ngày kết thúc thuê không hợp lệ.', fieldErrors: { leaseEndDate: 'Nhập ngày kết thúc thuê hợp lệ.' } };
+        if (item.leaseEndDate <= item.leaseStartDate) return { ok: false, error: 'Ngày kết thúc phải sau ngày bắt đầu.', fieldErrors: { leaseEndDate: 'Ngày kết thúc phải sau ngày bắt đầu.' } };
+        if (item.depositReceivedAmount > item.depositFullAmount) return { ok: false, error: 'Cọc giữ không được lớn hơn cọc đầy đủ.', fieldErrors: { depositReceivedAmount: 'Cọc giữ không được lớn hơn cọc full.' } };
+        if (item.depositMonths <= 0 || item.rentPrice < 0 || item.depositFullAmount < 0) return { ok: false, error: 'Giá thuê và số tháng cọc không hợp lệ.', fieldErrors: { rentPrice: 'Giá thuê và số tháng cọc phải hợp lệ.', depositMonths: 'Số tháng cọc phải lớn hơn 0.', depositFullAmount: 'Cọc full không hợp lệ.' } };
         if (item.referrerUserId && global.RH && !global.RH.getUsers().some(function (user) { return user.id === item.referrerUserId; }) && !item.referrerName) {
-            return { ok: false, error: 'Không tìm thấy tài khoản người giới thiệu.' };
+            return { ok: false, error: 'Không tìm thấy tài khoản người giới thiệu.', fieldErrors: { referrerUserId: 'Chọn tài khoản hợp lệ hoặc nhập người giới thiệu mới.' } };
         }
         if (item.status === 'holding') {
-            var existingHold = global.RHD.list('deposits').filter(function (deposit) {
-                return deposit.id !== existingId && holdingDeposit(deposit) && sameSpace(item, deposit);
-            })[0];
-            if (existingHold) return { ok: false, conflict: existingHold, error: 'Căn hộ/phòng đã có đặt cọc giữ chỗ ' + (existingHold.code || existingHold.id) + '.' };
-            return checkAvailability({
-                buildingId: item.buildingId,
-                apartmentId: item.apartmentId,
-                roomId: item.roomId,
-                bedId: item.bedId,
-                startDate: item.leaseStartDate,
-                endDate: item.leaseEndDate,
-                excludeDepositId: existingId
-            });
+            return checkDepositAvailability(item, existingId);
         }
         return { ok: true };
+    }
+
+    function validateDepositInput(input, existingId) {
+        initialize();
+        var existing = existingId ? global.RHD.get('deposits', existingId) : null;
+        var item = normalizeDeposit(input || {}, existing);
+        var result = validateDeposit(item, existingId);
+        return result.ok ? { ok: true, item: item } : result;
     }
 
     function createDeposit(input, actor) {
         initialize();
         input = input || {};
-        var item = normalizeDeposit(input);
-        var invalid = validateDeposit(item);
+        var validation = validateDepositInput(input);
+        var item = validation.item;
+        var invalid = validation;
         if (!invalid.ok) return invalid;
         var building = global.RHD.get('buildings', item.buildingId);
         var apartment = global.RHD.get('apartments', item.apartmentId);
@@ -315,8 +349,9 @@
         }
         patch = Object.assign({}, patch || {});
         var previousReceived = amount(existing.depositReceivedAmount);
-        var item = normalizeDeposit(Object.assign({}, existing, patch), existing);
-        var invalid = validateDeposit(item, id);
+        var validation = validateDepositInput(Object.assign({}, existing, patch), id);
+        var item = validation.item;
+        var invalid = validation;
         if (!invalid.ok) return invalid;
         if (item.depositReceivedAmount < previousReceived) return { ok: false, error: 'Không thể giảm tiền đã nhận khi sửa; hãy hủy cọc để ghi nhận hoàn/khấu trừ.' };
         item.code = existing.code;
@@ -379,31 +414,65 @@
         return global.RHD.list('deposits').filter(function (item) { return !item.isDeleted; });
     }
 
-    function validateContract(data, id) {
-        if (!global.RHD.get('buildings', data.buildingId)) return { ok: false, error: 'Vui lòng chọn tòa nhà hợp lệ.' };
+    function validateContract(data, id, action) {
+        if (!global.RHD.get('buildings', data.buildingId)) return { ok: false, error: 'Vui lòng chọn tòa nhà hợp lệ.', fieldErrors: { buildingId: 'Chọn tòa nhà hợp lệ.' } };
         var apartment = global.RHD.get('apartments', data.apartmentId);
-        if (!apartment || apartment.buildingId !== data.buildingId) return { ok: false, error: 'Căn hộ không thuộc tòa nhà đã chọn.' };
+        if (!apartment || apartment.buildingId !== data.buildingId) return { ok: false, error: 'Căn hộ không thuộc tòa nhà đã chọn.', fieldErrors: { apartmentId: 'Căn hộ không thuộc tòa nhà đã chọn.' } };
         var tenants = unique(data.tenantIds || (data.customerId ? [data.customerId] : []));
         if (!tenants.length || tenants.some(function (tenantId) { return !global.RHD.get('customers', tenantId); })) {
-            return { ok: false, error: 'Vui lòng chọn ít nhất một khách thuê hợp lệ.' };
+            return { ok: false, error: 'Vui lòng chọn ít nhất một khách thuê hợp lệ.', fieldErrors: { tenantIds: 'Chọn ít nhất một khách thuê hợp lệ.' } };
         }
         if (!parseDate(data.startDate) || !parseDate(data.endDate) || data.endDate <= data.startDate) {
-            return { ok: false, error: 'Ngày kết thúc phải sau ngày bắt đầu.' };
+            return { ok: false, error: 'Ngày kết thúc phải sau ngày bắt đầu.', fieldErrors: { startDate: 'Nhập ngày bắt đầu hợp lệ.', endDate: 'Ngày kết thúc phải sau ngày bắt đầu.' } };
         }
+        if (data.signDate && !parseDate(data.signDate)) return { ok: false, error: 'Ngày ký không hợp lệ.', fieldErrors: { signDate: 'Nhập ngày ký hợp lệ.' } };
+        if (data.landlordSignedAt && !parseDate(data.landlordSignedAt)) return { ok: false, error: 'Ngày chủ nhà ký không hợp lệ.', fieldErrors: { landlordSignedAt: 'Nhập ngày chủ nhà ký hợp lệ.' } };
+        if (data.rentStartDate && !parseDate(data.rentStartDate)) return { ok: false, error: 'Ngày bắt đầu tính tiền không hợp lệ.', fieldErrors: { rentStartDate: 'Nhập ngày bắt đầu tính tiền hợp lệ.' } };
+        if (data.billingDay != null && data.billingDay !== '' && (!Number.isInteger(Number(data.billingDay)) || Number(data.billingDay) < 1 || Number(data.billingDay) > 31)) {
+            return { ok: false, error: 'Ngày thanh toán phải từ 1 đến 31.', fieldErrors: { billingDay: 'Chọn ngày thanh toán từ 1 đến 31.' } };
+        }
+        if (Number(data.rentPrice) < 0 || Number(data.depositPrice) < 0) return { ok: false, error: 'Giá thuê và tiền cọc không hợp lệ.', fieldErrors: { rentPrice: 'Số tiền không hợp lệ.', depositPrice: 'Số tiền không hợp lệ.' } };
+        var building = global.RHD.get('buildings', data.buildingId);
+        var selectedServices = data.serviceIds || [];
+        var meterTypes = {};
+        (building.services || []).concat(data.extraServices || []).forEach(function (service) {
+            if (selectedServices.indexOf(service.id) === -1) return;
+            var policy = global.RHD.utilityPolicy ? global.RHD.utilityPolicy(service) : { metered: service.calcMethod === 'meter', meterType: service.feeType === 'water' ? 'water' : 'electricity' };
+            if (policy.metered) meterTypes[policy.meterType || (service.feeType === 'water' ? 'water' : 'electricity')] = true;
+        });
+        var assignments = data.meterAssignments || [];
+        var missingMeterType = Object.keys(meterTypes).filter(function (type) {
+            var assignment = assignments.filter(function (item) { return item.meterType === type && item.meterCode; })[0];
+            return !assignment || !Number.isFinite(Number(assignment.initialIndex)) || Number(assignment.initialIndex) < 0 ||
+                !global.RHD.list('meters').some(function (meter) { return meter.apartmentId === data.apartmentId && meter.meterType === type && meter.meterCode === assignment.meterCode; });
+        })[0];
+        if (missingMeterType) return { ok: false, error: 'Cần gắn công tơ đã khai báo ' + (missingMeterType === 'water' ? 'nước' : 'điện') + ' và nhập chỉ số đầu.', fieldErrors: { meterAssignments: 'Chọn công tơ hiện có và nhập chỉ số đầu hợp lệ.' } };
         if (data.depositId) {
             var deposit = global.RHD.get('deposits', data.depositId);
-            if (!deposit || (deposit.status !== 'holding' && deposit.status !== 'contracted')) return { ok: false, error: 'Đặt cọc không còn ở trạng thái có thể ký hợp đồng.' };
+            if (!deposit || (deposit.status !== 'holding' && deposit.status !== 'contracted')) return { ok: false, error: 'Đặt cọc không còn ở trạng thái có thể ký hợp đồng.', fieldErrors: { depositId: 'Đặt cọc không còn ở trạng thái chờ ký.' } };
         }
         return checkAvailability({
             buildingId: data.buildingId,
             apartmentId: data.apartmentId,
             roomId: data.roomId,
             bedId: data.bedId,
-            startDate: data.startDate,
+            startDate: action === 'transferred' ? data.transferDate || data.startDate
+                : action === 'assigned' ? data.assignmentDate || data.transferDate || data.startDate
+                    : action === 'move_out_registered' && data.transferDate ? data.transferDate : data.startDate,
             endDate: data.endDate,
             excludeContractId: id,
             excludeDepositId: data.depositId
         });
+    }
+
+    function validateContractInput(data, id, action) {
+        initialize();
+        var existing = id ? global.RHD.get('contracts', id) : null;
+        if (id && !existing) return { ok: false, error: 'Không tìm thấy hợp đồng.' };
+        var input = Object.assign({}, existing || {}, data || {});
+        if (!input.startDate) input.startDate = existing && existing.startDate || today();
+        if (!input.endDate) input.endDate = existing && existing.endDate || defaultEndDate(input.startDate, 12);
+        return validateContract(input, id, action);
     }
 
     function saveContract(data, id, actor, action) {
@@ -445,9 +514,11 @@
         data.signedAt = data.signedAt || data.signDate || (existing && existing.signedAt) || '';
         data.landlordSignedAt = data.landlordSignedAt || (existing && existing.landlordSignedAt) || '';
         data.billingDay = data.billingDay || (existing && existing.billingDay) || '';
+        data.rentStartDate = data.rentStartDate || (existing && existing.rentStartDate) || data.startDate;
+        data.meterAssignments = Array.isArray(data.meterAssignments) ? data.meterAssignments : (existing && existing.meterAssignments) || [];
         data.expectedMoveOutDate = data.expectedMoveOutDate || (existing && existing.expectedMoveOutDate) || '';
         data.history = (existing && Array.isArray(existing.history) ? existing.history.slice() : []);
-        var validation = validateContract(data, id);
+        var validation = validateContractInput(data, id, action);
         if (!validation.ok) return validation;
         var event = {
             type: action || (id ? 'updated' : 'created'),
@@ -456,7 +527,18 @@
             actorName: actor && actor.actorName || '',
             note: actor && actor.note || ''
         };
-        if (action === 'transferred') event.from = existing ? { buildingId: existing.buildingId, apartmentId: existing.apartmentId, roomId: existing.roomId, bedId: existing.bedId } : null;
+        if (existing && ['renewed', 'transferred', 'assigned', 'move_out_registered'].indexOf(action) !== -1) {
+            event.from = {
+                buildingId: existing.buildingId, apartmentId: existing.apartmentId, roomId: existing.roomId || '', bedId: existing.bedId || '',
+                tenantIds: existing.tenantIds || [existing.customerId], startDate: existing.startDate, endDate: existing.endDate,
+                rentPrice: existing.rentPrice, depositPrice: existing.depositPrice, expectedMoveOutDate: existing.expectedMoveOutDate || ''
+            };
+            event.to = {
+                buildingId: data.buildingId, apartmentId: data.apartmentId, roomId: data.roomId || '', bedId: data.bedId || '',
+                tenantIds: data.tenantIds, startDate: data.startDate, endDate: data.endDate,
+                rentPrice: data.rentPrice, depositPrice: data.depositPrice, expectedMoveOutDate: data.expectedMoveOutDate || ''
+            };
+        }
         data.history.push(event);
         if (!id) {
             var building = global.RHD.get('buildings', data.buildingId);
@@ -488,6 +570,10 @@
             discountMonths: deposit.discountMonths,
             discountAmountPerMonth: deposit.discountAmountPerMonth,
             depositId: deposit.id,
+            serviceIds: overrides.serviceIds || (deposit.services || []).filter(function (service) { return service.feeType !== 'rent' && service.feeType !== 'deposit'; }).map(function (service) { return service.id; }),
+            serviceOverrides: overrides.serviceOverrides || (deposit.services || []).reduce(function (result, service) { result[service.id] = service.unitPrice; return result; }, {}),
+            extraServices: overrides.extraServices || (deposit.services || []).filter(function (service) { return service.feeType !== 'rent' && service.feeType !== 'deposit' && !(global.RHD.get('buildings', deposit.buildingId).services || []).some(function (buildingService) { return buildingService.id === service.id; }); }),
+            meterAssignments: overrides.meterAssignments || deposit.meterAssignments || [],
             status: 'active',
             lifecycleStatus: 'active'
         });
@@ -512,20 +598,169 @@
     function renewContract(id, dates, actor) {
         var contract = global.RHD.get('contracts', id);
         if (!contract || !activeContract(contract)) return { ok: false, error: 'Chỉ có thể gia hạn hợp đồng đang hiệu lực.' };
-        return saveContract(Object.assign({}, contract, dates || {}), id, actor, 'renewed');
+        dates = dates || {};
+        var months = Number(dates.extensionMonths) || 12;
+        var extensionStart = contract.endDate ? addDays(contract.endDate, 1) : today();
+        var endDate = dates.endDate || defaultEndDate(extensionStart, months);
+        var changes = Object.assign({}, dates, { endDate: endDate, renewalDate: today(), extensionStartDate: extensionStart });
+        delete changes.startDate;
+        delete changes.extensionMonths;
+        return saveContract(Object.assign({}, contract, changes), id, actor, 'renewed');
     }
 
     function transferContract(id, destination, actor) {
         var contract = global.RHD.get('contracts', id);
         if (!contract || !activeContract(contract)) return { ok: false, error: 'Chỉ có thể chuyển phòng cho hợp đồng đang hiệu lực.' };
-        return saveContract(Object.assign({}, contract, destination || {}), id, actor, 'transferred');
+        destination = destination || {};
+        var patch = Object.assign({}, contract, destination, { transferDate: destination.transferDate || today() });
+        return saveContract(patch, id, Object.assign({}, actor || {}, { note: actor && actor.note || 'Chuyển phòng/giường ngày ' + (destination.transferDate || today()) }), 'transferred');
     }
 
     function assignContract(id, tenantIds, actor) {
         var contract = global.RHD.get('contracts', id);
         if (!contract || !activeContract(contract)) return { ok: false, error: 'Chỉ có thể nhượng hợp đồng đang hiệu lực.' };
         var ids = unique(tenantIds);
-        return saveContract(Object.assign({}, contract, { tenantIds: ids, customerId: ids[0] || '' }), id, actor, 'assigned');
+        var assignmentDate = actor && actor.assignmentDate || today();
+        return saveContract(Object.assign({}, contract, { tenantIds: ids, customerId: ids[0] || '', assignmentDate: assignmentDate }), id, Object.assign({}, actor || {}, { assignmentDate: assignmentDate, note: actor && actor.note || 'Nhượng hợp đồng.' }), 'assigned');
+    }
+
+    function registerMoveOut(id, moveOutDate, actor) {
+        var contract = global.RHD.get('contracts', id);
+        if (!contract || !activeContract(contract)) return { ok: false, error: 'Chỉ có thể đăng ký chuyển đi cho hợp đồng đang hiệu lực.' };
+        if (!parseDate(moveOutDate)) return { ok: false, error: 'Ngày chuyển đi không hợp lệ.' };
+        if (contract.endDate && moveOutDate > contract.endDate) return { ok: false, error: 'Ngày chuyển đi không được sau hạn hợp đồng.' };
+        return saveContract(Object.assign({}, contract, { expectedMoveOutDate: moveOutDate }), id, Object.assign({}, actor || {}, { note: 'Đăng ký chuyển đi ngày ' + moveOutDate }), 'move_out_registered');
+    }
+
+    function finalMeterRequirements(contractId, period) {
+        initialize();
+        var contract = global.RHD.get('contracts', contractId);
+        if (!contract) return [];
+        var keys = {};
+        var requirements = [];
+        (contract.meterAssignments || []).forEach(function (assignment) {
+            if (!assignment || !assignment.meterType || !assignment.meterCode) return;
+            var key = assignment.meterType + '|' + assignment.meterCode;
+            if (keys[key]) return;
+            keys[key] = true;
+            requirements.push({ meterType: assignment.meterType, meterCode: assignment.meterCode, meterId: assignment.meterId || '', initialIndex: Number(assignment.initialIndex) || 0 });
+        });
+        global.RHD.list('meters').filter(function (meter) {
+            return meter.apartmentId === contract.apartmentId && meter.meterType && meter.meterCode;
+        }).forEach(function (meter) {
+            var key = meter.meterType + '|' + meter.meterCode;
+            if (keys[key]) return;
+            keys[key] = true;
+            requirements.push({ meterType: meter.meterType, meterCode: meter.meterCode, meterId: meter.id || '', initialIndex: 0 });
+        });
+        return requirements.map(function (requirement) {
+            var matching = global.RHD.list('meters').filter(function (meter) {
+                return meter.apartmentId === contract.apartmentId && meter.meterType === requirement.meterType && meter.meterCode === requirement.meterCode && (meter.readingPeriod || meter.periodMonth) === period;
+            }).sort(function (a, b) { return (b.recordedAt || b.createdAt || 0) - (a.recordedAt || a.createdAt || 0); });
+            var current = matching[0] || null;
+            var approved = current && (current.approvalStatus ? current.approvalStatus === 'đã_duyệt' : current.status === 'đã_chốt') && isFinite(Number(current.latestIndex));
+            var previous = current ? Number(current.previousIndex) || 0 : null;
+            if (previous == null) {
+                var prior = global.RHD.list('meters').filter(function (meter) {
+                    return meter.apartmentId === contract.apartmentId && meter.meterType === requirement.meterType && meter.meterCode === requirement.meterCode && (meter.readingPeriod || meter.periodMonth) < period && isFinite(Number(meter.latestIndex));
+                }).sort(function (a, b) { return String(b.readingPeriod || b.periodMonth).localeCompare(String(a.readingPeriod || a.periodMonth)) || (b.recordedAt || b.createdAt || 0) - (a.recordedAt || a.createdAt || 0); })[0];
+                previous = prior ? Number(prior.latestIndex) : requirement.initialIndex;
+            }
+            return Object.assign({}, requirement, {
+                current: current,
+                approved: !!approved,
+                previousIndex: previous,
+                latestIndex: current ? Number(current.latestIndex) || 0 : null
+            });
+        });
+    }
+
+    function finalMeterCharge(contract, period, requirements, draftReadings) {
+        var building = global.RHD.get('buildings', contract.buildingId);
+        if (!building) return 0;
+        var total = 0;
+        var serviceIds = contract.serviceIds || [];
+        var overrides = contract.serviceOverrides || {};
+        draftReadings = draftReadings || [];
+        (building.services || []).concat(contract.extraServices || []).forEach(function (service) {
+            if (serviceIds.indexOf(service.id) === -1 || service.feeType === 'rent' || service.feeType === 'deposit') return;
+            var policy = global.RHD.utilityPolicy ? global.RHD.utilityPolicy(service) : { metered: service.calcMethod === 'meter', meterType: service.feeType === 'water' ? 'water' : 'electricity' };
+            if (!policy.metered) return;
+            var meterType = policy.meterType || (service.feeType === 'water' ? 'water' : 'electricity');
+            var reading = requirements.filter(function (item) { return item.meterType === meterType; })[0];
+            if (!reading) return;
+            var draft = draftReadings.filter(function (item) { return item.meterType === meterType && (!item.meterCode || item.meterCode === reading.meterCode); })[0];
+            if (draft && draft.latestIndex != null && draft.latestIndex !== '') reading = Object.assign({}, reading, { latestIndex: Number(draft.latestIndex) });
+            else if (!reading.current || !reading.approved) return;
+            var quantity = Math.max(0, Number(reading.latestIndex) - Number(reading.previousIndex));
+            var unitPrice = overrides[service.id] != null ? Number(overrides[service.id]) : Number(service.unitPrice);
+            var amount = Math.round(quantity * (Number.isFinite(unitPrice) ? unitPrice : 0));
+            total += amount + Math.round(amount * (Number(service.taxRate) || 0) / 100);
+        });
+        return total;
+    }
+
+    function calculateFinalMeterAmount(contractId, period, draftReadings) {
+        var contract = global.RHD.get('contracts', contractId);
+        if (!contract) return { ok: false, error: 'Không tìm thấy hợp đồng.' };
+        var requirements = finalMeterRequirements(contractId, period);
+        var waiting = requirements.filter(function (reading) { return !reading.approved; });
+        return {
+            ok: true,
+            amount: finalMeterCharge(contract, period, requirements, draftReadings),
+            requirements: requirements,
+            waitingApproval: waiting.length > 0
+        };
+    }
+
+    function recordFinalMeters(contractId, period, closingDate, readings, actor) {
+        initialize();
+        var contract = global.RHD.get('contracts', contractId);
+        if (!contract || !activeContract(contract)) return { ok: false, error: 'Hợp đồng không còn hiệu lực.', saved: [] };
+        if (!/^\d{4}-(0[1-9]|1[0-2])$/.test(String(period || ''))) return { ok: false, error: 'Kỳ chốt chỉ số không hợp lệ.', saved: [] };
+        var requirements = finalMeterRequirements(contractId, period);
+        var payloads = Array.isArray(readings) ? readings : [];
+        var saved = [];
+        for (var i = 0; i < requirements.length; i++) {
+            var requirement = requirements[i];
+            if (requirement.approved) continue;
+            var input = payloads.filter(function (item) { return item.meterType === requirement.meterType && item.meterCode === requirement.meterCode; })[0];
+            if (!input || input.latestIndex == null || input.latestIndex === '') {
+                return { ok: false, error: 'Cần nhập chỉ số cuối ' + requirement.meterCode + ' (' + requirement.meterType + ').', saved: saved };
+            }
+            var latestIndex = Number(input.latestIndex);
+            if (!Number.isFinite(latestIndex) || latestIndex < requirement.previousIndex) {
+                return { ok: false, error: 'Chỉ số cuối ' + requirement.meterCode + ' không hợp lệ hoặc nhỏ hơn chỉ số trước.', saved: saved };
+            }
+            var data = {
+                buildingId: contract.buildingId,
+                apartmentId: contract.apartmentId,
+                meterType: requirement.meterType,
+                meterCode: requirement.meterCode,
+                readingPeriod: period,
+                periodMonth: period,
+                closingDate: closingDate || today(),
+                previousIndex: requirement.previousIndex,
+                latestIndex: latestIndex,
+                consumption: latestIndex - requirement.previousIndex,
+                status: undefined,
+                approvalStatus: 'chưa_duyệt',
+                recordedAt: Date.now(),
+                recordedById: actor && actor.actorId || '',
+                recordedBy: actor && actor.actorName || '',
+                approvedAt: null,
+                approvedById: '',
+                approvedBy: '',
+                contractId: contract.id,
+                closingPurpose: 'liquidation'
+            };
+            var result = requirement.current
+                ? global.RHD.update('meters', requirement.current.id, data)
+                : global.RHD.create('meters', data);
+            if (!result.ok) return { ok: false, error: result.error || 'Không thể lưu chỉ số cuối.', saved: saved };
+            saved.push(result.item);
+        }
+        return { ok: true, saved: saved, requirements: requirements };
     }
 
     function contractDeleteBlock(id) {
@@ -577,14 +812,15 @@
         values = values || {};
         var invoiceDebt = values.invoiceDebt;
         if (invoiceDebt == null) {
-            invoiceDebt = global.RHD.list('invoices').filter(function (invoice) { return invoice.contractId === contract.id && invoice.status !== 'paid'; })
+            invoiceDebt = global.RHD.list('invoices').filter(function (invoice) { return invoice.contractId === contract.id && ['unpaid', 'sent', 'overdue'].indexOf(invoice.status) !== -1; })
                 .reduce(function (total, invoice) { return total + amount(invoice.total); }, 0);
         }
         var held = amount(values.depositHeldAmount == null ? contract.depositHeldAmount : values.depositHeldAmount);
         var overpayment = amount(values.overpayment);
         var penalties = amount(values.penalties);
         var usedRent = amount(values.usedRent);
-        var net = held + overpayment - amount(invoiceDebt) - penalties - usedRent;
+        var finalUtilityAmount = amount(values.finalUtilityAmount);
+        var net = held + overpayment - amount(invoiceDebt) - penalties - usedRent - finalUtilityAmount;
         var abandoned = !!values.customerAbandoned;
         return {
             depositHeldBefore: held,
@@ -592,6 +828,7 @@
             invoiceDebt: amount(invoiceDebt),
             penalties: penalties,
             usedRent: usedRent,
+            finalUtilityAmount: finalUtilityAmount,
             refundAmount: abandoned ? 0 : Math.max(0, net),
             amountToCollect: Math.max(0, -net),
             deductionAmount: abandoned ? held : Math.max(0, held - Math.max(0, net)),
@@ -603,10 +840,21 @@
         initialize();
         var contract = global.RHD.get('contracts', id);
         if (!contract || !activeContract(contract)) return { ok: false, error: 'Hợp đồng không còn ở trạng thái hiệu lực.' };
-        var settlement = calculateSettlement(contract, values);
+        values = values || {};
+        var finalRequirements = [];
+        var finalUtilityAmount = 0;
+        if (values.finalMeterPeriod) {
+            var meterResult = recordFinalMeters(id, values.finalMeterPeriod, values.finalMeterClosingDate, values.finalReadings, actor);
+            if (!meterResult.ok) return meterResult;
+            finalRequirements = finalMeterRequirements(id, values.finalMeterPeriod);
+            var unapproved = finalRequirements.filter(function (reading) { return !reading.approved; });
+            if (unapproved.length) return { ok: false, pendingApproval: true, saved: meterResult.saved, error: 'Đã lưu chỉ số cuối ở trạng thái Chưa duyệt. Hãy duyệt chỉ số trong Ghi chỉ số trước khi hoàn tất thanh lý.' };
+            finalUtilityAmount = finalMeterCharge(contract, values.finalMeterPeriod, finalRequirements);
+        }
+        var settlement = calculateSettlement(contract, Object.assign({}, values, { finalUtilityAmount: finalUtilityAmount }));
         var status = settlement.forfeited ? 'forfeited' : 'liquidated';
         var history = (contract.history || []).slice();
-        history.push({ type: settlement.forfeited ? 'forfeited' : 'liquidated', date: today(), actorId: actor && actor.actorId || '', actorName: actor && actor.actorName || '', settlement: settlement });
+        history.push({ type: settlement.forfeited ? 'forfeited' : 'liquidated', date: today(), actorId: actor && actor.actorId || '', actorName: actor && actor.actorName || '', settlement: settlement, finalMeterPeriod: values.finalMeterPeriod || '', finalMeterIds: finalRequirements.map(function (reading) { return reading.current && reading.current.id; }).filter(Boolean) });
         var txs = [];
         if (contract.depositId) {
             if (settlement.refundAmount > 0) txs.push(transaction(contract.depositId, 'refund', settlement.refundAmount, Object.assign({ note: 'Hoàn cọc khi thanh lý hợp đồng ' + contract.code + '.' }, actor || {})));
@@ -616,8 +864,68 @@
                 return { ok: false, error: 'Không thể ghi đầy đủ giao dịch thanh lý.' };
             }
         }
-        var result = global.RHD.update('contracts', id, { status: status, lifecycleStatus: status, depositHeldAmount: 0, depositOutstandingAmount: 0, settlement: settlement, history: history, liquidatedAt: today() });
-        if (!result.ok) txs.forEach(function (tx) { global.RHD.remove('depositTransactions', tx.item.id); });
+        var replacementInvoice = null;
+        var outstandingInvoices = global.RHD.list('invoices').filter(function (invoice) { return invoice.contractId === id && ['unpaid', 'sent', 'overdue'].indexOf(invoice.status) !== -1; });
+        if (values.createInvoice && (settlement.amountToCollect > 0 || outstandingInvoices.length > 0)) {
+            if (!global.RHB || !global.RHB.approve || !global.RHB.issue) {
+                txs.forEach(function (tx) { global.RHD.remove('depositTransactions', tx.item.id); });
+                return { ok: false, error: 'Không tải được engine hóa đơn thanh lý.' };
+            }
+            var cancellationError = '';
+            var actorName = actor && actor.actorName || 'Ban quản lý';
+            if (settlement.amountToCollect > 0) {
+                var invoicePeriod = values.finalMeterPeriod || today().slice(0, 7);
+                var invoiceItems = [{ serviceId: 'liquidation', label: 'Số tiền còn phải thu khi thanh lý hợp đồng ' + (contract.code || ''), qty: 1, unitPrice: settlement.amountToCollect, amount: settlement.amountToCollect, taxRate: 0, tax: 0, kind: 'liquidation', source: 'contract' }];
+                var createdInvoice = global.RHD.create('invoices', {
+                    code: global.RHD.nextInvoiceCode(), type: 'liquidation', source: 'manual', status: 'draft',
+                    contractId: contract.id, buildingId: contract.buildingId, apartmentId: contract.apartmentId, customerId: contract.customerId,
+                    invoiceTemplateId: contract.invoiceTemplateId, period: invoicePeriod, billingPeriod: invoicePeriod,
+                    issueDate: today(), dueDate: global.RHB.dueDateFor(global.RHD.get('buildings', contract.buildingId), today()),
+                    items: invoiceItems, subtotal: settlement.amountToCollect, tax: 0, total: settlement.amountToCollect,
+                    issues: [], history: [], note: 'Hóa đơn quyết toán thanh lý hợp đồng ' + (contract.code || '')
+                });
+                if (!createdInvoice.ok) {
+                    txs.forEach(function (tx) { global.RHD.remove('depositTransactions', tx.item.id); });
+                    return createdInvoice;
+                }
+                var approval = global.RHB.approve(createdInvoice.item.id, actorName);
+                var issued = approval.ok ? global.RHB.issue(createdInvoice.item.id, actorName, false) : approval;
+                if (!issued.ok) {
+                    global.RHD.remove('invoices', createdInvoice.item.id);
+                    txs.forEach(function (tx) { global.RHD.remove('depositTransactions', tx.item.id); });
+                    return { ok: false, error: issued.error || 'Không thể phát hành hóa đơn thanh lý.' };
+                }
+                replacementInvoice = global.RHD.get('invoices', createdInvoice.item.id);
+            }
+            outstandingInvoices.forEach(function (invoice) {
+                if (cancellationError) return;
+                var cancelled = global.RHB.cancel(invoice.id, actorName, 'Gộp công nợ vào quyết toán thanh lý hợp đồng ' + (contract.code || '') + '.');
+                if (!cancelled.ok) cancellationError = cancelled.error;
+            });
+            if (cancellationError) {
+                if (replacementInvoice) global.RHB.cancel(replacementInvoice.id, actorName, 'Hủy do thanh lý chưa hoàn tất.');
+                outstandingInvoices.forEach(function (invoice) {
+                    if (invoice.status === 'unpaid' || invoice.status === 'sent' || invoice.status === 'overdue') {
+                        global.RHD.update('invoices', invoice.id, { status: invoice.status, history: invoice.history || [], cancelledAt: undefined, cancelledBy: undefined, cancelReason: undefined });
+                    }
+                });
+                txs.forEach(function (tx) { global.RHD.remove('depositTransactions', tx.item.id); });
+                return { ok: false, error: cancellationError };
+            }
+        }
+        var result = global.RHD.update('contracts', id, {
+            status: status, lifecycleStatus: status, depositHeldAmount: 0, depositOutstandingAmount: 0,
+            depositStatus: settlement.forfeited ? 'forfeited' : (settlement.refundAmount > 0 ? 'refunded' : 'settled'),
+            depositRefundAmount: settlement.refundAmount, depositDeductionAmount: settlement.deductionAmount,
+            settlement: settlement, history: history, actualMoveOutDate: values.moveOutDate || today(), liquidatedAt: today()
+        });
+        if (!result.ok) {
+            txs.forEach(function (tx) { global.RHD.remove('depositTransactions', tx.item.id); });
+            if (replacementInvoice) global.RHB.cancel(replacementInvoice.id, actor && actor.actorName || 'Ban quản lý', 'Hủy do thanh lý chưa hoàn tất.');
+            return result;
+        }
+        result.settlement = settlement;
+        result.invoice = replacementInvoice;
         return result;
     }
 
@@ -627,12 +935,17 @@
         initialize: initialize,
         parseDate: parseDate,
         defaultEndDate: defaultEndDate,
+        addDays: addDays,
         lifecycleStatus: lifecycleStatus,
         isActiveContract: activeContract,
         isCurrentContract: currentContract,
+        validateContractInput: validateContractInput,
         checkAvailability: checkAvailability,
+        checkDepositAvailability: checkDepositAvailability,
         contractAlertStatus: contractAlertStatus,
         depositAlert: depositAlert,
+        calculateDepositFull: calculateDepositFull,
+        validateDepositInput: validateDepositInput,
         createDeposit: createDeposit,
         updateDeposit: updateDeposit,
         cancelDeposit: cancelDeposit,
@@ -644,6 +957,10 @@
         renewContract: renewContract,
         transferContract: transferContract,
         assignContract: assignContract,
+        registerMoveOut: registerMoveOut,
+        finalMeterRequirements: finalMeterRequirements,
+        calculateFinalMeterAmount: calculateFinalMeterAmount,
+        recordFinalMeters: recordFinalMeters,
         contractDeleteBlock: contractDeleteBlock,
         deleteContract: deleteContract,
         currentResidence: currentResidence,
