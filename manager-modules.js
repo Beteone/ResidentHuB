@@ -255,6 +255,11 @@
         };
         reader.readAsText(file, 'utf-8');
     };
+
+    function selectOptions(items, valueKey, labelKey, selected, placeholder) {
+        var html = placeholder ? '<option value="">' + escapeHtml(placeholder) + '</option>' : '';
+        if (!items) return html;
+        html += items.map(function (it) {
             var v = typeof valueKey === 'function' ? valueKey(it) : it[valueKey];
             var l = typeof labelKey === 'function' ? labelKey(it) : it[labelKey];
             return '<option value="' + escapeHtml(v) + '"' + (v === selected ? ' selected' : '') + '>' + escapeHtml(l) + '</option>';
@@ -338,6 +343,14 @@
         var attrs = blocked ? ' disabled title="Đã đạt giới hạn bản Demo"' : ' onclick="' + onclick + '"';
         var style = 'background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff;border:0;border-radius:10px;padding:.65rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;' + (blocked ? 'opacity:.5;cursor:not-allowed;' : '');
         return '<button' + attrs + ' style="' + style + '"><i class="fas fa-plus"></i> ' + escapeHtml(label) + '</button>';
+    }
+
+    function statusMeta(list, id) {
+        var items = Array.isArray(list) ? list : [];
+        for (var i = 0; i < items.length; i++) {
+            if ((items[i].id || items[i].value) === id) return items[i];
+        }
+        return { id: id, label: String(id || '—'), color: '#61708a', bg: '#f1f5f9' };
     }
 
     function renderDemoBanner(entity) {
@@ -1028,6 +1041,41 @@
     }
 
     // ============================================================ APARTMENTS
+
+    function normalizeApartmentRecord(apartment) {
+        if (!apartment) return null;
+        var normalized = Object.assign({}, apartment, {
+            id: apartment.id,
+            name: apartment.name || apartment.apartmentNo || apartment.code || 'Căn hộ',
+            buildingId: apartment.buildingId || '',
+            floor: apartment.floor || '',
+            area: apartment.area || '',
+            rentPrice: Number(apartment.rentPrice) || 0,
+            depositPrice: Number(apartment.depositPrice) || 0,
+            status: apartment.status || 'vacant',
+            active: apartment.active !== false,
+            photos: Array.isArray(apartment.photos) ? apartment.photos : (apartment.photo ? [apartment.photo] : []),
+            buildingName: apartment.buildingName || '',
+            buildingCode: apartment.buildingCode || '',
+            address: apartment.address || '',
+            notes: apartment.notes || ''
+        });
+        return normalized;
+    }
+
+    function apartmentDetailStatus(apartment) {
+        var statusList = RHD.APARTMENT_STATUSES || [];
+        var key = apartment && apartment.statusGroup ? apartment.statusGroup : (apartment && apartment.status ? apartment.status : 'vacant');
+        var meta = statusMeta(statusList, key);
+        if (meta.id === key || key === 'occupied' || key === 'vacant' || key === 'maintenance' || key === 'deposited') return meta;
+        return statusMeta(statusList, 'vacant');
+    }
+
+    function apartmentDetailLeaseStatus(contract) {
+        if (!contract) return { label: 'Chưa có hợp đồng', color: '#94a3b8', bg: '#f1f5f9' };
+        if (contract.status === 'ended' || contract.status === 'terminated') return { label: 'Đã kết thúc', color: '#61708a', bg: '#f1f5f9' };
+        return { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' };
+    }
 
     function renderApartmentsTab() {
         var tab = byId('apartments-tab');
