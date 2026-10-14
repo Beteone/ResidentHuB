@@ -13,7 +13,7 @@
  */
 (function (global) {
     // billingRuns = ledger of automatically generated invoice periods (billing.js).
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'cashflows', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -25,6 +25,7 @@
         meters: 12,
         contracts: 6,
         invoices: 10,
+        cashflows: 30,
         assets: 15,
         assetTypes: 20
     };
@@ -36,6 +37,7 @@
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
         invoices: 'hóa đơn',
+        cashflows: 'phiếu thu chi',
         assets: 'tài sản',
         assetTypes: 'loại tài sản'
     };
