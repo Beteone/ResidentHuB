@@ -11,6 +11,7 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
     <script src="data.js"></script>
+    <script src="rental-domain.js"></script>
     <style>
         :root {
             --bg-soft: #f5f8fc;
@@ -1163,6 +1164,7 @@
         // resolves the apartment/contract/customer/invoices/requests that belong to
         // THIS account from the same data source the manager side writes to.
         RHD.setMode('live');
+        RHLease.initialize();
         var RH_CTX = RHD.residentContext(RH_SESSION);
     </script>
     <aside class="sidebar">
@@ -1476,6 +1478,7 @@
         let REAL_BUILDING = RH_CTX && RH_CTX.building;
         let REAL_APARTMENT = RH_CTX && RH_CTX.apartment;
         let REAL_CUSTOMER = RH_CTX && RH_CTX.customer;
+        let REAL_DEPOSIT = RH_CTX && RH_CTX.deposit;
         // Re-resolves this account's Building/Apartment/Contract/Invoices/Requests
         // from RHD (via residentId) — called when the manager side changes data.
         function refreshResidentContext() {
@@ -1484,6 +1487,7 @@
             REAL_BUILDING = RH_CTX && RH_CTX.building;
             REAL_APARTMENT = RH_CTX && RH_CTX.apartment;
             REAL_CUSTOMER = RH_CTX && RH_CTX.customer;
+            REAL_DEPOSIT = RH_CTX && RH_CTX.deposit;
         }
         const RH_SETTINGS = RHD.getSettings();
         const todayIso = () => new Date().toISOString().slice(0, 10);
@@ -1498,6 +1502,11 @@
             signDate: (REAL_CONTRACT && REAL_CONTRACT.signDate) || '',
             rentPrice: Number(REAL_CONTRACT && REAL_CONTRACT.rentPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.rentPrice) || 0,
             depositPrice: Number(REAL_CONTRACT && REAL_CONTRACT.depositPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.depositPrice) || 0,
+            depositHeldAmount: Number(REAL_CONTRACT && REAL_CONTRACT.depositHeldAmount) || Number(REAL_DEPOSIT && REAL_DEPOSIT.depositReceivedAmount) || 0,
+            depositOutstandingAmount: Number(REAL_CONTRACT && REAL_CONTRACT.depositOutstandingAmount) || Number(REAL_DEPOSIT && REAL_DEPOSIT.depositRemainingAmount) || 0,
+            depositBalanceNeedsReview: !!(REAL_CONTRACT && REAL_CONTRACT.depositBalanceNeedsReview),
+            depositStatus: REAL_CONTRACT && REAL_CONTRACT.depositStatus || (REAL_CONTRACT && REAL_CONTRACT.depositBalanceNeedsReview ? 'needs_review' : REAL_DEPOSIT && REAL_DEPOSIT.status || 'holding'),
+            depositRefundAmount: Number(REAL_CONTRACT && REAL_CONTRACT.depositRefundAmount) || Number(REAL_DEPOSIT && REAL_DEPOSIT.cancellation && REAL_DEPOSIT.cancellation.refundAmount) || 0,
             version: (REAL_CONTRACT && (REAL_CONTRACT.version || REAL_CONTRACT.revision)) || 'v1.0',
             // Per-contract value wins; otherwise Cài đặt > Hợp đồng > "Số ngày báo trước".
             noticeDays: Number(REAL_CONTRACT && REAL_CONTRACT.noticeDays) || Number(RH_SETTINGS.contractNoticeDays) || 30,
@@ -1506,6 +1515,17 @@
             renewalStatus: localStorage.getItem('residenthub_contract_renewal_status_' + (RH_SESSION ? RH_SESSION.id : '')) || 'draft'
         };
         function money(value) { return new Intl.NumberFormat('vi-VN').format(Number(value) || 0) + ' ₫'; }
+        if (REAL_DEPOSIT && !REAL_CONTRACT) {
+            const depositLabels = { holding: 'Đang giữ chỗ', contracted: 'Đang giữ theo hợp đồng', cancelled: 'Đã hủy / hoàn cọc', forfeited: 'Bỏ cọc' };
+            const depositSummary = document.createElement('div');
+            depositSummary.className = 'card';
+            depositSummary.style.margin = '1rem 0';
+            const depositStatus = depositLabels[REAL_DEPOSIT.status] || 'Đang đối soát';
+            depositSummary.innerHTML = '<h4 style="color:#10213c;font-size:1rem;">Tiền đặt cọc · ' + depositStatus + '</h4><p style="color:#64748b;font-size:.84rem;margin-top:.45rem;">Đã nhận: <strong style="color:#10213c;">' + money(REAL_DEPOSIT.depositReceivedAmount) + '</strong> · Cọc full: <strong style="color:#10213c;">' + money(REAL_DEPOSIT.depositFullAmount) + '</strong></p>' + (REAL_DEPOSIT.cancellation && Number(REAL_DEPOSIT.cancellation.refundAmount) > 0 ? '<p style="color:#16875d;font-size:.84rem;margin-top:.3rem;">Đã hoàn: <strong>' + money(REAL_DEPOSIT.cancellation.refundAmount) + '</strong></p>' : '');
+            const contractSection = document.getElementById('contractsSection');
+            const hero = contractSection && contractSection.querySelector('.resident-feature-hero');
+            if (hero) hero.insertAdjacentElement('afterend', depositSummary);
+        }
         function renderRealBillingRows() {
             const tbody = document.getElementById('billingRows');
             if (!tbody) return;
@@ -2923,6 +2943,19 @@
 
             workspace.innerHTML = '<div class="card contract-main-card"><div class="contract-overview"><div class="contract-overview-head"><div><small>HỒ SƠ HỢP ĐỒNG</small><h4>' + escapeHtml(contractData.code ? 'Hợp đồng ' + contractData.code : 'Hợp đồng thuê nhà') + '</h4></div><span class="badge ' + statusClass + '" id="contractStatusBadge">' + escapeHtml(contractStatus) + '</span></div><div class="contract-values"><div>Căn hộ<strong>' + escapeHtml(roomName + ' · ' + buildingLabel) + '</strong></div><div>Thời hạn<strong>' + escapeHtml(dateLabel(contractData.startDate) + ' — ' + dateLabel(contractData.endDate)) + '</strong></div><div>Giá thuê<strong>' + escapeHtml(contractData.rentPrice ? money(contractData.rentPrice) + '/tháng' : 'Chưa cập nhật') + '</strong></div></div><div class="contract-detail-grid"><div class="meta-box"><small>Ngày ký</small><strong>' + escapeHtml(dateLabel(contractData.signDate)) + '</strong></div><div class="meta-box"><small>Bên cho thuê</small><strong>' + escapeHtml(landlordName) + '</strong></div><div class="meta-box"><small>Tiền đặt cọc</small><strong>' + escapeHtml(contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật') + '</strong></div><div class="meta-box"><small>Phiên bản</small><strong>' + escapeHtml(contractData.version) + '</strong></div><div class="meta-box"><small>Bên thuê</small><strong>' + escapeHtml(residentName) + '</strong></div><div class="meta-box"><small>Thời hạn báo trước</small><strong>' + escapeHtml(contractData.noticeDays + ' ngày') + '</strong></div></div></div><div class="contract-section-heading"><h4>Điều khoản cần lưu ý</h4><button type="button" class="billing-filter" data-contract-action="show-terms">Xem đầy đủ (' + clauses.length + ')</button></div><div class="notice-list">' + termsPreview + '</div><div class="contract-section-heading"><h4>Lịch sử hợp đồng</h4></div><div class="contract-history-list">' + historyRows + '</div></div><div class="contract-side-column"><div class="card contract-renewal-card"><small style="color:#64748b;font-weight:700">ĐẾN HẠN GIA HẠN</small><div class="contract-countdown" id="contractCountdown">Đang tính...</div><p class="contract-deadline" id="contractDeadline">Đang tính hạn chót theo điều khoản...</p><button type="button" class="btn-primary contract-renew" data-contract-action="renew" style="width:100%;padding:.7rem">Yêu cầu gia hạn</button><div class="contract-status" id="contractRenewalStatus"></div><div class="contract-progress" id="contractProgress" aria-label="Tiến trình gia hạn"></div></div><div class="card"><div class="contract-section-heading" style="margin:0 0 .85rem"><h4>Tài liệu hợp đồng</h4><button type="button" class="billing-filter" data-contract-action="download-all">Tải tất cả</button></div><p class="contract-resource-note">' + (uploadedFiles.some(file => file.generated) ? 'Chưa có file chính thức được tải lên; các tài liệu mẫu được đánh dấu rõ bên dưới.' : 'Tài liệu trong hồ sơ hợp đồng.') + '</p><div class="contract-resource-list">' + fileRows + '</div><div class="contract-section-heading"><h4>Phụ lục đã ký</h4><span class="badge badge-info">' + normalizedAppendices.length + ' phụ lục</span></div><div class="contract-resource-list">' + appendixContent + '</div></div></div></div>';
 
+            const depositGrid = workspace.querySelector('.contract-detail-grid');
+            if (depositGrid) {
+                const depositMeta = document.createElement('div');
+                depositMeta.className = 'meta-box';
+                const depositLabel = contractData.depositStatus === 'refunded' ? 'Đã hoàn cọc' : contractData.depositStatus === 'forfeited' ? 'Bỏ cọc' : contractData.depositStatus === 'settled' ? 'Đã đối soát cọc' : contractData.depositStatus === 'needs_review' ? 'Cọc cần đối soát' : 'Đang giữ cọc';
+                const depositBalance = contractData.depositStatus === 'refunded'
+                    ? money(contractData.depositRefundAmount)
+                    : contractData.depositStatus === 'needs_review'
+                        ? 'Chưa xác nhận số đã nhận'
+                        : 'Đang giữ ' + money(contractData.depositHeldAmount) + (contractData.depositOutstandingAmount ? ' · còn thiếu ' + money(contractData.depositOutstandingAmount) : '');
+                depositMeta.innerHTML = '<small>Trạng thái tiền cọc · ' + escapeHtml(depositLabel) + '</small><strong>' + escapeHtml(depositBalance) + '</strong>';
+                depositGrid.appendChild(depositMeta);
+            }
             const openModal = (heading, html) => { modalTitle.textContent = heading; modalContent.innerHTML = html; modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
             const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
             const contractRenewalStatus = () => ({ draft: 'Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và phản hồi.', submitted: 'Yêu cầu gia hạn đã được gửi đến Ban quản lý.', reviewing: 'Ban quản lý đang xem xét yêu cầu gia hạn.', signing: 'Yêu cầu đã được duyệt; đang chờ ký phụ lục.', completed: 'Phụ lục gia hạn đã hoàn tất.' }[contractData.renewalStatus] || 'Trạng thái yêu cầu: ' + contractData.renewalStatus);

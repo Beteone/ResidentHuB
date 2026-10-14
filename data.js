@@ -13,7 +13,7 @@
  */
 (function (global) {
     // billingRuns = ledger of automatically generated invoice periods (billing.js).
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'cashflows', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'cashflows', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -24,6 +24,8 @@
         customers: 10,
         meters: 12,
         contracts: 6,
+        deposits: 12,
+        depositTransactions: 24,
         invoices: 10,
         cashflows: 30,
         assets: 15,
@@ -36,6 +38,8 @@
         customers: 'khách hàng',
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
+        deposits: 'đặt cọc',
+        depositTransactions: 'giao dịch cọc',
         invoices: 'hóa đơn',
         cashflows: 'phiếu thu chi',
         assets: 'tài sản',
@@ -226,8 +230,13 @@
         return readAll('contracts').filter(function (c) { return c.apartmentId === apartmentId; });
     }
 
+    function isActiveContract(contract) {
+        if (global.RHLease) return global.RHLease.isActiveContract(contract);
+        return contract && contract.status !== 'ended' && contract.status !== 'liquidated' && contract.status !== 'forfeited';
+    }
+
     function activeContractFor(apartmentId) {
-        var contracts = contractsOf(apartmentId).filter(function (c) { return c.status !== 'ended'; });
+        var contracts = contractsOf(apartmentId).filter(isActiveContract);
         contracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
         return contracts[0] || null;
     }
@@ -317,11 +326,20 @@
         // for backward compatibility with accounts only ever linked by apartmentId.
         var customer = residentId ? get('customers', residentId) : null;
         var contract = null;
+        var residentDeposits = [];
         if (customer) {
-            var customerContracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id && c.status !== 'ended'; });
+            var customerContracts = readAll('contracts').filter(function (c) {
+                return isActiveContract(c) && (c.customerId === customer.id || (c.tenantIds || []).indexOf(customer.id) !== -1);
+            });
             customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
             contract = customerContracts[0] || null;
+            residentDeposits = readAll('deposits').filter(function (deposit) {
+                return !deposit.isDeleted && (deposit.customerId === customer.id || (deposit.tenantIds || []).indexOf(customer.id) !== -1);
+            }).sort(function (a, b) { return (b.updatedAt || b.createdAt || 0) - (a.updatedAt || a.createdAt || 0); });
         }
+        var residentDeposit = contract && contract.depositId
+            ? get('deposits', contract.depositId)
+            : residentDeposits[0] || null;
 
         // The manager's Contract is the authoritative Building/Apartment link for a
         // linked resident — it wins over the apartment picked at registration time.
@@ -343,7 +361,7 @@
             if (session.email && r.residentEmail === session.email) return true;
             return !customer && apartment && r.apartmentId === apartment.id;
         }).sort(byNewest);
-        return { apartment: apartment, building: building, contract: contract, customer: customer, invoices: invoices, supportRequests: supportRequests };
+        return { apartment: apartment, building: building, contract: contract, deposit: residentDeposit, customer: customer, invoices: invoices, supportRequests: supportRequests };
     }
 
     // ---- system settings (Cài đặt) -------------------------------------------
@@ -502,17 +520,31 @@
         var meters = readAll('meters').filter(inScope);
         var allCustomers = readAll('customers');
         var customerIdsInBuilding = {};
-        contracts.forEach(function (c) { customerIdsInBuilding[c.customerId] = true; });
+        contracts.forEach(function (c) {
+            (c.tenantIds || [c.customerId]).forEach(function (id) { if (id) customerIdsInBuilding[id] = true; });
+        });
         var customers = scopeIds ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
         var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
 
         // Apartments by status
         var aptStatus = {};
-        APARTMENT_STATUSES.forEach(function (st) { aptStatus[st.id] = apartments.filter(function (a) { return a.status === st.id; }).length; });
+        APARTMENT_STATUSES.forEach(function (st) {
+            aptStatus[st.id] = apartments.filter(function (apartment) {
+                var status = global.RHLease ? global.RHLease.apartmentStatus(apartment.id, todayStr) : apartment.status;
+                return status === st.id;
+            }).length;
+        });
 
         // Contracts
-        var isEnded = function (c) { return c.status === 'ended' || (c.endDate && c.endDate < todayStr); };
-        var activeContracts = contracts.filter(function (c) { return !isEnded(c); });
+        var isLifecycleEnded = function (c) { return !isActiveContract(c); };
+        var isCurrent = function (c) {
+            return global.RHLease ? global.RHLease.isCurrentContract(c, todayStr)
+                : isActiveContract(c) && (!c.endDate || c.endDate >= todayStr);
+        };
+        var activeContracts = contracts.filter(isCurrent);
+        var overdueContracts = contracts.filter(function (c) {
+            return isActiveContract(c) && c.endDate && c.endDate < todayStr;
+        });
         var expiringContracts = activeContracts.filter(function (c) { return c.endDate && c.endDate >= todayStr && c.endDate <= soonStr; });
 
         // Invoices
@@ -549,7 +581,9 @@
         var linkedAccounts = (mode() !== 'demo' && global.RH)
             ? global.RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && customerIds[u.residentId]; }) : [];
         var activeCustomerIds = {};
-        activeContracts.forEach(function (c) { activeCustomerIds[c.customerId] = true; });
+        activeContracts.forEach(function (c) {
+            (c.tenantIds || [c.customerId]).forEach(function (id) { if (id) activeCustomerIds[id] = true; });
+        });
 
         // Support requests
         var openRequests = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; });
@@ -578,10 +612,11 @@
             },
             contracts: contracts,
             activeContracts: activeContracts,
+            overdueContracts: overdueContracts,
             expiringContracts: expiringContracts,
-            endedContracts: contracts.filter(isEnded),
+            endedContracts: contracts.filter(isLifecycleEnded),
             contractsSignedThisMonth: contracts.filter(function (c) { return monthKey(c.signDate || c.startDate || c.createdAt) === curMonth; }).length,
-            contractsEndedThisMonth: contracts.filter(function (c) { return isEnded(c) && monthKey(c.endDate) === curMonth; }).length,
+            contractsEndedThisMonth: contracts.filter(function (c) { return isLifecycleEnded(c) && monthKey(c.liquidatedAt || c.endDate) === curMonth; }).length,
             meters: meters.length,
             invoices: invoices,
             unpaidInvoices: invoices.filter(function (i) { return i.status !== 'paid'; }),
@@ -868,6 +903,7 @@
         limitInfo: limitInfo,
         apartmentsOf: apartmentsOf,
         contractsOf: contractsOf,
+        isActiveContract: isActiveContract,
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
         findApartmentByUnit: findApartmentByUnit,
