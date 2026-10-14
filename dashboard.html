@@ -2397,7 +2397,7 @@
         .db-rows>div.kpi-card{cursor:pointer}
         .db-rows b{color:#10213c}
         .db-rows-top{margin-top:0}
-        .db-boxes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.6rem}
+        .db-boxes{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.6rem}
         .db-boxes>div{background:#f6f9fc;border-radius:12px;padding:.9rem .5rem;text-align:center;display:flex;flex-direction:column;gap:.35rem;cursor:pointer}
         .db-boxes b{font:800 1.35rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif}
         .db-boxes span{color:#61708a;font-size:.75rem;line-height:1.3}
@@ -2690,6 +2690,7 @@
                     <div class="db-boxes">
                         <div class="kpi-card" data-goto="contracts"><b class="tone-green" id="dConActive">0</b><span>Đang hiệu lực</span></div>
                         <div class="kpi-card" data-goto="contracts" data-filter="expiring"><b class="tone-amber" id="dConExpiring">0</b><span id="dConExpiringLabel">Sắp hết hạn</span></div>
+                        <div class="kpi-card" data-goto="contracts" data-filter="overdue"><b class="tone-red" id="dConOverdue">0</b><span>Quá hạn</span></div>
                         <div class="kpi-card" data-goto="contracts"><b class="tone-purple" id="dConClosed">0</b><span>Đã kết thúc</span></div>
                     </div>
                 </div>

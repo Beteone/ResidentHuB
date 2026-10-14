@@ -250,7 +250,7 @@
         var contract = null;
         if (customer) {
             var customerContracts = readAll('contracts').filter(function (c) {
-                return isActiveContract(c) && (c.customerId === customer.id || (c.tenantIds || c.customerIds || []).indexOf(customer.id) !== -1);
+                return isActiveContract(c) && (c.customerId === customer.id || (c.tenantIds || []).indexOf(customer.id) !== -1);
             });
             customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
             contract = customerContracts[0] || null;
@@ -431,7 +431,9 @@
         var meters = readAll('meters').filter(inScope);
         var allCustomers = readAll('customers');
         var customerIdsInBuilding = {};
-        contracts.forEach(function (c) { customerIdsInBuilding[c.customerId] = true; });
+        contracts.forEach(function (c) {
+            (c.tenantIds || [c.customerId]).forEach(function (id) { if (id) customerIdsInBuilding[id] = true; });
+        });
         var customers = buildingId ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
         var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
 
@@ -445,8 +447,15 @@
         });
 
         // Contracts
-        var isEnded = function (c) { return !isActiveContract(c); };
-        var activeContracts = contracts.filter(function (c) { return !isEnded(c); });
+        var isLifecycleEnded = function (c) { return !isActiveContract(c); };
+        var isCurrent = function (c) {
+            return global.RHLease ? global.RHLease.isCurrentContract(c, todayStr)
+                : isActiveContract(c) && (!c.endDate || c.endDate >= todayStr);
+        };
+        var activeContracts = contracts.filter(isCurrent);
+        var overdueContracts = contracts.filter(function (c) {
+            return isActiveContract(c) && c.endDate && c.endDate < todayStr;
+        });
         var expiringContracts = activeContracts.filter(function (c) { return c.endDate && c.endDate >= todayStr && c.endDate <= soonStr; });
 
         // Invoices
@@ -484,7 +493,7 @@
             ? global.RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && customerIds[u.residentId]; }) : [];
         var activeCustomerIds = {};
         activeContracts.forEach(function (c) {
-            (c.tenantIds || c.customerIds || [c.customerId]).forEach(function (id) { if (id) activeCustomerIds[id] = true; });
+            (c.tenantIds || [c.customerId]).forEach(function (id) { if (id) activeCustomerIds[id] = true; });
         });
 
         // Support requests
@@ -514,10 +523,11 @@
             },
             contracts: contracts,
             activeContracts: activeContracts,
+            overdueContracts: overdueContracts,
             expiringContracts: expiringContracts,
-            endedContracts: contracts.filter(isEnded),
+            endedContracts: contracts.filter(isLifecycleEnded),
             contractsSignedThisMonth: contracts.filter(function (c) { return monthKey(c.signDate || c.startDate || c.createdAt) === curMonth; }).length,
-            contractsEndedThisMonth: contracts.filter(function (c) { return isEnded(c) && monthKey(c.endDate) === curMonth; }).length,
+            contractsEndedThisMonth: contracts.filter(function (c) { return isLifecycleEnded(c) && monthKey(c.liquidatedAt || c.endDate) === curMonth; }).length,
             meters: meters.length,
             invoices: invoices,
             unpaidInvoices: invoices.filter(function (i) { return i.status !== 'paid'; }),

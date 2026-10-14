@@ -615,7 +615,7 @@
     };
 
     RHUI.deleteCustomer = function (id) {
-        var hasContract = RHD.list('contracts').some(function (c) { return c.customerId === id; });
+        var hasContract = RHD.list('contracts').some(function (c) { return c.customerId === id || (c.tenantIds || []).indexOf(id) !== -1; });
         confirmDelete('customers', id, function () { renderCustomersTab(); renderDashboardCounts(); }, hasContract ? 'Không thể xoá: khách hàng đang gắn với hợp đồng.' : null);
     };
 
@@ -1491,6 +1491,7 @@
         setText('dConNew', s.contractsSignedThisMonth);
         setText('dConEnded', s.contractsEndedThisMonth);
         setText('dConActive', s.activeContracts.length);
+        setText('dConOverdue', s.overdueContracts.length);
         setText('dConExpiring', s.expiringContracts.length);
         setText('dConExpiringLabel', 'Hết hạn trong ' + s.expiringDays + ' ngày');
         setText('dConClosed', s.endedContracts.length);

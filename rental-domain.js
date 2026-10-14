@@ -4,7 +4,7 @@
 (function (global) {
     var DEPOSIT_STATUSES = ['holding', 'contracted', 'cancelled', 'forfeited'];
     var CONTRACT_STATUSES = ['active', 'liquidated', 'forfeited'];
-    var MIGRATION_VERSION = 'rental-domain-v1';
+    var MIGRATION_VERSION = 'rental-domain-v2';
 
     function storageKey(name) {
         return 'residenthub_' + global.RHD.mode() + '_' + name;
@@ -72,7 +72,8 @@
             global.RHD.list('contracts').forEach(function (contract) {
                 var patch = {};
                 if (!contract.lifecycleStatus) patch.lifecycleStatus = lifecycleStatus(contract) || 'active';
-                if (!Array.isArray(contract.tenantIds)) patch.tenantIds = unique(contract.customerIds || [contract.customerId]);
+                if (!Array.isArray(contract.tenantIds)) patch.tenantIds = unique(Array.isArray(contract.customerIds) ? contract.customerIds : [contract.customerId]);
+                if (Object.prototype.hasOwnProperty.call(contract, 'customerIds')) patch.customerIds = undefined;
                 if (!Object.prototype.hasOwnProperty.call(contract, 'depositId')) patch.depositId = '';
                 if (!Object.prototype.hasOwnProperty.call(contract, 'depositHeldAmount') && contract.depositHeldAmount !== 0) {
                     patch.depositBalanceNeedsReview = true;
@@ -92,6 +93,10 @@
     }
 
     function activeContract(contract) { return lifecycleStatus(contract) === 'active'; }
+    function currentContract(contract, asOf) {
+        if (!activeContract(contract)) return false;
+        return !contract.endDate || contract.endDate >= (asOf || today());
+    }
     function holdingDeposit(deposit) { return deposit && deposit.status === 'holding' && !deposit.isDeleted; }
 
     function sameSpace(left, right) {
@@ -214,14 +219,13 @@
         var selectedServices = Array.isArray(input.services) ? input.services : (building ? (building.services || []).filter(function (service) {
             return service.feeType !== 'rent' && service.feeType !== 'deposit';
         }) : []);
-        var tenantIds = unique(input.tenantIds || input.customerIds || (input.customerId ? [input.customerId] : existing && existing.tenantIds));
+        var tenantIds = unique(input.tenantIds || (input.customerId ? [input.customerId] : existing && existing.tenantIds));
         return Object.assign({}, input, {
             buildingId: input.buildingId || '',
             apartmentId: input.apartmentId || '',
             roomId: input.roomId || '',
             bedId: input.bedId || '',
             tenantIds: tenantIds,
-            customerIds: tenantIds,
             customerId: input.customerId || tenantIds[0] || '',
             occupantCount: Math.max(1, Number(input.occupantCount) || 1),
             rentPrice: rentPrice,
@@ -379,7 +383,7 @@
         if (!global.RHD.get('buildings', data.buildingId)) return { ok: false, error: 'Vui lòng chọn tòa nhà hợp lệ.' };
         var apartment = global.RHD.get('apartments', data.apartmentId);
         if (!apartment || apartment.buildingId !== data.buildingId) return { ok: false, error: 'Căn hộ không thuộc tòa nhà đã chọn.' };
-        var tenants = unique(data.tenantIds || data.customerIds || (data.customerId ? [data.customerId] : []));
+        var tenants = unique(data.tenantIds || (data.customerId ? [data.customerId] : []));
         if (!tenants.length || tenants.some(function (tenantId) { return !global.RHD.get('customers', tenantId); })) {
             return { ok: false, error: 'Vui lòng chọn ít nhất một khách thuê hợp lệ.' };
         }
@@ -416,13 +420,12 @@
             data.endDate = data.endDate || existing.endDate;
         }
         var tenantSource = Array.isArray(data.tenantIds) ? data.tenantIds
-            : Array.isArray(data.customerIds) ? data.customerIds
-                : existing && (!data.customerId || data.customerId === existing.customerId)
-                    ? (existing.tenantIds || existing.customerIds || [existing.customerId])
-                    : (data.customerId ? [data.customerId] : []);
+            : existing && (!data.customerId || data.customerId === existing.customerId)
+                ? (existing.tenantIds || [existing.customerId])
+                : (data.customerId ? [data.customerId] : []);
         var tenants = unique(tenantSource);
         data.tenantIds = tenants;
-        data.customerIds = tenants;
+        delete data.customerIds;
         data.customerId = data.customerId || tenants[0] || (existing && existing.customerId) || '';
         data.lifecycleStatus = existing ? lifecycleStatus(existing) : (lifecycleStatus(data) || 'active');
         data.status = data.lifecycleStatus;
@@ -522,7 +525,7 @@
         var contract = global.RHD.get('contracts', id);
         if (!contract || !activeContract(contract)) return { ok: false, error: 'Chỉ có thể nhượng hợp đồng đang hiệu lực.' };
         var ids = unique(tenantIds);
-        return saveContract(Object.assign({}, contract, { tenantIds: ids, customerIds: ids, customerId: ids[0] || '' }), id, actor, 'assigned');
+        return saveContract(Object.assign({}, contract, { tenantIds: ids, customerId: ids[0] || '' }), id, actor, 'assigned');
     }
 
     function contractDeleteBlock(id) {
@@ -549,7 +552,7 @@
     function currentResidence(customerId, asOf) {
         initialize();
         var contracts = global.RHD.list('contracts').filter(function (contract) {
-            return activeContract(contract) && unique(contract.tenantIds || contract.customerIds || [contract.customerId]).indexOf(customerId) !== -1;
+            return activeContract(contract) && unique(contract.tenantIds || [contract.customerId]).indexOf(customerId) !== -1;
         }).sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
         var contract = contracts[0] || null;
         if (contract) return { source: 'contract', contract: contract, deposit: null, buildingId: contract.buildingId, apartmentId: contract.apartmentId, roomId: contract.roomId || '', bedId: contract.bedId || '' };
@@ -626,6 +629,7 @@
         defaultEndDate: defaultEndDate,
         lifecycleStatus: lifecycleStatus,
         isActiveContract: activeContract,
+        isCurrentContract: currentContract,
         checkAvailability: checkAvailability,
         contractAlertStatus: contractAlertStatus,
         depositAlert: depositAlert,

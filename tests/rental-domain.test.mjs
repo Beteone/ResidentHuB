@@ -166,14 +166,44 @@ test('preserves multi-tenant and legacy deposit fields when editing a contract',
 
 test('migration preserves legacy contract fields and marks unknown deposit balance for review', () => {
     const env = setup();
+    const customer2 = env.RHD.create('customers', { id: 'customer-legacy-2', fullName: 'Lê Minh Đức' }).item;
     const legacy = env.RHD.create('contracts', {
         id: 'legacy', code: 'CT1-501-2026-001', buildingId: env.building.id, apartmentId: env.apartment.id,
-        customerId: env.customer.id, startDate: '2026-01-01', endDate: '2026-12-31', depositPrice: 2000000, status: 'active'
+        customerId: env.customer.id, customerIds: [env.customer.id, customer2.id], startDate: '2026-01-01', endDate: '2026-12-31', depositPrice: 2000000, status: 'active'
     }).item;
     env.RHLease.initialize();
     const migrated = env.RHD.get('contracts', legacy.id);
     assert.equal(migrated.depositPrice, 2000000);
     assert.equal(migrated.lifecycleStatus, 'active');
-    assert.equal(migrated.tenantIds[0], env.customer.id);
+    assert.equal(migrated.tenantIds.length, 2);
+    assert.equal(Object.hasOwn(migrated, 'customerIds'), false);
     assert.equal(migrated.depositBalanceNeedsReview, true);
+});
+
+test('dashboard excludes expired active-status contracts from current counts and tracks overdue separately', () => {
+    const env = setup();
+    const secondCustomer = env.RHD.create('customers', { id: 'customer-2', fullName: 'Lê Minh Đức' }).item;
+    const yesterday = new Date();
+    yesterday.setDate(yesterday.getDate() - 1);
+    const expiredOn = [yesterday.getFullYear(), String(yesterday.getMonth() + 1).padStart(2, '0'), String(yesterday.getDate()).padStart(2, '0')].join('-');
+    const tomorrow = new Date();
+    tomorrow.setDate(tomorrow.getDate() + 1);
+    const endsTomorrow = [tomorrow.getFullYear(), String(tomorrow.getMonth() + 1).padStart(2, '0'), String(tomorrow.getDate()).padStart(2, '0')].join('-');
+    env.RHD.create('contracts', {
+        id: 'contract-expired', code: 'CT1-502-2025-002', buildingId: env.building.id, apartmentId: env.apartment.id,
+        customerId: env.customer.id, tenantIds: [env.customer.id], startDate: '2025-01-01', endDate: expiredOn, status: 'active'
+    });
+    env.RHD.create('contracts', {
+        id: 'contract-current', code: 'CT1-503-2026-003', buildingId: env.building.id, apartmentId: 'apartment-503',
+        customerId: secondCustomer.id, tenantIds: [secondCustomer.id], startDate: '2026-01-01', endDate: endsTomorrow, status: 'active'
+    });
+    const stats = env.RHD.dashboardStats();
+    const expired = env.RHD.get('contracts', 'contract-expired');
+    assert.equal(env.RHLease.isActiveContract(expired), true);
+    assert.equal(env.RHLease.isCurrentContract(expired), false);
+    assert.equal(env.RHLease.contractAlertStatus(expired), 'overdue');
+    assert.equal(stats.activeContracts.length, 1);
+    assert.equal(stats.overdueContracts.length, 1);
+    assert.equal(stats.endedContracts.length, 0);
+    assert.equal(stats.customersWithoutContract, 1);
 });
