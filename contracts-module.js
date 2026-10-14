@@ -48,7 +48,89 @@
         if (document.getElementById('rhContractsWorkflowStyles')) return;
         var style = document.createElement('style');
         style.id = 'rhContractsWorkflowStyles';
-        style.textContent = '#contracts-tab .rh-contract-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#contracts-tab .rh-contract-overview article{background:#fff;border:1px solid #e3eaf2;border-radius:10px;padding:.9rem 1rem}#contracts-tab .rh-contract-overview small{color:#718096;display:block;font-size:.75rem;font-weight:700}#contracts-tab .rh-contract-overview strong{color:#10213c;display:block;font:800 1.3rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif;margin-top:.4rem}#contracts-tab .rh-contract-row{align-items:center;display:grid;grid-template-columns:1fr 1.2fr 1.2fr 1.1fr 1fr 1.45fr;gap:.7rem;padding:.85rem;border-bottom:1px solid #e8edf3}#contracts-tab .rh-contract-cell{min-width:0}#contracts-tab .rh-contract-cell small{color:#8492a5;display:block;font-size:.65rem;font-weight:700}#contracts-tab .rh-contract-cell strong{color:#25364a;display:block;font-size:.8rem;margin-top:.18rem;overflow-wrap:anywhere}#contracts-tab .rh-contract-origin{background:#eff6ff;border-radius:5px;color:#1769aa;display:inline-block;font-size:.65rem;font-weight:700;margin-top:.3rem;padding:.18rem .35rem}#contracts-tab .rh-contract-actions{align-items:center;display:flex;gap:.4rem;justify-content:flex-end;min-width:0}#contracts-tab .rh-contract-menu{position:relative}#contracts-tab .rh-contract-menu summary{align-items:center;border:1px solid #dfe5ec;border-radius:7px;color:#526275;cursor:pointer;display:flex;height:34px;justify-content:center;list-style:none;width:36px}#contracts-tab .rh-contract-menu summary::-webkit-details-marker{display:none}#contracts-tab .rh-contract-menu[open] summary{background:#eff6ff;border-color:#9ccaff;color:#0d65d5}#contracts-tab .rh-contract-menu-list{background:#fff;border:1px solid #e1e7ee;border-radius:9px;box-shadow:0 12px 28px rgba(15,35,60,.15);display:grid;min-width:205px;padding:.3rem;position:absolute;right:0;top:calc(100% + 5px);z-index:25}#contracts-tab .rh-contract-menu-list button{background:#fff;border:0;border-radius:6px;color:#34465c;cursor:pointer;font:500 .78rem "Be Vietnam Pro",sans-serif;padding:.55rem .65rem;text-align:left;white-space:nowrap}#contracts-tab .rh-contract-menu-list button:hover{background:#f1f6fb}#contracts-tab .rh-contract-menu-list button.danger{color:#bd3939}#contracts-tab .rh-contract-toolbar{align-items:center;display:flex;gap:.6rem;flex-wrap:wrap}#contracts-tab .rh-contract-plus{bottom:1.1rem;position:fixed;right:2rem;z-index:40}#contracts-tab .rh-contract-plus>summary{align-items:center;background:#18a878;border-radius:50%;box-shadow:0 10px 20px rgba(24,168,120,.2);color:#fff;cursor:pointer;display:flex;font-size:1.8rem;height:56px;justify-content:center;list-style:none;width:56px}#contracts-tab .rh-contract-plus>summary::-webkit-details-marker{display:none}#contracts-tab .rh-contract-plus[open] .rh-contract-plus-menu{display:grid}#contracts-tab .rh-contract-plus-menu{background:#fff;border:1px solid #e3eaf2;border-radius:9px;bottom:64px;box-shadow:0 12px 28px rgba(15,35,60,.15);display:none;min-width:220px;padding:.35rem;position:absolute;right:0}#contracts-tab .rh-contract-plus-menu button{background:#fff;border:0;border-radius:6px;color:#34465c;cursor:pointer;font:600 .8rem "Be Vietnam Pro",sans-serif;padding:.65rem;text-align:left}#contracts-tab .rh-contract-plus-menu button:hover{background:#eff6ff}#contracts-tab .rh-contract-field-error{color:#c43f36;display:block;font-size:.7rem;min-height:.8rem;margin-top:.2rem}#contracts-tab [aria-invalid="true"]{border-color:#dc4b4b!important}#contracts-tab .rh-contract-meter-row{align-items:center;border:1px solid #e3eaf2;border-radius:8px;display:grid;gap:.6rem;grid-template-columns:minmax(0,1fr) 120px 130px;padding:.65rem;margin:.5rem 0}#contracts-tab .rh-contract-meter-row input,#contracts-tab .rh-contract-meter-row select{border:1px solid #dce3eb;border-radius:7px;min-width:0;padding:.5rem;width:100%}#contracts-tab .rh-contract-menu [disabled]{color:#9aa5b3;cursor:not-allowed;opacity:.55}@media(max-width:900px){#contracts-tab .rh-contract-overview{grid-template-columns:repeat(2,minmax(0,1fr))}#contracts-tab .rh-contract-row{grid-template-columns:repeat(3,minmax(0,1fr)}#contracts-tab .rh-contract-actions{grid-column:1/-1;justify-content:flex-start}}@media(max-width:600px){#contracts-tab .rh-contract-row{grid-template-columns:repeat(2,minmax(0,1fr))}#contracts-tab .rh-contract-overview{grid-template-columns:repeat(2,minmax(0,1fr))}#contracts-tab .rh-contract-meter-row{grid-template-columns:1fr 100px}#contracts-tab .rh-contract-meter-row [data-meter-index]{grid-column:1/-1}#contracts-tab .rh-contract-plus{bottom:1rem;right:1rem}}';
+        style.textContent = [
+            '#contracts-tab{position:relative;padding-bottom:5rem;color:#172033}',
+            '#contracts-tab .rh-contract-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}',
+            '#contracts-tab .rh-contract-head h2{margin:0;color:#172033;font:700 1.35rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif}',
+            '#contracts-tab .rh-contract-toolbar{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap}',
+            '#contracts-tab .rh-contract-toolbar [data-contract-import-button]{display:inline-flex;align-items:center;gap:.45rem}',
+            '#contracts-tab .rh-contract-icon-btn{width:40px;height:40px;border:1px solid #e1e7ef;background:#fff;border-radius:50%;color:#42536a;cursor:pointer}',
+            '#contracts-tab .rh-contract-icon-btn:hover{background:#f2f7fc}',
+            '#contracts-tab .rh-contract-search{display:none;margin:0 0 .85rem}',
+            '#contracts-tab .rh-contract-search.open{display:block}',
+            '#contracts-tab .rh-contract-search input,#contracts-tab .rh-contract-filter-panel select{box-sizing:border-box;width:100%;padding:.7rem .85rem;border:1px solid #dce4ee;border-radius:8px;background:#fff;font:inherit}',
+            '#contracts-tab .rh-contract-search input:focus,#contracts-tab .rh-contract-filter-panel select:focus{outline:2px solid #d4e5ff;border-color:#6aa7ef}',
+            '#contracts-tab .rh-contract-overview{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}',
+            '#contracts-tab .rh-contract-overview article{min-width:0;background:#fff;border:1px solid #e3eaf2;border-radius:12px;padding:.9rem 1rem;box-shadow:0 3px 12px rgba(20,43,72,.035)}',
+            '#contracts-tab .rh-contract-overview small{display:block;color:#718096;font-size:.75rem;font-weight:700}',
+            '#contracts-tab .rh-contract-overview strong{display:block;margin-top:.4rem;color:#10213c;font:800 1.3rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif}',
+            '#contracts-tab .rh-contract-tabs{display:flex;align-items:center;gap:.5rem;overflow-x:auto;padding:.2rem 0 .8rem;margin-bottom:.6rem;scrollbar-width:thin}',
+            '#contracts-tab .rh-contract-tab{display:inline-flex;align-items:center;gap:.45rem;flex:0 0 auto;border:1px solid #e1e7ef;border-radius:999px;background:#fff;color:#59687c;padding:.55rem .75rem;font:600 .8rem "Be Vietnam Pro",sans-serif;cursor:pointer;white-space:nowrap}',
+            '#contracts-tab .rh-contract-tab:hover{border-color:#9bbce2;background:#f7faff}',
+            '#contracts-tab .rh-contract-tab b{display:grid;place-items:center;min-width:20px;height:20px;padding:0 .25rem;border-radius:999px;background:#eef2f7;color:#59687c;font-size:.7rem}',
+            '#contracts-tab .rh-contract-tab.active{border-color:#1769d2;background:#1769d2;color:#fff;box-shadow:0 4px 12px rgba(23,105,210,.18)}',
+            '#contracts-tab .rh-contract-tab.active b{background:rgba(255,255,255,.2);color:#fff}',
+            '#contracts-tab .rh-contract-filter-panel{display:none;grid-template-columns:minmax(200px,320px);gap:.7rem;padding:0 0 .85rem}',
+            '#contracts-tab .rh-contract-filter-panel.open{display:grid}',
+            '#contracts-tab .rh-contract-list{display:grid;gap:.6rem}',
+            '#contracts-tab .rh-contract-row{display:grid;grid-template-columns:minmax(145px,1fr) minmax(130px,1fr) minmax(150px,1.2fr) minmax(165px,1.15fr) minmax(110px,.8fr) auto;align-items:center;gap:.75rem;padding:.9rem 1rem;border:1px solid #e5eaf1;border-radius:10px;background:#fff;box-shadow:0 3px 12px rgba(20,43,72,.035)}',
+            '#contracts-tab .rh-contract-cell{min-width:0}',
+            '#contracts-tab .rh-contract-cell small{display:block;margin-bottom:.25rem;color:#8794a6;font-size:.67rem;font-weight:700;letter-spacing:.025em}',
+            '#contracts-tab .rh-contract-cell strong{display:block;color:#25364a;font-size:.8rem;font-weight:650;line-height:1.45;overflow-wrap:anywhere}',
+            '#contracts-tab .rh-contract-origin{display:inline-block;margin-top:.3rem;padding:.18rem .35rem;border-radius:5px;background:#eff6ff;color:#1769aa;font-size:.65rem;font-weight:700}',
+            '#contracts-tab .rh-contract-actions{display:flex;align-items:center;justify-content:flex-end;gap:.5rem;min-width:0}',
+            '#contracts-tab .rh-contract-actions>span{white-space:nowrap}',
+            '#contracts-tab .rh-contract-menu{position:relative}',
+            '#contracts-tab .rh-contract-menu summary{display:flex;align-items:center;justify-content:center;width:36px;height:36px;border:1px solid #dfe5ec;border-radius:8px;color:#526275;cursor:pointer;list-style:none}',
+            '#contracts-tab .rh-contract-menu summary::-webkit-details-marker{display:none}',
+            '#contracts-tab .rh-contract-menu[open] summary{background:#eff6ff;border-color:#9ccaff;color:#0d65d5}',
+            '#contracts-tab .rh-contract-menu-list{position:absolute;top:calc(100% + 5px);right:0;z-index:25;display:grid;min-width:205px;padding:.3rem;border:1px solid #e1e7ee;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(15,35,60,.15)}',
+            '#contracts-tab .rh-contract-menu-list button{padding:.55rem .65rem;border:0;border-radius:6px;background:#fff;color:#34465c;cursor:pointer;font:500 .78rem "Be Vietnam Pro",sans-serif;text-align:left;white-space:nowrap}',
+            '#contracts-tab .rh-contract-menu-list button:hover{background:#f1f6fb}',
+            '#contracts-tab .rh-contract-menu-list button.danger{color:#bd3939}',
+            '#contracts-tab .rh-contract-menu [disabled]{color:#9aa5b3;cursor:not-allowed;opacity:.55}',
+            '#contracts-tab .rh-contract-empty{display:grid;min-height:200px;place-content:center;text-align:center;color:#8290a3;background:#fff;border:1px dashed #dce4ed;border-radius:10px}',
+            '#contracts-tab .rh-contract-empty i{margin-bottom:.65rem;font-size:2rem;opacity:.65}',
+            '#contracts-tab .rh-contract-plus{position:fixed;right:2rem;bottom:1.1rem;z-index:40}',
+            '#contracts-tab .rh-contract-plus>summary{display:flex;align-items:center;justify-content:center;width:58px;height:58px;border-radius:50%;background:#18a878;color:#fff;box-shadow:0 10px 20px rgba(24,168,120,.22);cursor:pointer;font-size:1.8rem;list-style:none}',
+            '#contracts-tab .rh-contract-plus>summary::-webkit-details-marker{display:none}',
+            '#contracts-tab .rh-contract-plus[open] .rh-contract-plus-menu{display:grid}',
+            '#contracts-tab .rh-contract-plus-menu{position:absolute;right:0;bottom:68px;display:none;min-width:220px;padding:.35rem;border:1px solid #e3eaf2;border-radius:9px;background:#fff;box-shadow:0 12px 28px rgba(15,35,60,.15)}',
+            '#contracts-tab .rh-contract-plus-menu button{padding:.65rem;border:0;border-radius:6px;background:#fff;color:#34465c;cursor:pointer;font:600 .8rem "Be Vietnam Pro",sans-serif;text-align:left}',
+            '#contracts-tab .rh-contract-plus-menu button:hover{background:#eff6ff}',
+            '#rhDrawerBody .rh-contract-form,#rhDrawerBody .rh-contract-operation-form{display:grid;gap:1rem;color:#26364b}',
+            '#rhDrawerBody .rh-contract-form-section,#rhDrawerBody .rh-settlement-wizard>section{min-width:0;padding:1rem;border:1px solid #e5eaf1;border-radius:11px;background:#fff}',
+            '#rhDrawerBody .rh-contract-form-section h4,#rhDrawerBody .rh-settlement-wizard h4{margin:0 0 .9rem;color:#183453;font-size:.95rem;font-weight:700}',
+            '#rhDrawerBody .rh-contract-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}',
+            '#rhDrawerBody .rh-contract-field{display:grid;align-content:start;gap:.32rem;min-width:0}',
+            '#rhDrawerBody .rh-contract-field.full{grid-column:1/-1}',
+            '#rhDrawerBody .rh-contract-field label{color:#536276;font-size:.76rem;font-weight:650;line-height:1.4}',
+            '#rhDrawerBody .rh-contract-field input:not([type=checkbox]):not([type=file]),#rhDrawerBody .rh-contract-field select,#rhDrawerBody .rh-contract-field textarea,#rhDrawerBody .rh-contract-operation-form input:not([type=checkbox]),#rhDrawerBody .rh-contract-operation-form select,#rhDrawerBody .rh-contract-operation-form textarea{box-sizing:border-box;width:100%;min-width:0;min-height:40px;padding:.58rem .68rem;border:1px solid #d8e0ea;border-radius:8px;background:#fff;color:#24364d;font:400 .82rem "Be Vietnam Pro",sans-serif}',
+            '#rhDrawerBody .rh-contract-field textarea{resize:vertical}',
+            '#rhDrawerBody .rh-contract-field input[type=file]{box-sizing:border-box;width:100%;padding:.65rem;border:1px dashed #b9c7d7;border-radius:8px;background:#f8fafc;color:#536276;font-size:.78rem}',
+            '#rhDrawerBody .rh-contract-field select[multiple]{min-height:112px}',
+            '#rhDrawerBody .rh-contract-field input:focus,#rhDrawerBody .rh-contract-field select:focus,#rhDrawerBody .rh-contract-field textarea:focus,#rhDrawerBody .rh-contract-operation-form input:focus,#rhDrawerBody .rh-contract-operation-form select:focus{outline:2px solid #d8eaff;border-color:#70a8e5}',
+            '#rhDrawerBody .rh-contract-field input[readonly],#rhDrawerBody .rh-contract-field input:disabled,#rhDrawerBody .rh-contract-field select:disabled{background:#f3f6f9;color:#68788c}',
+            '#rhDrawerBody .rh-contract-field-error{display:block;min-height:.1rem;margin-top:.25rem;color:#bd3939;font-size:.74rem;line-height:1.45}',
+            '#rhDrawerBody [aria-invalid=true]{border-color:#dc4b4b!important}',
+            '#rhDrawerBody .rh-customer-preview{padding:.75rem .9rem;border:1px solid #dce9f8;border-radius:8px;background:#f3f8ff;color:#4b6078;font-size:.8rem}',
+            '#rhDrawerBody .rh-contract-service-list{display:grid;gap:.45rem}',
+            '#rhDrawerBody .rh-contract-service-row{display:grid;grid-template-columns:minmax(0,1fr) minmax(100px,150px) auto;align-items:center;gap:.55rem;padding:.55rem .65rem;border:1px solid #e6ebf1;border-radius:8px;background:#fbfcfe}',
+            '#rhDrawerBody .rh-contract-service-row label{display:flex;align-items:center;gap:.4rem;color:#43536a;font-size:.78rem}',
+            '#rhDrawerBody .rh-contract-service-row input[type=text]{box-sizing:border-box;width:100%;min-width:0;padding:.45rem .55rem;border:1px solid #dce3eb;border-radius:7px}',
+            '#rhDrawerBody .rh-contract-meter-row{display:grid;grid-template-columns:minmax(120px,1fr) minmax(100px,1fr) minmax(130px,1fr);align-items:center;gap:.65rem;margin:.5rem 0;padding:.7rem;border:1px solid #e3eaf2;border-radius:8px;background:#f8fafc}',
+            '#rhDrawerBody .rh-contract-meter-row input,#rhDrawerBody .rh-contract-meter-row select{box-sizing:border-box;width:100%;min-width:0;padding:.5rem;border:1px solid #dce3eb;border-radius:7px}',
+            '#rhDrawerBody .rh-contract-form button,#rhDrawerBody .rh-contract-operation-form button,#rhDrawerBody .rh-settlement-wizard button{font-family:"Be Vietnam Pro",sans-serif}',
+            '#rhDrawerBody .rh-settlement-wizard{display:grid;gap:.85rem}',
+            '#rhDrawerBody .rh-settlement-steps{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.4rem}',
+            '#rhDrawerBody .rh-settlement-steps button{padding:.55rem .35rem;border:1px solid #dce4ed;border-radius:8px;background:#f7f9fc;color:#627187;font-size:.72rem}',
+            '#rhDrawerBody .rh-settlement-steps button.active{border-color:#1769d2;background:#edf5ff;color:#1559a6}',
+            '#rhDrawerBody .rh-settlement-footer{display:flex;justify-content:flex-end;gap:.55rem;flex-wrap:wrap}',
+            '#rhDrawerBody .rh-contract-settlement-preview{margin-top:.8rem;padding:.8rem;border-radius:8px;background:#f3f8ff;color:#24364d;line-height:1.7}',
+            '#rhDrawerBody .rh-contract-operation-form>div[style*="justify-content:flex-end"]{flex-wrap:wrap}',
+            '@media(max-width:1000px){#contracts-tab .rh-contract-row{grid-template-columns:repeat(3,minmax(0,1fr))}#contracts-tab .rh-contract-actions{grid-column:1/-1;justify-content:flex-start}}',
+            '@media(max-width:640px){#contracts-tab{padding-bottom:5.5rem}#contracts-tab .rh-contract-head{align-items:flex-start;flex-direction:column;gap:.7rem}#contracts-tab .rh-contract-head h2{font-size:1.15rem}#contracts-tab .rh-contract-overview{grid-template-columns:repeat(2,minmax(0,1fr));gap:.5rem}#contracts-tab .rh-contract-overview article{padding:.75rem}#contracts-tab .rh-contract-row{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem;padding:.75rem}#contracts-tab .rh-contract-actions{grid-column:1/-1;justify-content:space-between;border-top:1px solid #edf0f4;padding-top:.55rem}#contracts-tab .rh-contract-plus{right:1rem;bottom:1rem}#rhDrawerBody{padding:1rem!important}#rhDrawerBody .rh-contract-form-grid{grid-template-columns:minmax(0,1fr)}#rhDrawerBody .rh-contract-field.full{grid-column:auto}#rhDrawerBody .rh-contract-form-section,#rhDrawerBody .rh-settlement-wizard>section{padding:.8rem}#rhDrawerBody .rh-contract-service-row{grid-template-columns:minmax(0,1fr) 92px}#rhDrawerBody .rh-contract-meter-row{grid-template-columns:minmax(0,1fr) minmax(110px,1fr)}#rhDrawerBody .rh-contract-meter-row [data-meter-index]{grid-column:1/-1}#rhDrawerBody .rh-settlement-steps{grid-template-columns:repeat(2,minmax(0,1fr))}}'
+        ].join('');
         document.head.appendChild(style);
     }
 
@@ -91,51 +173,174 @@
         return String(value || '').replace(/^\uFEFF/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
     }
 
-    function importContractsCsv(event) {
+    function importContractsFile(event) {
         var file = event.target.files && event.target.files[0];
         var message = document.getElementById('contractImportError');
         if (!file) return;
+        if (!util.guard('contracts.create')) { event.target.value = ''; return; }
+        var isXlsx = /\.xlsx$/i.test(file.name);
+        if (file.size > 25 * 1024 * 1024) {
+            message.textContent = 'Tệp nhập không được lớn hơn 25 MB.';
+            event.target.value = '';
+            return;
+        }
+        if (!isXlsx && !/\.csv$/i.test(file.name)) {
+            message.textContent = 'Chỉ hỗ trợ tệp Excel .xlsx hoặc CSV xuất từ Excel.';
+            event.target.value = '';
+            return;
+        }
         var reader = new FileReader();
         reader.onload = function () {
-            var rows = parseCsv(String(reader.result || ''));
-            if (rows.length < 2) { message.textContent = 'Tệp chưa có dòng dữ liệu.'; return; }
-            var headers = rows.shift().map(normalizeHeader);
-            var find = function (keys) { return headers.findIndex(function (header) { return keys.indexOf(header) !== -1; }); };
-            var columns = {
-                building: find(['toanha', 'building', 'buildingname']), apartment: find(['canho', 'phong', 'unit', 'apartment']),
-                customer: find(['khachhang', 'khachthue', 'tenant', 'customer']), phone: find(['sodienthoai', 'phone']),
-                start: find(['ngaybatdau', 'startdate']), end: find(['ngayketthuc', 'enddate']), rent: find(['tienthue', 'rent', 'rentprice']),
-                deposit: find(['tiencoc', 'deposit', 'depositprice']), code: find(['mahopdong', 'contractcode', 'code'])
-            };
-            if ([columns.building, columns.apartment, columns.customer, columns.start, columns.end, columns.rent].some(function (index) { return index < 0; })) {
-                message.textContent = 'Thiếu cột bắt buộc: Tòa nhà, Căn hộ, Khách hàng, Ngày bắt đầu, Ngày kết thúc, Tiền thuê.';
-                return;
-            }
-            var imported = 0, errors = [];
-            rows.forEach(function (cells, offset) {
-                var cell = function (column) { return column < 0 ? '' : String(cells[column] || '').trim(); };
-                var buildingKey = cell(columns.building).toLowerCase();
-                var building = util.scoped('buildings').filter(function (item) { return [item.name, item.shortName, item.code].some(function (name) { return String(name || '').toLowerCase() === buildingKey; }); })[0];
-                var apartmentKey = cell(columns.apartment).toLowerCase();
-                var apartment = util.scoped('apartments').filter(function (item) { return item.buildingId === (building && building.id) && String(item.name || item.code || '').toLowerCase() === apartmentKey; })[0];
-                var customerKey = cell(columns.customer).toLowerCase(), phone = cell(columns.phone);
-                var customer = util.scoped('customers').filter(function (item) { return phone && item.phone === phone || String(item.fullName || item.name || '').toLowerCase() === customerKey; })[0];
-                if (!building || !apartment || !customer) { errors.push('Dòng ' + (offset + 2) + ': không khớp tòa nhà, căn hộ hoặc khách hàng.'); return; }
-                var startDate = importDate(cell(columns.start)), endDate = importDate(cell(columns.end));
-                var result = RHLease.saveContract({
-                    code: cell(columns.code), buildingId: building.id, apartmentId: apartment.id,
-                    customerId: customer.id, tenantIds: [customer.id], startDate: startDate, endDate: endDate,
-                    rentPrice: readMoney(cell(columns.rent)), depositPrice: readMoney(cell(columns.deposit)),
-                    paymentCycle: 'monthly', invoiceTemplateId: monthlyInvoiceTemplate(building), status: 'active'
-                }, null, actor());
-                if (result.ok) imported++;
-                else errors.push('Dòng ' + (offset + 2) + ': ' + result.error);
+            var rowsPromise = isXlsx ? readXlsxRows(reader.result) : Promise.resolve(parseCsv(String(reader.result || '')));
+            rowsPromise.then(function (rows) {
+                importContractRows(rows, message);
+            }).catch(function (error) {
+                message.textContent = 'Không thể đọc tệp Excel: ' + error.message;
             });
-            message.textContent = 'Đã nhập ' + imported + ' hợp đồng.' + (errors.length ? ' ' + errors.slice(0, 4).join(' ') : '');
-            renderContractsTab(); RHUI.renderDashboardCounts();
         };
-        reader.readAsText(file, 'utf-8');
+        reader.onerror = function () { message.textContent = 'Không thể đọc tệp đã chọn.'; };
+        if (isXlsx) reader.readAsArrayBuffer(file);
+        else reader.readAsText(file, 'utf-8');
         event.target.value = '';
+    }
+
+    function importContractRows(rows, message) {
+        if (rows.length < 2) { message.textContent = 'Tệp chưa có dòng dữ liệu.'; return; }
+        var headers = rows.shift().map(normalizeHeader);
+        var find = function (keys) { return headers.findIndex(function (header) { return keys.indexOf(header) !== -1; }); };
+        var columns = {
+            building: find(['toanha', 'building', 'buildingname']), apartment: find(['canho', 'phong', 'unit', 'apartment']),
+            customer: find(['khachhang', 'khachthue', 'tenant', 'customer']), phone: find(['sodienthoai', 'phone']),
+            start: find(['ngaybatdau', 'startdate']), end: find(['ngayketthuc', 'enddate']), rent: find(['tienthue', 'rent', 'rentprice']),
+            deposit: find(['tiencoc', 'deposit', 'depositprice']), code: find(['mahopdong', 'contractcode', 'code'])
+        };
+        if ([columns.building, columns.apartment, columns.customer, columns.start, columns.end, columns.rent].some(function (index) { return index < 0; })) {
+            message.textContent = 'Thiếu cột bắt buộc: Tòa nhà, Căn hộ, Khách hàng, Ngày bắt đầu, Ngày kết thúc, Tiền thuê.';
+            return;
+        }
+        var imported = 0, errors = [];
+        rows.forEach(function (cells, offset) {
+            var cell = function (column) { return column < 0 ? '' : String(cells[column] == null ? '' : cells[column]).trim(); };
+            var buildingKey = cell(columns.building).toLowerCase();
+            var building = util.scoped('buildings').filter(function (item) { return [item.name, item.shortName, item.code].some(function (name) { return String(name || '').toLowerCase() === buildingKey; }); })[0];
+            var apartmentKey = cell(columns.apartment).toLowerCase();
+            var apartment = util.scoped('apartments').filter(function (item) { return item.buildingId === (building && building.id) && String(item.name || item.code || '').toLowerCase() === apartmentKey; })[0];
+            var customerKey = cell(columns.customer).toLowerCase(), phone = cell(columns.phone);
+            var customer = util.scoped('customers').filter(function (item) { return phone && item.phone === phone || String(item.fullName || item.name || '').toLowerCase() === customerKey; })[0];
+            if (!building || !apartment || !customer) { errors.push('Dòng ' + (offset + 2) + ': không khớp tòa nhà, căn hộ hoặc khách hàng.'); return; }
+            var result = RHLease.saveContract({
+                code: cell(columns.code), buildingId: building.id, apartmentId: apartment.id,
+                customerId: customer.id, tenantIds: [customer.id], startDate: importDate(cell(columns.start)), endDate: importDate(cell(columns.end)),
+                rentPrice: readMoney(cell(columns.rent)), depositPrice: readMoney(cell(columns.deposit)) || Number(apartment.depositPrice) || Number(apartment.rentPrice) || 0,
+                paymentCycle: 'monthly', invoiceTemplateId: monthlyInvoiceTemplate(building), status: 'active'
+            }, null, actor());
+            if (result.ok) imported++;
+            else errors.push('Dòng ' + (offset + 2) + ': ' + result.error);
+        });
+        message.textContent = 'Đã nhập ' + imported + ' hợp đồng.' + (errors.length ? ' ' + errors.slice(0, 4).join(' ') : '');
+        renderContractsTab(); RHUI.renderDashboardCounts();
+    }
+
+    async function readXlsxRows(buffer) {
+        var entries = await unzipXlsx(new Uint8Array(buffer));
+        var workbook = parseXml(entries['xl/workbook.xml'], 'thông tin sổ tính');
+        var relationships = parseXml(entries['xl/_rels/workbook.xml.rels'], 'liên kết trang tính');
+        var sheet = workbook.getElementsByTagNameNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'sheet')[0];
+        if (!sheet) throw new Error('Không tìm thấy trang tính trong tệp.');
+        var relationshipId = sheet.getAttributeNS('http://schemas.openxmlformats.org/officeDocument/2006/relationships', 'id') || sheet.getAttribute('r:id');
+        var relation = Array.from(relationships.getElementsByTagNameNS('http://schemas.openxmlformats.org/package/2006/relationships', 'Relationship'))
+            .filter(function (item) { return item.getAttribute('Id') === relationshipId; })[0];
+        if (!relation) throw new Error('Không tìm thấy dữ liệu trang tính đầu tiên.');
+        var sheetPath = packagePath('xl', relation.getAttribute('Target'));
+        var worksheet = parseXml(entries[sheetPath], 'dữ liệu trang tính');
+        var strings = [];
+        if (entries['xl/sharedStrings.xml']) {
+            var shared = parseXml(entries['xl/sharedStrings.xml'], 'bảng chuỗi dùng chung');
+            strings = Array.from(shared.getElementsByTagNameNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 'si')).map(function (item) {
+                return Array.from(item.getElementsByTagNameNS('http://schemas.openxmlformats.org/spreadsheetml/2006/main', 't')).map(function (text) { return text.textContent || ''; }).join('');
+            });
+        }
+        var ns = 'http://schemas.openxmlformats.org/spreadsheetml/2006/main';
+        return Array.from(worksheet.getElementsByTagNameNS(ns, 'row')).map(function (row) {
+            var cells = [];
+            Array.from(row.getElementsByTagNameNS(ns, 'c')).forEach(function (cell) {
+                var address = cell.getAttribute('r') || '';
+                var letters = address.match(/^[A-Z]+/i);
+                if (!letters) return;
+                var column = letters[0].toUpperCase().split('').reduce(function (number, letter) { return number * 26 + letter.charCodeAt(0) - 64; }, 0) - 1;
+                var type = cell.getAttribute('t');
+                var valueNode = cell.getElementsByTagNameNS(ns, 'v')[0];
+                var value = valueNode ? valueNode.textContent || '' : '';
+                if (type === 's') value = strings[Number(value)] || '';
+                else if (type === 'inlineStr') {
+                    var inline = cell.getElementsByTagNameNS(ns, 'is')[0];
+                    value = inline ? Array.from(inline.getElementsByTagNameNS(ns, 't')).map(function (text) { return text.textContent || ''; }).join('') : '';
+                } else if (type === 'b') value = value === '1' ? 'TRUE' : 'FALSE';
+                cells[column] = value;
+            });
+            return cells.map(function (value) { return value == null ? '' : value; });
+        });
+    }
+
+    async function unzipXlsx(bytes) {
+        var view = new DataView(bytes.buffer, bytes.byteOffset, bytes.byteLength);
+        var end = -1;
+        for (var offset = bytes.length - 22; offset >= Math.max(0, bytes.length - 65557); offset--) {
+            if (view.getUint32(offset, true) === 0x06054b50) { end = offset; break; }
+        }
+        if (end < 0 || view.getUint16(end + 4, true) !== 0 || view.getUint16(end + 6, true) !== 0) {
+            throw new Error('Tệp không phải Excel .xlsx hợp lệ hoặc đang dùng định dạng ZIP không hỗ trợ.');
+        }
+        var count = view.getUint16(end + 10, true);
+        var centralOffset = view.getUint32(end + 16, true);
+        if (count === 0xffff || centralOffset === 0xffffffff) throw new Error('Tệp Excel ZIP64 chưa được hỗ trợ.');
+        var entries = {};
+        var decoder = new global.TextDecoder('utf-8');
+        var expandedSize = 0;
+        for (var index = 0, cursor = centralOffset; index < count; index++) {
+            if (view.getUint32(cursor, true) !== 0x02014b50) throw new Error('Cấu trúc tệp Excel bị lỗi.');
+            var flags = view.getUint16(cursor + 8, true);
+            var method = view.getUint16(cursor + 10, true);
+            var compressedSize = view.getUint32(cursor + 20, true);
+            var uncompressedSize = view.getUint32(cursor + 24, true);
+            var nameLength = view.getUint16(cursor + 28, true);
+            var extraLength = view.getUint16(cursor + 30, true);
+            var commentLength = view.getUint16(cursor + 32, true);
+            var localOffset = view.getUint32(cursor + 42, true);
+            var name = decoder.decode(bytes.subarray(cursor + 46, cursor + 46 + nameLength));
+            cursor += 46 + nameLength + extraLength + commentLength;
+            expandedSize += uncompressedSize;
+            if (uncompressedSize === 0xffffffff || expandedSize > 100 * 1024 * 1024) throw new Error('Dữ liệu giải nén vượt quá giới hạn cho phép.');
+            if ((flags & 1) !== 0) throw new Error('Tệp Excel được mã hóa; hãy tải lên bản không khóa mật khẩu.');
+            if (view.getUint32(localOffset, true) !== 0x04034b50) throw new Error('Cấu trúc mục Excel bị lỗi.');
+            var dataStart = localOffset + 30 + view.getUint16(localOffset + 26, true) + view.getUint16(localOffset + 28, true);
+            var compressed = bytes.subarray(dataStart, dataStart + compressedSize);
+            if (method === 0) entries[name] = decoder.decode(compressed);
+            else if (method === 8) {
+                if (!global.DecompressionStream) throw new Error('Trình duyệt chưa hỗ trợ giải nén Excel .xlsx; hãy lưu thành CSV UTF-8.');
+                var stream = new global.Blob([compressed]).stream().pipeThrough(new global.DecompressionStream('deflate-raw'));
+                entries[name] = decoder.decode(await new global.Response(stream).arrayBuffer());
+            } else throw new Error('Phương thức nén Excel không được hỗ trợ.');
+        }
+        return entries;
+    }
+
+    function parseXml(xml, description) {
+        if (typeof xml !== 'string') throw new Error('Thiếu ' + description + ' trong tệp.');
+        var document = new global.DOMParser().parseFromString(xml, 'application/xml');
+        if (document.getElementsByTagName('parsererror').length) throw new Error('Không thể đọc ' + description + ' trong tệp.');
+        return document;
+    }
+
+    function packagePath(base, target) {
+        var parts = (target.charAt(0) === '/' ? target.slice(1) : base + '/' + target).split('/');
+        var result = [];
+        parts.forEach(function (part) {
+            if (!part || part === '.') return;
+            if (part === '..') result.pop();
+            else result.push(part);
+        });
+        return result.join('/');
     }
 
     function importDate(value) {
@@ -197,7 +402,7 @@
         var currentRenting = categories.renting.length;
         var canAdd = util.can('contracts.create');
         tab.innerHTML = util.renderDemoBanner('contracts') + '<section class="rh-contracts-module"><div class="rh-contract-head"><h2>Hợp đồng</h2><div class="rh-contract-toolbar">' +
-            '<button type="button" class="billing-filter" data-contract-import-button title="Nhập CSV do Excel xuất"><i class="fas fa-file-import"></i> Thêm dữ liệu</button>' +
+            '<button type="button" class="billing-filter" data-contract-import-button title="Nhập Excel" ' + (canAdd ? '' : 'disabled') + '><i class="fas fa-file-import"></i> Thêm dữ liệu</button>' +
             '<button class="rh-contract-icon-btn" type="button" data-contract-search-toggle title="Tìm kiếm" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button>' +
             '<button class="rh-contract-icon-btn" type="button" data-contract-filter-toggle title="Lọc theo tòa nhà" aria-label="Lọc theo tòa nhà"><i class="fas fa-sliders"></i></button></div></div>' +
             '<div class="rh-contract-search' + (state.searchOpen ? ' open' : '') + '"><input type="search" data-contract-search placeholder="Tìm mã hợp đồng, khách hàng, căn hộ..." value="' + esc(state.search) + '"></div>' +
@@ -206,7 +411,7 @@
             '<div class="rh-contract-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><select aria-label="Lọc theo tòa nhà" data-contract-building>' + buildingOptions + '</select></div>' +
             (visible.length ? '<div class="rh-contract-list">' + rows + '</div>' : '<div class="rh-contract-empty"><i class="fas fa-file-lines"></i><p>' + (contracts.length ? 'Không có hợp đồng phù hợp.' : 'Chưa có hợp đồng nào.') + '</p></div>') +
             '<details class="rh-contract-plus"><summary title="Thêm hợp đồng" aria-label="Thêm hợp đồng">+</summary><div class="rh-contract-plus-menu"><button type="button" data-contract-create-new>Tạo hợp đồng mới</button><button type="button" data-contract-create-deposit>Tạo từ cọc giữ chỗ</button></div></details>' +
-            '<input id="contractCsvImportFile" type="file" accept=".csv,text/csv" hidden><div id="contractImportError" role="alert" style="color:#c43f36;font-size:.8rem;margin-top:.5rem;"></div><p style="color:#718096;font-size:.72rem;margin-top:.35rem;">Tệp CSV xuất từ Excel</p></section>';
+            '<input id="contractCsvImportFile" type="file" accept=".xlsx,.csv,text/csv,application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" hidden><div id="contractImportError" role="alert" style="color:#c43f36;font-size:.8rem;margin-top:.5rem;"></div></section>';
         var search = tab.querySelector('[data-contract-search]');
         if (search) search.addEventListener('input', function () { state.search = this.value; renderContractsTab(); var next = tab.querySelector('[data-contract-search]'); next.focus(); next.setSelectionRange(next.value.length, next.value.length); });
         tab.querySelector('[data-contract-search-toggle]').addEventListener('click', function () { state.searchOpen = !state.searchOpen; renderContractsTab(); var input = tab.querySelector('[data-contract-search]'); if (state.searchOpen && input) input.focus(); });
@@ -216,7 +421,7 @@
         tab.querySelector('[data-contract-create-new]').addEventListener('click', function () { if (canAdd) openContractForm(); });
         tab.querySelector('[data-contract-create-deposit]').addEventListener('click', function () { openDepositPicker(); });
         tab.querySelector('[data-contract-import-button]').addEventListener('click', function () { tab.querySelector('#contractCsvImportFile').click(); });
-        tab.querySelector('#contractCsvImportFile').addEventListener('change', importContractsCsv);
+        tab.querySelector('#contractCsvImportFile').addEventListener('change', importContractsFile);
         tab.querySelectorAll('[data-contract-action]').forEach(function (button) { button.addEventListener('click', function () {
             var contract = RHD.get('contracts', this.getAttribute('data-id'));
             if (!contract) return;
@@ -261,7 +466,8 @@
         var serviceOverrides = existing ? existing.serviceOverrides || {} : (deposit ? (deposit.services || []).reduce(function (out, item) { out[item.id] = item.unitPrice; return out; }, {}) : {});
         var files = existing && Array.isArray(existing.files) ? existing.files.slice() : [];
         var isLocked = !!deposit;
-        var tplInvoice = existing && existing.invoiceTemplateId || (deposit && deposit.invoiceTemplateId) || monthlyInvoiceTemplate(building);
+        var tplInvoice = existing && existing.invoiceTemplateId || monthlyInvoiceTemplate(building);
+        if (!monthlyInvoiceTemplates().some(function (template) { return template.id === tplInvoice; })) tplInvoice = monthlyInvoiceTemplate(building);
         var html = '<form id="contractWorkflowForm" class="rh-contract-form" novalidate>' +
             (deposit ? '<div class="rh-customer-preview" style="margin-bottom:.8rem;"><strong>Tạo từ cọc ' + esc(deposit.code) + '</strong> · Vị trí và khách hàng đã khóa.</div>' : '') +
             '<section class="rh-contract-form-section"><h4>(1) Thông tin chung</h4><div class="rh-contract-form-grid">' +
@@ -307,7 +513,9 @@
     function monthlyInvoiceTemplates() {
         var templates = RHT.list('INVOICE');
         var monthly = templates.filter(function (template) { return template.category === 'Định kỳ hàng tháng' || template.code === 'invoice_monthly'; });
-        return monthly.length ? monthly : templates.filter(function (template) { return template.code !== 'invoice_deposit'; });
+        return monthly.length ? monthly : templates.filter(function (template) {
+            return template.code !== 'invoice_deposit' && !/đặt cọc|deposit/i.test((template.name || '') + ' ' + (template.category || ''));
+        });
     }
     function monthlyInvoiceTemplate(building) {
         var templates = monthlyInvoiceTemplates();
@@ -320,7 +528,7 @@
         var rooms = apartment && Array.isArray(apartment.rooms) ? apartment.rooms : [];
         var beds = apartment && Array.isArray(apartment.beds) ? apartment.beds : [];
         var roomOptions = '<option value="">Không chia phòng riêng</option>' + rooms.map(function (item) { var id = typeof item === 'string' ? item : item.id || item.name; return '<option value="' + esc(id) + '"' + (id === roomId ? ' selected' : '') + '>' + esc(typeof item === 'string' ? item : item.name || item.code || item.id) + '</option>'; }).join('');
-        var bedOptions = '<option value="">Không chia giường riêng</option>' + beds.map(function (item) { var id = typeof item === 'string' ? item : item.id || item.name; return '<option value="' + esc(id) + '"' + (id === bedId ? ' selected' : '') + '>' + esc(typeof item === 'string' ? item : item.name || item.code || item.id) + '</option>'; }).join('');
+        var bedOptions = '<option value="">Không chia giường riêng</option>' + beds.filter(function (item) { return !roomId || typeof item === 'string' || !item.roomId || item.roomId === roomId; }).map(function (item) { var id = typeof item === 'string' ? item : item.id || item.name; return '<option value="' + esc(id) + '"' + (id === bedId ? ' selected' : '') + '>' + esc(typeof item === 'string' ? item : item.name || item.code || item.id) + '</option>'; }).join('');
         return '<div class="rh-contract-field"><label for="contractRoom">Phòng</label><select id="contractRoom">' + roomOptions + '</select></div><div class="rh-contract-field"><label for="contractBed">Giường</label><select id="contractBed">' + bedOptions + '</select></div>';
     }
     function fileMarkup(files) { return (files || []).map(function (file, index) { return '<div data-existing-file="' + index + '" style="color:#536275;font-size:.78rem;padding:.25rem 0;">' + esc(file.name || 'Tệp hợp đồng') + '</div>'; }).join(''); }
@@ -335,24 +543,37 @@
                 (meterType ? '<span class="rh-contract-meter-type">Công tơ ' + (meterType === 'water' ? 'nước' : 'điện') + '</span>' : '<span></span>') + '</div>';
         }).join('');
         var types = [];
-        services.forEach(function (service) { var policy = RHD.utilityPolicy(service); if (policy.metered) { var type = policy.meterType || (service.feeType === 'water' ? 'water' : 'electricity'); if (types.indexOf(type) === -1) types.push(type); } });
+        services.forEach(function (service) {
+            if (selectedIds.indexOf(service.id) === -1) return;
+            var policy = RHD.utilityPolicy(service);
+            if (policy.metered) { var type = policy.meterType || (service.feeType === 'water' ? 'water' : 'electricity'); if (types.indexOf(type) === -1) types.push(type); }
+        });
         var meterRows = types.map(function (type) {
             var records = util.scoped('meters').filter(function (meter) { return meter.apartmentId === (apartment && apartment.id) && meter.meterType === type && meter.meterCode; });
             var meters = [];
             records.forEach(function (meter) { if (!meters.some(function (item) { return item.meterCode === meter.meterCode; })) meters.push(meter); });
-            var assignment = (assignments || []).filter(function (item) { return item.meterType === type; })[0] || {};
+            var assignment = (assignments || []).filter(function (item) { return item.meterType === type && meters.some(function (meter) { return meter.meterCode === item.meterCode; }); })[0] || {};
             var meterSelect = meters.length > 1
                 ? '<select data-meter-choice="' + type + '">' + meters.map(function (meter) { return '<option value="' + esc(meter.meterCode) + '"' + (assignment.meterCode === meter.meterCode ? ' selected' : '') + '>' + esc(meter.meterCode) + '</option>'; }).join('') + '</select>'
                 : '<span>' + esc(meters[0] && meters[0].meterCode || 'Chưa khai báo công tơ') + '</span>';
+            var meterCode = assignment.meterCode || meters[0] && meters[0].meterCode || '';
             var initial = assignment.initialIndex;
             if (initial == null && meters.length === 1) initial = meters[0].latestIndex;
-            return '<div class="rh-contract-meter-row"><strong>' + (type === 'water' ? 'Công tơ nước' : 'Công tơ điện') + '</strong>' + meterSelect + '<label>Chỉ số đầu <input type="number" min="0" step="any" data-meter-initial="' + type + '" value="' + esc(initial == null ? '' : initial) + '" placeholder="Nhập chỉ số đầu"></label></div>';
+            return '<div class="rh-contract-meter-row"><strong>' + (type === 'water' ? 'Công tơ nước' : 'Công tơ điện') + '</strong>' + meterSelect + '<label>Chỉ số đầu <input type="number" min="0" step="any" data-meter-initial="' + type + '" data-meter-code="' + esc(meterCode) + '" value="' + esc(initial == null ? '' : initial) + '" placeholder="Nhập chỉ số đầu" required></label></div>';
         }).join('');
         return '<div class="rh-contract-service-list">' + (rows || '<p>Tòa nhà chưa có dịch vụ áp dụng.</p>') + '</div>' + (types.length ? '<h5>Công tơ gắn với hợp đồng</h5>' + meterRows : '');
     }
 
     function wireContractForm(existing, deposit, files, meterAssignments) {
         var form = document.getElementById('contractWorkflowForm');
+        form.addEventListener('change', function (event) {
+            if (event.target.id === 'contractRoom') {
+                var apartment = RHD.get('apartments', document.getElementById('contractApartment').value);
+                var bed = document.getElementById('contractBed');
+                if (bed) bed.innerHTML = bedOptions(apartment, event.target.value, '');
+                checkSchedule();
+            } else if (event.target.id === 'contractBed') checkSchedule();
+        });
         form.addEventListener('input', function (event) {
             var input = event.target;
             if (input.matches('[data-contract-money],[data-service-price]')) {
@@ -446,7 +667,7 @@
                 var readings = util.scoped('meters').filter(function (meter) { return meter.apartmentId === (apartment && apartment.id) && meter.meterType === type && meter.meterCode; });
                 var selectedCode = choices ? choices.value : (readings[0] && readings[0].meterCode || '');
                 var meter = readings.filter(function (item) { return item.meterCode === selectedCode; })[0];
-                return { meterType: type, meterCode: selectedCode, meterId: meter && meter.id || '', initialIndex: Number(input.value) || 0 };
+                return { meterType: type, meterCode: selectedCode, meterId: meter && meter.id || '', initialIndex: input.value === '' ? null : Number(input.value) };
             });
         }
         function renderServicesInitial() { renderServices(RHD.get('buildings', document.getElementById('contractBuilding').value)); }
@@ -618,9 +839,24 @@
             checkTransfer();
         }
         form.querySelector('#moveBuilding').addEventListener('change', function () { var options = apartments.filter(function (item) { return item.buildingId === this.value; }, this); form.querySelector('#moveApartment').innerHTML = options.map(function (item) { return '<option value="' + esc(item.id) + '">' + esc(item.name) + '</option>'; }).join(''); refreshMoveDetails(); });
-        form.querySelector('#moveApartment').addEventListener('change', refreshMoveDetails); form.querySelector('#moveDate').addEventListener('change', checkTransfer);
+        form.querySelector('#moveApartment').addEventListener('change', refreshMoveDetails);
+        form.querySelector('#moveDate').addEventListener('change', checkTransfer);
+        form.querySelector('#moveRoom').addEventListener('change', function () {
+            var apartment = RHD.get('apartments', form.querySelector('#moveApartment').value);
+            form.querySelector('#moveBed').innerHTML = bedOptions(apartment, this.value, '');
+            checkTransfer();
+        });
+        form.querySelector('#moveBed').addEventListener('change', checkTransfer);
         function checkTransfer() {
-            var checked = RHLease.validateContractInput(Object.assign({}, contract, { buildingId: form.querySelector('#moveBuilding').value, apartmentId: form.querySelector('#moveApartment').value, transferDate: form.querySelector('#moveDate').value }), contract.id, 'transferred');
+            var checked = RHLease.validateContractInput(Object.assign({}, contract, {
+                buildingId: form.querySelector('#moveBuilding').value,
+                apartmentId: form.querySelector('#moveApartment').value,
+                roomId: form.querySelector('#moveRoom').value,
+                bedId: form.querySelector('#moveBed').value,
+                transferDate: form.querySelector('#moveDate').value,
+                serviceIds: Array.from(form.querySelectorAll('[data-contract-service]:checked')).map(function (item) { return item.value; }),
+                meterAssignments: collectTransferMeters(form)
+            }), contract.id, 'transferred');
             form.querySelector('#moveScheduleError').textContent = checked.ok ? '' : checked.error;
         }
     }
@@ -639,7 +875,7 @@
             var selector = form.querySelector('[data-meter-choice="' + type + '"]');
             var apartmentId = form.querySelector('#moveApartment').value;
             var meter = util.scoped('meters').filter(function (item) { return item.apartmentId === apartmentId && item.meterType === type && item.meterCode === (selector && selector.value || input.dataset.meterCode); })[0];
-            return { meterType: type, meterCode: selector && selector.value || input.dataset.meterCode || '', meterId: meter && meter.id || '', initialIndex: Number(input.value) || 0 };
+            return { meterType: type, meterCode: selector && selector.value || input.dataset.meterCode || '', meterId: meter && meter.id || '', initialIndex: input.value === '' ? null : Number(input.value) };
         }).filter(function (item) { return item.meterCode; });
     }
 
@@ -702,18 +938,18 @@
         function showStep(step) { currentStep = Math.max(0, Math.min(3, step)); panels.forEach(function (panel, index) { panel.hidden = index !== currentStep; }); steps.forEach(function (item, index) { item.classList.toggle('active', index === currentStep); }); back.disabled = currentStep === 0; next.hidden = currentStep === 3; finish.hidden = currentStep !== 3; updatePreview(); }
         function values() { return { invoiceDebt: invoiceDebt, overpayment: readMoney(root.querySelector('[name="overpayment"]').value), penalties: readMoney(root.querySelector('[name="penalties"]').value), usedRent: readMoney(root.querySelector('[name="usedRent"]').value), customerAbandoned: root.querySelector('[name="customerAbandoned"]').checked }; }
         function updatePreview() {
-            var result = RHLease.calculateSettlement(contract, values());
             var meterPeriod = root.querySelector('[name="finalMeterPeriod"]').value;
             var draftReadings = Array.from(root.querySelectorAll('[data-final-meter]')).map(function (input) {
                 var requirement = RHLease.finalMeterRequirements(contract.id, meterPeriod)[Number(input.dataset.finalMeter)];
                 return requirement ? { meterType: requirement.meterType, meterCode: requirement.meterCode, latestIndex: input.value } : null;
             }).filter(Boolean);
             var meterTotal = meterPeriod ? RHLease.calculateFinalMeterAmount(contract.id, meterPeriod, draftReadings) : { amount: 0, waitingApproval: false };
+            var result = RHLease.calculateSettlement(contract, Object.assign(values(), { finalUtilityAmount: meterTotal.amount || 0 }));
             root.querySelector('#settlementPreview').innerHTML = '<strong>' + (result.forfeited ? 'Khách bỏ cọc' : result.refundAmount > 0 ? 'Dự kiến hoàn khách: ' + money(result.refundAmount) : 'Dự kiến thu thêm: ' + money(result.amountToCollect)) + '</strong><div style="color:#718096;font-size:.78rem;margin-top:.3rem;">Điện/nước cuối: ' + money(meterTotal.amount) + (meterTotal.waitingApproval ? ' · Có chỉ số chưa duyệt' : '') + '</div>';
-        }
-        root.querySelectorAll('[data-money]').forEach(function (input) { input.addEventListener('input', function () { this.value = formatMoney(readMoney(this.value)); updatePreview(); }); });
-        root.querySelector('[name="finalMeterPeriod"]').addEventListener('change', function () { reloadFinalMeters(contract, this.value); updatePreview(); });
-        root.querySelectorAll('[data-final-meter]').forEach(function (input) { input.addEventListener('input', updatePreview); });
+            }
+            root.querySelectorAll('[data-money]').forEach(function (input) { input.addEventListener('input', function () { this.value = formatMoney(readMoney(this.value)); updatePreview(); }); });
+            root.querySelector('[name="finalMeterPeriod"]').addEventListener('change', function () { reloadFinalMeters(contract, this.value); updatePreview(); });
+            root.addEventListener('input', function (event) { if (event.target.matches('[data-final-meter]')) updatePreview(); });
         back.addEventListener('click', function () { showStep(currentStep - 1); });
         next.addEventListener('click', function () { showStep(currentStep + 1); });
         steps.forEach(function (item) { item.addEventListener('click', function () { showStep(Number(this.dataset.step)); }); });
@@ -758,101 +994,10 @@
         document.body.appendChild(item); global.setTimeout(function () { item.remove(); }, 4000);
     }
 
-    function finishImport(event) {
-        var file = event.target.files && event.target.files[0];
-        var message = document.getElementById('contractImportError');
-        if (!file) return;
-        if (!util.guard('contracts.create')) { event.target.value = ''; return; }
-        var reader = new FileReader();
-        reader.onload = function () {
-            var rows = parseCsv(String(reader.result || ''));
-            if (rows.length < 2) { message.textContent = 'Tệp chưa có dòng dữ liệu.'; return; }
-            var headers = rows.shift().map(normalizeHeader);
-            var find = function (keys) { return headers.findIndex(function (header) { return keys.indexOf(header) !== -1; }); };
-            var column = {
-                building: find(['toanha', 'building', 'buildingname']), apartment: find(['canho', 'phong', 'unit', 'apartment']),
-                customer: find(['khachhang', 'khachthue', 'tenant', 'customer']), phone: find(['sodienthoai', 'phone']),
-                start: find(['ngaybatdau', 'startdate']), end: find(['ngayketthuc', 'enddate']), rent: find(['tienthue', 'rent', 'rentprice']),
-                deposit: find(['tiencoc', 'deposit', 'depositprice']), code: find(['mahopdong', 'contractcode', 'code'])
-            };
-            if ([column.building, column.apartment, column.customer, column.start, column.end, column.rent].some(function (value) { return value < 0; })) {
-                message.textContent = 'Thiếu cột bắt buộc: Tòa nhà, Căn hộ, Khách hàng, Ngày bắt đầu, Ngày kết thúc, Tiền thuê.';
-                return;
-            }
-            var created = 0, errors = [];
-            rows.forEach(function (cells, rowIndex) {
-                var value = function (index) { return index < 0 ? '' : String(cells[index] || '').trim(); };
-                var buildingKey = value(column.building).toLowerCase();
-                var building = util.scoped('buildings').filter(function (item) { return [item.name, item.shortName, item.code].some(function (name) { return String(name || '').toLowerCase() === buildingKey; }); })[0];
-                var apartmentKey = value(column.apartment).toLowerCase();
-                var apartment = util.scoped('apartments').filter(function (item) { return item.buildingId === (building && building.id) && String(item.name || item.code || '').toLowerCase() === apartmentKey; })[0];
-                var customerKey = value(column.customer).toLowerCase(), phone = value(column.phone);
-                var customer = util.scoped('customers').filter(function (item) { return (phone && item.phone === phone) || String(item.fullName || item.name || '').toLowerCase() === customerKey; })[0];
-                if (!building || !apartment || !customer) { errors.push('Dòng ' + (rowIndex + 2) + ': không khớp tòa nhà, căn hộ hoặc khách hàng.'); return; }
-                var result = RHLease.saveContract({
-                    code: value(column.code), buildingId: building.id, apartmentId: apartment.id,
-                    customerId: customer.id, tenantIds: [customer.id], startDate: importDate(value(column.start)), endDate: importDate(value(column.end)),
-                    rentPrice: readMoney(value(column.rent)), depositPrice: readMoney(value(column.deposit)) || Number(apartment.depositPrice) || Number(apartment.rentPrice) || 0,
-                    paymentCycle: 'monthly', invoiceTemplateId: monthlyInvoiceTemplate(building), status: 'active'
-                }, null, actor());
-                if (result.ok) created++; else errors.push('Dòng ' + (rowIndex + 2) + ': ' + result.error);
-            });
-            message.textContent = 'Đã nhập ' + created + ' hợp đồng.' + (errors.length ? ' ' + errors.slice(0, 4).join(' ') : '');
-            renderContractsTab(); RHUI.renderDashboardCounts();
-        };
-        reader.readAsText(file, 'utf-8');
-        event.target.value = '';
-    }
-
-    function parseCsv(text) {
-        var rows = [], row = [], value = '', quoted = false;
-        for (var index = 0; index < text.length; index++) {
-            var character = text[index];
-            if (character === '"' && quoted && text[index + 1] === '"') { value += '"'; index++; }
-            else if (character === '"') quoted = !quoted;
-            else if (character === ',' && !quoted) { row.push(value); value = ''; }
-            else if ((character === '\n' || character === '\r') && !quoted) {
-                if (character === '\r' && text[index + 1] === '\n') index++;
-                row.push(value); value = '';
-                if (row.some(function (cell) { return String(cell).trim(); })) rows.push(row);
-                row = [];
-            } else value += character;
-        }
-        row.push(value);
-        if (row.some(function (cell) { return String(cell).trim(); })) rows.push(row);
-        return rows;
-    }
-
-    function normalizeHeader(value) {
-        return String(value || '').replace(/^\uFEFF/, '').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase().replace(/[^a-z0-9]/g, '');
-    }
-
-    function importDate(value) {
-        var text = String(value || '').trim();
-        if (/^\d{4}-\d{2}-\d{2}$/.test(text)) return text;
-        var match = text.match(/^(\d{1,2})[/.\-](\d{1,2})[/.\-](\d{4})$/);
-        return match ? match[3] + '-' + String(match[2]).padStart(2, '0') + '-' + String(match[1]).padStart(2, '0') : '';
-    }
-
     RHUI.renderContractsTab = renderContractsTab;
     RHUI.openContractForm = openContractForm;
     RHUI.deleteContract = function (id) {
         if (!util.guard('contracts.delete')) return;
         RHUI.confirmDelete('contracts', id, function () { renderContractsTab(); RHUI.renderDashboardCounts(); }, RHLease.contractDeleteBlock(id), RHLease.deleteContract);
     };
-})(window);
-
-    function finishOperation(result, message) {
-        var error = document.getElementById('contractOperationError');
-        if (!result || !result.ok) { if (error) error.textContent = result && result.error || 'Không thể lưu thao tác.'; return; }
-        RHUI.closeDrawer(); renderContractsTab(); RHUI.renderApartmentsTab(); RHUI.renderDashboardCounts(); notify(message);
-    }
-
-    RHUI.renderContractsTab = renderContractsTab;
-    RHUI.openContractForm = openContractForm;
-    RHUI.deleteContract = function (id) {
-        if (!util.guard('contracts.delete')) return;
-        RHUI.confirmDelete('contracts', id, function () { renderContractsTab(); RHUI.renderDashboardCounts(); }, RHLease.contractDeleteBlock(id), RHLease.deleteContract);
-    };
-    RHUI.openDepositPicker = openDepositPicker;
 })(window);

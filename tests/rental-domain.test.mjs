@@ -13,6 +13,7 @@ const managerSource = readFileSync(resolve(root, 'manager-modules.js'), 'utf8');
 const depositsModuleSource = readFileSync(resolve(root, 'deposits-module.js'), 'utf8');
 const contractsModuleSource = readFileSync(resolve(root, 'contracts-module.js'), 'utf8');
 const dashboardSource = readFileSync(resolve(root, 'dashboard.html'), 'utf8');
+const meterServiceSource = readFileSync(resolve(root, 'src/meter-reading/meterService.ts'), 'utf8');
 
 function setup() {
     const values = new Map();
@@ -70,6 +71,22 @@ test('creates a uniquely coded holding deposit, calculates balances, and records
     assert.equal(second.ok, false, 'only one holding deposit may reserve a space');
 });
 
+test('defaults holding deposit to one rent month and allows changing the deposit amount', () => {
+    const env = setup();
+    const input = depositInput(env);
+    delete input.depositMonths;
+    delete input.depositFullAmount;
+    const created = env.RHLease.createDeposit(input);
+    assert.equal(created.ok, true);
+    assert.equal(created.item.depositMonths, 1);
+    assert.equal(created.item.depositFullAmount, env.apartment.rentPrice);
+
+    const updated = env.RHLease.updateDeposit(created.item.id, { depositFullAmount: 2500000 });
+    assert.equal(updated.ok, true);
+    assert.equal(updated.item.depositMonths, 1);
+    assert.equal(updated.item.depositFullAmount, 2500000);
+});
+
 test('blocks inclusive schedule overlap with a contract and names the conflicting code', () => {
     const env = setup();
     env.RHD.create('contracts', {
@@ -77,6 +94,20 @@ test('blocks inclusive schedule overlap with a contract and names the conflictin
         customerId: env.customer.id, tenantIds: [env.customer.id], startDate: '2026-10-01', endDate: '2026-11-01', status: 'active'
     });
     const result = env.RHLease.createDeposit(depositInput(env));
+    assert.equal(result.ok, false);
+    assert.match(result.error, /CT1-501-2026-001/);
+});
+
+test('blocks creating a contract over CT1-501-2026-001 and names the conflicting contract', () => {
+    const env = setup();
+    env.RHD.create('contracts', {
+        id: 'contract-existing-501', code: 'CT1-501-2026-001', buildingId: env.building.id, apartmentId: env.apartment.id,
+        customerId: env.customer.id, tenantIds: [env.customer.id], startDate: '2026-10-01', endDate: '2026-10-31', status: 'active'
+    });
+    const result = env.RHLease.saveContract({
+        buildingId: env.building.id, apartmentId: env.apartment.id, customerId: env.customer.id,
+        startDate: '2026-10-14', endDate: '2027-10-13', rentPrice: env.apartment.rentPrice
+    });
     assert.equal(result.ok, false);
     assert.match(result.error, /CT1-501-2026-001/);
 });
@@ -103,6 +134,31 @@ test('enforces deposit amount, cancellation reason and refund ceiling with immut
     assert.equal(cancelled.item.cancellation.deductionAmount, 500000);
     assert.deepEqual(Array.from(env.RHLease.listDepositTransactions(created.item.id), item => item.type), ['receive', 'refund', 'deduction']);
     assert.equal(env.RHLease.updateDeposit(created.item.id, { note: 'sửa' }).ok, false);
+});
+
+test('partial-refund cancellation and zero-refund forfeiture record complete transaction history', () => {
+    const env = setup();
+    const partialApartment = env.RHD.create('apartments', {
+        id: 'apartment-partial-refund', buildingId: env.building.id, name: '502', rentPrice: 2000000, status: 'vacant'
+    }).item;
+    const zeroApartment = env.RHD.create('apartments', {
+        id: 'apartment-zero-refund', buildingId: env.building.id, name: '503', rentPrice: 2000000, status: 'vacant'
+    }).item;
+    const partialDeposit = env.RHLease.createDeposit(depositInput(env, { apartmentId: partialApartment.id })).item;
+    const partial = env.RHLease.cancelDeposit(partialDeposit.id, { refundAmount: 500000, reason: 'Khách hủy' });
+    assert.equal(partial.ok, true);
+    assert.equal(partial.item.status, 'cancelled');
+    assert.deepEqual(Array.from(env.RHLease.listDepositTransactions(partialDeposit.id), tx => [tx.type, tx.amount]), [
+        ['receive', 1500000], ['refund', 500000], ['deduction', 1000000]
+    ]);
+
+    const zeroDeposit = env.RHLease.createDeposit(depositInput(env, { apartmentId: zeroApartment.id })).item;
+    const zero = env.RHLease.cancelDeposit(zeroDeposit.id, { refundAmount: 0, reason: 'Khách bỏ cọc' });
+    assert.equal(zero.ok, true);
+    assert.equal(zero.item.status, 'forfeited');
+    assert.deepEqual(Array.from(env.RHLease.listDepositTransactions(zeroDeposit.id), tx => [tx.type, tx.amount]), [
+        ['receive', 1500000], ['deduction', 1500000]
+    ]);
 });
 
 test('derives customer residence and apartment occupancy from active contract/deposit', () => {
@@ -344,6 +400,29 @@ test('contract workflow module replaces the legacy renderer with exclusive statu
     });
 });
 
+test('contract workflow module parses as valid JavaScript', () => {
+    assert.doesNotThrow(() => new vm.Script(contractsModuleSource, { filename: 'contracts-module.js' }));
+});
+
+test('contract workflow restores spaced responsive list and form styling', () => {
+    assert.match(contractsModuleSource, /rh-contracts-module/);
+    assert.ok(contractsModuleSource.includes('#contracts-tab .rh-contract-tabs{display:flex'));
+    assert.ok(contractsModuleSource.includes('#contracts-tab .rh-contract-list{display:grid;gap:.6rem}'));
+    assert.ok(contractsModuleSource.includes('#rhDrawerBody .rh-contract-form-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));'));
+    assert.ok(contractsModuleSource.includes('@media(max-width:640px)'));
+    assert.ok(contractsModuleSource.includes('#rhDrawerBody .rh-contract-form-grid{grid-template-columns:minmax(0,1fr)}'));
+});
+
+test('contract form imports Excel workbooks, previews full settlement costs, and scopes meter history', () => {
+    assert.match(contractsModuleSource, /accept="\.xlsx,\.csv/);
+    assert.match(contractsModuleSource, /async function readXlsxRows/);
+    assert.match(contractsModuleSource, /finalUtilityAmount: meterTotal\.amount/);
+    assert.match(contractsModuleSource, /root\.addEventListener\('input', function \(event\) \{ if \(event\.target\.matches\('\[data-final-meter\]'\)\)/);
+    assert.ok(contractsModuleSource.includes("!/đặt cọc|deposit/i.test((template.name || '') + ' ' + (template.category || ''))"));
+    assert.match(contractsModuleSource, /if \(selectedIds\.indexOf\(service\.id\) === -1\) return;/);
+    assert.match(meterServiceSource, /!assignment \|\| r\.meterCode === assignment\.meterCode/);
+});
+
 test('calculates deposit full amount and returns field-scoped validation errors', () => {
     const env = setup();
     assert.equal(env.RHLease.calculateDepositFull(2000000, 1), 2000000);
@@ -376,6 +455,35 @@ test('contract alert categories are exclusive and honor the requested priority',
     assert.equal(env.RHLease.contractAlertStatus({ status: 'active', endDate: '2026-11-01', expectedMoveOutDate: '2026-10-01' }, asOf, 30), 'moving');
     assert.equal(env.RHLease.contractAlertStatus({ status: 'active', endDate: '2026-10-30' }, asOf, 30), 'expiring');
     assert.equal(env.RHLease.contractAlertStatus({ status: 'active', endDate: '2027-02-01' }, asOf, 30), 'renting');
+});
+
+test('14 October 2026 acceptance status: expired CT1-502-2025-002 is overdue and preserves move-out notice', () => {
+    const env = setup();
+    const contract = env.RHD.create('contracts', {
+        id: 'contract-expired-502', code: 'CT1-502-2025-002', buildingId: env.building.id, apartmentId: env.apartment.id,
+        customerId: env.customer.id, tenantIds: [env.customer.id], startDate: '2025-01-01', endDate: '2025-12-31', status: 'active'
+    }).item;
+    const asOf = '2026-10-14';
+    assert.equal(env.RHLease.contractAlertStatus(contract, asOf, 30), 'overdue');
+
+    const registered = env.RHLease.registerMoveOut(contract.id, '2025-12-30', { actorName: 'Quản lý' });
+    assert.equal(registered.ok, true);
+    assert.equal(registered.item.expectedMoveOutDate, '2025-12-30');
+    assert.equal(env.RHLease.contractAlertStatus(registered.item, asOf, 30), 'overdue');
+});
+
+test('customer Nguyễn Thị Hoa residence resolves to building CT1 and apartment 501', () => {
+    const env = setup();
+    env.RHD.create('contracts', {
+        id: 'contract-hoa-501', code: 'CT1-501-2026-001', buildingId: env.building.id, apartmentId: env.apartment.id,
+        customerId: env.customer.id, tenantIds: [env.customer.id], startDate: '2026-10-01', endDate: '2027-09-30', status: 'active'
+    });
+    const residence = env.RHLease.currentResidence(env.customer.id, '2026-10-14');
+    assert.equal(env.customer.fullName, 'Nguyễn Thị Hoa');
+    assert.equal(residence.contract.code, 'CT1-501-2026-001');
+    assert.equal(residence.buildingId, env.building.id);
+    assert.equal(residence.apartmentId, env.apartment.id);
+    assert.equal(env.RHD.get('apartments', residence.apartmentId).name, '501');
 });
 
 test('renewal, transfer, assignment, and move-out actions retain a dated contract history', () => {
@@ -466,6 +574,9 @@ test('contract meter utilities require an existing apartment meter and initial i
     assert.ok(missing.fieldErrors.meterAssignments);
     const valid = env.RHLease.validateContractInput(Object.assign({}, contractData, { meterAssignments: [{ meterType: 'electricity', meterCode: meter.meterCode, initialIndex: 60 }] }));
     assert.equal(valid.ok, true);
+    const blankInitialIndex = env.RHLease.validateContractInput(Object.assign({}, contractData, { meterAssignments: [{ meterType: 'electricity', meterCode: meter.meterCode, initialIndex: '' }] }));
+    assert.equal(blankInitialIndex.ok, false);
+    assert.ok(blankInitialIndex.fieldErrors.meterAssignments);
 });
 
 test('monthly billing reads the meter assigned to the contract', () => {

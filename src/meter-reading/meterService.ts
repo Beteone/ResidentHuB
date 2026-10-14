@@ -101,13 +101,15 @@ export const meterService = {
 
     /** Latest reading of a meter strictly before `periodMonth` (its "Chỉ số trước"). */
     previousReading(records: MeterRecord[], apartmentId: string, kind: MeterKind, periodMonth: MonthKey): MeterRecord | null {
+        const contract = window.RHD.activeContractFor?.(apartmentId);
+        const assignment = contract?.meterAssignments?.find(meter => meter.meterType === KIND_META[kind].stored);
         const previous = records
-            .filter(r => r.apartmentId === apartmentId && r.kind === kind && (!r.periodMonth || r.periodMonth < periodMonth))
+            .filter(r => r.apartmentId === apartmentId && r.kind === kind &&
+                (!assignment || r.meterCode === assignment.meterCode) &&
+                (!r.periodMonth || r.periodMonth < periodMonth))
             .sort((a, b) => b.periodMonth.localeCompare(a.periodMonth) || b.recordedAt - a.recordedAt)[0];
         if (previous) return previous;
 
-        const contract = window.RHD.activeContractFor?.(apartmentId);
-        const assignment = contract?.meterAssignments?.find(meter => meter.meterType === KIND_META[kind].stored);
         if (!assignment) return null;
         const initialIndex = num(assignment.initialIndex);
         return {

@@ -443,7 +443,8 @@
         var assignments = data.meterAssignments || [];
         var missingMeterType = Object.keys(meterTypes).filter(function (type) {
             var assignment = assignments.filter(function (item) { return item.meterType === type && item.meterCode; })[0];
-            return !assignment || !Number.isFinite(Number(assignment.initialIndex)) || Number(assignment.initialIndex) < 0 ||
+            return !assignment || assignment.initialIndex == null || assignment.initialIndex === '' ||
+                !Number.isFinite(Number(assignment.initialIndex)) || Number(assignment.initialIndex) < 0 ||
                 !global.RHD.list('meters').some(function (meter) { return meter.apartmentId === data.apartmentId && meter.meterType === type && meter.meterCode === assignment.meterCode; });
         })[0];
         if (missingMeterType) return { ok: false, error: 'Cần gắn công tơ đã khai báo ' + (missingMeterType === 'water' ? 'nước' : 'điện') + ' và nhập chỉ số đầu.', fieldErrors: { meterAssignments: 'Chọn công tơ hiện có và nhập chỉ số đầu hợp lệ.' } };

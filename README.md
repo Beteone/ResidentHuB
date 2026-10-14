@@ -28,3 +28,9 @@ npm run dev        # build lại tự động khi sửa file trong src/
 - Quy trình: `draft` (Bản nháp) → `approved` (Đã duyệt) → `unpaid`/`sent` (Đã phát hành) → `paid`/`overdue`. Hóa đơn đã phát hành chỉ được **điều chỉnh** (hóa đơn điều chỉnh liên kết) hoặc **hủy** (có lý do). Cư dân và Bảng tin chỉ thấy hóa đơn đã phát hành (`RHD.isIssuedInvoice`).
 - Chống trùng: mỗi kỳ tự động có khóa `contractId|YYYY-MM|monthly` lưu trong `billingRuns`. Chạy lại bao nhiêu lần cũng không tạo trùng.
 - Lịch chạy: dự án chưa có backend (dữ liệu nằm ở localStorage), nên `RHB.run()` chạy khi trang Quản lý mở, mỗi giờ, và khi bấm nút ✨ trên trang Hóa đơn. Engine tự **chạy bù** mọi kỳ đã qua ngày tính tiền. Khi có backend, chỉ cần gọi `RHB.run({ today })` từ cron.
+
+## Hợp đồng và đặt cọc
+
+- Danh sách hợp đồng phân trạng thái độc quyền theo thứ tự ưu tiên: thanh lý/bỏ cọc, quá hạn, sắp chuyển đi, sắp hết hạn, đang thuê. Các thao tác vòng đời lưu lịch sử và kiểm tra trùng lịch qua `rental-domain.js`.
+- Nhập hợp đồng hỗ trợ tệp Excel `.xlsx` (đọc trang tính đầu tiên) và `.csv` UTF-8 xuất từ Excel. Các cột bắt buộc: Tòa nhà, Căn hộ, Khách hàng, Ngày bắt đầu, Ngày kết thúc, Tiền thuê; có thể thêm Số điện thoại, Tiền cọc và Mã hợp đồng.
+- Dịch vụ điện/nước dùng công tơ đã khai báo cho căn hộ. Chỉ số đầu hợp đồng là chỉ số trước cho kỳ ghi đầu tiên; chỉ số cuối khi thanh lý vẫn phải qua quy trình chốt và duyệt thông thường.
