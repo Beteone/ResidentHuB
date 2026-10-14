@@ -12,7 +12,8 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'supportRequests'];
+    // billingRuns = ledger of automatically generated invoice periods (billing.js).
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'cashflows', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -25,7 +26,10 @@
         contracts: 6,
         deposits: 12,
         depositTransactions: 24,
-        invoices: 10
+        invoices: 10,
+        cashflows: 30,
+        assets: 15,
+        assetTypes: 20
     };
 
     var DEMO_LIMIT_LABELS = {
@@ -36,7 +40,10 @@
         contracts: 'hợp đồng',
         deposits: 'đặt cọc',
         depositTransactions: 'giao dịch cọc',
-        invoices: 'hóa đơn'
+        invoices: 'hóa đơn',
+        cashflows: 'phiếu thu chi',
+        assets: 'tài sản',
+        assetTypes: 'loại tài sản'
     };
 
     var FEE_TYPES = [
@@ -70,18 +77,38 @@
 
     var VEHICLE_TYPES = ['Ô tô', 'Ô tô điện', 'Xe máy', 'Xe máy điện', 'Xe đạp'];
 
+    // Tình trạng tài sản (Tài sản module).
+    var ASSET_CONDITIONS = [
+        { id: 'new', label: 'Mới', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'in_use', label: 'Đang sử dụng', color: '#18a878', bg: '#e6f8ef' },
+        { id: 'repair', label: 'Cần sửa chữa', color: '#a5680c', bg: '#fff4df' },
+        { id: 'broken', label: 'Hỏng', color: '#ef4444', bg: '#fee2e2' },
+        { id: 'disposed', label: 'Đã thanh lý', color: '#61708a', bg: '#f1f5f9' }
+    ];
+
     var PAYMENT_CYCLES = [
         { id: 'monthly', label: 'Hàng tháng' },
         { id: 'quarterly', label: 'Hàng quý' },
         { id: 'yearly', label: 'Hàng năm' }
     ];
 
+    // draft/approved = not issued yet (manager only); cancelled = voided after issue.
+    // Only ISSUED_INVOICE_STATUSES are shown to residents and counted on the Dashboard.
     var INVOICE_STATUSES = [
+        { id: 'draft', label: 'Bản nháp', color: '#61708a', bg: '#f1f5f9' },
+        { id: 'approved', label: 'Đã duyệt', color: '#7c3aed', bg: '#f3e8ff' },
         { id: 'unpaid', label: 'Chưa thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'sent', label: 'Đã gửi', color: '#0d65d5', bg: '#eaf3ff' },
         { id: 'paid', label: 'Đã thanh toán', color: '#18a878', bg: '#e6f8ef' },
-        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
+        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' },
+        { id: 'cancelled', label: 'Đã hủy', color: '#94a3b8', bg: '#f1f5f9' }
     ];
+    var ISSUED_INVOICE_STATUSES = ['unpaid', 'sent', 'paid', 'overdue'];
+
+    // Invoices without a status predate the draft workflow and were issued on save.
+    function isIssuedInvoice(inv) {
+        return !!inv && ISSUED_INVOICE_STATUSES.indexOf(inv.status || 'unpaid') !== -1;
+    }
 
     // Canonical status vocabulary shared by both roles: manager's Yêu cầu hỗ trợ tab
     // uses these ids directly; resident-web.html maps its own legacy status words
@@ -163,6 +190,7 @@
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
         writeAll(entity, items);
+        if (entity === 'meters' && global.RHB) global.RHB.meterChanged(record);
         return { ok: true, item: record };
     }
 
@@ -171,8 +199,10 @@
         var idx = -1;
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
+        var before = items[idx];
         items[idx] = Object.assign({}, items[idx], patch, { id: items[idx].id, createdAt: items[idx].createdAt });
         writeAll(entity, items);
+        if (entity === 'meters' && global.RHB) { global.RHB.meterChanged(before); global.RHB.meterChanged(items[idx]); }
         return { ok: true, item: items[idx] };
     }
 
@@ -181,6 +211,7 @@
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
+        if (entity === 'meters' && global.RHB) global.RHB.meterChanged(items.filter(function (r) { return r.id === id; })[0]);
         return { ok: true };
     }
 
@@ -214,6 +245,53 @@
         var readings = readAll('meters').filter(function (m) { return m.apartmentId === apartmentId && m.meterType === meterType; });
         readings.sort(function (a, b) { return b.createdAt - a.createdAt; });
         return readings[0] || null;
+    }
+
+    function assetsOf(field, id) {
+        return readAll('assets').filter(function (a) { return a[field] === id; });
+    }
+
+    // ---- relationship resolvers ---------------------------------------------
+    // Building.managerId -> staff login account (auth.js users). Only the id is
+    // stored on the building; name/email/phone are always resolved from here.
+    // Demo Mode never reads real accounts: its only "staff" is the demo session
+    // itself (RH_SESSION set by dashboard.html), so the picker still works there.
+    function managerAccounts() {
+        if (mode() === 'demo') {
+            var s = global.RH_SESSION;
+            return s && s.demo ? [{ id: s.id, name: s.name, email: s.email || '', phone: '', role: 'manager', status: 'active' }] : [];
+        }
+        if (!global.RH) return [];
+        return global.RH.getUsers().filter(function (u) { return u.role === 'manager'; });
+    }
+
+    // Accounts that may be picked as a building's manager: staff whose account
+    // type grants "buildings.assignable" (permissions.js). Resolution of an
+    // existing managerId still uses managerAccounts(), so a past assignment
+    // keeps showing even if that permission is later removed.
+    function eligibleManagers() {
+        if (mode() === 'demo' || !global.RHP) return managerAccounts();
+        return global.RHP.eligibleManagers();
+    }
+
+    function buildingManager(building) {
+        if (!building || !building.managerId) return null;
+        return managerAccounts().filter(function (u) { return u.id === building.managerId; })[0] || null;
+    }
+
+    // Resident Profile (customer) -> its contracts, and through the newest
+    // non-ended one the Apartment and Building. Customers carry no copy of
+    // apartment/building data, so this is the single place that walks the links.
+    function residentPlacement(customerId) {
+        var customer = customerId ? get('customers', customerId) : null;
+        if (!customer) return null;
+        var contracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id; })
+            .sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var active = contracts.filter(function (c) { return c.status !== 'ended'; })[0] || null;
+        var ref = active || contracts[0] || null;
+        var apartment = ref ? get('apartments', ref.apartmentId) : null;
+        var building = apartment ? get('buildings', apartment.buildingId) : (ref ? get('buildings', ref.buildingId) : null);
+        return { customer: customer, contracts: contracts, contract: active, lastContract: ref, apartment: apartment, building: building };
     }
 
     function findApartmentByUnit(unitText) {
@@ -380,6 +458,7 @@
     }
 
     function invoiceVisibleToResident(inv) {
+        if (!isIssuedInvoice(inv)) return false; // drafts / approved / cancelled stay internal
         return !getSettings().invoiceRequireSend || inv.status !== 'unpaid';
     }
 
@@ -413,6 +492,8 @@
     // Everything the Dashboard shows, computed from the entity stores on every
     // call (optionally scoped to one building). Nothing is cached or stored, so
     // records added in any module show up automatically.
+    // buildingId: '' / null = all buildings, a single id, or an array of ids
+    // (the signed-in user's building scope, see permissions.js).
     function dashboardStats(buildingId) {
         var settings = getSettings();
         var now = new Date();
@@ -421,12 +502,13 @@
         var prevMonth = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
         var soon = new Date(); soon.setDate(soon.getDate() + settings.contractExpiringDays);
         var soonStr = isoDate(soon);
-        var inScope = function (r) { return !buildingId || r.buildingId === buildingId; };
+        var scopeIds = Array.isArray(buildingId) ? buildingId : (buildingId ? [buildingId] : null);
+        var inScope = function (r) { return !scopeIds || scopeIds.indexOf(r.buildingId) !== -1; };
 
-        var buildings = readAll('buildings').filter(function (b) { return !buildingId || b.id === buildingId; });
+        var buildings = readAll('buildings').filter(function (b) { return !scopeIds || scopeIds.indexOf(b.id) !== -1; });
         var apartments = readAll('apartments').filter(inScope);
         var contracts = readAll('contracts').filter(inScope);
-        var invoices = readAll('invoices').filter(inScope);
+        var invoices = readAll('invoices').filter(function (i) { return inScope(i) && isIssuedInvoice(i); });
         var requests = readAll('supportRequests').filter(inScope);
         var meters = readAll('meters').filter(inScope);
         var allCustomers = readAll('customers');
@@ -434,7 +516,7 @@
         contracts.forEach(function (c) {
             (c.tenantIds || [c.customerId]).forEach(function (id) { if (id) customerIdsInBuilding[id] = true; });
         });
-        var customers = buildingId ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
+        var customers = scopeIds ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
         var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
 
         // Apartments by status
@@ -506,7 +588,7 @@
         var topAssignee = topBy(openRequests, function (r) { return r.assignee; });
 
         return {
-            buildingId: buildingId || '',
+            buildingId: Array.isArray(buildingId) ? '' : (buildingId || ''),
             buildings: buildings.length,
             apartments: apartments,
             aptStatus: aptStatus,
@@ -580,10 +662,28 @@
         return buildingTag + '-' + aptTag + '-' + year + '-' + pad(seq, 3);
     }
 
+    // Max-based (not count-based) so deleting a draft never reissues an existing code.
     function nextInvoiceCode() {
         var year = new Date().getFullYear();
-        var seq = readAll('invoices').length + 1;
-        return 'HD' + year + '-' + pad(seq, 4);
+        var prefix = 'HD' + year + '-';
+        var max = 0;
+        readAll('invoices').forEach(function (inv) {
+            var code = String(inv.code || '');
+            if (code.indexOf(prefix) === 0) {
+                var n = parseInt(code.slice(prefix.length), 10);
+                if (n > max) max = n;
+            }
+        });
+        return prefix + pad(max + 1, 4);
+    }
+
+    function nextAssetCode() {
+        var max = 0;
+        readAll('assets').forEach(function (a) {
+            var n = parseInt(String(a.code || '').replace(/\D/g, ''), 10);
+            if (n > max) max = n;
+        });
+        return 'TS' + pad(max + 1, 4);
     }
 
     function nextSupportCode() {
@@ -597,13 +697,26 @@
     // when the service is billed 'meter'-style (electricity/water) and a
     // generic quantity for the other calc methods. This is a pitch-ready
     // approximation, not a full billing engine.
+    // Electricity/water entered with the default "fixed" method is ambiguous.
+    // Only an explicit package label/flag permits billing it without a meter.
+    function utilityPolicy(service) {
+        var label = String(service.name || '').toLowerCase();
+        var type = service.feeType === 'water' || service.feeType === 'electricity' ? service.feeType :
+            (/^(tiền\s+)?nước\b|m³|m3/i.test(label) ? 'water' : /^(tiền\s+)?điện\b|kwh/i.test(label) ? 'electricity' : null);
+        var packageFee = service.calcMethod === 'fixed' && (service.billingMode === 'flat' || service.flatRate === true || /trọn gói|tron goi/i.test(label));
+        return { meterType: type, metered: service.calcMethod === 'meter' || (!!type && !packageFee), packageFee: packageFee };
+    }
+
     function calcServiceAmount(service, ctx) {
         ctx = ctx || {};
         var unitPrice = Number(service.unitPrice) || 0;
         var qty = 1;
-        if (service.calcMethod === 'meter') {
+        if (utilityPolicy(service).metered) {
             var reading = ctx.meterReading;
-            qty = reading ? Number(reading.consumption) || 0 : 0;
+            var approved = reading && (reading.approvalStatus ? reading.approvalStatus === 'đã_duyệt' : reading.status === 'đã_chốt');
+            var valid = reading && reading.latestIndex !== '' && reading.latestIndex != null && reading.previousIndex !== '' && reading.previousIndex != null && isFinite(Number(reading.latestIndex)) && isFinite(Number(reading.previousIndex)) && Number(reading.latestIndex) >= Number(reading.previousIndex);
+            var matching = reading && (!ctx.readingPeriod || (reading.readingPeriod || reading.periodMonth) === ctx.readingPeriod);
+            qty = approved && valid && matching ? Number(reading.latestIndex) - Number(reading.previousIndex) : 0;
         } else if (service.calcMethod === 'quantity' || service.calcMethod === 'person') {
             qty = ctx.quantity != null ? Number(ctx.quantity) : 1;
         } else {
@@ -625,6 +738,11 @@
             var building = {
                 id: genId('building'), code: 'TN0001', name: 'Chung cư Riverside Residence', shortName: 'CT1',
                 province: 'Thái Nguyên', ward: 'Phường Tích Lương', addressDetail: 'Tổ 14',
+                // The demo dataset's only staff account is the demo session (see managerAccounts).
+                managerId: 'demo',
+                // Auto-billing on: the demo shows a generated draft flagged for review
+                // (the seeded September readings are closed but not approved yet).
+                active: true, billingDay: 5, autoInvoice: true, autoInvoiceFrom: isoDate(new Date()).slice(0, 7), meterPeriod: 'previous',
                 services: [
                     { id: genId('svc'), name: 'Tiền thuê nhà', feeType: 'rent', calcMethod: 'fixed', unitPrice: 0, taxRate: 0 },
                     { id: genId('svc'), name: 'Tiền điện', feeType: 'electricity', calcMethod: 'meter', unitPrice: 3800, taxRate: 8 },
@@ -662,6 +780,8 @@
                 startDate: '2026-01-01', endDate: '2026-12-31', signDate: '2025-12-28',
                 contractTemplateId: building.contractTemplateId, invoiceTemplateId: building.invoiceTemplateId,
                 rentPrice: apt1.rentPrice, depositPrice: apt1.depositPrice, paymentCycle: 'monthly',
+                // Services billed monthly with the rent (electricity/water from approved readings).
+                serviceIds: building.services.filter(function (s) { return s.feeType !== 'rent' && s.feeType !== 'deposit'; }).map(function (s) { return s.id; }), serviceOverrides: {},
                 referrer: '', collaborator: 'Trần Văn Bình', note: '', files: [], status: 'active', createdAt: Date.now()
             };
             writeAll('contracts', [contract1]);
@@ -676,8 +796,8 @@
             var rentLine = { qty: 1, unitPrice: apt1.rentPrice, amount: apt1.rentPrice, tax: 0, total: apt1.rentPrice };
             var items = [
                 { serviceId: building.services[0].id, label: 'Tiền thuê nhà', qty: 1, unitPrice: rentLine.unitPrice, amount: rentLine.amount, tax: rentLine.tax },
-                { serviceId: elecSvc.id, label: 'Tiền điện (' + elecLine.qty + ' kWh)', qty: elecLine.qty, unitPrice: elecLine.unitPrice, amount: elecLine.amount, tax: elecLine.tax },
-                { serviceId: waterSvc.id, label: 'Tiền nước (' + waterLine.qty + ' m³)', qty: waterLine.qty, unitPrice: waterLine.unitPrice, amount: waterLine.amount, tax: waterLine.tax }
+                { serviceId: elecSvc.id, label: 'Tiền điện — chỉ số chưa duyệt', kind: 'meter', source: 'meter', missing: true, consumptionPeriod: '2026-09', qty: elecLine.qty, unitPrice: elecLine.unitPrice, amount: elecLine.amount, tax: elecLine.tax },
+                { serviceId: waterSvc.id, label: 'Tiền nước — chỉ số chưa duyệt', kind: 'meter', source: 'meter', missing: true, consumptionPeriod: '2026-09', qty: waterLine.qty, unitPrice: waterLine.unitPrice, amount: waterLine.amount, tax: waterLine.tax }
             ];
             var subtotal = items.reduce(function (s, it) { return s + it.amount; }, 0);
             var taxTotal = items.reduce(function (s, it) { return s + it.tax; }, 0);
@@ -686,7 +806,7 @@
                 buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id, invoiceTemplateId: contract1.invoiceTemplateId,
                 period: '2026-09', issueDate: '2026-09-30', dueDate: '2026-10-10',
                 items: items, subtotal: subtotal, tax: taxTotal, total: subtotal + taxTotal,
-                status: 'unpaid', sentAt: null, paidAt: null, createdAt: Date.now()
+                type: 'monthly', status: 'draft', issues: ['Chỉ số điện/nước kỳ 09/2026 chưa duyệt'], sentAt: null, paidAt: null, createdAt: Date.now()
             };
             writeAll('invoices', [invoice1]);
 
@@ -700,6 +820,15 @@
                 createdAt: Date.now() - 3 * 3600000, updatedAt: Date.now() - 1800000
             };
             writeAll('supportRequests', [request1]);
+
+            var assetTypes = ['Bàn ghế', 'Tủ lạnh', 'Điều hòa', 'Máy giặt', 'Giường', 'Tủ quần áo'].map(function (name) {
+                return { id: genId('assetType'), name: name, createdAt: Date.now() };
+            });
+            writeAll('assetTypes', assetTypes);
+            writeAll('assets', [
+                { id: genId('asset'), code: 'TS0001', name: 'Điều hòa phòng khách', typeId: assetTypes[2].id, brand: 'Daikin', color: 'Trắng', model: '2024', origin: 'Thái Lan', value: 8500000, quantity: 1, condition: 'repair', warrantyUntil: '2027-06-30', supplier: 'Điện máy Xanh', buildingId: building.id, apartmentId: apt1.id, location: 'Phòng khách', note: 'Đang chờ kỹ thuật kiểm tra (YC-0001).', photos: [], createdAt: Date.now() },
+                { id: genId('asset'), code: 'TS0002', name: 'Tủ lạnh', typeId: assetTypes[1].id, brand: 'Panasonic', color: 'Bạc', model: '2025', origin: 'Việt Nam', value: 6200000, quantity: 1, condition: 'in_use', warrantyUntil: '2027-01-15', supplier: 'Điện máy Xanh', buildingId: building.id, apartmentId: apt1.id, location: 'Bếp', note: '', photos: [], createdAt: Date.now() }
+            ]);
         } finally {
             global.RHD_MODE = prevMode;
         }
@@ -735,6 +864,7 @@
         });
         localStorage.removeItem('residenthub_demo_templates');
         localStorage.removeItem('residenthub_demo_settings');
+        localStorage.removeItem('residenthub_demo_billingMeta');
         if (global.RHT) global.RHT.seed();
         seedDataset('demo');
     }
@@ -746,8 +876,11 @@
         CALC_METHODS: CALC_METHODS,
         APARTMENT_STATUSES: APARTMENT_STATUSES,
         VEHICLE_TYPES: VEHICLE_TYPES,
+        ASSET_CONDITIONS: ASSET_CONDITIONS,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,
+        ISSUED_INVOICE_STATUSES: ISSUED_INVOICE_STATUSES,
+        isIssuedInvoice: isIssuedInvoice,
         SUPPORT_STATUSES: SUPPORT_STATUSES,
         SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
         SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,
@@ -767,6 +900,12 @@
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
         findApartmentByUnit: findApartmentByUnit,
+        managerAccounts: managerAccounts,
+        eligibleManagers: eligibleManagers,
+        assetsOf: assetsOf,
+        nextAssetCode: nextAssetCode,
+        buildingManager: buildingManager,
+        residentPlacement: residentPlacement,
         residentContext: residentContext,
         SETTINGS_DEFAULTS: SETTINGS_DEFAULTS,
         getSettings: getSettings,
@@ -781,6 +920,7 @@
         nextSupportCode: nextSupportCode,
         buildingFullAddress: buildingFullAddress,
         calcServiceAmount: calcServiceAmount,
+        utilityPolicy: utilityPolicy,
         resetDemo: resetDemo
     };
 })(window);

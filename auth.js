@@ -17,6 +17,10 @@
     var MAX_LOGIN_ATTEMPTS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000;
     var ROLES = { MANAGER: 'manager', RESIDENT: 'resident' };
+    // System account types (see permissions.js). Legacy accounts without an
+    // accountTypeId fall back to these, so existing managers keep full access.
+    var ADMIN_TYPE_ID = 'at-admin';
+    var RESIDENT_TYPE_ID = 'at-resident';
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
 
     function readDataStore() {
@@ -70,6 +74,52 @@
         return (getUserData(userId) || { requests: [] }).requests;
     }
 
+    function normalizeSupportStatus(value) {
+        var raw = String(value || '').trim().toLowerCase();
+        var aliases = {
+            waiting: 'pending',
+            'chờ xử lý': 'pending',
+            'cho xu ly': 'pending',
+            pending: 'pending',
+            processing: 'processing',
+            'đang xử lý': 'processing',
+            'dang xu ly': 'processing',
+            resolved: 'resolved',
+            completed: 'resolved',
+            'đã xử lý': 'resolved',
+            'da xu ly': 'resolved',
+            closed: 'closed',
+            'đã đóng': 'closed',
+            'da dong': 'closed'
+        };
+        if (!raw) return 'pending';
+        return aliases[raw] || raw;
+    }
+
+    function supportStatusLabel(value) {
+        var normalized = normalizeSupportStatus(value);
+        var labels = {
+            pending: 'Chờ xử lý',
+            processing: 'Đang xử lý',
+            resolved: 'Đã xử lý',
+            closed: 'Đã đóng'
+        };
+        return labels[normalized] || String(value || 'Chờ xử lý');
+    }
+
+    function supportPriorityLabel(value) {
+        var raw = String(value || '').trim().toLowerCase();
+        var labels = {
+            low: 'Thấp',
+            medium: 'Trung bình',
+            high: 'Cao',
+            normal: 'Trung bình',
+            needed: 'Cao',
+            urgent: 'Cao'
+        };
+        return labels[raw] || String(value || 'Trung bình');
+    }
+
     function getContractsForUser(userId) {
         return (getUserData(userId) || { contracts: [] }).contracts;
     }
@@ -111,20 +161,28 @@
         if (!title || !description) {
             return { ok: false, error: 'Vui lòng nhập tiêu đề và mô tả.' };
         }
+        var normalizedPriority = String((payload && payload.priority) || 'medium').toLowerCase();
+        var normalizedStatus = normalizeSupportStatus(payload && payload.status ? payload.status : 'pending');
         var result = createRecordForUser(userId, 'requests', {
             id: payload && payload.id ? payload.id : genInternalId('REQ'),
             title: title,
             type: payload && payload.type ? payload.type : 'Sửa chữa căn hộ',
             subType: payload && payload.subType ? payload.subType : '',
-            priority: payload && payload.priority ? payload.priority : 'normal',
-            status: payload && payload.status ? payload.status : 'processing',
+            priority: normalizedPriority === 'normal' || normalizedPriority === 'needed' || normalizedPriority === 'urgent' ? (normalizedPriority === 'normal' ? 'medium' : 'high') : normalizedPriority,
+            status: normalizedStatus,
+            response: payload && payload.response ? payload.response : '',
+            history: Array.isArray(payload && payload.history) ? payload.history : [{
+                actor: 'Cư dân',
+                time: new Date().toLocaleString('vi-VN'),
+                message: 'Cư dân gửi yêu cầu mới.'
+            }],
             date: payload && payload.date ? payload.date : new Date().toLocaleDateString('vi-VN'),
             time: payload && payload.time ? payload.time : new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
             description: description,
             location: payload && payload.location ? payload.location : '',
             assignee: payload && payload.assignee ? payload.assignee : 'Đang phân công',
             expected: payload && payload.expected ? payload.expected : 'Chưa xác định',
-            step: payload && payload.step ? payload.step : 2,
+            step: Number(payload && payload.step ? payload.step : 1),
             attachments: Number(payload && payload.attachments ? payload.attachments : 0),
             messages: Array.isArray(payload && payload.messages) ? payload.messages : [],
             cost: payload && payload.cost ? payload.cost : ''
@@ -202,29 +260,131 @@
         var data = readDataStore();
         var userData = data.users && data.users[userId];
         if (!userData || !Array.isArray(userData.requests)) return { ok: false, error: 'Không tìm thấy dữ liệu yêu cầu.' };
+        var requestIndex = -1;
         for (var i = 0; i < userData.requests.length; i++) {
             if (userData.requests[i].id === requestId) {
-                userData.requests[i] = Object.assign({}, userData.requests[i], patch, {
-                    updatedAt: Date.now()
-                });
-                data.users[userId] = userData;
-                writeDataStore(data);
-                if (patch && (patch.status || patch.messages || patch.assignee || patch.step)) {
-                    createNotificationForUser(userId, {
-                        type: 'REQUEST',
-                        subType: 'REQUEST_UPDATED',
-                        title: 'Yêu cầu đã được cập nhật',
-                        body: patch.status ? 'Trạng thái yêu cầu đã chuyển sang ' + patch.status + '.' : 'Ban quản lý đã phản hồi yêu cầu của bạn.',
-                        refType: 'request',
-                        refId: requestId,
-                        actionUrl: 'requests',
-                        actionLabel: 'Xem yêu cầu'
-                    });
-                }
-                return { ok: true, item: userData.requests[i] };
+                requestIndex = i;
+                break;
             }
         }
-        return { ok: false, error: 'Không tìm thấy yêu cầu.' };
+        if (requestIndex === -1) return { ok: false, error: 'Không tìm thấy yêu cầu.' };
+
+        var existing = Object.assign({}, userData.requests[requestIndex]);
+        var next = Object.assign({}, existing, patch, { updatedAt: Date.now() });
+        if (patch && patch.status) {
+            next.status = normalizeSupportStatus(patch.status);
+            if (next.step === undefined) {
+                next.step = next.status === 'pending' ? 1 : next.status === 'processing' ? 2 : next.status === 'resolved' ? 4 : 5;
+            }
+        }
+        if (patch && patch.priority) {
+            var priority = String(patch.priority).toLowerCase();
+            next.priority = priority === 'normal' ? 'medium' : (priority === 'needed' || priority === 'urgent' ? 'high' : (priority === 'low' ? 'low' : priority));
+        }
+        if (patch && patch.response && patch.response !== existing.response) {
+            var historyEntry = { actor: 'Quản lý', time: new Date().toLocaleString('vi-VN'), message: patch.response };
+            next.history = Array.isArray(existing.history) ? existing.history.concat([historyEntry]) : [historyEntry];
+        }
+        userData.requests[requestIndex] = next;
+        data.users[userId] = userData;
+        writeDataStore(data);
+        if (patch && (patch.status || patch.messages || patch.assignee || patch.step || patch.response)) {
+            createNotificationForUser(userId, {
+                type: 'REQUEST',
+                subType: 'REQUEST_UPDATED',
+                title: 'Yêu cầu đã được cập nhật',
+                body: patch.response ? patch.response : (patch.status ? 'Trạng thái yêu cầu đã chuyển sang ' + supportStatusLabel(patch.status) + '.' : 'Ban quản lý đã phản hồi yêu cầu của bạn.'),
+                refType: 'request',
+                refId: requestId,
+                actionUrl: 'requests',
+                actionLabel: 'Xem yêu cầu'
+            });
+        }
+        return { ok: true, item: next };
+    }
+
+    function getAllSupportRequests() {
+        var data = readDataStore();
+        var users = readUsers();
+        var allRequests = [];
+        Object.keys(data.users || {}).forEach(function (userId) {
+            var userData = data.users[userId] || {};
+            var requests = Array.isArray(userData.requests) ? userData.requests : [];
+            var user = users.filter(function (item) { return item.id === userId; })[0] || {};
+            requests.forEach(function (request) {
+                allRequests.push(Object.assign({}, request, {
+                    userId: userId,
+                    residentName: user.name || 'Cư dân',
+                    apartmentCode: user.unit || request.location || '—',
+                    status: normalizeSupportStatus(request.status),
+                    priority: String(request.priority || 'medium').toLowerCase() === 'normal' ? 'medium' : String(request.priority || 'medium').toLowerCase(),
+                    response: request.response || '',
+                    history: Array.isArray(request.history) ? request.history : []
+                }));
+            });
+        });
+        return allRequests.sort(function (a, b) {
+            var aTime = new Date(a.updatedAt || a.createdAt || Date.now()).getTime();
+            var bTime = new Date(b.updatedAt || b.createdAt || Date.now()).getTime();
+            return bTime - aTime;
+        });
+    }
+
+    function getSupportRequestById(requestId) {
+        var requests = getAllSupportRequests();
+        return requests.filter(function (item) { return item.id === requestId; })[0] || null;
+    }
+
+    function updateSupportRequest(requestId, patch) {
+        var data = readDataStore();
+        var requestFound = false;
+        var updated = null;
+        Object.keys(data.users || {}).forEach(function (userId) {
+            if (!data.users[userId] || !Array.isArray(data.users[userId].requests)) return;
+            for (var i = 0; i < data.users[userId].requests.length; i++) {
+                var item = data.users[userId].requests[i];
+                if (item.id !== requestId) continue;
+                requestFound = true;
+                var nextItem = Object.assign({}, item, patch, { updatedAt: Date.now() });
+                if (patch && patch.status) nextItem.status = normalizeSupportStatus(patch.status);
+                if (patch && patch.priority) {
+                    var priority = String(patch.priority).toLowerCase();
+                    nextItem.priority = priority === 'normal' ? 'medium' : (priority === 'needed' || priority === 'urgent' ? 'high' : (priority === 'low' ? 'low' : priority));
+                }
+                if (patch && patch.response && patch.response !== item.response) {
+                    var historyEntry = { actor: 'Quản lý', time: new Date().toLocaleString('vi-VN'), message: patch.response };
+                    nextItem.response = patch.response;
+                    nextItem.history = Array.isArray(item.history) ? item.history.concat([historyEntry]) : [historyEntry];
+                }
+                if (patch && patch.status && patch.status !== item.status) {
+                    var statusHistory = {
+                        actor: 'Quản lý',
+                        time: new Date().toLocaleString('vi-VN'),
+                        message: 'Trạng thái chuyển sang ' + supportStatusLabel(patch.status) + '.'
+                    };
+                    nextItem.history = Array.isArray(nextItem.history) ? nextItem.history.concat([statusHistory]) : [statusHistory];
+                }
+                data.users[userId].requests[i] = nextItem;
+                updated = nextItem;
+                break;
+            }
+        });
+        if (!requestFound) return { ok: false, error: 'Không tìm thấy yêu cầu cần cập nhật.' };
+        writeDataStore(data);
+        var userId = updated && updated.userId ? updated.userId : null;
+        if (userId) {
+            createNotificationForUser(userId, {
+                type: 'REQUEST',
+                subType: 'REQUEST_UPDATED',
+                title: 'Yêu cầu của bạn đã được cập nhật',
+                body: patch && patch.response ? patch.response : (patch && patch.status ? 'Trạng thái yêu cầu đã chuyển sang ' + supportStatusLabel(patch.status) + '.' : 'Ban quản lý đã cập nhật yêu cầu của bạn.'),
+                refType: 'request',
+                refId: requestId,
+                actionUrl: 'requests',
+                actionLabel: 'Xem chi tiết'
+            });
+        }
+        return { ok: true, item: updated };
     }
 
     function updateNotificationForUser(userId, notificationId, patch) {
@@ -351,6 +511,17 @@
         return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
     }
 
+    function normalizePhone(value) {
+        return String(value || '').replace(/[^\d+]/g, '');
+    }
+
+    // Login "portal" (which app the account opens) comes from its account type.
+    function portalOfType(typeId) {
+        var t = global.RHP ? global.RHP.getType(typeId) : null;
+        if (t) return t.portal === 'resident' ? ROLES.RESIDENT : ROLES.MANAGER;
+        return typeId === RESIDENT_TYPE_ID ? ROLES.RESIDENT : ROLES.MANAGER;
+    }
+
     function normalizeUserRecord(user) {
         if (!user || typeof user !== 'object') return null;
         var normalized = Object.assign({}, user);
@@ -363,13 +534,21 @@
         normalized.building = String(normalized.building || '').trim();
         normalized.floor = String(normalized.floor || '').trim();
         normalized.phone = String(normalized.phone || '').trim();
+        normalized.accountTypeId = String(normalized.accountTypeId || '') || (normalized.role === ROLES.RESIDENT ? RESIDENT_TYPE_ID : ADMIN_TYPE_ID);
+        normalized.department = String(normalized.department || '').trim();
+        normalized.title = String(normalized.title || '').trim();
+        normalized.employeeCode = String(normalized.employeeCode || '').trim();
+        normalized.buildingIds = Array.isArray(normalized.buildingIds) ? normalized.buildingIds.map(String) : [];
+        // Legacy accounts managed every building; new staff accounts set this explicitly.
+        normalized.allBuildings = normalized.allBuildings !== false;
         // Links a resident login account to its Resident Profile (RHD customer,
         // see data.js). Set once, at account-request approval time, and never
         // re-derived — this is the account's identity link, not a display cache.
         normalized.residentId = String(normalized.residentId || '').trim();
         normalized.avatar = normalized.avatar || '';
         normalized.status = ['inactive', 'locked'].indexOf(normalized.status) !== -1 ? normalized.status : 'active';
-        return normalized.id && normalized.email && normalized.password ? normalized : null;
+        // Staff accounts may log in by phone only (email is optional).
+        return normalized.id && (normalized.email || normalized.phone) && normalized.password ? normalized : null;
     }
 
     // Earlier builds seeded a mock resident login (u-resident-1 /
@@ -411,6 +590,7 @@
 
     function findUserByEmail(email) {
         var normalized = normalizeEmail(email);
+        if (!normalized) return null;
         var users = readUsers();
         for (var i = 0; i < users.length; i++) {
             if (normalizeEmail(users[i].email) === normalized) return users[i];
@@ -418,28 +598,52 @@
         return null;
     }
 
+    // Staff phone numbers are unique (residents may share a family phone).
+    function findStaffByPhone(phone, exceptId) {
+        var normalized = normalizePhone(phone);
+        if (!normalized) return null;
+        return readUsers().filter(function (u) {
+            return u.role === ROLES.MANAGER && u.id !== exceptId && normalizePhone(u.phone) === normalized;
+        })[0] || null;
+    }
+
     function usersForLogin(identifier) {
         var normalized = normalizeEmail(identifier);
         var name = String(identifier || '').trim().toLowerCase();
+        var phone = /^[\d\s+().-]+$/.test(String(identifier || '').trim()) ? normalizePhone(identifier) : '';
+        if (!normalized) return [];
         return readUsers().filter(function (user) {
-            return normalizeEmail(user.email) === normalized || String(user.name || '').trim().toLowerCase() === name;
+            return (user.email && normalizeEmail(user.email) === normalized) ||
+                (phone && normalizePhone(user.phone) === phone) ||
+                String(user.name || '').trim().toLowerCase() === name;
         });
+    }
+
+    function countActiveAdmins(users, exceptId) {
+        return users.filter(function (u) {
+            return u.id !== exceptId && u.role === ROLES.MANAGER && u.accountTypeId === ADMIN_TYPE_ID && u.status === 'active';
+        }).length;
     }
 
     function createUser(data) {
         var name = String(data.name || '').trim();
         var email = normalizeEmail(data.email);
+        var phone = String(data.phone || '').trim();
         var password = String(data.password || '');
-        var role = data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        var accountTypeId = data.accountTypeId ? String(data.accountTypeId) : (data.role === ROLES.RESIDENT ? RESIDENT_TYPE_ID : ADMIN_TYPE_ID);
+        var role = data.accountTypeId ? portalOfType(accountTypeId) : (data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER);
 
-        if (!name || !email || !password) {
-            return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, email và mật khẩu.' };
+        if (!name || (!email && !phone) || !password) {
+            return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, số điện thoại hoặc email và mật khẩu.' };
         }
         if (password.length < 6) {
             return { ok: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
         }
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
+        }
+        if (role === ROLES.MANAGER && findStaffByPhone(phone)) {
+            return { ok: false, error: 'Số điện thoại này đã được dùng cho một tài khoản nhân viên khác.' };
         }
 
         var user = {
@@ -448,7 +652,14 @@
             email: email,
             password: password,
             role: role,
-            status: 'active',
+            accountTypeId: accountTypeId,
+            status: data.status === 'inactive' ? 'inactive' : 'active',
+            phone: phone,
+            department: String(data.department || '').trim(),
+            title: String(data.title || '').trim(),
+            employeeCode: String(data.employeeCode || '').trim(),
+            buildingIds: Array.isArray(data.buildingIds) ? data.buildingIds.map(String) : [],
+            allBuildings: data.allBuildings !== false,
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -487,9 +698,31 @@
         }
 
         var user = users[index];
+        var nextTypeId = patch.accountTypeId !== undefined ? String(patch.accountTypeId) : user.accountTypeId;
+        var nextRole = patch.accountTypeId !== undefined ? portalOfType(nextTypeId) : user.role;
+        if (patch.accountTypeId !== undefined && nextRole !== user.role) {
+            return { ok: false, error: 'Không thể chuyển tài khoản giữa Cổng quản lý và Cổng cư dân.' };
+        }
+        if (patch.phone !== undefined && user.role === ROLES.MANAGER && findStaffByPhone(patch.phone, id)) {
+            return { ok: false, error: 'Số điện thoại này đã được dùng cho một tài khoản nhân viên khác.' };
+        }
+        var nextEmail = patch.email !== undefined ? normalizeEmail(patch.email) : user.email;
+        var nextPhone = patch.phone !== undefined ? String(patch.phone).trim() : user.phone;
+        if (!nextEmail && !nextPhone) return { ok: false, error: 'Tài khoản cần có số điện thoại hoặc email để đăng nhập.' };
+        var nextStatus = patch.status !== undefined ? (['locked', 'inactive'].indexOf(patch.status) !== -1 ? patch.status : 'active') : user.status;
+        // Never leave the system without an active Admin.
+        if (user.accountTypeId === ADMIN_TYPE_ID && user.status === 'active' && (nextTypeId !== ADMIN_TYPE_ID || nextStatus !== 'active') && countActiveAdmins(users, id) === 0) {
+            return { ok: false, error: 'Phải còn ít nhất một tài khoản Admin đang hoạt động.' };
+        }
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
-        if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        user.accountTypeId = nextTypeId;
+        user.role = nextRole;
+        if (patch.department !== undefined) user.department = String(patch.department).trim();
+        if (patch.title !== undefined) user.title = String(patch.title).trim();
+        if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode).trim();
+        if (patch.buildingIds !== undefined) user.buildingIds = (patch.buildingIds || []).map(String);
+        if (patch.allBuildings !== undefined) user.allBuildings = !!patch.allBuildings;
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
         if (patch.apartmentId !== undefined) user.apartmentId = patch.apartmentId;
         if (patch.residentId !== undefined) user.residentId = patch.residentId;
@@ -497,7 +730,7 @@
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
         if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
-        if (patch.status !== undefined) user.status = patch.status === 'locked' ? 'locked' : 'active';
+        user.status = nextStatus;
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
@@ -520,10 +753,9 @@
         if (next.length === users.length) {
             return { ok: false, error: 'Không tìm thấy tài khoản.' };
         }
-        var remainingManagers = next.filter(function (u) { return u.role === ROLES.MANAGER; });
         var removed = users.filter(function (u) { return u.id === id; })[0];
-        if (removed && removed.role === ROLES.MANAGER && remainingManagers.length === 0) {
-            return { ok: false, error: 'Phải có ít nhất một tài khoản Quản lý trong hệ thống.' };
+        if (removed && removed.accountTypeId === ADMIN_TYPE_ID && countActiveAdmins(users, id) === 0) {
+            return { ok: false, error: 'Phải còn ít nhất một tài khoản Admin đang hoạt động.' };
         }
         writeUsers(next);
         return { ok: true };
@@ -688,8 +920,11 @@
         if (!buildingId || !apartmentId) {
             return { ok: false, error: 'Vui lòng chọn tòa nhà và căn hộ.' };
         }
-        if (global.RHD && !global.RHD.get('apartments', apartmentId)) {
-            return { ok: false, error: 'Căn hộ đã chọn không hợp lệ. Vui lòng chọn lại.' };
+        if (global.RHD) {
+            var chosenApartment = global.RHD.get('apartments', apartmentId);
+            if (!global.RHD.get('buildings', buildingId) || !chosenApartment || chosenApartment.buildingId !== buildingId) {
+                return { ok: false, error: 'Căn hộ đã chọn không hợp lệ. Vui lòng chọn lại.' };
+            }
         }
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
@@ -756,6 +991,9 @@
         if (!residentId) {
             return { ok: false, error: 'Vui lòng liên kết một hồ sơ cư dân trước khi phê duyệt.' };
         }
+        if (global.RHD && !global.RHD.get('customers', residentId)) {
+            return { ok: false, error: 'Hồ sơ cư dân đã chọn không còn tồn tại. Vui lòng chọn lại.' };
+        }
         var conflictingUser = readUsers().filter(function (u) { return u.role === ROLES.RESIDENT && u.residentId === residentId; })[0];
         if (conflictingUser) {
             return { ok: false, error: 'Hồ sơ cư dân này đã được liên kết với một tài khoản khác (' + conflictingUser.email + ').' };
@@ -778,6 +1016,8 @@
             email: request.email,
             password: request.password,
             role: ROLES.RESIDENT,
+            accountTypeId: RESIDENT_TYPE_ID,
+            phone: request.phone,
             unit: apartment ? apartment.name : '',
             apartmentId: apartmentId,
             building: building ? (building.shortName || building.name) : '',
@@ -873,7 +1113,7 @@
             if (!raw) return null;
             var session = JSON.parse(raw);
             var user = readUsers().filter(function (item) { return item.id === session.id; })[0];
-            if (!user || user.status === 'locked') {
+            if (!user || user.status === 'locked' || user.status === 'inactive') {
                 logout();
                 return null;
             }
@@ -884,6 +1124,7 @@
                 unit: user.unit || '',
                 apartmentId: user.apartmentId || '',
                 residentId: user.residentId || '',
+                accountTypeId: user.accountTypeId,
                 currentUserId: user.id
             });
         } catch (e) {
@@ -921,6 +1162,8 @@
         ROLES: ROLES,
         getUsers: readUsers,
         findUserByEmail: findUserByEmail,
+        ADMIN_TYPE_ID: ADMIN_TYPE_ID,
+        RESIDENT_TYPE_ID: RESIDENT_TYPE_ID,
         createUser: createUser,
         updateUser: updateUser,
         deleteUser: deleteUser,
@@ -934,6 +1177,12 @@
         requireRole: requireRole,
         getUserData: getUserData,
         getCurrentUserId: getCurrentUserId,
+        normalizeSupportStatus: normalizeSupportStatus,
+        supportStatusLabel: supportStatusLabel,
+        supportPriorityLabel: supportPriorityLabel,
+        getAllSupportRequests: getAllSupportRequests,
+        getSupportRequestById: getSupportRequestById,
+        updateSupportRequest: updateSupportRequest,
         getRequestsForUser: getRequestsForUser,
         getContractsForUser: getContractsForUser,
         getInvoicesForUser: getInvoicesForUser,

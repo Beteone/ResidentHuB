@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState, type FormEvent } from 'react';
-import type { Apartment, Building, MeterInputState, MeterKind, MeterPayload, MeterRecord, ModalTarget, MonthKey } from '../types';
+import type { Apartment, ApartmentPayload, Building, MeterInputState, MeterKind, MeterRecord, ModalTarget, MonthKey } from '../types';
 import { meterService } from '../meterService';
 import { today } from '../format';
 import { MeterBlock } from './MeterBlock';
+import { Overlay } from './Overlay';
 
 interface AddRecordModalProps {
     target: ModalTarget;
@@ -11,7 +12,7 @@ interface AddRecordModalProps {
     buildings: Building[];
     apartments: Apartment[];
     onClose: () => void;
-    onSubmit: (payloads: MeterPayload[]) => string | null; // returns an error message, or null on success
+    onSubmit: (payload: ApartmentPayload) => string | null; // returns an error message, or null on success
 }
 
 interface CommonFields {
@@ -37,12 +38,20 @@ function loadMeter(records: MeterRecord[], c: CommonFields, kind: MeterKind): Me
 }
 
 /**
- * Packs the form into one payload per meter that has a "Chỉ số kỳ này".
- * Blank meters produce nothing; an existing record whose values did not change
- * is skipped too, so an already approved reading is not sent back for review.
+ * Packs the form into ONE apartment object holding both `dien` and `nuoc`.
+ * A blank meter is null; so is an existing record whose values did not
+ * change, so an already approved reading is not sent back for review.
+ * Returns payload = null when neither side has anything to save.
  */
-export function buildPayloads(common: CommonFields, meters: Record<MeterKind, MeterInputState>, records: MeterRecord[]) {
-    const payloads: MeterPayload[] = [];
+export function buildPayload(common: CommonFields, meters: Record<MeterKind, MeterInputState>, records: MeterRecord[]) {
+    const payload: ApartmentPayload = {
+        buildingId: common.buildingId,
+        apartmentId: common.apartmentId,
+        thangChot: common.periodMonth,
+        ngayChot: common.closingDate,
+        dien: null,
+        nuoc: null
+    };
     const errors: Partial<Record<MeterKind, string>> = {};
     for (const kind of KINDS) {
         const s = meters[kind];
@@ -53,22 +62,16 @@ export function buildPayloads(common: CommonFields, meters: Record<MeterKind, Me
         if (kyNay < truoc) { errors[kind] = 'Chỉ số kỳ này không được nhỏ hơn chỉ số trước (' + truoc + ').'; continue; }
         const existing = s.recordId ? records.find(r => r.id === s.recordId) : undefined;
         if (existing && existing.latestIndex === kyNay && existing.previousIndex === truoc && existing.photo === s.anh && existing.closingDate === common.closingDate) continue;
-        payloads.push({
-            loai: kind,
+        payload[kind] = {
             recordId: s.recordId,
-            buildingId: common.buildingId,
-            apartmentId: common.apartmentId,
-            thangChot: common.periodMonth,
-            ngayChot: common.closingDate,
             maCongTo: s.meterCode,
             chiSoTruoc: truoc,
             chiSoKyNay: kyNay,
             tieuThu: kyNay - truoc,
-            anh: s.anh,
-            status: 'chưa_duyệt' // new or edited readings always go back to the manager for approval
-        });
+            anh: s.anh
+        };
     }
-    return { payloads, errors };
+    return { payload: payload.dien || payload.nuoc ? payload : null, errors };
 }
 
 export function AddRecordModal({ target, selectedMonth, records, buildings, apartments, onClose, onSubmit }: AddRecordModalProps) {
@@ -92,12 +95,6 @@ export function AddRecordModal({ target, selectedMonth, records, buildings, apar
         // records intentionally excluded: typing must not be reset by unrelated store updates
     }, [common.apartmentId, common.periodMonth]);
 
-    useEffect(() => {
-        const onKey = (e: KeyboardEvent) => { if (e.key === 'Escape') onClose(); };
-        document.addEventListener('keydown', onKey);
-        return () => document.removeEventListener('keydown', onKey);
-    }, [onClose]);
-
     const updateCommon = (patch: Partial<CommonFields>) => { setFormError(''); setCommon(c => ({ ...c, ...patch })); };
     const updateMeter = (kind: MeterKind, patch: Partial<MeterInputState>) => {
         setFormError('');
@@ -111,14 +108,14 @@ export function AddRecordModal({ target, selectedMonth, records, buildings, apar
             setFormError('Vui lòng chọn tháng, ngày chốt, tòa nhà và căn hộ.');
             return;
         }
-        const built = buildPayloads(common, meters, records);
+        const built = buildPayload(common, meters, records);
         setErrors(built.errors);
         if (Object.keys(built.errors).length) { setFormError('Vui lòng kiểm tra lại chỉ số.'); return; }
-        if (!built.payloads.length) {
+        if (!built.payload) {
             setFormError(editing ? 'Không có thay đổi nào để lưu.' : 'Nhập "Chỉ số kỳ này" cho ít nhất một công tơ (Điện hoặc Nước).');
             return;
         }
-        const error = onSubmit(built.payloads);
+        const error = onSubmit(built.payload);
         if (error) setFormError(error);
     };
 
@@ -126,23 +123,24 @@ export function AddRecordModal({ target, selectedMonth, records, buildings, apar
     const control = 'w-full rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm text-slate-900 outline-none focus:border-blue-500 focus:ring-2 focus:ring-blue-100';
 
     return (
-        <div className="fixed inset-0 z-[500] flex items-end justify-center bg-slate-900/50 p-0 sm:items-center sm:p-4" onMouseDown={e => { if (e.target === e.currentTarget) onClose(); }}>
+        <Overlay placement="center" onClose={onClose}>
             <form
                 role="dialog" aria-modal="true" aria-labelledby="mr-modal-title"
                 onSubmit={submit} noValidate
-                className="flex max-h-[94vh] w-full max-w-4xl flex-col overflow-hidden rounded-t-2xl bg-white shadow-2xl sm:rounded-2xl"
+                className="flex max-h-full w-full max-w-4xl flex-col overflow-hidden rounded-2xl bg-white shadow-2xl"
             >
-                <header className="flex items-center justify-between border-b border-slate-200 px-5 py-4">
+                <header className="flex shrink-0 items-center justify-between gap-3 border-b border-slate-200 px-5 py-4">
                     <h2 id="mr-modal-title" className="text-lg font-bold text-slate-900">{editing ? 'Sửa bản ghi chỉ số' : 'Thêm bản ghi chỉ số'}</h2>
                     <button type="button" onClick={onClose} aria-label="Đóng" className="flex h-9 w-9 items-center justify-center rounded-full bg-slate-100 text-slate-600 hover:bg-slate-200">
                         <i className="fas fa-xmark" aria-hidden="true" />
                     </button>
                 </header>
 
-                <div className="flex flex-col gap-5 overflow-y-auto px-5 py-4">
+                <div className="flex min-h-0 flex-1 flex-col gap-5 overflow-y-auto overscroll-contain px-5 py-4">
                     <section className="flex flex-col gap-3">
                         <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">Thông tin chung</h3>
-                        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                        {/* Columns follow the dialog's own width, not the viewport's. */}
+                        <div className="grid grid-cols-[repeat(auto-fit,minmax(170px,1fr))] gap-3">
                             <label className={field}>Tháng *
                                 <input id="mr-period" type="month" required value={common.periodMonth} onChange={e => updateCommon({ periodMonth: e.target.value })} className={control} />
                             </label>
@@ -165,12 +163,12 @@ export function AddRecordModal({ target, selectedMonth, records, buildings, apar
                     </section>
 
                     <section className="flex flex-col gap-3">
-                        <div className="flex items-baseline justify-between gap-2">
+                        <div className="flex flex-wrap items-baseline justify-between gap-x-2 gap-y-1">
                             <h3 className="text-xs font-bold uppercase tracking-widest text-slate-400">Chỉ số</h3>
                             <span className="text-[11px] text-slate-400">Có thể chỉ nhập Điện, chỉ nhập Nước, hoặc cả hai</span>
                         </div>
                         {common.apartmentId ? (
-                            <div id="mr-meters" className="grid grid-cols-1 gap-4 md:grid-cols-2">
+                            <div id="mr-meters" className="grid grid-cols-[repeat(auto-fit,minmax(260px,1fr))] gap-4">
                                 {KINDS.map(kind => (
                                     <MeterBlock key={kind} kind={kind} value={meters[kind]} error={errors[kind]} autoFocus={target.focusKind === kind} onChange={patch => updateMeter(kind, patch)} />
                                 ))}
@@ -186,13 +184,13 @@ export function AddRecordModal({ target, selectedMonth, records, buildings, apar
                     {formError && <p id="mr-error" role="alert" className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600">{formError}</p>}
                 </div>
 
-                <footer className="flex justify-end gap-2 border-t border-slate-200 px-5 py-4">
+                <footer className="flex shrink-0 justify-end gap-2 border-t border-slate-200 bg-white px-5 py-4">
                     <button type="button" onClick={onClose} className="rounded-lg border border-slate-300 bg-white px-4 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">Huỷ</button>
                     <button type="submit" id="mr-submit" disabled={!common.apartmentId} className="rounded-lg bg-gradient-to-br from-blue-500 to-blue-700 px-5 py-2 text-sm font-semibold text-white shadow hover:opacity-95 disabled:cursor-not-allowed disabled:opacity-50">
                         Lưu chỉ số
                     </button>
                 </footer>
             </form>
-        </div>
+        </Overlay>
     );
 }
