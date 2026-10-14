@@ -1244,6 +1244,14 @@
         style.textContent += '#contracts-tab .rh-contract-tab{font-family:"Be Vietnam Pro",sans-serif;font-size:.85rem;font-weight:600}';
         style.textContent += '#invoices-tab .rh-invoice-clear,#invoices-tab .rh-invoice-tab{font-family:inherit;font-size:.82rem;font-weight:600}#invoices-tab .rh-invoice-period-chip{position:relative}#invoices-tab .rh-invoice-period-chip input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}';
         document.head.appendChild(style);
+
+    }
+
+    function currentInvoicePeriod() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7); }
+
+    function invoicePeriod(inv) {
+        var period = inv.billingPeriod || inv.period || '';
+        return /^\d{4}-(0[1-9]|1[0-2])$/.test(period) ? period : '';
     }
 
     function contractStatusKey(contract, today, expiringDays) {
@@ -1497,15 +1505,17 @@
         style.id = 'rhInvoiceStyles';
         style.textContent = '#invoices-tab .rh-invoices-module{position:relative;color:#172b45}#invoices-tab .rh-invoice-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}#invoices-tab .rh-invoice-head h2{font-size:1.45rem;font-weight:800;color:#10213c}#invoices-tab .rh-invoice-tools{display:flex;gap:.55rem}#invoices-tab .rh-invoice-icon{position:relative;width:40px;height:40px;display:grid;place-items:center;border:1px solid #e0e8f1;border-radius:10px;background:#fff;color:#53677f;cursor:pointer}#invoices-tab .rh-invoice-icon:hover{border-color:#9ccaff;color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}#invoices-tab .rh-invoice-search{display:none;margin:0 0 .85rem}#invoices-tab .rh-invoice-search.open{display:block}#invoices-tab .rh-invoice-search input{width:min(100%,420px);padding:.7rem .85rem;border:1px solid #dbe4ef;border-radius:8px;font:inherit}#invoices-tab .rh-invoice-period{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;padding:.8rem 1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-period>span{font-size:.82rem;font-weight:700;color:#718096}#invoices-tab .rh-invoice-period-chip{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem .7rem;border:1px solid #ccebdc;border-radius:7px;background:#f1fbf5;color:#18845c;font-size:.82rem;font-weight:700}#invoices-tab .rh-invoice-period-chip input{width:110px;border:0;background:transparent;color:#176d50;font:inherit;outline:0}#invoices-tab .rh-invoice-clear{margin-left:auto;border:0;background:none;color:#d54444;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#invoices-tab .rh-invoice-stat{min-width:0;padding:1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-stat small{display:block;color:#718096;font-size:.76rem;font-weight:700}#invoices-tab .rh-invoice-stat strong{display:block;margin-top:.55rem;font-size:1.25rem;line-height:1.3;color:#176fd1;overflow-wrap:anywhere}#invoices-tab .rh-invoice-stat.collected strong{color:#16875d}#invoices-tab .rh-invoice-stat.debt strong{color:#d54444}#invoices-tab .rh-invoice-progress{height:6px;margin-top:.7rem;overflow:hidden;border-radius:99px;background:#edf1f5}#invoices-tab .rh-invoice-progress span{display:block;height:100%;border-radius:inherit;background:#18a878;transition:width .2s}#invoices-tab .rh-invoice-rate{display:flex;justify-content:space-between;gap:.5rem;margin-top:.5rem;color:#718096;font-size:.72rem}#invoices-tab .rh-invoice-tabs{display:flex;gap:.4rem;overflow:auto;margin-bottom:.85rem;padding-bottom:.1rem}#invoices-tab .rh-invoice-tab{display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;padding:.58rem .8rem;border:1px solid #e0e8f1;border-radius:8px;background:#fff;color:#5c6b7d;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-tab b{font-size:.72rem;color:#8090a2}#invoices-tab .rh-invoice-tab.active{border-color:#17212e;background:#17212e;color:#fff}#invoices-tab .rh-invoice-tab.active b{color:#d6dee8}#invoices-tab .rh-invoice-filter-panel{display:none;gap:.6rem;margin-bottom:.85rem;padding:.75rem;border:1px solid #e3eaf2;border-radius:8px;background:#fff}#invoices-tab .rh-invoice-filter-panel.open{display:flex}#invoices-tab .rh-invoice-filter-panel select{max-width:100%;padding:.55rem .7rem;border:1px solid #dbe4ef;border-radius:7px;background:#fff;font:inherit;color:#44566c}#invoices-tab .rh-invoice-table-wrap{overflow-x:auto;border:1px solid #e3eaf2;border-radius:9px;background:#fff}#invoices-tab .rh-invoice-table{width:100%;border-collapse:collapse;min-width:760px;text-align:left}#invoices-tab .rh-invoice-table th{padding:.7rem .8rem;background:#f3f7fb;color:#718096;font-size:.69rem;letter-spacing:.04em;text-transform:uppercase}#invoices-tab .rh-invoice-table td{padding:.7rem .8rem;border-top:1px solid #edf1f5;font-size:.8rem}#invoices-tab .rh-invoice-actions{display:flex;justify-content:flex-end;gap:.3rem;white-space:nowrap}#invoices-tab .rh-invoice-actions button{width:30px;height:30px;border:1px solid #e0e8f1;border-radius:6px;background:#fff;color:#53708e;cursor:pointer}#invoices-tab .rh-invoice-actions button:hover{color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-actions button.danger{color:#dc4b4b}#invoices-tab .rh-invoice-empty{padding:2.5rem 1rem;text-align:center;color:#718096}#invoices-tab .rh-invoice-empty i{display:block;margin-bottom:.65rem;color:#9aabba;font-size:1.5rem}#invoices-tab .rh-invoice-fab{position:fixed;right:30px;bottom:28px;z-index:30;width:56px;height:56px;border:0;border-radius:50%;background:#18a878;color:#fff;font-size:1.7rem;line-height:1;box-shadow:0 8px 22px rgba(24,168,120,.28);cursor:pointer}#invoices-tab .rh-invoice-fab:hover{background:#11845d;transform:translateY(-2px)}#invoices-tab .rh-invoice-fab:disabled{opacity:.55;cursor:not-allowed}@media(max-width:850px){#invoices-tab .rh-invoice-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#invoices-tab .rh-invoice-head{align-items:flex-start}#invoices-tab .rh-invoice-head h2{font-size:1.25rem}#invoices-tab .rh-invoice-period{align-items:flex-start}#invoices-tab .rh-invoice-clear{margin-left:0}#invoices-tab .rh-invoice-summary{gap:.5rem}#invoices-tab .rh-invoice-stat{padding:.75rem}#invoices-tab .rh-invoice-stat strong{font-size:1rem}#invoices-tab .rh-invoice-fab{right:18px;bottom:18px;width:52px;height:52px}';
         document.head.appendChild(style);
+        var periodStyle = document.createElement('style');
+        periodStyle.textContent = '#invoices-tab .rh-invoice-period-picker{position:relative;min-width:0;max-width:100%}#invoices-tab .rh-invoice-period-picker summary{display:flex;align-items:center;gap:.5rem;padding:.65rem .85rem;border:1px solid #ccebdc;border-radius:8px;background:#f1fbf5;color:#176d50;font-size:.82rem;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation}#invoices-tab .rh-invoice-period-picker summary::-webkit-details-marker{display:none}#invoices-tab .rh-invoice-period-picker summary>*{pointer-events:none}#invoices-tab .rh-invoice-period-picker summary:focus-visible{outline:2px solid #1683ff;outline-offset:2px}#invoices-tab .rh-invoice-period-picker[open]{z-index:35}#invoices-tab .rh-invoice-period-popover{position:absolute;top:calc(100% + 6px);left:0;width:280px;max-width:calc(100vw - 64px);padding:1rem;border:1px solid #dbe4ef;border-radius:10px;background:#fff;box-shadow:0 8px 24px rgba(23,43,69,.12)}#invoices-tab .rh-invoice-period-fields{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}#invoices-tab .rh-invoice-period-fields label{min-width:0;color:#718096;font-size:.8rem}#invoices-tab .rh-invoice-period-fields select{display:block;width:100%;margin-top:.4rem;padding:.6rem;border:1px solid #dbe4ef;border-radius:7px;background:#fff;font:inherit;color:#172b45}#invoices-tab .rh-invoice-period-step,#invoices-tab .rh-invoice-period-current,#invoices-tab .rh-invoice-period-all{border:1px solid #dbe4ef;border-radius:8px;background:#fff;padding:.65rem;color:#53677f;font:inherit;font-size:.82rem;cursor:pointer;touch-action:manipulation}#invoices-tab .rh-invoice-period-all{width:100%;margin-top:.85rem}';
+        document.head.appendChild(periodStyle);
     }
 
     function renderInvoicesTab(filter) {
         var tab = byId('invoices-tab');
         if (!tab) return;
         ensureInvoiceStyles();
-        RHD.markOverdueInvoices();
         var state = RHUI.invoiceFilters || (RHUI.invoiceFilters = {
-            status: 'all', period: new Date().toISOString().slice(0, 7), search: '', building: '', searchOpen: false, filtersOpen: false, overdueOnly: false
+            status: 'all', period: currentInvoicePeriod(), search: '', building: '', searchOpen: false, filtersOpen: false, overdueOnly: false
         });
         if (filter === 'unpaid' || filter === 'overdue') {
             state.status = 'debt';
@@ -1514,11 +1524,7 @@
         var contracts = scoped('contracts');
         var todayStr = new Date().toISOString().slice(0, 10);
         var allInvoices = scoped('invoices').slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-        var invoiceMonth = function (inv) {
-            if (inv.period) return inv.period;
-            if (inv.issueDate) return inv.issueDate.slice(0, 7);
-            return new Date(inv.createdAt || Date.now()).toISOString().slice(0, 7);
-        };
+        var invoiceMonth = invoicePeriod;
         var baseInvoices = allInvoices.filter(function (inv) {
             if (state.period && invoiceMonth(inv) !== state.period) return false;
             if (state.building && inv.buildingId !== state.building) return false;
@@ -1545,7 +1551,7 @@
         var collected = sumTotal(issuedVisible.filter(function (inv) { return inv.status === 'paid'; }));
         var debt = sumTotal(issuedVisible.filter(function (inv) { return inv.status !== 'paid'; }));
         var collectionRate = billed ? Math.round(collected * 100 / billed) : 0;
-        var monthLabel = state.period ? state.period.slice(5, 7) + '-' + state.period.slice(0, 4) : 'Tất cả kỳ';
+        var monthLabel = state.period ? RHB.periodLabel(state.period) : 'Tất cả kỳ';
         var rows = visibleInvoices.map(function (inv) {
             var apt = RHD.get('apartments', inv.apartmentId);
             var cus = RHD.get('customers', inv.customerId);
@@ -1572,11 +1578,18 @@
             return '<option value="' + escapeHtml(building.id) + '"' + (state.building === building.id ? ' selected' : '') + '>' + escapeHtml(building.name) + '</option>';
         }).join('');
         var canAdd = contracts.length > 0 && !demoLimitReached('invoices');
-        var periodValue = state.period;
+        var pickerPeriod = state.period || currentInvoicePeriod();
+        var pickerYear = Number(pickerPeriod.slice(0, 4));
+        var yearValues = [pickerYear, Number(currentInvoicePeriod().slice(0, 4))];
+        allInvoices.forEach(function (inv) { if (invoicePeriod(inv)) yearValues.push(Number(invoicePeriod(inv).slice(0, 4))); });
+        var yearOptions = '';
+        for (var year = Math.min.apply(null, yearValues) - 5; year <= Math.max.apply(null, yearValues) + 5; year++) yearOptions += '<option value="' + year + '"' + (year === pickerYear ? ' selected' : '') + '>' + year + '</option>';
+        var monthOptions = '';
+        for (var month = 1; month <= 12; month++) { var monthValue = String(month).padStart(2, '0'); monthOptions += '<option value="' + monthValue + '"' + (monthValue === pickerPeriod.slice(5, 7) ? ' selected' : '') + '>Tháng ' + month + '</option>'; }
         var emptyMessage = allInvoices.length ? 'Không có hóa đơn phù hợp bộ lọc.' : (contracts.length ? 'Chưa có hóa đơn nào.' : 'Cần có Hợp đồng trước khi lập hóa đơn.');
 
         tab.innerHTML = renderDemoBanner('invoices') + '<section class="rh-invoices-module">' +
-            '<div class="rh-invoice-head"><h2>Hoá đơn</h2><div class="rh-invoice-tools">' +
+            '<div class="rh-invoice-head"><div class="rh-invoice-tools" style="margin-left:auto;">' +
             '<button type="button" class="rh-invoice-icon" data-invoice-search-toggle title="Tìm kiếm" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button>' +
             (can('invoices.create') ? '<button type="button" class="rh-invoice-icon" onclick="RHUI.runAutoBilling()" title="Lập hóa đơn tự động cho các kỳ đến hạn' + (RHB.lastRun().lastRunAt ? ' — lần chạy gần nhất ' + new Date(RHB.lastRun().lastRunAt).toLocaleString('vi-VN') : '') + '" aria-label="Lập hóa đơn tự động"><i class="fas fa-wand-magic-sparkles"></i></button>' : '') +
             (can('invoices.send') ? '<button type="button" class="rh-invoice-icon" onclick="RHUI.sendSelectedInvoices()" title="Gửi hàng loạt" aria-label="Gửi hàng loạt"><i class="fas fa-file-export"></i></button>' +
@@ -1584,7 +1597,9 @@
             '<button type="button" class="rh-invoice-icon" data-invoice-filter-toggle title="Bộ lọc nâng cao" aria-label="Bộ lọc nâng cao"><i class="fas fa-sliders"></i><span class="rh-invoice-dot"></span></button>' +
             '</div></div>' +
             '<div class="rh-invoice-search' + (state.searchOpen ? ' open' : '') + '"><input type="search" data-invoice-search placeholder="Tìm mã hóa đơn, căn hộ, khách hàng..." value="' + escapeHtml(state.search) + '"></div>' +
-            '<div class="rh-invoice-period"><span>Đang lọc theo:</span><label class="rh-invoice-period-chip"><i class="fas fa-circle-check"></i><span>Tháng: ' + escapeHtml(monthLabel) + '</span><input type="month" data-invoice-period aria-label="Chọn kỳ hóa đơn" value="' + escapeHtml(periodValue) + '"></label><button type="button" class="rh-invoice-clear" data-invoice-clear>Xóa lọc</button></div>' +
+            '<div class="rh-invoice-period"><button type="button" class="rh-invoice-period-step" data-invoice-period-step="-1" aria-label="Tháng trước" title="Tháng trước"><i class="fas fa-chevron-left"></i></button>' +
+            '<details class="rh-invoice-period-picker"' + (state.periodPickerOpen ? ' open' : '') + '><summary aria-label="Chọn kỳ hóa đơn"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>Kỳ hóa đơn: ' + escapeHtml(monthLabel) + '</span><i class="fas fa-chevron-down" aria-hidden="true"></i></summary><div class="rh-invoice-period-popover"><div class="rh-invoice-period-fields"><label>Tháng<select data-invoice-period-month aria-label="Tháng hóa đơn">' + monthOptions + '</select></label><label>Năm<select data-invoice-period-year aria-label="Năm hóa đơn">' + yearOptions + '</select></label></div><button type="button" class="rh-invoice-period-all" data-invoice-period-all>Tất cả kỳ</button></div></details>' +
+            '<button type="button" class="rh-invoice-period-step" data-invoice-period-step="1" aria-label="Tháng sau" title="Tháng sau"><i class="fas fa-chevron-right"></i></button><button type="button" class="rh-invoice-period-current" data-invoice-period-current>Tháng hiện tại</button><button type="button" class="rh-invoice-clear" data-invoice-clear>Xóa lọc</button></div>' +
             '<div class="rh-invoice-summary">' +
             '<div class="rh-invoice-stat"><small>Phát sinh kỳ này</small><strong>' + money(billed) + '</strong></div>' +
             '<div class="rh-invoice-stat collected"><small>Đã thu</small><strong>' + money(collected) + '</strong></div>' +
@@ -1600,7 +1615,7 @@
             '</div>' +
             '<div class="rh-invoice-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><select data-invoice-building aria-label="Lọc theo tòa nhà">' + buildingOptions + '</select></div>' +
             (visibleInvoices.length ? '<div class="rh-invoice-table-wrap"><table class="rh-invoice-table"><thead><tr><th></th><th>Mã hóa đơn</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="rh-invoice-empty"><i class="fas fa-receipt"></i><p>' + emptyMessage + '</p></div>') +
-            '<button type="button" class="rh-invoice-fab" data-invoice-add title="Thêm hóa đơn" aria-label="Thêm hóa đơn"' + (canAdd ? '' : ' disabled') + (can('invoices.create') ? '' : ' hidden') + '>+</button></section>';
+            '<div style="display:flex;justify-content:flex-end;margin-top:1rem;"><button type="button" class="rh-invoice-fab" style="position:static;" data-invoice-add title="Thêm hóa đơn" aria-label="Thêm hóa đơn"' + (canAdd ? '' : ' disabled') + (can('invoices.create') ? '' : ' hidden') + '>+</button></div></section>';
 
         tab.querySelector('[data-invoice-search-toggle]').addEventListener('click', function () {
             state.searchOpen = !state.searchOpen;
@@ -1616,7 +1631,34 @@
             if (next) { next.focus(); next.setSelectionRange(cursor, cursor); }
         });
         tab.querySelector('[data-invoice-filter-toggle]').addEventListener('click', function () { state.filtersOpen = !state.filtersOpen; renderInvoicesTab(); });
-        tab.querySelector('[data-invoice-period]').addEventListener('change', function () { state.period = this.value; state.overdueOnly = false; renderInvoicesTab(); });
+        var picker = tab.querySelector('.rh-invoice-period-picker');
+        function positionPeriodPicker() {
+            if (!picker.isConnected || !picker.open) return;
+            var popover = picker.querySelector('.rh-invoice-period-popover');
+            popover.style.left = '0px';
+            var bounds = popover.getBoundingClientRect();
+            var shift = Math.min(0, document.documentElement.clientWidth - 16 - bounds.right);
+            shift = Math.max(shift, 16 - bounds.left);
+            popover.style.left = shift + 'px';
+        }
+        picker.addEventListener('toggle', function () {
+            if (picker.isConnected) { state.periodPickerOpen = picker.open; positionPeriodPicker(); }
+        });
+        positionPeriodPicker();
+        function changePeriod(value, keepOpen) {
+            state.period = value; state.overdueOnly = false; state.periodPickerOpen = !!keepOpen;
+            renderInvoicesTab();
+        }
+        ['month', 'year'].forEach(function (part) {
+            tab.querySelector('[data-invoice-period-' + part + ']').addEventListener('change', function () {
+                changePeriod(tab.querySelector('[data-invoice-period-year]').value + '-' + tab.querySelector('[data-invoice-period-month]').value, true);
+                tab.querySelector('[data-invoice-period-' + part + ']').focus();
+            });
+        });
+        tab.querySelectorAll('[data-invoice-period-step]').forEach(function (button) { button.addEventListener('click', function () { changePeriod(RHB.addMonths(state.period || currentInvoicePeriod(), Number(this.getAttribute('data-invoice-period-step')))); }); });
+        tab.querySelector('[data-invoice-period-current]').addEventListener('click', function () { changePeriod(currentInvoicePeriod()); });
+        tab.querySelector('[data-invoice-period-all]').addEventListener('click', function () { changePeriod(''); });
+        picker.addEventListener('keydown', function (event) { if (event.key === 'Escape') { picker.open = false; state.periodPickerOpen = false; picker.querySelector('summary').focus(); } });
         tab.querySelector('[data-invoice-clear]').addEventListener('click', function () {
             state.status = 'all'; state.period = ''; state.search = ''; state.building = ''; state.overdueOnly = false;
             renderInvoicesTab();
@@ -1647,7 +1689,7 @@
     // here too). Lines come from RHB.prefill/computeMonthly and stay editable
     // until the invoice is issued; RHB.normalizeLines recomputes amounts/issues.
 
-    var invoiceDraft = { id: null, lines: [], source: 'manual' };
+    var invoiceDraft = { id: null, lines: [], source: 'manual', issues: [] };
 
     function invoiceLineRowHtml(l, idx) {
         var num = function (field, value, step) {
@@ -1655,7 +1697,7 @@
         };
         return '<tr class="' + (l.missing ? 'if-line-missing' : '') + '">' +
             '<td><input type="text" value="' + escapeHtml(l.label) + '" data-line="' + idx + '" data-field="label" aria-label="Khoản mục">' +
-            (l.missing ? '<div class="if-line-warn"><i class="fas fa-triangle-exclamation"></i> Thiếu dữ liệu — nhập số tiền hoặc duyệt chỉ số rồi bấm "Tính lại"</div>' : '') + '</td>' +
+            (l.missing ? '<div class="if-line-warn"><i class="fas fa-triangle-exclamation"></i> Thiếu dữ liệu — bổ sung, duyệt chỉ số đúng kỳ rồi bấm "Tính lại"</div>' : '') + '</td>' +
             '<td>' + num('qty', l.qty) + '</td>' +
             '<td>' + num('unitPrice', l.unitPrice, 1) + '</td>' +
             '<td>' + num('taxRate', l.taxRate || 0, 'any') + '</td>' +
@@ -1673,6 +1715,7 @@
 
     function refreshInvoiceTotals() {
         var norm = RHB.normalizeLines(invoiceDraft.lines);
+        norm.issues = Array.from(new Set(norm.issues.concat(invoiceDraft.issues || [])));
         norm.items.forEach(function (it, i) {
             var cell = document.querySelector('[data-amount="' + i + '"]');
             if (cell) cell.textContent = money(it.amount + it.tax);
@@ -1692,6 +1735,7 @@
         var c = formContract();
         var calc = RHB.prefill(byId('ifType').value, c, byId('ifPeriod').value);
         invoiceDraft.lines = (calc.items || []).map(function (it) { return Object.assign({}, it); });
+        invoiceDraft.issues = calc.issues || [];
         renderInvoiceLines();
         var info = byId('ifPrefillNote');
         if (info) info.textContent = (calc.issues && calc.issues.length && !calc.items.length) ? calc.issues[0] : '';
@@ -1723,7 +1767,7 @@
         if (!contracts.length) { alert('Cần có Hợp đồng trước khi lập hóa đơn.'); return; }
         RHUI.drawerEntity = 'invoices';
         RHUI.drawerId = id || null;
-        invoiceDraft = { id: id || null, lines: inv ? (inv.items || []).map(function (it) { return Object.assign({ taxRate: it.amount ? Math.round((Number(it.tax) || 0) * 10000 / it.amount) / 100 : 0 }, it); }) : [], source: inv ? inv.source || 'manual' : 'manual' };
+        invoiceDraft = { id: id || null, lines: inv ? (inv.items || []).map(function (it) { return Object.assign({ taxRate: it.amount ? Math.round((Number(it.tax) || 0) * 10000 / it.amount) / 100 : 0 }, it); }) : [], source: inv ? inv.source || 'manual' : 'manual', issues: inv ? inv.issues || [] : [] };
         var today = RHB.today();
         var type = inv ? RHB.invoiceType(inv) : 'monthly';
         var defaultContract = inv ? inv.contractId : contracts[0].id;
@@ -1736,7 +1780,7 @@
             '<div class="rh-grid-2">' +
             '<div class="rh-field"><label>Loại hóa đơn *</label><select id="ifType"' + (type === 'adjustment' ? ' disabled' : '') + '>' + selectOptions(types, 'id', 'label', type) + '</select></div>' +
             '<div class="rh-field"><label>Hợp đồng *</label><select id="ifContract"' + (adjusts ? ' disabled' : '') + '>' + selectOptions(contracts, 'id', invoiceContractLabel, defaultContract) + '</select></div>' +
-            '<div class="rh-field" id="ifPeriodField"><label>Kỳ hóa đơn</label><input id="ifPeriod" type="month" value="' + escapeHtml(inv ? inv.period : today.slice(0, 7)) + '"></div>' +
+            '<div class="rh-field" id="ifPeriodField"><label>Kỳ hóa đơn</label><input id="ifPeriod" type="month" value="' + escapeHtml(inv ? invoicePeriod(inv) : ((RHUI.invoiceFilters || {}).period || currentInvoicePeriod())) + '"></div>' +
             '<div class="rh-field"><label>Mẫu hóa đơn</label><select id="ifTemplate">' + selectOptions(RHT.list('INVOICE'), 'id', 'name', inv ? inv.invoiceTemplateId : '') + '</select></div>' +
             '<div class="rh-field"><label>Ngày lập hóa đơn</label><input id="ifIssueDate" type="date" value="' + escapeHtml(inv ? inv.issueDate : today) + '"></div>' +
             '<div class="rh-field"><label>Hạn thanh toán</label><input id="ifDueDate" type="date" value="' + escapeHtml(inv ? inv.dueDate : '') + '"></div>' +
@@ -1783,8 +1827,12 @@
             byId('ifDueDate').value = RHB.dueDateFor(c ? RHD.get('buildings', c.buildingId) : null, this.value);
         });
         byId('ifRecalc').addEventListener('click', function () {
-            if (invoiceDraft.lines.length && !confirm('Tính lại sẽ thay toàn bộ khoản phí bằng dữ liệu hiện tại (giá thuê, dịch vụ, chỉ số đã duyệt). Tiếp tục?')) return;
-            prefillInvoiceLines();
+            var calc = RHB.refreshUtilityLines(invoiceDraft.lines, formContract(), byId('ifPeriod').value);
+            if (calc.requiresConfirmation && confirm(calc.error)) calc = RHB.refreshUtilityLines(invoiceDraft.lines, formContract(), byId('ifPeriod').value, true);
+            if (!calc.ok) { if (!calc.requiresConfirmation) byId('ifError').textContent = calc.error; return; }
+            invoiceDraft.lines = calc.items;
+            invoiceDraft.issues = calc.issues;
+            renderInvoiceLines();
         });
         byId('ifLines').addEventListener('input', function (ev) {
             var el = ev.target;
@@ -1792,6 +1840,8 @@
             var field = el.getAttribute('data-field');
             if (!field || !invoiceDraft.lines[idx]) return;
             invoiceDraft.lines[idx][field] = field === 'label' ? el.value : el.value === '' ? 0 : Number(el.value);
+            invoiceDraft.lines[idx].source = 'manual';
+            invoiceDraft.lines[idx].manualOverride = true;
             refreshInvoiceTotals();
         });
     };
@@ -1824,9 +1874,13 @@
             if (dup) { err.textContent = 'Kỳ ' + RHB.periodLabel(period) + ' của hợp đồng này đã có hóa đơn định kỳ ' + dup.code + ' (' + statusMeta(RHD.INVOICE_STATUSES, dup.status).label + '). Không lập trùng kỳ.'; return; }
         }
         var norm = RHB.normalizeLines(invoiceDraft.lines);
+        if (type === 'monthly') {
+            var monthly = RHB.computeMonthly(contract, period);
+            norm.issues = Array.from(new Set(norm.issues.concat(monthly ? monthly.issues : ['Hợp đồng không có hiệu lực trong kỳ hóa đơn.'])));
+        }
         var data = {
             type: type, contractId: contract.id, buildingId: contract.buildingId, apartmentId: contract.apartmentId, customerId: contract.customerId,
-            invoiceTemplateId: byId('ifTemplate').value, period: period, issueDate: issueDate, dueDate: dueDate,
+            invoiceTemplateId: byId('ifTemplate').value, period: period, billingPeriod: period, issueDate: issueDate, dueDate: dueDate,
             note: byId('ifNote').value.trim(),
             items: norm.items, subtotal: norm.subtotal, tax: norm.tax, total: norm.total, issues: norm.issues,
             // Any edit sends an approved invoice back for review.
@@ -1892,7 +1946,11 @@
     var INVOICE_ACTIONS = {
         approve: { perm: 'invoices.approve', run: function (id) { return RHB.approve(id, actorName()); } },
         reopen: { perm: 'invoices.approve', run: function (id) { return RHB.backToDraft(id, actorName()); } },
-        recalc: { perm: 'invoices.update', run: function (id) { return RHB.recalculate(id, actorName()); } },
+        recalc: { perm: 'invoices.update', run: function (id) {
+            var result = RHB.recalculate(id, actorName());
+            if (result.requiresConfirmation && confirm(result.error)) return RHB.recalculate(id, actorName(), true);
+            return result.requiresConfirmation ? null : result;
+        } },
         issue: {
             perm: 'invoices.issue',
             confirm: 'Phát hành hóa đơn này? Sau khi phát hành cư dân sẽ thấy hóa đơn và không thể sửa trực tiếp.',
@@ -1966,6 +2024,8 @@
     };
 
     function invoiceWorkflowPanel(inv) {
+        // Display current audit findings without changing persisted invoices.
+        inv = Object.assign({}, inv, { issues: Array.from(new Set((inv.issues || []).concat(RHB.dataIssues(inv)))) });
         var st = statusMeta(RHD.INVOICE_STATUSES, inv.status || 'unpaid');
         var adjusts = inv.adjustsInvoiceId ? RHD.get('invoices', inv.adjustsInvoiceId) : null;
         var adjustments = RHD.list('invoices').filter(function (x) { return x.adjustsInvoiceId === inv.id; });
@@ -1988,6 +2048,9 @@
         if (!guard('invoices.create')) return;
         var res = RHB.run();
         if (!res.ran) { alert('Một tab khác đang chạy lập hóa đơn. Vui lòng thử lại sau ít giây.'); return; }
+        var scopedIds = scoped('invoices').map(function (inv) { return inv.id; });
+        var affected = RHB.auditInvoices().filter(function (row) { return row.issued && scopedIds.indexOf(row.id) !== -1; });
+        if (affected.length) alert('Hóa đơn đã phát hành/thanh toán cần kiểm tra riêng (không tự sửa):\n' + affected.map(function (row) { return row.code + ' · ' + RHB.periodLabel(row.period) + ': ' + row.issues.join('; '); }).join('\n'));
         alert(res.created.length
             ? 'Đã lập ' + res.created.length + ' hóa đơn nháp' + (res.created.some(function (i) { return (i.issues || []).length; }) ? ' (có hóa đơn cần kiểm tra chỉ số)' : '') + '. Hãy kiểm tra và duyệt trong tab "Chờ duyệt".'
             : 'Không có kỳ nào đến hạn cần lập thêm. Các kỳ đã lập sẽ không bị lập trùng.' + (res.skipped.length ? ' Bỏ qua ' + res.skipped.length + ' (' + res.skipped[0].reason + ').' : ''));
@@ -2022,7 +2085,8 @@
         var lineReading = function (item, meterType) {
             if (item && item.meterId) return RHD.get('meters', item.meterId);
             if (item && item.kind) return null;
-            return RHD.latestMeter(inv.apartmentId, meterType);
+            var found = RHB.approvedReading(inv.apartmentId, meterType, inv.billingPeriod || inv.period);
+            return found.state === 'approved' ? found.reading : null;
         };
         var elecReading = lineReading(elecItem, 'electricity');
         var waterReading = lineReading(waterItem, 'water');
