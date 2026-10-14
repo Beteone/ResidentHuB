@@ -2659,10 +2659,20 @@
                 <i class="fas fa-couch"></i>
                 <span>Tài sản</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="customers.view" onclick="switchTab('customers')">
+            <div class="sidebar-menu-item rh-nav-parent" id="rhCustomersMenuItem" data-perm="customers.view" role="button" aria-expanded="false" aria-controls="rhCustomersGroup" onclick="toggleNavGroup('rhCustomersGroup')">
                 <i class="fas fa-users"></i>
                 <span>Khách hàng</span>
-
+                <i class="fas fa-chevron-down rh-nav-caret"></i>
+            </div>
+            <div class="rh-nav-children" id="rhCustomersGroup">
+                <div class="sidebar-menu-item rh-nav-child" data-perm="customers.view" onclick="switchTab('customers')">
+                    <i class="fas fa-address-book"></i>
+                    <span>Danh sách khách hàng</span>
+                </div>
+                <div class="sidebar-menu-item rh-nav-child" data-perm="customers.view" onclick="switchTab('deposits')">
+                    <i class="fas fa-hand-holding-dollar"></i>
+                    <span>Đặt cọc</span>
+                </div>
             </div>
             <div class="sidebar-menu-item" data-perm="meters.view" onclick="switchTab('meters')">
                 <i class="fas fa-gauge-high"></i>
@@ -3939,7 +3949,7 @@
         <div id="features-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
                 <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Chi tiết Tính năng MVP</h2>
-                <p style="color: #64748b;">5 Module chính trong phiên bản ban đầu</p>
+                <p style="color: #64748b;">Các module hỗ trợ xuyên suốt vòng đời thuê</p>
             </div>
 
             <div class="grid-2">
@@ -3968,17 +3978,17 @@
                         <div style="width: 50px; height: 50px; background: linear-gradient(135deg, rgba(102, 126, 234, 0.2) 0%, rgba(118, 75, 162, 0.2) 100%); border-radius: 0.75rem; display: flex; align-items: center; justify-content: center; color: #667eea; font-size: 1.5rem;">
                             <i class="fas fa-building"></i>
                         </div>
-                        <h3 style="font-weight: 600; color: #1e293b;">🏠 Phòng và hợp đồng</h3>
+                        <h3 style="font-weight: 600; color: #1e293b;">🏠 Đặt cọc và hợp đồng</h3>
                     </div>
                     <ul style="list-style: none;">
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Quản lý phòng và hợp đồng
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Giữ chỗ bằng đặt cọc gắn với khách và căn hộ
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569; border-bottom: 1px solid #e2e8f0;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Cư dân xem hợp đồng
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Chuyển đặt cọc thành hợp đồng, lưu tiền đã nhận và còn phải đóng
                         </li>
                         <li style="padding: 0.5rem 0; color: #475569;">
-                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi chi tiết phòng
+                            <i class="fas fa-check" style="color: #10b981; margin-right: 0.5rem;"></i> Theo dõi gia hạn, chuyển phòng, thanh lý và hoàn cọc
                         </li>
                     </ul>
                 </div>
@@ -4046,20 +4056,14 @@
 
             <!-- Future Modules -->
             <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.05) 0%, rgba(118, 75, 162, 0.05) 100%); border-left: 3px solid #667eea;">
-                <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">📈 Tính năng mở rộng (Giai đoạn 2)</h3>
-                <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
-                        <i class="fas fa-chart-bar" style="color: #667eea; margin-right: 0.5rem;"></i> Phân tích và báo cáo
-                    </div>
-                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
-                        <i class="fas fa-users-cog" style="color: #667eea; margin-right: 0.5rem;"></i> Quản lý nhân viên
-                    </div>
-                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
-                        <i class="fas fa-file-pdf" style="color: #667eea; margin-right: 0.5rem;"></i> Báo cáo
-                    </div>
-                    <div style="padding: 1rem; background: white; border-radius: 0.5rem;">
-                        <i class="fas fa-chart-line" style="color: #667eea; margin-right: 0.5rem;"></i> Phân tích cư dân
-                    </div>
+                <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">Vòng đời thuê</h3>
+                <div style="display:flex;align-items:center;flex-wrap:wrap;gap:.55rem;color:#475569;font-weight:600;line-height:1.7;">
+                    <span>Khách hàng</span><i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <span>Đặt cọc giữ chỗ</span><i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <span>Ký hợp đồng</span><i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <span>Ghi chỉ số / Hóa đơn</span><i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <span>Gia hạn / Chuyển phòng</span><i class="fas fa-arrow-right" aria-hidden="true"></i>
+                    <span>Thanh lý / Hoàn cọc</span>
                 </div>
             </div>
         </div>
@@ -4142,6 +4146,12 @@
                 </div>
             </div>
 
+            <div class="card" style="margin-top:1.5rem;">
+                <h3 style="font-weight:600;color:#10213c;margin-bottom:.8rem;">Luồng dữ liệu thuê</h3>
+                <p style="color:#475569;line-height:1.8;">Khách hàng → Đặt cọc giữ chỗ → Ký hợp đồng → Ghi chỉ số / Hóa đơn → Gia hạn / Chuyển phòng → Thanh lý / Hoàn cọc.</p>
+                <p style="color:#64748b;line-height:1.7;margin-top:.6rem;">Đặt cọc và hợp đồng dùng chung lớp nghiệp vụ để kiểm tra trùng lịch, liên kết căn hộ, khách thuê và lịch sử giao dịch.</p>
+            </div>
+
             <!-- Core Concept -->
             <div class="card" style="margin-top: 1.5rem; background: linear-gradient(135deg, rgba(102, 126, 234, 0.1) 0%, rgba(118, 75, 162, 0.1) 100%); border-left: 4px solid #667eea;">
                 <h3 style="font-weight: 600; color: #667eea; margin-bottom: 1rem;">
@@ -4213,6 +4223,7 @@
             apartments: (f) => RHUI.renderApartmentsTab(f),
             'service-fees': (f) => RHUI.renderServiceFeesTab(f),
             customers: (f) => RHUI.renderCustomersTab(f),
+            deposits: (f) => RHUI.renderDepositsTab(f),
             meters: (f) => RHUI.renderMetersTab(f),
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
@@ -4230,11 +4241,11 @@
         // Pages not listed here (Cài đặt, Quy trình...) are open to every staff account.
         const TAB_PERMS = {
             dashboard: 'dashboard.view', buildings: 'buildings.view', apartments: 'apartments.view', 'service-fees': 'buildings.update', assets: 'assets.view',
-            customers: 'customers.view', meters: 'meters.view', contracts: 'contracts.view', invoices: 'invoices.view',
+            customers: 'customers.view', deposits: 'customers.view', meters: 'meters.view', contracts: 'contracts.view', invoices: 'invoices.view',
             cashflow: 'invoices.view',
             support: 'support.view', reports: 'reports.view', roles: 'roles.view', accounts: ['users.view', 'users.approveResident']
         };
-        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'assets', 'customers', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
+        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'assets', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
 
         function canOpenTab(tabName) {
             const perm = TAB_PERMS[tabName];
@@ -4267,6 +4278,9 @@
             const group = document.getElementById('rhAccountsGroup');
             const anyChild = Array.from(group.children).some(c => c.style.display !== 'none');
             document.getElementById('rhAccountsMenuItem').style.display = anyChild ? '' : 'none';
+            const customerGroup = document.getElementById('rhCustomersGroup');
+            const hasCustomerChild = Array.from(customerGroup.children).some(c => c.style.display !== 'none');
+            document.getElementById('rhCustomersMenuItem').style.display = hasCustomerChild ? '' : 'none';
             if (!canOpenTab(currentTab)) switchTab(TAB_ORDER.find(canOpenTab) || 'settings');
         }
 
@@ -4315,6 +4329,7 @@
                 'assets': 'Tài sản',
                 'roles': 'Loại tài khoản',
                 'customers': 'Khách hàng',
+                'deposits': 'Đặt cọc',
                 'residents': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
@@ -4337,6 +4352,7 @@
             }
             // Keep the Tài khoản group expanded while one of its pages is open.
             if (tabName === 'accounts' || tabName === 'roles') toggleNavGroup('rhAccountsGroup', true);
+            if (tabName === 'customers' || tabName === 'deposits') toggleNavGroup('rhCustomersGroup', true);
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
             window.scrollTo(0, 0);
         }
@@ -5200,7 +5216,7 @@
         function renderWorkflows() {
             const workflowTab = document.getElementById('workflows-tab');
             if (!workflowTab) return;
-            workflowTab.innerHTML = `<div class="workflow-hero"><h2>Quy trình làm việc</h2><p>Theo dõi các luồng vận hành quan trọng từ lúc phát sinh đến khi hoàn tất trên cùng một hệ thống.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Tiếp nhận cư dân</h3><p>Tạo hồ sơ và kích hoạt quyền truy cập</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Tạo hồ sơ cư dân</p></li><li><span>2</span><p>Gán tòa nhà, căn hộ và hợp đồng</p></li><li><span>3</span><p>Gửi lời mời đăng nhập tự động</p></li><li><span>4</span><p>Cư dân xác nhận và bắt đầu sử dụng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Đã chuẩn hóa</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Thu phí và thanh toán</h3><p>Tự động hóa chu kỳ thu phí hàng tháng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Hệ thống tạo hóa đơn theo kỳ</p></li><li><span>2</span><p>Gửi thông báo đến cư dân</p></li><li><span>3</span><p>Cư dân kiểm tra và thanh toán trực tuyến</p></li><li><span>4</span><p>Cập nhật công nợ và biên lai</p></li></ol><div class="workflow-footer"><span class="workflow-role">Tự động trên hệ thống</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu</h3><p>Minh bạch tiến độ từ báo sự cố đến hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm hình ảnh</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật trạng thái đang xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Cần theo dõi</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn hợp đồng</h3><p>Chủ động giữ chân cư dân trước ngày hết hạn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Phát hiện hợp đồng sắp hết hạn</p></li><li><span>2</span><p>Gửi cảnh báo cho ban quản lý</p></li><li><span>3</span><p>Cư dân chọn gia hạn hoặc kết thúc</p></li><li><span>4</span><p>Cập nhật trạng thái hợp đồng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Nhắc trước 30 ngày</span></div></article></div>`;
+            workflowTab.innerHTML = `<div class="workflow-hero"><h2>Quy trình làm việc</h2><p>Luồng vận hành thống nhất từ lúc tiếp nhận khách đến khi hoàn tất thanh lý.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Vòng đời thuê</h3><p>Một hồ sơ xuyên suốt từ giữ chỗ đến hoàn tất nghĩa vụ</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Khách hàng</p></li><li><span>2</span><p>Đặt cọc giữ chỗ</p></li><li><span>3</span><p>Ký hợp đồng</p></li><li><span>4</span><p>Ghi chỉ số / Hóa đơn</p></li><li><span>5</span><p>Gia hạn / Chuyển phòng</p></li><li><span>6</span><p>Thanh lý / Hoàn cọc</p></li></ol><div class="workflow-footer"><span class="workflow-role">Khách hàng → Đặt cọc → Hợp đồng → Vận hành → Kết thúc</span><span class="workflow-status blue">Dùng chung dữ liệu</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Ghi chỉ số và thu phí</h3><p>Đối soát dịch vụ theo kỳ trước khi phát hành hóa đơn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Ghi và duyệt chỉ số điện, nước</p></li><li><span>2</span><p>Tính phí theo hợp đồng và dịch vụ</p></li><li><span>3</span><p>Phát hành và gửi hóa đơn</p></li><li><span>4</span><p>Ghi nhận thanh toán, theo dõi công nợ</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu hỗ trợ</h3><p>Minh bạch tiến độ từ lúc cư dân gửi đến khi hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm thông tin</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật tiến độ xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Theo dõi tiến độ</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn / Chuyển phòng</h3><p>Cập nhật thời hạn hoặc nơi ở mà vẫn giữ lịch sử hợp đồng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Nhận đề nghị của cư dân</p></li><li><span>2</span><p>Kiểm tra lịch phòng và điều kiện hợp đồng</p></li><li><span>3</span><p>Lập gia hạn hoặc chuyển phòng</p></li><li><span>4</span><p>Cập nhật hồ sơ, hóa đơn và căn hộ</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Lưu lịch sử thao tác</span></div></article></div>`;
         }
     </script>
 </body>

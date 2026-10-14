@@ -1,13 +1,14 @@
 import assert from 'node:assert/strict';
-import { readFileSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { readFileSync } from 'node:fs';
 import test from 'node:test';
 import vm from 'node:vm';
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 const dataSource = readFileSync(resolve(root, 'data.js'), 'utf8');
 const domainSource = readFileSync(resolve(root, 'rental-domain.js'), 'utf8');
+const managerSource = readFileSync(resolve(root, 'manager-modules.js'), 'utf8');
 
 function setup() {
     const values = new Map();
@@ -132,7 +133,19 @@ test('creates a contract from a deposit and stores linkage and transfer transact
     assert.equal(env.RHLease.listDepositTransactions(deposit.id).at(-1).type, 'transfer');
 });
 
-test('blocks contract deletion after invoice or in-term meter record and computes settlement', () => {
+test('blocks contract deletion when it has an invoice', () => {
+    const env = setup();
+    const contract = env.RHD.create('contracts', {
+        id: 'contract-invoice', code: 'CT1-501-2026-001', buildingId: env.building.id, apartmentId: env.apartment.id,
+        customerId: env.customer.id, startDate: '2026-10-01', endDate: '2027-09-30', status: 'active'
+    }).item;
+    env.RHD.create('invoices', { id: 'invoice-1', contractId: contract.id, total: 2000000 });
+    assert.match(env.RHLease.contractDeleteBlock(contract.id), /hóa đơn/);
+    assert.equal(env.RHLease.deleteContract(contract.id).ok, false);
+    assert.ok(env.RHD.get('contracts', contract.id));
+});
+
+test('blocks contract deletion after an in-term meter record and computes settlement', () => {
     const env = setup();
     const contract = env.RHD.create('contracts', {
         id: 'contract-1', code: 'CT1-501-2026-001', buildingId: env.building.id, apartmentId: env.apartment.id,
@@ -144,6 +157,71 @@ test('blocks contract deletion after invoice or in-term meter record and compute
     assert.equal(settlement.refundAmount, 1000000);
     assert.equal(settlement.amountToCollect, 0);
     assert.equal(env.RHLease.calculateSettlement(contract, { customerAbandoned: true }).refundAmount, 0);
+});
+
+test('saveContract generates the established code and creates/updates through RHD', () => {
+    const env = setup();
+    const result = env.RHLease.saveContract({
+        buildingId: env.building.id,
+        apartmentId: env.apartment.id,
+        customerId: env.customer.id,
+        startDate: '2027-01-01',
+        endDate: '2027-12-31',
+        rentPrice: 2000000
+    });
+    assert.equal(result.ok, true);
+    assert.equal(result.item.code, 'CT1-501-' + new Date().getFullYear() + '-001');
+    assert.equal(env.RHD.get('contracts', result.item.id).id, result.item.id);
+    const updated = env.RHLease.saveContract({ note: 'Cập nhật' }, result.item.id);
+    assert.equal(updated.ok, true);
+    assert.equal(updated.item.code, result.item.code);
+    assert.equal(updated.item.note, 'Cập nhật');
+    assert.equal(env.RHD.get('contracts', result.item.id).note, 'Cập nhật');
+});
+
+test('saveContract respects the shared Demo create limit while updates remain available', () => {
+    const env = setup();
+    env.RHD.setMode('demo');
+    const building = env.RHD.list('buildings')[0];
+    const apartment = env.RHD.list('apartments')[0];
+    const customer = env.RHD.list('customers')[0];
+    const created = [];
+    for (let year = 2027; year <= 2031; year += 1) {
+        const result = env.RHLease.saveContract({
+            buildingId: building.id,
+            apartmentId: apartment.id,
+            customerId: customer.id,
+            startDate: year + '-01-01',
+            endDate: year + '-12-31',
+            rentPrice: apartment.rentPrice
+        });
+        assert.equal(result.ok, true);
+        created.push(result.item);
+    }
+    const blocked = env.RHLease.saveContract({
+        buildingId: building.id,
+        apartmentId: apartment.id,
+        customerId: customer.id,
+        startDate: '2032-01-01',
+        endDate: '2032-12-31',
+        rentPrice: apartment.rentPrice
+    });
+    assert.equal(blocked.ok, false);
+    assert.equal(blocked.limitReached, true);
+    const updated = env.RHLease.saveContract({ note: 'Chỉnh sửa ở mức giới hạn' }, created[0].id);
+    assert.equal(updated.ok, true);
+});
+
+test('contract delete UI delegates to app confirmDelete and contains no native dialogs', () => {
+    const handler = managerSource.match(/RHUI\.deleteContract = function \(id\) \{([\s\S]*?)\n    \};/);
+    const helper = managerSource.match(/function confirmDelete\([^\n]+\) \{([\s\S]*?)\n    \}/);
+    assert.ok(handler, 'contract delete handler exists');
+    assert.ok(helper, 'shared delete helper exists');
+    assert.match(handler[1], /confirmDelete\(/);
+    assert.match(handler[1], /RHLease\.deleteContract\(/);
+    assert.doesNotMatch(handler[1], /\b(?:confirm|alert)\s*\(/);
+    assert.doesNotMatch(helper[1], /\b(?:confirm|alert)\s*\(/);
+    assert.match(helper[1], /role', 'alertdialog'/);
 });
 
 test('preserves multi-tenant and legacy deposit fields when editing a contract', () => {
@@ -178,6 +256,13 @@ test('migration preserves legacy contract fields and marks unknown deposit balan
     assert.equal(migrated.tenantIds.length, 2);
     assert.equal(Object.hasOwn(migrated, 'customerIds'), false);
     assert.equal(migrated.depositBalanceNeedsReview, true);
+    const contractsBefore = JSON.stringify(env.RHD.list('contracts'));
+    const depositsBefore = JSON.stringify(env.RHD.list('deposits'));
+    const transactionsBefore = JSON.stringify(env.RHD.list('depositTransactions'));
+    assert.equal(env.RHLease.initialize().migrated, false);
+    assert.equal(JSON.stringify(env.RHD.list('contracts')), contractsBefore);
+    assert.equal(JSON.stringify(env.RHD.list('deposits')), depositsBefore);
+    assert.equal(JSON.stringify(env.RHD.list('depositTransactions')), transactionsBefore);
 });
 
 test('dashboard excludes expired active-status contracts from current counts and tracks overdue separately', () => {

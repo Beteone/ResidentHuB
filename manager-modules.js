@@ -376,12 +376,43 @@
         return '<div class="rh-empty"><i class="fas ' + icon + '"></i><p>' + escapeHtml(text) + '</p></div>';
     }
 
-    function confirmDelete(entity, id, afterDeleteFn, blockMsg) {
-        if (blockMsg) { alert(blockMsg); return; }
-        if (!confirm('Xoá bản ghi này? Hành động không thể hoàn tác.')) return;
-        var res = RHD.remove(entity, id);
-        if (!res.ok) { alert(res.error); return; }
-        afterDeleteFn();
+    function confirmDelete(entity, id, afterDeleteFn, blockMsg, deleteFn) {
+        var overlay = document.createElement('div');
+        overlay.className = 'rh-delete-dialog-overlay';
+        overlay.style.cssText = 'position:fixed;inset:0;z-index:10000;display:flex;align-items:center;justify-content:center;padding:1rem;background:rgba(11,36,71,.48);';
+        var dialog = document.createElement('div');
+        dialog.setAttribute('role', 'alertdialog');
+        dialog.setAttribute('aria-modal', 'true');
+        dialog.setAttribute('aria-labelledby', 'rhDeleteDialogTitle');
+        dialog.style.cssText = 'width:min(100%,420px);padding:1.35rem;border-radius:14px;background:#fff;box-shadow:0 24px 70px rgba(11,36,71,.24);';
+        dialog.innerHTML = '<h3 id="rhDeleteDialogTitle" style="margin:0;color:#10213c;font-size:1.05rem;">' + (blockMsg ? 'Không thể xóa' : 'Xác nhận xóa') + '</h3>' +
+            '<p data-delete-message style="margin:.7rem 0 1.25rem;color:#61708a;font-size:.88rem;line-height:1.6;"></p>' +
+            '<div style="display:flex;justify-content:flex-end;gap:.6rem;">' +
+            '<button type="button" data-delete-cancel class="btn-secondary">' + (blockMsg ? 'Đóng' : 'Hủy') + '</button>' +
+            (blockMsg ? '' : '<button type="button" data-delete-confirm class="btn-primary">Xóa</button>') + '</div>';
+        overlay.appendChild(dialog);
+        document.body.appendChild(overlay);
+        dialog.querySelector('[data-delete-message]').textContent = blockMsg || 'Xóa bản ghi này? Hành động không thể hoàn tác.';
+
+        var close = function () {
+            document.removeEventListener('keydown', onKeydown);
+            overlay.remove();
+        };
+        var onKeydown = function (event) { if (event.key === 'Escape') close(); };
+        document.addEventListener('keydown', onKeydown);
+        overlay.addEventListener('click', function (event) { if (event.target === overlay) close(); });
+        dialog.querySelector('[data-delete-cancel]').addEventListener('click', close);
+        var confirmButton = dialog.querySelector('[data-delete-confirm]');
+        if (confirmButton) confirmButton.addEventListener('click', function () {
+            var result = deleteFn ? deleteFn(id) : RHD.remove(entity, id);
+            if (!result.ok) {
+                dialog.querySelector('[data-delete-message]').textContent = result.error || 'Không thể xóa bản ghi.';
+                return;
+            }
+            close();
+            afterDeleteFn();
+        });
+        dialog.querySelector('[data-delete-cancel]').focus();
     }
 
     // ============================================================ BUILDINGS
@@ -1450,6 +1481,7 @@
                 '<td>' + escapeHtml(c.customerType || '—') + '</td>' +
                 '<td>' + (c.vehicles ? c.vehicles.length : 0) + ' xe</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
+                rowButton('customers.create', "RHUI.openDepositForCustomer('" + c.id + "')", 'fa-hand-holding-dollar', 'Tạo đặt cọc') +
                 rowButton('contracts.create', "RHUI.openContractForCustomer('" + c.id + "')", 'fa-file-circle-plus', 'Tạo hợp đồng') +
                 rowButton('customers.update', "RHUI.openCustomerForm('" + c.id + "')", 'fa-pen', 'Sửa') +
                 rowButton('customers.delete', "RHUI.deleteCustomer('" + c.id + "')", 'fa-trash', 'Xoá', true) +
@@ -1466,6 +1498,23 @@
                 : emptyState('fa-users', 'Chưa có khách hàng nào.')) +
             '</div>';
     }
+
+    RHUI.openDepositForCustomer = function (customerId) {
+        if (!guard('customers.create')) return;
+        if (typeof global.switchTab === 'function') global.switchTab('deposits', null, { customerId: customerId });
+    };
+
+    RHUI.renderDepositsTab = function (context) {
+        var tab = byId('deposits-tab');
+        if (!tab) return;
+        var customerId = context && context.customerId || '';
+        var customer = customerId ? RHD.get('customers', customerId) : null;
+        tab.innerHTML = renderDemoBanner('deposits') +
+            '<div class="card"><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Đặt cọc</h2>' +
+            '<p style="color:#64748b;margin-top:.6rem;line-height:1.6;">Luồng dữ liệu đã sẵn sàng. Danh sách, biểu mẫu và thao tác đặt cọc sẽ được triển khai ở Giai đoạn 3.</p>' +
+            (customer ? '<p style="color:#1683ff;font-weight:600;margin-top:.75rem;">Khách hàng được chọn: ' + escapeHtml(customer.fullName) + '</p>' : '') +
+            '</div>';
+    };
 
     RHUI.toggleForeigner = function (checked) {
         byId('rhForeignerFields').style.display = checked ? 'block' : 'none';
@@ -1872,11 +1921,12 @@
 
     RHUI.deleteContract = function (id) {
         if (!guard('contracts.delete')) return;
-        if (!confirm('Xoá bản ghi này? Hành động không thể hoàn tác.')) return;
-        var result = RHLease.deleteContract(id);
-        if (!result.ok) { alert(result.error); return; }
-        renderContractsTab();
-        renderDashboardCounts();
+        confirmDelete('contracts', id, function () {
+            renderContractsTab();
+            renderDashboardCounts();
+        }, RHLease.contractDeleteBlock(id), function (contractId) {
+            return RHLease.deleteContract(contractId);
+        });
     };
 
     // ============================================================ CASHFLOW
