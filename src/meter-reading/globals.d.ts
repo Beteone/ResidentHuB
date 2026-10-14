@@ -16,6 +16,7 @@ interface RhdMeterRow {
     meterType: 'electricity' | 'water';
     meterCode?: string;
     periodMonth?: string;
+    readingPeriod?: string;
     closingDate?: string;
     previousIndex?: number | string;
     latestIndex?: number | string;
@@ -54,8 +55,16 @@ interface RhdApi {
     activeContractFor?(apartmentId: string): { code?: string; customerId?: string } | null;
 }
 
+/** permissions.js — account-type permissions + building scope of the signed-in user. */
+interface RhpApi {
+    can(key: string): boolean;
+    inScope(buildingId: string): boolean;
+    deniedMessage(key: string): string;
+}
+
 interface Window {
     RHD: RhdApi;
+    RHP?: RhpApi;
     RHUI?: { renderDashboardCounts?: () => void };
     RH_SESSION?: { id: string; name: string; demo?: boolean } | null;
     RH?: { getSession?: () => { id: string; name: string } | null };

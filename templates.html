@@ -9,6 +9,7 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="auth.js"></script>
+<script src="permissions.js"></script>
 <script src="templates.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -83,6 +84,8 @@ body{background:linear-gradient(180deg,#f7f9fc 0%,#edf3fb 100%);color:var(--ink)
         ? { id: 'demo', name: 'Khách demo', email: '', role: 'manager', unit: '', demo: true }
         : RH.requireRole('manager');
     window.RHD_MODE = RH_IS_DEMO ? 'demo' : 'live';
+    // Page-level permission (Loại tài khoản > Biểu mẫu > Xem).
+    if (RH_SESSION && !RHP.can('templates.view')) window.location.replace('dashboard.html?denied=templates');
     RHT.seed();
 </script>
 
@@ -194,13 +197,16 @@ function previewTemplate(id) {
         '<div class="rh-print-area">' + rendered + '</div>' +
         '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
         '<button type="button" class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> In / Tải PDF</button>' +
-        (tpl.type === 'INVOICE' ? '<button type="button" onclick="setDefaultTemplate(\'' + tpl.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đặt làm mặc định</button>' : '') +
+        (tpl.type === 'INVOICE' && canTpl('update') ? '<button type="button" onclick="setDefaultTemplate(\'' + tpl.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đặt làm mặc định</button>' : '') +
         '<button type="button" onclick="closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đóng</button>' +
         '</div>';
     openDrawer('Xem trước — ' + tpl.name, html);
 }
 
+function canTpl(action) { return RHP.can('templates.' + action); }
+
 function editTemplate(id) {
+    if (!RHP.guard('templates.update')) return;
     var tpl = RHT.get(id);
     if (!tpl) return;
     var varsHtml = tpl.metadata.variables.map(function (v) { return '<span class="var-chip">{{' + v + '}}</span>'; }).join('');
@@ -220,6 +226,7 @@ function editTemplate(id) {
 
 function saveTemplate(ev, id) {
     ev.preventDefault();
+    if (!RHP.guard('templates.update')) return;
     var tpl = RHT.get(id);
     var name = byId('tplName').value.trim();
     var htmlContent = byId('tplHtml').value;
@@ -236,12 +243,14 @@ function saveTemplate(ev, id) {
 }
 
 function cloneTemplate(id) {
+    if (!RHP.guard('templates.create')) return;
     var res = RHT.clone(id);
     if (!res.ok) { alert(res.error); return; }
     renderContractTab(); renderInvoiceTab();
 }
 
 function deleteTemplateAction(id) {
+    if (!RHP.guard('templates.delete')) return;
     if (!confirm('Xoá mẫu này? Hành động không thể hoàn tác.')) return;
     var res = RHT.remove(id);
     if (!res.ok) { alert(res.error); return; }
@@ -249,6 +258,7 @@ function deleteTemplateAction(id) {
 }
 
 function setDefaultTemplate(id) {
+    if (!RHP.guard('templates.update')) return;
     RHT.setDefault(id);
     closeDrawer();
     renderContractTab(); renderInvoiceTab();
@@ -263,10 +273,10 @@ function templateCardHtml(tpl) {
         '<div class="tpl-badges">' + badges + '</div>' +
         '<div class="tpl-actions">' +
         '<button onclick="previewTemplate(\'' + tpl.id + '\')"><i class="fas fa-eye"></i> Xem trước</button>' +
-        '<button onclick="editTemplate(\'' + tpl.id + '\')"><i class="fas fa-pen"></i> ' + (tpl.is_system ? 'Tuỳ chỉnh' : 'Chỉnh sửa') + '</button>' +
-        '<button onclick="cloneTemplate(\'' + tpl.id + '\')"><i class="fas fa-clone"></i> Nhân bản</button>' +
-        (tpl.type === 'INVOICE' && !tpl.is_system_default ? '<button onclick="setDefaultTemplate(\'' + tpl.id + '\')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '') +
-        (!tpl.is_system ? '<button class="danger" onclick="deleteTemplateAction(\'' + tpl.id + '\')"><i class="fas fa-trash"></i> Xoá</button>' : '') +
+        (canTpl('update') ? '<button onclick="editTemplate(\'' + tpl.id + '\')"><i class="fas fa-pen"></i> ' + (tpl.is_system ? 'Tuỳ chỉnh' : 'Chỉnh sửa') + '</button>' : '') +
+        (canTpl('create') ? '<button onclick="cloneTemplate(\'' + tpl.id + '\')"><i class="fas fa-clone"></i> Nhân bản</button>' : '') +
+        (tpl.type === 'INVOICE' && !tpl.is_system_default && canTpl('update') ? '<button onclick="setDefaultTemplate(\'' + tpl.id + '\')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '') +
+        (!tpl.is_system && canTpl('delete') ? '<button class="danger" onclick="deleteTemplateAction(\'' + tpl.id + '\')"><i class="fas fa-trash"></i> Xoá</button>' : '') +
         '</div></article>';
 }
 

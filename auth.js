@@ -17,6 +17,10 @@
     var MAX_LOGIN_ATTEMPTS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000;
     var ROLES = { MANAGER: 'manager', RESIDENT: 'resident' };
+    // System account types (see permissions.js). Legacy accounts without an
+    // accountTypeId fall back to these, so existing managers keep full access.
+    var ADMIN_TYPE_ID = 'at-admin';
+    var RESIDENT_TYPE_ID = 'at-resident';
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
 
     function readDataStore() {
@@ -507,6 +511,17 @@
         return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
     }
 
+    function normalizePhone(value) {
+        return String(value || '').replace(/[^\d+]/g, '');
+    }
+
+    // Login "portal" (which app the account opens) comes from its account type.
+    function portalOfType(typeId) {
+        var t = global.RHP ? global.RHP.getType(typeId) : null;
+        if (t) return t.portal === 'resident' ? ROLES.RESIDENT : ROLES.MANAGER;
+        return typeId === RESIDENT_TYPE_ID ? ROLES.RESIDENT : ROLES.MANAGER;
+    }
+
     function normalizeUserRecord(user) {
         if (!user || typeof user !== 'object') return null;
         var normalized = Object.assign({}, user);
@@ -519,13 +534,21 @@
         normalized.building = String(normalized.building || '').trim();
         normalized.floor = String(normalized.floor || '').trim();
         normalized.phone = String(normalized.phone || '').trim();
+        normalized.accountTypeId = String(normalized.accountTypeId || '') || (normalized.role === ROLES.RESIDENT ? RESIDENT_TYPE_ID : ADMIN_TYPE_ID);
+        normalized.department = String(normalized.department || '').trim();
+        normalized.title = String(normalized.title || '').trim();
+        normalized.employeeCode = String(normalized.employeeCode || '').trim();
+        normalized.buildingIds = Array.isArray(normalized.buildingIds) ? normalized.buildingIds.map(String) : [];
+        // Legacy accounts managed every building; new staff accounts set this explicitly.
+        normalized.allBuildings = normalized.allBuildings !== false;
         // Links a resident login account to its Resident Profile (RHD customer,
         // see data.js). Set once, at account-request approval time, and never
         // re-derived — this is the account's identity link, not a display cache.
         normalized.residentId = String(normalized.residentId || '').trim();
         normalized.avatar = normalized.avatar || '';
         normalized.status = ['inactive', 'locked'].indexOf(normalized.status) !== -1 ? normalized.status : 'active';
-        return normalized.id && normalized.email && normalized.password ? normalized : null;
+        // Staff accounts may log in by phone only (email is optional).
+        return normalized.id && (normalized.email || normalized.phone) && normalized.password ? normalized : null;
     }
 
     // Earlier builds seeded a mock resident login (u-resident-1 /
@@ -567,6 +590,7 @@
 
     function findUserByEmail(email) {
         var normalized = normalizeEmail(email);
+        if (!normalized) return null;
         var users = readUsers();
         for (var i = 0; i < users.length; i++) {
             if (normalizeEmail(users[i].email) === normalized) return users[i];
@@ -574,28 +598,52 @@
         return null;
     }
 
+    // Staff phone numbers are unique (residents may share a family phone).
+    function findStaffByPhone(phone, exceptId) {
+        var normalized = normalizePhone(phone);
+        if (!normalized) return null;
+        return readUsers().filter(function (u) {
+            return u.role === ROLES.MANAGER && u.id !== exceptId && normalizePhone(u.phone) === normalized;
+        })[0] || null;
+    }
+
     function usersForLogin(identifier) {
         var normalized = normalizeEmail(identifier);
         var name = String(identifier || '').trim().toLowerCase();
+        var phone = /^[\d\s+().-]+$/.test(String(identifier || '').trim()) ? normalizePhone(identifier) : '';
+        if (!normalized) return [];
         return readUsers().filter(function (user) {
-            return normalizeEmail(user.email) === normalized || String(user.name || '').trim().toLowerCase() === name;
+            return (user.email && normalizeEmail(user.email) === normalized) ||
+                (phone && normalizePhone(user.phone) === phone) ||
+                String(user.name || '').trim().toLowerCase() === name;
         });
+    }
+
+    function countActiveAdmins(users, exceptId) {
+        return users.filter(function (u) {
+            return u.id !== exceptId && u.role === ROLES.MANAGER && u.accountTypeId === ADMIN_TYPE_ID && u.status === 'active';
+        }).length;
     }
 
     function createUser(data) {
         var name = String(data.name || '').trim();
         var email = normalizeEmail(data.email);
+        var phone = String(data.phone || '').trim();
         var password = String(data.password || '');
-        var role = data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        var accountTypeId = data.accountTypeId ? String(data.accountTypeId) : (data.role === ROLES.RESIDENT ? RESIDENT_TYPE_ID : ADMIN_TYPE_ID);
+        var role = data.accountTypeId ? portalOfType(accountTypeId) : (data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER);
 
-        if (!name || !email || !password) {
-            return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, email và mật khẩu.' };
+        if (!name || (!email && !phone) || !password) {
+            return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, số điện thoại hoặc email và mật khẩu.' };
         }
         if (password.length < 6) {
             return { ok: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
         }
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
+        }
+        if (role === ROLES.MANAGER && findStaffByPhone(phone)) {
+            return { ok: false, error: 'Số điện thoại này đã được dùng cho một tài khoản nhân viên khác.' };
         }
 
         var user = {
@@ -604,7 +652,14 @@
             email: email,
             password: password,
             role: role,
-            status: 'active',
+            accountTypeId: accountTypeId,
+            status: data.status === 'inactive' ? 'inactive' : 'active',
+            phone: phone,
+            department: String(data.department || '').trim(),
+            title: String(data.title || '').trim(),
+            employeeCode: String(data.employeeCode || '').trim(),
+            buildingIds: Array.isArray(data.buildingIds) ? data.buildingIds.map(String) : [],
+            allBuildings: data.allBuildings !== false,
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -643,9 +698,31 @@
         }
 
         var user = users[index];
+        var nextTypeId = patch.accountTypeId !== undefined ? String(patch.accountTypeId) : user.accountTypeId;
+        var nextRole = patch.accountTypeId !== undefined ? portalOfType(nextTypeId) : user.role;
+        if (patch.accountTypeId !== undefined && nextRole !== user.role) {
+            return { ok: false, error: 'Không thể chuyển tài khoản giữa Cổng quản lý và Cổng cư dân.' };
+        }
+        if (patch.phone !== undefined && user.role === ROLES.MANAGER && findStaffByPhone(patch.phone, id)) {
+            return { ok: false, error: 'Số điện thoại này đã được dùng cho một tài khoản nhân viên khác.' };
+        }
+        var nextEmail = patch.email !== undefined ? normalizeEmail(patch.email) : user.email;
+        var nextPhone = patch.phone !== undefined ? String(patch.phone).trim() : user.phone;
+        if (!nextEmail && !nextPhone) return { ok: false, error: 'Tài khoản cần có số điện thoại hoặc email để đăng nhập.' };
+        var nextStatus = patch.status !== undefined ? (['locked', 'inactive'].indexOf(patch.status) !== -1 ? patch.status : 'active') : user.status;
+        // Never leave the system without an active Admin.
+        if (user.accountTypeId === ADMIN_TYPE_ID && user.status === 'active' && (nextTypeId !== ADMIN_TYPE_ID || nextStatus !== 'active') && countActiveAdmins(users, id) === 0) {
+            return { ok: false, error: 'Phải còn ít nhất một tài khoản Admin đang hoạt động.' };
+        }
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
-        if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        user.accountTypeId = nextTypeId;
+        user.role = nextRole;
+        if (patch.department !== undefined) user.department = String(patch.department).trim();
+        if (patch.title !== undefined) user.title = String(patch.title).trim();
+        if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode).trim();
+        if (patch.buildingIds !== undefined) user.buildingIds = (patch.buildingIds || []).map(String);
+        if (patch.allBuildings !== undefined) user.allBuildings = !!patch.allBuildings;
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
         if (patch.apartmentId !== undefined) user.apartmentId = patch.apartmentId;
         if (patch.residentId !== undefined) user.residentId = patch.residentId;
@@ -653,7 +730,7 @@
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
         if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
-        if (patch.status !== undefined) user.status = patch.status === 'locked' ? 'locked' : 'active';
+        user.status = nextStatus;
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
@@ -676,10 +753,9 @@
         if (next.length === users.length) {
             return { ok: false, error: 'Không tìm thấy tài khoản.' };
         }
-        var remainingManagers = next.filter(function (u) { return u.role === ROLES.MANAGER; });
         var removed = users.filter(function (u) { return u.id === id; })[0];
-        if (removed && removed.role === ROLES.MANAGER && remainingManagers.length === 0) {
-            return { ok: false, error: 'Phải có ít nhất một tài khoản Quản lý trong hệ thống.' };
+        if (removed && removed.accountTypeId === ADMIN_TYPE_ID && countActiveAdmins(users, id) === 0) {
+            return { ok: false, error: 'Phải còn ít nhất một tài khoản Admin đang hoạt động.' };
         }
         writeUsers(next);
         return { ok: true };
@@ -940,6 +1016,8 @@
             email: request.email,
             password: request.password,
             role: ROLES.RESIDENT,
+            accountTypeId: RESIDENT_TYPE_ID,
+            phone: request.phone,
             unit: apartment ? apartment.name : '',
             apartmentId: apartmentId,
             building: building ? (building.shortName || building.name) : '',
@@ -1035,7 +1113,7 @@
             if (!raw) return null;
             var session = JSON.parse(raw);
             var user = readUsers().filter(function (item) { return item.id === session.id; })[0];
-            if (!user || user.status === 'locked') {
+            if (!user || user.status === 'locked' || user.status === 'inactive') {
                 logout();
                 return null;
             }
@@ -1046,6 +1124,7 @@
                 unit: user.unit || '',
                 apartmentId: user.apartmentId || '',
                 residentId: user.residentId || '',
+                accountTypeId: user.accountTypeId,
                 currentUserId: user.id
             });
         } catch (e) {
@@ -1083,6 +1162,8 @@
         ROLES: ROLES,
         getUsers: readUsers,
         findUserByEmail: findUserByEmail,
+        ADMIN_TYPE_ID: ADMIN_TYPE_ID,
+        RESIDENT_TYPE_ID: RESIDENT_TYPE_ID,
         createUser: createUser,
         updateUser: updateUser,
         deleteUser: deleteUser,

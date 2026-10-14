@@ -3,6 +3,7 @@ import type { Apartment, Building, MeterKind, MeterRecord, TableRow, TypeFilter 
 import { KIND_META } from '../types';
 import { cx, dateTimeLabel, formatNumber } from '../format';
 import { ApprovalToggle, ClosingBadge, RoomApprovalStatus, Tag } from './StatusBadges';
+import type { MeterPermissions } from '../permissions';
 
 interface RecordTableProps {
     rows: TableRow[];
@@ -24,6 +25,8 @@ interface RecordTableProps {
     onRecord: (row: TableRow) => void;
     onViewPhoto: (record: MeterRecord) => void;
     emptyText: string;
+    /** What the signed-in user may do (Loại tài khoản › Ghi chỉ số). */
+    perms: MeterPermissions;
 }
 
 const TYPE_TABS: Array<{ value: TypeFilter; label: string }> = [
@@ -69,7 +72,7 @@ function IconButton({ title, onClick, className, icon }: { title: string; onClic
 const stop = (e: { stopPropagation: () => void }) => e.stopPropagation();
 
 export function RecordTable(props: RecordTableProps) {
-    const { rows, typeFilter, onTypeChange, buildings, apartments, emptyText, selectedKey } = props;
+    const { rows, typeFilter, onTypeChange, buildings, apartments, emptyText, selectedKey, perms } = props;
     // View mode: the tabs choose which meter lines the cells show; rows stay the same.
     const visibleKinds: MeterKind[] = typeFilter === 'all' ? ['dien', 'nuoc'] : [typeFilter];
 
@@ -150,6 +153,7 @@ export function RecordTable(props: RecordTableProps) {
                         label={allApproved ? 'Đã duyệt tất cả' : 'Duyệt tất cả'}
                         subject={'điện và nước căn ' + apt}
                         onToggle={() => props.onToggleRoom(row)}
+                        disabled={!perms.approve}
                     />
                     <RoomApprovalStatus row={row} />
                     {a && <div className="text-[11px] leading-tight text-slate-500">{a.approvedBy ? a.approvedBy + ' · ' : ''}{dateTimeLabel(a.approvedAt || 0)}</div>}
@@ -162,7 +166,7 @@ export function RecordTable(props: RecordTableProps) {
                     row,
                     (m, kind) => (
                         <span title={m.approvalStatus === 'đã_duyệt' ? 'Duyệt bởi ' + (m.approvedBy || '—') + ' lúc ' + dateTimeLabel(m.approvedAt || 0) : 'Chờ người duyệt'}>
-                            <ApprovalToggle status={m.approvalStatus} subject={KIND_META[kind].label.toLowerCase() + ' căn ' + apt} onToggle={() => props.onToggleMeter(m)} />
+                            <ApprovalToggle status={m.approvalStatus} subject={KIND_META[kind].label.toLowerCase() + ' căn ' + apt} onToggle={() => props.onToggleMeter(m)} disabled={!perms.approve} />
                         </span>
                     ),
                     'left',
@@ -176,6 +180,7 @@ export function RecordTable(props: RecordTableProps) {
     // Actions apply to the whole apartment (Điện + Nước).
     const actions = (row: TableRow) => {
         if (!row.dien && !row.nuoc) {
+            if (!perms.create) return null;
             return (
                 <button type="button" onClick={() => props.onRecord(row)} className="inline-flex items-center gap-1.5 whitespace-nowrap rounded-lg bg-blue-600 px-3 py-1.5 text-xs font-semibold text-white hover:bg-blue-700">
                     <i className="fas fa-pen-to-square" aria-hidden="true" /> Ghi số
@@ -184,8 +189,8 @@ export function RecordTable(props: RecordTableProps) {
         }
         return (
             <div className="flex items-center justify-end gap-1.5">
-                <IconButton title="Sửa" icon="fa-pen" onClick={() => props.onEdit(row)} className="border border-slate-200 text-slate-500 hover:bg-slate-100" />
-                <IconButton title="Xoá" icon="fa-trash" onClick={() => props.onDelete(row)} className="border border-red-100 text-red-500 hover:bg-red-50" />
+                {perms.update && <IconButton title="Sửa" icon="fa-pen" onClick={() => props.onEdit(row)} className="border border-slate-200 text-slate-500 hover:bg-slate-100" />}
+                {perms.delete && <IconButton title="Xoá" icon="fa-trash" onClick={() => props.onDelete(row)} className="border border-red-100 text-red-500 hover:bg-red-50" />}
             </div>
         );
     };
@@ -213,7 +218,7 @@ export function RecordTable(props: RecordTableProps) {
                     <p className="text-xs text-slate-500">{rows.length} dòng theo bộ lọc hiện tại · bấm vào một dòng để xem chi tiết</p>
                 </div>
                 <div className="flex flex-wrap items-center gap-2">
-                    {typeFilter === 'all' && (
+                    {typeFilter === 'all' && perms.approve && (
                         <button
                             type="button" id="mr-approve-all"
                             onClick={props.onApproveAll}
