@@ -44,60 +44,217 @@
         return '<span style="background:' + bg + ';color:' + color + ';font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;white-space:nowrap;">' + escapeHtml(label) + '</span>';
     }
 
-    function statusMeta(list, id) {
-        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
-        return { label: id || '—', color: '#61708a', bg: '#f1f5f9' };
+    function renderCashflowTab() {
+        var tab = byId('cashflow-tab');
+        if (!tab) return;
+        ensureCashflowStyles();
+        var state = RHUI.cashflowFilters || (RHUI.cashflowFilters = { type: 'all', area: '', building: '', apartment: '', from: '', to: '', account: '', search: '', filtersOpen: true });
+        var allRecords = RHD.list('cashflows').slice().sort(function (a, b) {
+            return String(b.date || '').localeCompare(String(a.date || '')) || (b.createdAt || 0) - (a.createdAt || 0);
+        });
+        var allBuildings = RHD.list('buildings');
+        var areas = allBuildings.map(function (b) { return b.province || b.ward || ''; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var apartments = RHD.list('apartments');
+        var visibleRecords = allRecords.filter(function (record) {
+            var building = RHD.get('buildings', record.buildingId) || {};
+            var apartment = RHD.get('apartments', record.apartmentId) || {};
+            var area = building.province || building.ward || '';
+            if (state.type !== 'all' && record.type !== state.type) return false;
+            if (state.area && area !== state.area) return false;
+            if (state.building && record.buildingId !== state.building) return false;
+            if (state.apartment && record.apartmentId !== state.apartment) return false;
+            if (state.from && String(record.date || '') < state.from) return false;
+            if (state.to && String(record.date || '') > state.to) return false;
+            if (state.account && (record.accountName || record.paymentMethod || '') !== state.account) return false;
+            if (state.search) {
+                var searchText = [record.code, record.category, record.description, record.reference, record.personName, record.accountName, record.paymentMethod, building.name, building.shortName, apartment.name].join(' ').toLocaleLowerCase();
+                if (searchText.indexOf(state.search.toLocaleLowerCase()) === -1) return false;
+            }
+            return true;
+        });
+        var totals = visibleRecords.reduce(function (sum, record) {
+            sum[record.type === 'income' ? 'income' : 'expense'] += Number(record.amount) || 0;
+            return sum;
+        }, { income: 0, expense: 0 });
+        var buildingOptions = '<option value="">Chọn tòa nhà</option>' + allBuildings.map(function (b) {
+            return '<option value="' + escapeHtml(b.id) + '"' + (state.building === b.id ? ' selected' : '') + '>' + escapeHtml(b.name || b.shortName) + '</option>';
+        }).join('');
+        var apartmentOptions = '<option value="">Chọn phòng</option>' + apartments.filter(function (apt) { return !state.building || apt.buildingId === state.building; }).map(function (apt) {
+            return '<option value="' + escapeHtml(apt.id) + '"' + (state.apartment === apt.id ? ' selected' : '') + '>' + escapeHtml(apt.name || apt.code || 'Căn hộ') + '</option>';
+        }).join('');
+        var accountNames = allRecords.map(function (record) { return record.accountName || record.paymentMethod || ''; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var accountOptions = '<option value="">Sổ quỹ</option>' + accountNames.map(function (account) {
+            return '<option value="' + escapeHtml(account) + '"' + (state.account === account ? ' selected' : '') + '>' + escapeHtml(account) + '</option>';
+        }).join('');
+        var rows = visibleRecords.map(function (record) {
+            var building = RHD.get('buildings', record.buildingId);
+            var apartment = RHD.get('apartments', record.apartmentId);
+            var sign = record.type === 'income' ? '+' : '−';
+            return '<tr><td><input class="rh-cashflow-select" type="checkbox" value="' + escapeHtml(record.id) + '" aria-label="Chọn phiếu ' + escapeHtml(record.code || '') + '"></td>' +
+                '<td class="rh-cashflow-code">' + escapeHtml(record.code || '—') + ' <i class="fas fa-shield-halved" title="Đã lưu"></i></td>' +
+                '<td><div class="rh-cashflow-actions-cell"><button class="view" type="button" title="Xem chi tiết" aria-label="Xem chi tiết" onclick="RHUI.openCashflowDetail(\'' + record.id + '\')"><i class="fas fa-eye"></i></button><button class="edit" type="button" title="Sửa" aria-label="Sửa" onclick="RHUI.openCashflowForm(\'' + record.id + '\')"><i class="fas fa-pen-to-square"></i></button><button class="print" type="button" title="In phiếu" aria-label="In phiếu" onclick="RHUI.printCashflow(\'' + record.id + '\')"><i class="fas fa-print"></i></button><button class="delete" type="button" title="Xóa" aria-label="Xóa" onclick="RHUI.deleteCashflow(\'' + record.id + '\')"><i class="fas fa-trash"></i></button></div></td>' +
+                '<td><strong>' + escapeHtml(record.description || record.category || 'Thu chi') + '</strong><div class="rh-cashflow-row-sub">' + escapeHtml(record.category || '') + (record.reference ? ' · ' + escapeHtml(record.reference) : '') + '</div></td>' +
+                '<td class="rh-cashflow-amount" style="color:' + (record.type === 'income' ? '#198754' : '#d17a0b') + ';text-align:right;">' + sign + money(record.amount) + '</td>' +
+                '<td>' + escapeHtml(building ? building.name : '—') + (apartment ? '<div class="rh-cashflow-row-sub">' + escapeHtml(apartment.name || apartment.code) + '</div>' : '') + '</td>' +
+                '<td>' + fmtDate(record.date) + '</td><td>' + escapeHtml(record.personName || '—') + '</td><td>' + escapeHtml(record.accountName || record.paymentMethod || '—') + '</td></tr>';
+        }).join('');
+        var areaOptions = '<option value="">Chọn khu vực</option>' + areas.map(function (area) { return '<option value="' + escapeHtml(area) + '"' + (state.area === area ? ' selected' : '') + '>' + escapeHtml(area) + '</option>'; }).join('');
+        var typeOptions = '<option value="all">Loại thu/chi</option><option value="income"' + (state.type === 'income' ? ' selected' : '') + '>Thu</option><option value="expense"' + (state.type === 'expense' ? ' selected' : '') + '>Chi</option>';
+        tab.innerHTML = '<div class="card"><div class="rh-cashflow-summary">' +
+            '<div class="rh-cashflow-stat income"><span class="rh-cashflow-stat-icon"><i class="fas fa-plus"></i></span><div><strong>' + Number(totals.income).toLocaleString('vi-VN') + '</strong><small>Thu</small></div></div>' +
+            '<div class="rh-cashflow-stat expense"><span class="rh-cashflow-stat-icon"><i class="fas fa-minus"></i></span><div><strong>' + Number(totals.expense).toLocaleString('vi-VN') + '</strong><small>Chi</small></div></div>' +
+            '<div class="rh-cashflow-stat balance"><span class="rh-cashflow-stat-icon"><i class="fas fa-wallet"></i></span><div><strong>' + Number(totals.income - totals.expense).toLocaleString('vi-VN') + '</strong><small>Thu - chi</small></div></div></div>' +
+            '<div class="rh-cashflow-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><input id="cashflowFrom" type="date" aria-label="Từ ngày" value="' + escapeHtml(state.from) + '"><input id="cashflowTo" type="date" aria-label="Đến ngày" value="' + escapeHtml(state.to) + '"><select id="cashflowArea" aria-label="Khu vực">' + areaOptions + '</select><select id="cashflowBuilding" aria-label="Tòa nhà">' + buildingOptions + '</select><select id="cashflowApartment" aria-label="Phòng">' + apartmentOptions + '</select><select id="cashflowAccount" aria-label="Sổ quỹ">' + accountOptions + '</select><select id="cashflowType" aria-label="Loại giao dịch" style="grid-column:span 2;">' + typeOptions + '</select><button type="button" class="btn-secondary" onclick="RHUI.clearCashflowFilters()">Xóa bộ lọc</button></div>' +
+            '<div class="rh-cashflow-toolbar"><div class="rh-cashflow-search"><i class="fas fa-search"></i><input id="cashflowSearch" type="search" aria-label="Tìm kiếm phiếu" placeholder="Tìm kiếm..." value="' + escapeHtml(state.search) + '"></div><button type="button" class="rh-cashflow-toolbar-btn add" title="Thêm phiếu thu chi" aria-label="Thêm phiếu thu chi" onclick="RHUI.openCashflowForm(null,\'income\')"><i class="fas fa-plus"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="Xuất CSV" aria-label="Xuất CSV" onclick="RHUI.exportCashflows()"><i class="fas fa-cloud-arrow-down"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="Nhập CSV" aria-label="Nhập CSV" onclick="document.getElementById(\'cashflowCsvInput\').click()"><i class="fas fa-cloud-arrow-up"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="In danh sách" aria-label="In danh sách" onclick="RHUI.printCashflowList()"><i class="fas fa-print"></i></button><button type="button" class="rh-cashflow-toolbar-btn danger" title="Xóa phiếu đã chọn" aria-label="Xóa phiếu đã chọn" onclick="RHUI.deleteSelectedCashflows()"><i class="fas fa-trash"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="Bộ lọc" aria-label="Bộ lọc" onclick="RHUI.toggleCashflowFilters()"><i class="fas fa-filter"></i></button><input id="cashflowCsvInput" type="file" accept=".csv,text/csv" hidden onchange="RHUI.importCashflows(this)"></div>' +
+            '<div class="rh-cashflow-table-wrap"><table class="rh-cashflow-table"><thead><tr><th><input id="cashflowSelectAll" type="checkbox" aria-label="Chọn tất cả"></th><th>Mã</th><th>Thao tác</th><th>Tên</th><th style="text-align:right;">Số tiền</th><th>Tòa nhà</th><th>Ngày thu/chi</th><th>Người nhận/trả</th><th>Tài khoản</th></tr></thead><tbody>' + (rows || '<tr><td colspan="9" style="color:#718096;padding:2rem;text-align:center;">Chưa có phiếu phù hợp. Nhấn dấu + để ghi nhận thu hoặc chi.</td></tr>') + '</tbody></table></div></div>';
+        ['cashflowFrom', 'cashflowTo', 'cashflowArea', 'cashflowBuilding', 'cashflowApartment', 'cashflowAccount', 'cashflowType'].forEach(function (id) {
+            byId(id).addEventListener('change', function () {
+                state.from = byId('cashflowFrom').value;
+                state.to = byId('cashflowTo').value;
+                state.area = byId('cashflowArea').value;
+                state.building = byId('cashflowBuilding').value;
+                state.apartment = byId('cashflowApartment').value;
+                state.account = byId('cashflowAccount').value;
+                state.type = byId('cashflowType').value;
+                renderCashflowTab();
+            });
+        });
+        byId('cashflowSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            renderCashflowTab();
+            var next = byId('cashflowSearch');
+            if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+        });
+        byId('cashflowSelectAll').addEventListener('change', function () {
+            tab.querySelectorAll('.rh-cashflow-select').forEach(function (checkbox) { checkbox.checked = byId('cashflowSelectAll').checked; });
+        });
     }
 
-    function apartmentDetailStatus(apartment) {
-        var status = apartment && apartment.status ? apartment.status : (apartment && apartment.active === false ? 'maintenance' : 'vacant');
-        return statusMeta(RHD.APARTMENT_STATUSES || [], status);
+    RHUI.toggleCashflowFilters = function () {
+        RHUI.cashflowFilters.filtersOpen = !RHUI.cashflowFilters.filtersOpen;
+        renderCashflowTab();
+    };
+
+    RHUI.clearCashflowFilters = function () {
+        RHUI.cashflowFilters = { type: 'all', area: '', building: '', apartment: '', from: '', to: '', account: '', search: '', filtersOpen: true };
+        renderCashflowTab();
+    };
+
+    RHUI.openCashflowDetail = function (id) {
+        var record = RHD.get('cashflows', id);
+        if (!record) return;
+        var building = RHD.get('buildings', record.buildingId);
+        var apartment = RHD.get('apartments', record.apartmentId);
+        var isIncome = record.type === 'income';
+        var detail = '<div class="rh-print-area" style="padding:1.5rem;"><div style="align-items:center;border-bottom:2px solid #e6edf4;display:flex;justify-content:space-between;padding-bottom:1rem;"><div><strong style="color:#10213c;font-size:1.25rem;">ResidentHub</strong><div style="color:#718096;font-size:.82rem;">PHIẾU ' + (isIncome ? 'THU' : 'CHI') + '</div></div><strong style="color:#23845c;">' + escapeHtml(record.code || '') + '</strong></div><div style="display:grid;gap:.85rem;grid-template-columns:1fr 1fr;margin-top:1.25rem;">' +
+            detailItem('Ngày', escapeHtml(fmtDate(record.date))) + detailItem('Danh mục', escapeHtml(record.category || '')) +
+            detailItem('Tòa nhà', escapeHtml(building ? building.name : '')) + detailItem('Căn hộ / Phòng', escapeHtml(apartment ? apartment.name : '')) +
+            detailItem(isIncome ? 'Người nộp' : 'Người nhận', escapeHtml(record.personName || '')) + detailItem('Tài khoản', escapeHtml(record.accountName || record.paymentMethod || '')) +
+            detailItem('Mã tham chiếu', escapeHtml(record.reference || '')) + detailItem('Nội dung', escapeHtml(record.description || ''), true) +
+            '</div><div style="border-top:1px solid #e6edf4;margin-top:1.25rem;padding-top:1rem;text-align:right;"><span style="color:#718096;">Số tiền</span><strong style="color:' + (isIncome ? '#198754' : '#d17a0b') + ';display:block;font-size:1.5rem;">' + (isIncome ? '+' : '−') + money(record.amount) + '</strong></div></div>' +
+            '<div style="display:flex;gap:.6rem;margin-top:1rem;"><button type="button" class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> In phiếu</button><button type="button" onclick="RHUI.openCashflowForm(\'' + record.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Sửa</button></div>';
+        openDrawer('Chi tiết phiếu ' + (record.code || ''), detail);
+    };
+
+    RHUI.printCashflow = function (id) {
+        RHUI.openCashflowDetail(id);
+        window.setTimeout(function () { window.print(); }, 100);
+    };
+
+    RHUI.printCashflowList = function () {
+        var state = RHUI.cashflowFilters || {};
+        var items = RHD.list('cashflows').filter(function (record) {
+            var building = RHD.get('buildings', record.buildingId) || {};
+            var apartment = RHD.get('apartments', record.apartmentId) || {};
+            var area = building.province || building.ward || '';
+            var text = [record.code, record.category, record.description, record.reference, record.personName, record.accountName, building.name, apartment.name].join(' ').toLocaleLowerCase();
+            return (!state.type || state.type === 'all' || record.type === state.type) && (!state.area || area === state.area) &&
+                (!state.building || record.buildingId === state.building) && (!state.apartment || record.apartmentId === state.apartment) &&
+                (!state.from || record.date >= state.from) && (!state.to || record.date <= state.to) &&
+                (!state.account || (record.accountName || record.paymentMethod || '') === state.account) &&
+                (!state.search || text.indexOf(state.search.toLocaleLowerCase()) !== -1);
+        });
+        var rows = items.map(function (record) {
+            var building = RHD.get('buildings', record.buildingId);
+            var apartment = RHD.get('apartments', record.apartmentId);
+            return '<tr><td>' + escapeHtml(record.code || '') + '</td><td>' + (record.type === 'income' ? 'Thu' : 'Chi') + '</td><td>' + escapeHtml(record.description || record.category || '') + '</td><td>' + money(record.amount) + '</td><td>' + escapeHtml(building ? building.name : '') + ' / ' + escapeHtml(apartment ? apartment.name : '') + '</td><td>' + escapeHtml(fmtDate(record.date)) + '</td><td>' + escapeHtml(record.personName || '') + '</td><td>' + escapeHtml(record.accountName || record.paymentMethod || '') + '</td></tr>';
+        }).join('');
+        var printArea = document.createElement('div');
+        printArea.className = 'rh-print-area';
+        printArea.innerHTML = '<h2 style="margin-bottom:1rem;">Danh sách thu chi</h2><table style="border-collapse:collapse;width:100%;"><thead><tr><th>Mã</th><th>Loại</th><th>Nội dung</th><th>Số tiền</th><th>Tòa nhà / Phòng</th><th>Ngày</th><th>Người nhận/trả</th><th>Tài khoản</th></tr></thead><tbody>' + rows + '</tbody></table>';
+        document.body.appendChild(printArea);
+        var cleanUp = function () { if (printArea.parentNode) printArea.parentNode.removeChild(printArea); window.removeEventListener('afterprint', cleanUp); };
+        window.addEventListener('afterprint', cleanUp);
+        window.print();
+        window.setTimeout(cleanUp, 1500);
+    };
+
+    RHUI.deleteSelectedCashflows = function () {
+        var checks = Array.prototype.slice.call(document.querySelectorAll('#cashflow-tab .rh-cashflow-select:checked'));
+        var ids = checks.map(function (checkbox) { return checkbox.value; });
+        if (!ids.length) { alert('Vui lòng chọn phiếu thu chi cần xóa.'); return; }
+        if (!confirm('Xóa ' + ids.length + ' phiếu thu chi đã chọn?')) return;
+        ids.forEach(function (id) { RHD.remove('cashflows', id); });
+        renderCashflowTab();
+    };
+
+    RHUI.exportCashflows = function () {
+        var records = RHD.list('cashflows');
+        var headers = ['code', 'type', 'date', 'buildingId', 'apartmentId', 'category', 'description', 'amount', 'personName', 'accountName', 'reference'];
+        var csvCell = function (value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; };
+        var csv = [headers.join(','), records.map(function (record) { return headers.map(function (key) { return csvCell(record[key]); }).join(','); }).join('\r\n')].join('\r\n');
+        var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'residenthub-thu-chi.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    function parseCsvLine(line) {
+        var fields = [], value = '', quoted = false;
+        for (var i = 0; i < line.length; i++) {
+            var ch = line.charAt(i);
+            if (ch === '"' && quoted && line.charAt(i + 1) === '"') { value += '"'; i++; }
+            else if (ch === '"') quoted = !quoted;
+            else if (ch === ',' && !quoted) { fields.push(value); value = ''; }
+            else value += ch;
+        }
+        fields.push(value);
+        return fields;
     }
 
-    function apartmentDetailLeaseStatus(contract) {
-        if (!contract) return { label: 'Chưa thuê', color: '#64748b', bg: '#f1f5f9' };
-        var map = {
-            active: { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' },
-            pending: { label: 'Chờ ký', color: '#a5680c', bg: '#fff4df' },
-            ended: { label: 'Đã kết thúc', color: '#64748b', bg: '#f1f5f9' },
-            terminated: { label: 'Đã thanh lý', color: '#ef4444', bg: '#fee2e2' },
-            draft: { label: 'Bản nháp', color: '#61708a', bg: '#f1f5f9' }
-        };
-        return map[contract.status] || { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' };
-    }
-
-    function normalizeApartmentRecord(apartment) {
-        if (!apartment) return null;
-        return {
-            id: apartment.id || apartment.code || '',
-            name: apartment.name || apartment.code || 'Căn hộ',
-            code: apartment.code || apartment.unitCode || '',
-            buildingId: apartment.buildingId || apartment.building_id || '',
-            buildingName: apartment.buildingName || apartment.building || '',
-            buildingCode: apartment.buildingCode || apartment.codeBuilding || '',
-            floor: apartment.floor || (apartment.level ? 'Tầng ' + apartment.level : ''),
-            area: apartment.area || apartment.square || apartment.size || 0,
-            rentPrice: apartment.rentPrice != null ? apartment.rentPrice : (apartment.rent != null ? apartment.rent : 0),
-            depositPrice: apartment.depositPrice != null ? apartment.depositPrice : (apartment.deposit != null ? apartment.deposit : 0),
-            status: apartment.status || (apartment.active === false ? 'maintenance' : 'vacant'),
-            active: apartment.active !== false,
-            photos: Array.isArray(apartment.photos) ? apartment.photos : (Array.isArray(apartment.images) ? apartment.images : []),
-            address: apartment.address || apartment.location || '',
-            note: apartment.note || ''
-        };
-    }
-
-    function readFileAsDataUrl(input, cb) {
+    RHUI.importCashflows = function (input) {
         var file = input.files && input.files[0];
-        if (!file) { cb(''); return; }
+        if (!file) return;
         var reader = new FileReader();
-        reader.onload = function () { cb(reader.result); };
-        reader.readAsDataURL(file);
-    }
-
-    function selectOptions(items, valueKey, labelKey, selected, placeholder) {
-        var html = placeholder ? '<option value="">' + escapeHtml(placeholder) + '</option>' : '';
-        html += items.map(function (it) {
+        reader.onload = function () {
+            var lines = String(reader.result || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
+            if (lines.length < 2) { alert('Tệp CSV chưa có dữ liệu.'); input.value = ''; return; }
+            var headers = parseCsvLine(lines[0]).map(function (header) { return header.trim(); });
+            var imported = 0;
+            lines.slice(1).forEach(function (line) {
+                var values = parseCsvLine(line);
+                var item = {};
+                headers.forEach(function (header, index) { item[header] = values[index] || ''; });
+                var type = item.type === 'expense' || item.type === 'Chi' ? 'expense' : 'income';
+                var amount = Number(String(item.amount || '').replace(/[\s,]/g, ''));
+                if (!item.date || !isFinite(amount) || amount <= 0) return;
+                var result = RHD.create('cashflows', {
+                    code: item.code || 'TC-' + String(Date.now() + imported).slice(-8), type: type, date: item.date,
+                    buildingId: item.buildingId || '', apartmentId: item.apartmentId || '', category: item.category || (type === 'income' ? 'Thu khác' : 'Chi khác'),
+                    description: item.description || '', amount: amount, personName: item.personName || '', accountName: item.accountName || '',
+                    reference: item.reference || '', paymentMethod: item.accountName || 'Khác', paymentMethodId: 'other'
+                });
+                if (result.ok) imported++;
+            });
+            input.value = '';
+            renderCashflowTab();
+            alert('Đã nhập ' + imported + ' phiếu thu chi.');
+        };
+        reader.readAsText(file, 'utf-8');
+    };
             var v = typeof valueKey === 'function' ? valueKey(it) : it[valueKey];
             var l = typeof labelKey === 'function' ? labelKey(it) : it[labelKey];
             return '<option value="' + escapeHtml(v) + '"' + (v === selected ? ' selected' : '') + '>' + escapeHtml(l) + '</option>';
@@ -1496,6 +1653,164 @@
         confirmDelete('contracts', id, function () { renderContractsTab(); renderDashboardCounts(); }, hasInvoice ? 'Không thể xoá: hợp đồng đang gắn với hóa đơn.' : null);
     };
 
+    // ============================================================ CASHFLOW
+
+    var CASHFLOW_CATEGORIES = {
+        income: ['Thu tiền thuê', 'Thu phí dịch vụ', 'Thu tiền điện', 'Thu tiền nước', 'Thu khác'],
+        expense: ['Chi vận hành', 'Chi bảo trì', 'Chi vệ sinh', 'Chi nhân sự', 'Chi khác']
+    };
+
+    function ensureCashflowStyles() {
+        if (byId('rhCashflowStyles')) return;
+        var style = document.createElement('style');
+        style.id = 'rhCashflowStyles';
+        style.textContent = '#cashflow-tab .rh-cashflow-head{align-items:center;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1rem}#cashflow-tab .rh-cashflow-head h2{color:#10213c;font:800 1.45rem "Plus Jakarta Sans",sans-serif}#cashflow-tab .rh-cashflow-actions{display:flex;flex-wrap:wrap;gap:.55rem}#cashflow-tab .rh-cashflow-actions button{align-items:center;border:0;border-radius:9px;color:#fff;cursor:pointer;display:inline-flex;font-family:inherit;font-size:.84rem;font-weight:600;gap:.45rem;padding:.65rem .85rem}#cashflow-tab .rh-cashflow-add-income{background:#198754}#cashflow-tab .rh-cashflow-add-expense{background:#e05252}#cashflow-tab .rh-cashflow-filters{display:grid;gap:.65rem;grid-template-columns:repeat(4,minmax(0,1fr));margin:1rem 0}#cashflow-tab .rh-cashflow-filters input,#cashflow-tab .rh-cashflow-filters select{background:#fff;border:1px solid #dce3eb;border-radius:9px;font:inherit;min-width:0;padding:.65rem .75rem;width:100%}#cashflow-tab .rh-cashflow-summary{display:grid;gap:.75rem;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:1rem}#cashflow-tab .rh-cashflow-stat{background:#fff;border:1px solid #e3eaf2;border-radius:12px;padding:1rem}#cashflow-tab .rh-cashflow-stat small{color:#718096;display:block;font-size:.78rem;font-weight:700}#cashflow-tab .rh-cashflow-stat strong{color:#10213c;display:block;font:800 1.2rem "Plus Jakarta Sans",sans-serif;margin-top:.45rem}#cashflow-tab .rh-cashflow-stat.income strong{color:#198754}#cashflow-tab .rh-cashflow-stat.expense strong{color:#dc4b4b}#cashflow-tab .rh-cashflow-table-wrap{border:1px solid #e4eaf2;border-radius:10px;overflow:auto}#cashflow-tab .rh-cashflow-table{border-collapse:collapse;min-width:860px;width:100%}#cashflow-tab .rh-cashflow-table th,#cashflow-tab .rh-cashflow-table td{border-bottom:1px solid #e7ebf0;padding:.72rem .65rem;text-align:left;vertical-align:middle}#cashflow-tab .rh-cashflow-table th{background:#f7f8fa;color:#556273;font-size:.72rem;white-space:nowrap}#cashflow-tab .rh-cashflow-table tbody tr:nth-child(odd){background:#f8f9fa}#cashflow-tab .rh-cashflow-type{border-radius:999px;display:inline-block;font-size:.7rem;font-weight:700;padding:.25rem .6rem;white-space:nowrap}#cashflow-tab .rh-cashflow-type.income{background:#e5f5ed;color:#178250}#cashflow-tab .rh-cashflow-type.expense{background:#fdebec;color:#c5474e}@media(max-width:850px){#cashflow-tab .rh-cashflow-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#cashflow-tab .rh-cashflow-filters,#cashflow-tab .rh-cashflow-summary{grid-template-columns:1fr}}';
+        style.textContent += '#cashflow-tab .rh-cashflow-summary{gap:.7rem}#cashflow-tab .rh-cashflow-stat{align-items:center;display:flex;gap:.9rem;min-height:82px;padding:.8rem 1rem}#cashflow-tab .rh-cashflow-stat-icon{align-items:center;background:#effbf4;border:1px solid #d1f0df;border-radius:14px;color:#18a878;display:inline-flex;flex:0 0 44px;font-size:1.15rem;height:44px;justify-content:center}#cashflow-tab .rh-cashflow-stat.expense .rh-cashflow-stat-icon{background:#fff7ec;border-color:#f6e3c8;color:#e59a23}#cashflow-tab .rh-cashflow-stat.balance .rh-cashflow-stat-icon{background:#edf5ff;border-color:#d5e7fb;color:#337bc7}#cashflow-tab .rh-cashflow-stat strong{font-size:1.12rem;margin-top:.22rem}#cashflow-tab .rh-cashflow-toolbar{align-items:center;display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}#cashflow-tab .rh-cashflow-search{flex:1 1 220px;position:relative}#cashflow-tab .rh-cashflow-search input{padding-left:2rem}#cashflow-tab .rh-cashflow-search i{color:#94a3b8;left:.72rem;position:absolute;top:50%;transform:translateY(-50%)}#cashflow-tab .rh-cashflow-toolbar-btn{align-items:center;background:#fff;border:1px solid #dce3eb;border-radius:8px;color:#526275;cursor:pointer;display:inline-flex;height:39px;justify-content:center;min-width:40px;padding:0 .65rem}#cashflow-tab .rh-cashflow-toolbar-btn:hover{background:#eff7ff;border-color:#b8d8f6;color:#0d65d5}#cashflow-tab .rh-cashflow-toolbar-btn.add{background:#198754;border-color:#198754;color:#fff}#cashflow-tab .rh-cashflow-toolbar-btn.danger{color:#d54444}#cashflow-tab .rh-cashflow-toolbar-btn[disabled]{cursor:not-allowed;opacity:.45}#cashflow-tab .rh-cashflow-filter-panel{display:none;background:#fff;border:1px solid #e3eaf2;border-radius:10px;gap:.6rem;grid-template-columns:repeat(6,minmax(0,1fr));margin:.5rem 0 1rem;padding:.75rem}#cashflow-tab .rh-cashflow-filter-panel.open{display:grid}#cashflow-tab .rh-cashflow-table th:first-child,#cashflow-tab .rh-cashflow-table td:first-child{width:34px;text-align:center}#cashflow-tab .rh-cashflow-actions-cell{display:flex;gap:.3rem;white-space:nowrap}#cashflow-tab .rh-cashflow-actions-cell button{align-items:center;border:0;border-radius:6px;color:#fff;cursor:pointer;display:inline-flex;height:29px;justify-content:center;width:30px}#cashflow-tab .rh-cashflow-actions-cell .view{background:#f59e0b}#cashflow-tab .rh-cashflow-actions-cell .edit{background:#52a884}#cashflow-tab .rh-cashflow-actions-cell .print{background:#2563eb}#cashflow-tab .rh-cashflow-actions-cell .delete{background:#e05252}#cashflow-tab .rh-cashflow-code{color:#23845c;font-size:.76rem;font-weight:700;white-space:nowrap}#cashflow-tab .rh-cashflow-amount{font-weight:700;white-space:nowrap}#cashflow-tab .rh-cashflow-row-sub{color:#8793a1;font-size:.7rem;margin-top:.2rem}@media(max-width:850px){#cashflow-tab .rh-cashflow-filter-panel{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#cashflow-tab .rh-cashflow-filter-panel{grid-template-columns:1fr}#cashflow-tab .rh-cashflow-summary{grid-template-columns:1fr}}';
+        document.head.appendChild(style);
+    }
+
+    function renderCashflowTab() {
+        var tab = byId('cashflow-tab');
+        if (!tab) return;
+        ensureCashflowStyles();
+        var state = RHUI.cashflowFilters || (RHUI.cashflowFilters = { type: 'all', building: '', month: '', search: '' });
+        var buildings = RHD.list('buildings');
+        var records = RHD.list('cashflows').slice().sort(function (a, b) {
+            return String(b.date || '').localeCompare(String(a.date || '')) || (b.createdAt || 0) - (a.createdAt || 0);
+        }).filter(function (record) {
+            if (state.type !== 'all' && record.type !== state.type) return false;
+            if (state.building && record.buildingId !== state.building) return false;
+            if (state.month && String(record.date || '').slice(0, 7) !== state.month) return false;
+            if (state.search) {
+                var building = RHD.get('buildings', record.buildingId) || {};
+                var text = [record.code, record.category, record.description, record.reference, building.name, building.shortName].join(' ').toLocaleLowerCase();
+                if (text.indexOf(state.search.toLocaleLowerCase()) === -1) return false;
+            }
+            return true;
+        });
+        var income = records.filter(function (r) { return r.type === 'income'; }).reduce(function (sum, r) { return sum + (Number(r.amount) || 0); }, 0);
+        var expense = records.filter(function (r) { return r.type === 'expense'; }).reduce(function (sum, r) { return sum + (Number(r.amount) || 0); }, 0);
+        var buildingOptions = '<option value="">Tất cả tòa nhà</option>' + buildings.map(function (b) {
+            return '<option value="' + escapeHtml(b.id) + '"' + (state.building === b.id ? ' selected' : '') + '>' + escapeHtml(b.name || b.shortName) + '</option>';
+        }).join('');
+        var rows = records.map(function (record) {
+            var building = RHD.get('buildings', record.buildingId);
+            var sign = record.type === 'income' ? '+' : '−';
+            return '<tr><td>' + fmtDate(record.date) + '</td><td><strong>' + escapeHtml(record.code || '—') + '</strong></td>' +
+                '<td><span class="rh-cashflow-type ' + escapeHtml(record.type) + '">' + (record.type === 'income' ? 'Thu' : 'Chi') + '</span></td>' +
+                '<td>' + escapeHtml(record.category || '—') + '</td><td>' + escapeHtml(building ? building.name : '—') + '</td>' +
+                '<td>' + escapeHtml(record.description || '—') + (record.reference ? '<div style="color:#94a3b8;font-size:.72rem;">' + escapeHtml(record.reference) + '</div>' : '') + '</td>' +
+                '<td>' + escapeHtml(record.paymentMethod || '—') + '</td>' +
+                '<td style="color:' + (record.type === 'income' ? '#178250' : '#c5474e') + ';font-weight:700;text-align:right;white-space:nowrap;">' + sign + money(record.amount) + '</td>' +
+                '<td style="text-align:right;white-space:nowrap;"><button type="button" class="rh-row-btn" title="Sửa" onclick="RHUI.openCashflowForm(\'' + record.id + '\')"><i class="fas fa-pen"></i></button><button type="button" class="rh-row-btn danger" title="Xóa" onclick="RHUI.deleteCashflow(\'' + record.id + '\')"><i class="fas fa-trash"></i></button></td></tr>';
+        }).join('');
+        tab.innerHTML = '<div class="card"><div class="rh-cashflow-head"><div><h2>Thu chi</h2><p style="color:#718096;font-size:.84rem;margin-top:.25rem;">Theo dõi các khoản thu và chi của tòa nhà.</p></div><div class="rh-cashflow-actions"><button class="rh-cashflow-add-income" type="button" onclick="RHUI.openCashflowForm(null,\'income\')"><i class="fas fa-plus"></i> Ghi nhận thu</button><button class="rh-cashflow-add-expense" type="button" onclick="RHUI.openCashflowForm(null,\'expense\')"><i class="fas fa-minus"></i> Ghi nhận chi</button></div></div>' +
+            '<div class="rh-cashflow-summary"><div class="rh-cashflow-stat income"><small>Tổng thu · ' + records.filter(function (r) { return r.type === 'income'; }).length + ' phiếu</small><strong>' + money(income) + '</strong></div><div class="rh-cashflow-stat expense"><small>Tổng chi · ' + records.filter(function (r) { return r.type === 'expense'; }).length + ' phiếu</small><strong>' + money(expense) + '</strong></div><div class="rh-cashflow-stat"><small>Chênh lệch thu - chi</small><strong style="color:' + (income - expense >= 0 ? '#178250' : '#c5474e') + ';">' + money(income - expense) + '</strong></div></div>' +
+            '<div class="rh-cashflow-filters"><select id="cashflowTypeFilter" aria-label="Lọc thu chi"><option value="all">Thu và chi</option><option value="income"' + (state.type === 'income' ? ' selected' : '') + '>Khoản thu</option><option value="expense"' + (state.type === 'expense' ? ' selected' : '') + '>Khoản chi</option></select><select id="cashflowBuildingFilter" aria-label="Lọc tòa nhà">' + buildingOptions + '</select><input id="cashflowMonthFilter" type="month" aria-label="Lọc theo tháng" value="' + escapeHtml(state.month) + '"><input id="cashflowSearch" type="search" aria-label="Tìm kiếm phiếu thu chi" placeholder="Tìm mã phiếu, nội dung..." value="' + escapeHtml(state.search) + '"></div>' +
+            (records.length ? '<div class="rh-cashflow-table-wrap"><table class="rh-cashflow-table"><thead><tr><th>Ngày</th><th>Mã phiếu</th><th>Loại</th><th>Danh mục</th><th>Tòa nhà</th><th>Nội dung</th><th>Hình thức</th><th style="text-align:right;">Số tiền</th><th>Thao tác</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div style="color:#718096;padding:2rem;text-align:center;">Chưa có phiếu thu chi phù hợp. Nhấn “Ghi nhận thu” hoặc “Ghi nhận chi” để bắt đầu.</div>') + '</div>';
+        ['cashflowTypeFilter', 'cashflowBuildingFilter', 'cashflowMonthFilter'].forEach(function (id) {
+            byId(id).addEventListener('change', function () {
+                state.type = byId('cashflowTypeFilter').value;
+                state.building = byId('cashflowBuildingFilter').value;
+                state.month = byId('cashflowMonthFilter').value;
+                renderCashflowTab();
+            });
+        });
+        byId('cashflowSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            renderCashflowTab();
+            var next = byId('cashflowSearch');
+            if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+        });
+    }
+
+    RHUI.openCashflowForm = function (id, type) {
+        var record = id ? RHD.get('cashflows', id) : null;
+        if (id && !record) return;
+        var buildings = RHD.list('buildings');
+        var selectedType = record ? record.type : (type === 'expense' ? 'expense' : 'income');
+        var today = new Date();
+        var todayValue = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        var categoryOptions = (CASHFLOW_CATEGORIES[selectedType] || CASHFLOW_CATEGORIES.income).map(function (category) {
+            return '<option value="' + escapeHtml(category) + '"' + (record && record.category === category ? ' selected' : '') + '>' + escapeHtml(category) + '</option>';
+        }).join('');
+        if (record && record.category && (CASHFLOW_CATEGORIES[selectedType] || []).indexOf(record.category) === -1) {
+            categoryOptions = '<option value="' + escapeHtml(record.category) + '" selected>' + escapeHtml(record.category) + '</option>' + categoryOptions;
+        }
+        var initialBuildingId = record ? record.buildingId : '';
+        var apartmentOptions = '<option value="">Chọn phòng (không bắt buộc)</option>' + RHD.apartmentsOf(initialBuildingId).map(function (apt) {
+            return '<option value="' + escapeHtml(apt.id) + '"' + (record && record.apartmentId === apt.id ? ' selected' : '') + '>' + escapeHtml(apt.name || apt.code || 'Căn hộ') + '</option>';
+        }).join('');
+        var html = '<form onsubmit="RHUI.saveCashflow(event)"><div class="rh-grid-2">' +
+            '<div class="rh-field"><label>Loại giao dịch *</label><select id="cashflowFormType" required onchange="RHUI.updateCashflowCategories()"><option value="income"' + (selectedType === 'income' ? ' selected' : '') + '>Thu</option><option value="expense"' + (selectedType === 'expense' ? ' selected' : '') + '>Chi</option></select></div>' +
+            '<div class="rh-field"><label>Ngày *</label><input id="cashflowFormDate" type="date" required value="' + escapeHtml(record ? record.date : todayValue) + '"></div>' +
+            '<div class="rh-field"><label>Tòa nhà</label><select id="cashflowFormBuilding">' + selectOptions(buildings, 'id', 'name', initialBuildingId, 'Chọn tòa nhà (không bắt buộc)') + '</select></div>' +
+            '<div class="rh-field"><label>Căn hộ / Phòng</label><select id="cashflowFormApartment">' + apartmentOptions + '</select></div>' +
+            '<div class="rh-field"><label>Danh mục *</label><select id="cashflowFormCategory" required>' + categoryOptions + '</select></div>' +
+            '<div class="rh-field"><label>Số tiền (đ) *</label><input id="cashflowFormAmount" type="number" min="1" step="1" required value="' + (record ? Number(record.amount) || '' : '') + '"></div>' +
+            '<div class="rh-field"><label>Hình thức thanh toán</label><select id="cashflowFormMethod">' + selectOptions([{ id: 'cash', label: 'Tiền mặt' }, { id: 'bank', label: 'Chuyển khoản' }, { id: 'other', label: 'Khác' }], 'id', 'label', record ? record.paymentMethodId : 'bank') + '</select></div>' +
+            '<div class="rh-field"><label>Người nhận / trả</label><input id="cashflowFormPerson" value="' + escapeHtml(record ? record.personName : '') + '" placeholder="Tên người giao dịch"></div>' +
+            '<div class="rh-field"><label>Tài khoản / sổ quỹ</label><input id="cashflowFormAccount" list="cashflowAccounts" value="' + escapeHtml(record ? record.accountName || record.paymentMethod : '') + '" placeholder="Tiền mặt, ngân hàng..." ><datalist id="cashflowAccounts"><option value="Tiền mặt"><option value="Vietcombank"><option value="Techcombank"><option value="MBBank"></datalist></div>' +
+            '<div class="rh-field"><label>Mã tham chiếu</label><input id="cashflowFormReference" value="' + escapeHtml(record ? record.reference : '') + '" placeholder="Mã giao dịch / chứng từ"></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Nội dung</label><textarea id="cashflowFormDescription" rows="3" placeholder="Ghi chú cho khoản thu hoặc chi">' + escapeHtml(record ? record.description : '') + '</textarea></div>' +
+            '</div><div id="cashflowFormError" style="color:#ef4444;font-size:.85rem;margin-top:.75rem;"></div><div style="display:flex;gap:.6rem;margin-top:1.25rem;"><button type="submit" class="btn-primary">Lưu phiếu</button><button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Hủy</button></div></form>';
+        RHUI.drawerId = record ? record.id : null;
+        openDrawer(record ? 'Sửa phiếu thu chi' : (selectedType === 'income' ? 'Ghi nhận khoản thu' : 'Ghi nhận khoản chi'), html);
+        byId('cashflowFormBuilding').addEventListener('change', function () {
+            var options = '<option value="">Chọn phòng (không bắt buộc)</option>' + RHD.apartmentsOf(this.value).map(function (apt) {
+                return '<option value="' + escapeHtml(apt.id) + '">' + escapeHtml(apt.name || apt.code || 'Căn hộ') + '</option>';
+            }).join('');
+            byId('cashflowFormApartment').innerHTML = options;
+        });
+    };
+
+    RHUI.updateCashflowCategories = function () {
+        var type = byId('cashflowFormType').value;
+        byId('cashflowFormCategory').innerHTML = (CASHFLOW_CATEGORIES[type] || CASHFLOW_CATEGORIES.income).map(function (category) {
+            return '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + '</option>';
+        }).join('');
+    };
+
+    RHUI.saveCashflow = function (ev) {
+        ev.preventDefault();
+        var amount = Number(byId('cashflowFormAmount').value);
+        if (!isFinite(amount) || amount <= 0) { byId('cashflowFormError').textContent = 'Số tiền phải lớn hơn 0.'; return; }
+        var methodId = byId('cashflowFormMethod').value;
+        var methodLabels = { cash: 'Tiền mặt', bank: 'Chuyển khoản', other: 'Khác' };
+        var existing = RHUI.drawerId ? RHD.get('cashflows', RHUI.drawerId) : null;
+        var data = {
+            type: byId('cashflowFormType').value,
+            date: byId('cashflowFormDate').value,
+            buildingId: byId('cashflowFormBuilding').value,
+            apartmentId: byId('cashflowFormApartment').value,
+            category: byId('cashflowFormCategory').value,
+            amount: amount,
+            paymentMethodId: methodId,
+            paymentMethod: methodLabels[methodId] || 'Khác',
+            accountName: byId('cashflowFormAccount').value.trim() || methodLabels[methodId] || 'Khác',
+            personName: byId('cashflowFormPerson').value.trim(),
+            reference: byId('cashflowFormReference').value.trim(),
+            description: byId('cashflowFormDescription').value.trim()
+        };
+        var result;
+        if (existing) result = RHD.update('cashflows', existing.id, data);
+        else {
+            data.code = 'TC-' + String(Date.now()).slice(-8);
+            result = RHD.create('cashflows', data);
+        }
+        if (!result.ok) { byId('cashflowFormError').textContent = result.error || 'Không thể lưu phiếu thu chi.'; return; }
+        RHUI.closeDrawer();
+        renderCashflowTab();
+    };
+
+    RHUI.deleteCashflow = function (id) {
+        var record = RHD.get('cashflows', id);
+        if (!record || !confirm('Xóa phiếu ' + (record.code || '') + '? Hành động không thể hoàn tác.')) return;
+        var result = RHD.remove('cashflows', id);
+        if (!result.ok) { alert(result.error); return; }
+        renderCashflowTab();
+    };
+
     // ============================================================== INVOICES
 
     function ensureInvoiceStyles() {
@@ -2213,6 +2528,7 @@
         renderMetersTab: renderMetersTab,
         renderContractsTab: renderContractsTab,
         renderInvoicesTab: renderInvoicesTab,
+        renderCashflowTab: renderCashflowTab,
         openApartmentDetail: RHUI.openApartmentDetail,
         renderSupportTab: renderSupportTab,
         renderDashboardCounts: renderDashboardCounts,

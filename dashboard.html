@@ -123,6 +123,8 @@
         .sidebar-menu-item.sidebar-submenu-item i { font-size: .8rem; width: 18px; }
         .sidebar-menu-item.sidebar-submenu-item.active { background: linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%); border-left-color: #70bbff; padding-left: calc(.7rem - 3px); }
         .catalog-toggle.active { background: rgba(22,131,255,.12); }
+        .sidebar-menu-item .group-chevron { margin-left: auto; transition: transform .2s ease; width: auto; }
+        .sidebar-menu-group.expanded .group-chevron { transform: rotate(180deg); }
 
         .main-content {
             margin-left: 260px;
@@ -1767,17 +1769,27 @@
                 <i class="fas fa-users"></i>
                 <span>Khách hàng</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('meters')">
-                <i class="fas fa-gauge-high"></i>
-                <span>Ghi chỉ số</span>
+            <div class="sidebar-menu-group" id="financeMenuGroup">
+                <div class="sidebar-menu-item catalog-toggle" id="financeMenuToggle" role="button" tabindex="0" aria-expanded="false" aria-controls="financeSubmenu" onclick="toggleFinanceMenu(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleFinanceMenu(event)}">
+                    <i class="fas fa-wallet"></i>
+                    <span>Tài chính</span>
+                    <i class="fas fa-chevron-down group-chevron" aria-hidden="true"></i>
+                </div>
+                <div class="sidebar-submenu" id="financeSubmenu">
+                    <div class="sidebar-menu-item sidebar-submenu-item" onclick="switchTab('meters', event)">
+                        <i class="fas fa-gauge-high"></i><span>Ghi chỉ số</span>
+                    </div>
+                    <div class="sidebar-menu-item sidebar-submenu-item" onclick="switchTab('invoices', event)">
+                        <i class="fas fa-receipt"></i><span>Hóa đơn</span>
+                    </div>
+                    <div class="sidebar-menu-item sidebar-submenu-item" onclick="switchTab('cashflow', event)">
+                        <i class="fas fa-money-bill-transfer"></i><span>Thu chi</span>
+                    </div>
+                </div>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('contracts')">
                 <i class="fas fa-file-contract"></i>
                 <span>Hợp đồng</span>
-            </div>
-            <div class="sidebar-menu-item" onclick="switchTab('invoices')">
-                <i class="fas fa-receipt"></i>
-                <span>Hóa đơn</span>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('support')">
                 <i class="fas fa-tools"></i>
@@ -2645,6 +2657,8 @@
         <div id="meters-tab" style="display: none;"></div>
 
         <div id="service-fees-tab" style="display: none;"></div>
+
+        <div id="cashflow-tab" style="display: none;"></div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
@@ -3894,6 +3908,7 @@
             meters: () => RHUI.renderMetersTab(),
             contracts: () => RHUI.renderContractsTab(),
             invoices: () => RHUI.renderInvoicesTab(),
+            cashflow: () => RHUI.renderCashflowTab(),
             support: () => RHUI.renderSupportTab(),
             accounts: () => renderAccountRequestsTable()
         };
@@ -4468,6 +4483,14 @@
             toggle.setAttribute('aria-expanded', String(expanded));
         }
 
+        function toggleFinanceMenu(event) {
+            if (event) event.stopPropagation();
+            const group = document.getElementById('financeMenuGroup');
+            const toggle = document.getElementById('financeMenuToggle');
+            const expanded = group.classList.toggle('expanded');
+            toggle.setAttribute('aria-expanded', String(expanded));
+        }
+
         // Switch Tab Function
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
@@ -4497,6 +4520,14 @@
                     dataCatalogGroup.querySelector('#dataCatalogToggle').setAttribute('aria-expanded', String(dataCatalogGroup.classList.contains('expanded')));
                 }
             }
+            const financeMenuGroup = document.getElementById('financeMenuGroup');
+            if (financeMenuGroup) {
+                const isFinanceTab = ['meters', 'invoices', 'cashflow'].includes(tabName);
+                financeMenuGroup.classList.toggle('expanded', isFinanceTab || financeMenuGroup.classList.contains('expanded'));
+                const financeToggle = financeMenuGroup.querySelector('#financeMenuToggle');
+                financeToggle.classList.toggle('active', isFinanceTab);
+                financeToggle.setAttribute('aria-expanded', String(financeMenuGroup.classList.contains('expanded')));
+            }
 
             // Update page title
             const titles = {
@@ -4507,6 +4538,7 @@
                 'customers': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
+                'cashflow': 'Thu chi',
                 'residents': 'Khách hàng',
                 'support': 'Yêu cầu hỗ trợ',
                 'accounts': 'Duyệt tài khoản',

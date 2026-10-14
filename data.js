@@ -12,7 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'cashflows', 'supportRequests'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -23,7 +23,8 @@
         customers: 10,
         meters: 12,
         contracts: 6,
-        invoices: 10
+        invoices: 10,
+        cashflows: 30
     };
 
     var DEMO_LIMIT_LABELS = {
@@ -32,7 +33,8 @@
         customers: 'khách hàng',
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
-        invoices: 'hóa đơn'
+        invoices: 'hóa đơn',
+        cashflows: 'phiếu thu chi'
     };
 
     var FEE_TYPES = [
