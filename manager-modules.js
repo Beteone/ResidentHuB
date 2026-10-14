@@ -13,7 +13,11 @@
         buildingInvoiceTemplates: [],
         buildingContractTemplates: [],
         customerVehicles: [],
-        contractServiceSel: {}
+        contractServiceSel: {},
+        serviceFeeBuildingFilter: '',
+        serviceFeeTypeFilter: '',
+        serviceFeeSearch: '',
+        selectedServiceFees: []
     };
 
     // ---------------------------------------------------------------- utils
@@ -236,6 +240,184 @@
 
     function feeTypeLabel(id) { return statusMeta(RHD.FEE_TYPES, id).label || id; }
     function calcMethodLabel(id) { return statusMeta(RHD.CALC_METHODS, id).label || id; }
+
+    function renderServiceFeesTab(selectedBuildingId) {
+        var tab = byId('service-fees-tab');
+        if (!tab) return;
+        var buildings = RHD.list('buildings');
+        if (selectedBuildingId !== undefined) RHUI.serviceFeeBuildingFilter = selectedBuildingId;
+        if (!buildings.some(function (b) { return b.id === RHUI.serviceFeeBuildingFilter; })) RHUI.serviceFeeBuildingFilter = '';
+        var services = [];
+        buildings.forEach(function (building) {
+            (building.services || []).forEach(function (service, index) {
+                var typeMatches = !RHUI.serviceFeeTypeFilter || service.feeType === RHUI.serviceFeeTypeFilter;
+                var buildingMatches = !RHUI.serviceFeeBuildingFilter || building.id === RHUI.serviceFeeBuildingFilter;
+                var searchValue = [service.name, service.code, feeTypeLabel(service.feeType), building.name, building.shortName].join(' ').toLocaleLowerCase();
+                var searchMatches = !RHUI.serviceFeeSearch || searchValue.indexOf(RHUI.serviceFeeSearch.toLocaleLowerCase()) !== -1;
+                if (typeMatches && buildingMatches && searchMatches) services.push({ building: building, service: service, index: index });
+            });
+        });
+        var visibleKeys = services.map(function (entry) { return entry.building.id + ':' + entry.index; });
+        RHUI.selectedServiceFees = RHUI.selectedServiceFees.filter(function (key) { return visibleKeys.indexOf(key) !== -1; });
+        var rows = services.map(function (entry) {
+            var service = entry.service;
+            var rowKey = entry.building.id + ':' + entry.index;
+            var codeSeed = String(service.id || (entry.building.id + '-' + entry.index)).split('').reduce(function (sum, ch) { return (sum * 31 + ch.charCodeAt(0)) % 1000000; }, 0);
+            var code = service.code || ('DV' + String(codeSeed).padStart(6, '0'));
+            var unit = service.unit || (service.calcMethod === 'meter' ? (service.feeType === 'water' ? '/m³' : '/kWh') : service.calcMethod === 'person' ? '/Người' : service.calcMethod === 'apartment' ? '/Phòng' : service.calcMethod === 'quantity' ? '/Đơn vị' : '');
+            return '<tr>' +
+                '<td><input type="checkbox" aria-label="Chọn ' + escapeHtml(service.name || 'phí dịch vụ') + '" ' + (RHUI.selectedServiceFees.indexOf(rowKey) !== -1 ? 'checked ' : '') + 'onchange="RHUI.toggleServiceFeeSelection(\'' + rowKey + '\',this.checked)"></td>' +
+                '<td class="fee-code">' + escapeHtml(code) + '</td>' +
+                '<td>' + escapeHtml(service.name || 'Chưa đặt tên') + '</td>' +
+                '<td>' + escapeHtml(feeTypeLabel(service.feeType)) + '</td>' +
+                '<td style="text-align:right;white-space:nowrap;">' + (Number(service.unitPrice) ? Number(service.unitPrice).toLocaleString('vi-VN') : '---') + (Number(service.unitPrice) ? ' đ' : '') + escapeHtml(unit) + '</td>' +
+                '<td style="text-align:center;"><span class="rh-fee-default ' + (service.isDefault ? 'yes' : 'no') + '">' + (service.isDefault ? 'Có' : 'Không') + '</span></td>' +
+                '<td><div class="rh-fee-actions"><button type="button" class="rh-fee-icon-btn" title="Chỉnh sửa" aria-label="Chỉnh sửa" onclick="RHUI.openServiceFeeForm(\'' + entry.building.id + '\',' + entry.index + ')"><i class="fas fa-pen-to-square"></i></button><button type="button" class="rh-fee-icon-btn delete" title="Xóa" aria-label="Xóa" onclick="RHUI.deleteServiceFee(\'' + entry.building.id + '\',' + entry.index + ')"><i class="fas fa-trash"></i></button></div></td></tr>';
+        }).join('');
+
+        var buildingOptions = '<option value="">Tòa nhà</option>' + buildings.map(function (building) {
+            return '<option value="' + escapeHtml(building.id) + '"' + (building.id === RHUI.serviceFeeBuildingFilter ? ' selected' : '') + '>' + escapeHtml(building.name || building.shortName) + '</option>';
+        }).join('');
+        var noBuildings = !buildings.length;
+        var typeOptions = '<option value="">Loại dịch vụ</option>' + (RHD.FEE_TYPES || []).map(function (type) {
+            return '<option value="' + escapeHtml(type.id) + '"' + (type.id === RHUI.serviceFeeTypeFilter ? ' selected' : '') + '>' + escapeHtml(type.label) + '</option>';
+        }).join('');
+        tab.innerHTML = renderDemoBanner('buildings') +
+            '<div class="card">' +
+            '<div style="align-items:center;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1rem;">' +
+            '<h2 style="color:#526275;font-size:1.05rem;font-weight:600;">Danh sách dịch vụ</h2>' +
+            '<div class="rh-fee-top-actions">' +
+            (noBuildings ? '<button type="button" class="rh-fee-top-button add" title="Thêm tòa nhà" onclick="RHUI.openBuildingForm()"><i class="fas fa-plus"></i></button>' : '<button type="button" class="rh-fee-top-button add" title="Thêm dịch vụ" aria-label="Thêm dịch vụ" onclick="RHUI.openServiceFeeForm(\'' + (RHUI.serviceFeeBuildingFilter || buildings[0].id) + '\',null)"><i class="fas fa-plus"></i></button>') +
+            '<button type="button" class="rh-fee-top-button delete" title="Xóa dịch vụ đã chọn" aria-label="Xóa dịch vụ đã chọn" onclick="RHUI.deleteSelectedServiceFees()"><i class="fas fa-trash"></i></button></div>' +
+            '</div>' +
+            (noBuildings ? emptyState('fa-building', 'Hãy tạo tòa nhà trước khi khai báo phí dịch vụ.') :
+                '<div class="rh-fee-toolbar"><select id="serviceFeeTypeFilter" aria-label="Lọc loại dịch vụ" onchange="RHUI.setServiceFeeFilters()">' + typeOptions + '</select><select id="serviceFeeBuildingFilter" aria-label="Lọc tòa nhà" onchange="RHUI.setServiceFeeFilters()">' + buildingOptions + '</select><input id="serviceFeeSearch" type="search" aria-label="Tìm kiếm dịch vụ" placeholder="Tìm kiếm" value="' + escapeHtml(RHUI.serviceFeeSearch) + '" oninput="RHUI.setServiceFeeFilters()"></div>' +
+                (services.length ? '<div class="rh-fee-table-wrap"><table class="rh-fee-table"><thead><tr><th><input type="checkbox" aria-label="Chọn tất cả" ' + (services.length && RHUI.selectedServiceFees.length === services.length ? 'checked' : '') + ' onchange="RHUI.toggleAllServiceFees(this.checked)"></th><th>Mã</th><th>Tên dịch vụ</th><th>Loại dịch vụ</th><th style="text-align:right;">Giá tiền</th><th style="text-align:center;">Mặc định</th><th>Thao tác</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div style="color:#718096;padding:2rem;text-align:center;">' + (RHUI.serviceFeeSearch || RHUI.serviceFeeTypeFilter || RHUI.serviceFeeBuildingFilter ? 'Không tìm thấy dịch vụ phù hợp.' : 'Chưa có dịch vụ nào. Nhấn nút + để thêm dịch vụ.') + '</div>')) +
+            '</div>';
+    }
+
+    RHUI.setServiceFeeFilters = function () {
+        RHUI.serviceFeeTypeFilter = byId('serviceFeeTypeFilter').value;
+        RHUI.serviceFeeBuildingFilter = byId('serviceFeeBuildingFilter').value;
+        RHUI.serviceFeeSearch = byId('serviceFeeSearch').value.trim();
+        renderServiceFeesTab();
+        var search = byId('serviceFeeSearch');
+        if (search) { search.focus(); search.setSelectionRange(search.value.length, search.value.length); }
+    };
+
+    RHUI.toggleServiceFeeSelection = function (key, checked) {
+        var selected = RHUI.selectedServiceFees.filter(function (item) { return item !== key; });
+        if (checked) selected.push(key);
+        RHUI.selectedServiceFees = selected;
+        renderServiceFeesTab();
+    };
+
+    RHUI.toggleAllServiceFees = function (checked) {
+        var buildings = RHD.list('buildings');
+        var keys = [];
+        buildings.forEach(function (building) {
+            if (RHUI.serviceFeeBuildingFilter && building.id !== RHUI.serviceFeeBuildingFilter) return;
+            (building.services || []).forEach(function (service, index) {
+                var searchValue = [service.name, service.code, feeTypeLabel(service.feeType), building.name, building.shortName].join(' ').toLocaleLowerCase();
+                if ((!RHUI.serviceFeeTypeFilter || service.feeType === RHUI.serviceFeeTypeFilter) && (!RHUI.serviceFeeSearch || searchValue.indexOf(RHUI.serviceFeeSearch.toLocaleLowerCase()) !== -1)) keys.push(building.id + ':' + index);
+            });
+        });
+        RHUI.selectedServiceFees = checked ? keys : [];
+        renderServiceFeesTab();
+    };
+
+    RHUI.deleteSelectedServiceFees = function () {
+        if (!RHUI.selectedServiceFees.length) { alert('Vui lòng chọn dịch vụ cần xóa.'); return; }
+        if (!confirm('Xóa ' + RHUI.selectedServiceFees.length + ' dịch vụ đã chọn?')) return;
+        var selectedByBuilding = {};
+        RHUI.selectedServiceFees.forEach(function (key) {
+            var splitAt = key.lastIndexOf(':');
+            var buildingId = key.slice(0, splitAt);
+            var index = Number(key.slice(splitAt + 1));
+            (selectedByBuilding[buildingId] || (selectedByBuilding[buildingId] = [])).push(index);
+        });
+        Object.keys(selectedByBuilding).forEach(function (buildingId) {
+            var building = RHD.get('buildings', buildingId);
+            if (!building) return;
+            var removed = selectedByBuilding[buildingId].sort(function (a, b) { return b - a; });
+            var services = (building.services || []).slice();
+            removed.forEach(function (index) { services.splice(index, 1); });
+            RHD.update('buildings', buildingId, { services: services });
+        });
+        RHUI.selectedServiceFees = [];
+        renderServiceFeesTab();
+        renderBuildingsTab();
+    };
+
+    RHUI.openServiceFeeForm = function (buildingId, index) {
+        var building = RHD.get('buildings', buildingId);
+        if (!building) return;
+        var services = building.services || [];
+        var service = index == null ? null : services[index];
+        if (index != null && !service) return;
+        RHUI.serviceFeeBuildingId = buildingId;
+        RHUI.serviceFeeIndex = index;
+        var html = '<form onsubmit="RHUI.saveServiceFee(event)">' +
+            '<div class="rh-field" style="margin-bottom:1rem;"><label>Tòa nhà</label><select id="sfBuilding"' + (service ? ' disabled' : '') + '>' + selectOptions(RHD.list('buildings'), 'id', 'name', buildingId) + '</select></div>' +
+            '<div class="rh-grid-2">' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Tên khoản phí *</label><input id="sfName" required value="' + escapeHtml(service ? service.name : '') + '" placeholder="Ví dụ: Phí quản lý vận hành"></div>' +
+            '<div class="rh-field"><label>Loại phí</label><select id="sfFeeType">' + selectOptions(RHD.FEE_TYPES, 'id', 'label', service ? service.feeType : 'service') + '</select></div>' +
+            '<div class="rh-field"><label>Cách tính</label><select id="sfCalcMethod">' + selectOptions(RHD.CALC_METHODS, 'id', 'label', service ? service.calcMethod : 'fixed') + '</select></div>' +
+            '<div class="rh-field"><label>Giá tiền (đ)</label><input id="sfUnitPrice" type="number" min="0" step="1" value="' + (service ? Number(service.unitPrice) || 0 : 0) + '"></div>' +
+            '<div class="rh-field"><label>Đơn vị tính</label><input id="sfUnit" value="' + escapeHtml(service ? service.unit || '' : '') + '" placeholder="/Phòng, /Người, /kWh..."></div>' +
+            '<div class="rh-field"><label>Thuế suất (%)</label><input id="sfTaxRate" type="number" min="0" max="100" step="0.01" value="' + (service ? Number(service.taxRate) || 0 : 0) + '"></div>' +
+            '<label class="rh-choice" style="grid-column:1/-1;"><input id="sfDefault" type="checkbox" ' + (service && service.isDefault ? 'checked' : '') + '> Đặt làm phí mặc định</label>' +
+            '</div><div id="sfError" style="color:#ef4444;font-size:.85rem;margin-top:.75rem;"></div>' +
+            '<div style="display:flex;gap:.6rem;margin-top:1.25rem;"><button type="submit" class="btn-primary">Lưu phí dịch vụ</button><button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Hủy</button></div></form>';
+        openDrawer(service ? 'Sửa phí dịch vụ' : 'Thêm phí dịch vụ', html);
+    };
+
+    RHUI.saveServiceFee = function (ev) {
+        ev.preventDefault();
+        var building = RHD.get('buildings', RHUI.serviceFeeBuildingId);
+        if (!building) return;
+        var services = (building.services || []).slice();
+        var fee = {
+            id: RHUI.serviceFeeIndex == null ? 'svc-' + Date.now() + Math.random().toString(36).slice(2, 6) : (services[RHUI.serviceFeeIndex].id || 'svc-' + Date.now()),
+            code: RHUI.serviceFeeIndex == null ? 'DV' + String(Date.now()).slice(-6) : (services[RHUI.serviceFeeIndex].code || ''),
+            name: byId('sfName').value.trim(),
+            feeType: byId('sfFeeType').value,
+            calcMethod: byId('sfCalcMethod').value,
+            unitPrice: Number(byId('sfUnitPrice').value) || 0,
+            unit: byId('sfUnit').value.trim(),
+            taxRate: Number(byId('sfTaxRate').value) || 0,
+            isDefault: byId('sfDefault').checked
+        };
+        if (!fee.name) { byId('sfError').textContent = 'Vui lòng nhập tên khoản phí.'; return; }
+        if (RHUI.serviceFeeIndex == null) services.push(fee);
+        else services[RHUI.serviceFeeIndex] = Object.assign({}, services[RHUI.serviceFeeIndex], fee);
+        var targetBuildingId = byId('sfBuilding').value || building.id;
+        var result;
+        if (targetBuildingId !== building.id) {
+            var targetBuilding = RHD.get('buildings', targetBuildingId);
+            result = targetBuilding
+                ? RHD.update('buildings', targetBuildingId, { services: (targetBuilding.services || []).concat([fee]) })
+                : { ok: false, error: 'Không tìm thấy tòa nhà đã chọn.' };
+        } else {
+            result = RHD.update('buildings', building.id, { services: services });
+        }
+        if (!result.ok) { byId('sfError').textContent = result.error; return; }
+        RHUI.closeDrawer();
+        renderServiceFeesTab(RHUI.serviceFeeBuildingFilter);
+        renderBuildingsTab();
+    };
+
+    RHUI.deleteServiceFee = function (buildingId, index) {
+        var building = RHD.get('buildings', buildingId);
+        if (!building || !building.services || !building.services[index]) return;
+        if (!confirm('Xóa khoản phí "' + (building.services[index].name || 'Chưa đặt tên') + '"?')) return;
+        var services = building.services.slice();
+        services.splice(index, 1);
+        var result = RHD.update('buildings', buildingId, { services: services });
+        if (!result.ok) { alert(result.error); return; }
+        renderServiceFeesTab(RHUI.serviceFeeBuildingFilter);
+        renderBuildingsTab();
+    };
 
     function serviceRowHtml(svc, idx) {
         return '<div class="rh-service-row" data-idx="' + idx + '">' +
@@ -2026,6 +2208,7 @@
         refreshOpenDrawer: refreshOpenDrawer,
         renderBuildingsTab: renderBuildingsTab,
         renderApartmentsTab: renderApartmentsTab,
+        renderServiceFeesTab: renderServiceFeesTab,
         renderCustomersTab: renderCustomersTab,
         renderMetersTab: renderMetersTab,
         renderContractsTab: renderContractsTab,

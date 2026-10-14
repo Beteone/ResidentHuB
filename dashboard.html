@@ -113,6 +113,17 @@
             width: 20px;
         }
 
+        .sidebar-menu-group { margin: .2rem .6rem; }
+        .sidebar-menu-group > .sidebar-menu-item { margin: 0; }
+        .sidebar-menu-item .catalog-chevron { margin-left: auto; transition: transform .2s ease; width: auto; }
+        .sidebar-menu-group.expanded .catalog-chevron { transform: rotate(180deg); }
+        .sidebar-submenu { display: none; padding: .2rem 0 .25rem .8rem; }
+        .sidebar-menu-group.expanded .sidebar-submenu { display: block; }
+        .sidebar-menu-item.sidebar-submenu-item { border-radius: .6rem; font-size: .88rem; margin: .15rem 0; padding: .62rem .7rem; }
+        .sidebar-menu-item.sidebar-submenu-item i { font-size: .8rem; width: 18px; }
+        .sidebar-menu-item.sidebar-submenu-item.active { background: linear-gradient(135deg,rgba(22,131,255,.34) 0%,rgba(22,131,255,.16) 100%); border-left-color: #70bbff; padding-left: calc(.7rem - 3px); }
+        .catalog-toggle.active { background: rgba(22,131,255,.12); }
+
         .main-content {
             margin-left: 260px;
             padding: 1.5rem;
@@ -1670,6 +1681,27 @@
         .rh-field input,.rh-field select,.rh-field textarea{border:1px solid var(--line);border-radius:8px;font:inherit;padding:.6rem .75rem;width:100%}
         .rh-field input:focus,.rh-field select:focus,.rh-field textarea:focus{border-color:#1683ff;outline:none}
         .rh-service-row{background:#f8fafc;border:1px solid var(--line);border-radius:12px;margin-bottom:.75rem;padding:1rem}
+        .rh-fee-toolbar{display:grid;gap:.75rem;grid-template-columns:repeat(3,minmax(0,1fr));margin:.25rem 0 1.25rem}
+        .rh-fee-toolbar select,.rh-fee-toolbar input{background:#fff;border:1px solid #dce3eb;border-radius:8px;color:#526275;font:inherit;font-size:.85rem;min-width:0;padding:.65rem .75rem;width:100%}
+        .rh-fee-table-wrap{border:1px solid #e4eaf2;border-radius:10px;overflow:auto}
+        .rh-fee-table{border-collapse:collapse;min-width:760px;width:100%}
+        .rh-fee-table th,.rh-fee-table td{border-bottom:1px solid #e7ebf0;padding:.72rem .65rem;text-align:left;vertical-align:middle}
+        .rh-fee-table th{background:#f7f8fa;color:#556273;font-size:.75rem;font-weight:600;white-space:nowrap}
+        .rh-fee-table tbody tr:nth-child(odd){background:#f8f9fa}
+        .rh-fee-table tbody tr:hover{background:#eff6ff}
+        .rh-fee-table .fee-code{color:#438967;font-size:.76rem;font-weight:700;white-space:nowrap}
+        .rh-fee-actions{display:flex;gap:.35rem}
+        .rh-fee-icon-btn{align-items:center;background:#68737d;border:0;border-radius:5px;color:#fff;cursor:pointer;display:inline-flex;height:29px;justify-content:center;width:30px}
+        .rh-fee-icon-btn.delete{background:#e64e55}
+        .rh-fee-icon-btn:hover{filter:brightness(.92)}
+        .rh-fee-default{border-radius:4px;display:inline-block;font-size:.68rem;font-weight:700;padding:.2rem .45rem}
+        .rh-fee-default.yes{background:#e5f5ed;color:#178250}
+        .rh-fee-default.no{background:#fdebec;color:#c5474e}
+        .rh-fee-top-actions{display:flex;gap:.45rem}
+        .rh-fee-top-button{align-items:center;border-radius:7px;color:#fff;display:inline-flex;height:36px;justify-content:center;width:38px}
+        .rh-fee-top-button.add{background:#218c5a}
+        .rh-fee-top-button.delete{background:#df5559}
+        @media(max-width:700px){.rh-fee-toolbar{grid-template-columns:1fr}}
         .rh-choice{align-items:center;border:1px solid var(--line);border-radius:8px;cursor:pointer;display:flex;flex:1;font-size:.9rem;font-weight:600;gap:.5rem;padding:.6rem .75rem}
         .rh-choice input{accent-color:#1683ff}
         .rh-print-area{background:#fff;border:1px solid var(--line);border-radius:12px;padding:1.75rem}
@@ -1713,13 +1745,23 @@
                 <i class="fas fa-chart-line"></i>
                 <span>Quản lý</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('buildings')">
-                <i class="fas fa-building"></i>
-                <span>Tòa nhà</span>
-            </div>
-            <div class="sidebar-menu-item" onclick="switchTab('apartments')">
-                <i class="fas fa-door-open"></i>
-                <span>Căn hộ</span>
+            <div class="sidebar-menu-group expanded" id="dataCatalogGroup">
+                <div class="sidebar-menu-item catalog-toggle" id="dataCatalogToggle" role="button" tabindex="0" aria-expanded="true" aria-controls="dataCatalogSubmenu" onclick="toggleDataCatalog(event)" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleDataCatalog(event)}">
+                    <i class="fas fa-layer-group"></i>
+                    <span>Danh mục dữ liệu</span>
+                    <i class="fas fa-chevron-down catalog-chevron" aria-hidden="true"></i>
+                </div>
+                <div class="sidebar-submenu" id="dataCatalogSubmenu">
+                    <div class="sidebar-menu-item sidebar-submenu-item" onclick="switchTab('buildings', event)">
+                        <i class="fas fa-building"></i><span>Tòa nhà</span>
+                    </div>
+                    <div class="sidebar-menu-item sidebar-submenu-item" onclick="switchTab('apartments', event)">
+                        <i class="fas fa-door-open"></i><span>Căn hộ/Phòng</span>
+                    </div>
+                    <div class="sidebar-menu-item sidebar-submenu-item" onclick="switchTab('service-fees', event)">
+                        <i class="fas fa-coins"></i><span>Phí dịch vụ</span>
+                    </div>
+                </div>
             </div>
             <div class="sidebar-menu-item" onclick="switchTab('customers')">
                 <i class="fas fa-users"></i>
@@ -2601,6 +2643,8 @@
         </div>
 
         <div id="meters-tab" style="display: none;"></div>
+
+        <div id="service-fees-tab" style="display: none;"></div>
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
@@ -3845,6 +3889,7 @@
         const TAB_RENDERERS = {
             buildings: () => RHUI.renderBuildingsTab(),
             apartments: () => RHUI.renderApartmentsTab(),
+            'service-fees': () => RHUI.renderServiceFeesTab(),
             customers: () => RHUI.renderCustomersTab(),
             meters: () => RHUI.renderMetersTab(),
             contracts: () => RHUI.renderContractsTab(),
@@ -4415,6 +4460,14 @@
             renderBuildings();
         }
 
+        function toggleDataCatalog(event) {
+            if (event) event.stopPropagation();
+            const group = document.getElementById('dataCatalogGroup');
+            const toggle = document.getElementById('dataCatalogToggle');
+            const expanded = group.classList.toggle('expanded');
+            toggle.setAttribute('aria-expanded', String(expanded));
+        }
+
         // Switch Tab Function
         function switchTab(tabName, sourceEvent) {
             // Hide all tabs
@@ -4432,12 +4485,25 @@
             const navigationEvent = sourceEvent || window.event;
             const clickedMenuItem = navigationEvent && navigationEvent.target ? navigationEvent.target.closest('.sidebar-menu-item') : null;
             if (clickedMenuItem) clickedMenuItem.classList.add('active');
+            const dataCatalogGroup = document.getElementById('dataCatalogGroup');
+            if (dataCatalogGroup) {
+                const isCatalogTab = ['buildings', 'apartments', 'service-fees'].includes(tabName);
+                dataCatalogGroup.classList.toggle('expanded', isCatalogTab || dataCatalogGroup.classList.contains('expanded'));
+                if (isCatalogTab) {
+                    dataCatalogGroup.querySelector('#dataCatalogToggle').classList.add('active');
+                    dataCatalogGroup.querySelector('#dataCatalogToggle').setAttribute('aria-expanded', 'true');
+                } else {
+                    dataCatalogGroup.querySelector('#dataCatalogToggle').classList.remove('active');
+                    dataCatalogGroup.querySelector('#dataCatalogToggle').setAttribute('aria-expanded', String(dataCatalogGroup.classList.contains('expanded')));
+                }
+            }
 
             // Update page title
             const titles = {
                 'dashboard': 'Quản lý',
                 'buildings': 'Tòa nhà',
                 'apartments': 'Căn hộ',
+                'service-fees': 'Phí dịch vụ',
                 'customers': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
