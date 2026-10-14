@@ -16,6 +16,7 @@ interface RhdMeterRow {
     meterType: 'electricity' | 'water';
     meterCode?: string;
     periodMonth?: string;
+    readingPeriod?: string;
     closingDate?: string;
     previousIndex?: number | string;
     latestIndex?: number | string;

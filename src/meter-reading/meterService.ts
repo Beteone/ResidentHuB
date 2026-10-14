@@ -27,7 +27,7 @@ function fromRow(row: RhdMeterRow): MeterRecord {
         kind: toKind(row.meterType),
         buildingId: row.buildingId,
         apartmentId: row.apartmentId,
-        periodMonth: row.periodMonth || '',
+        periodMonth: row.readingPeriod || row.periodMonth || '',
         closingDate: row.closingDate || '',
         meterCode: row.meterCode || '',
         previousIndex: num(row.previousIndex),
@@ -65,7 +65,7 @@ function latestOf(a: MeterRecord | null, b: MeterRecord): MeterRecord {
 /** A stored reading counts as closed ("đã_chốt") only if it carries this period's index. */
 function isClosedRow(row: RhdMeterRow): boolean {
     const v = row.latestIndex;
-    return !!row.periodMonth && v !== undefined && v !== null && v !== '' && Number.isFinite(Number(v));
+    return !!(row.readingPeriod || row.periodMonth) && v !== undefined && v !== null && v !== '' && Number.isFinite(Number(v));
 }
 
 export const meterService = {
@@ -141,6 +141,7 @@ export const meterService = {
                 meterType: KIND_META[kind].stored,
                 meterCode: m.maCongTo,
                 periodMonth: p.thangChot,
+                readingPeriod: p.thangChot,
                 closingDate: p.ngayChot,
                 previousIndex: m.chiSoTruoc,
                 latestIndex: m.chiSoKyNay,
