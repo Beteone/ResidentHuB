@@ -3601,6 +3601,7 @@
                 <button type="button" data-set-panel="notify"><i class="fas fa-bell"></i> Thông báo</button>
                 <button type="button" data-set-panel="templates"><i class="fas fa-file-lines"></i> Biểu mẫu</button>
                 <button type="button" data-set-panel="security" id="settingsSecurityNav"><i class="fas fa-lock"></i> Bảo mật</button>
+                <button type="button" data-set-panel="activity"><i class="fas fa-clock-rotate-left"></i> Nhật ký hoạt động</button>
                 <button type="button" data-set-panel="demo" id="settingsDemoNav" style="display:none;"><i class="fas fa-rotate-left"></i> Dữ liệu Demo</button>
             </div>
 
@@ -3783,6 +3784,10 @@
                             <div class="set-actions"><button type="button" class="btn-primary" onclick="changeOwnPassword()">Đổi mật khẩu</button><span id="setPasswordMsg" style="font-size:.85rem;"></span></div>
                         </div>
                     </div>
+                </div>
+
+                <div class="set-panel" data-set-panel="activity">
+                    <iframe id="settingsActivityFrame" title="Nhật ký hoạt động" style="width:100%;height:900px;border:0;border-radius:16px;" loading="lazy"></iframe>
                 </div>
 
                 <!-- Dữ liệu Demo -->
@@ -5005,13 +5010,19 @@
         // ---- Cài đặt (system configuration only) -------------------------------
         // Every control carries data-setting="<key of RHD.SETTINGS_DEFAULTS>", so
         // loading/saving is generic and a new setting only needs markup + a reader.
-        const SETTINGS_PANELS_WITHOUT_SAVE = ['templates', 'security', 'demo'];
+        const SETTINGS_PANELS_WITHOUT_SAVE = ['templates', 'security', 'demo', 'activity'];
 
         function settingControls() {
             return Array.from(document.querySelectorAll('#settingsForm [data-setting]'));
         }
 
         function showSettingsPanel(name) {
+            if (name === 'activity') {
+                const frame = document.getElementById('settingsActivityFrame');
+                const actorId = RH_SESSION && RH_SESSION.id || 'standalone';
+                const source = 'dist/settings/index.html?view=activity&actor=' + encodeURIComponent(actorId) + (RH_IS_DEMO ? '&demo=1' : '');
+                if (frame.getAttribute('src') !== source) frame.setAttribute('src', source);
+            }
             document.querySelectorAll('#settingsNav [data-set-panel]').forEach(b => b.classList.toggle('active', b.dataset.setPanel === name));
             document.querySelectorAll('#settingsForm .set-panel').forEach(p => p.classList.toggle('active', p.dataset.setPanel === name));
             document.getElementById('settingsSaveBar').style.display = SETTINGS_PANELS_WITHOUT_SAVE.indexOf(name) === -1 && RHP.can('settings.update') ? '' : 'none';

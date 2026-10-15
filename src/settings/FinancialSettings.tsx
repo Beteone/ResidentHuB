@@ -1,0 +1,23 @@
+import { useState } from 'react';
+import type { FinancialConfig, SettingsRole } from './types';
+import { bankOptions, canEditFinancial } from './settingsStore';
+import { Card, Icon, SectionHeading, Toggle, fieldClass, saveClass } from './components';
+
+export function FinancialSettings({ initial, role, onSave }: { initial: FinancialConfig; role: SettingsRole; onSave: (value: FinancialConfig) => void }) {
+    const [value, setValue] = useState(initial);
+    const [message, setMessage] = useState('');
+    const [error, setError] = useState('');
+    const editable = canEditFinancial(role);
+    function patch(next: Partial<FinancialConfig>) { setValue(current => ({ ...current, ...next })); setMessage(''); setError(''); }
+    return <form onSubmit={e => { e.preventDefault(); if (!editable) return; try { onSave({ ...value, accountHolder: value.accountHolder.trim().toLocaleUpperCase('vi'), branch: value.branch.trim() }); setMessage('Đã lưu cấu hình tài chính.'); setError(''); } catch (err) { setError((err as Error).message); setMessage(''); } }}>
+        <SectionHeading title="Tài khoản tài chính" description="Thiết lập tài khoản nhận tiền và các phương thức thanh toán được chấp nhận." />
+        <div className="mb-5 flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-6 text-amber-800"><span className="shrink-0 pt-0.5"><Icon name="shield" /></span><div><p className="font-medium">Chỉ tài khoản cấp Quản lý/Kế toán trưởng mới có quyền thay đổi thông tin này</p><p className="mt-1">{editable ? 'Bạn có quyền chỉnh sửa cấu hình tài chính.' : 'Bạn đang xem thông tin. Các trường nhập đã được khóa.'}</p></div></div>
+        <fieldset disabled={!editable} className="min-w-0 space-y-5"><Card><h3 className="mb-5 flex items-center gap-2 font-semibold text-slate-800"><Icon name="bank" />Thông tin chuyển khoản</h3><div className="grid gap-5 sm:grid-cols-2">
+            <label className="text-sm font-medium text-slate-700">Tên ngân hàng<select className={`${fieldClass} mt-2`} value={value.bank} required={value.transfer} onChange={e => patch({ bank: e.target.value })}><option value="">Chọn ngân hàng</option>{bankOptions.map(bank => <option key={bank}>{bank}</option>)}</select></label>
+            <label className="text-sm font-medium text-slate-700">Số tài khoản<input type="text" inputMode="numeric" autoComplete="off" pattern="[0-9]{4,34}" maxLength={34} required={value.transfer} className={`${fieldClass} mt-2`} value={value.accountNumber} placeholder="Nhập số tài khoản" onChange={e => patch({ accountNumber: e.target.value.replace(/\D/g, '') })} /><span className="mt-1 block text-xs font-normal text-slate-400">Giữ nguyên chữ số 0 ở đầu tài khoản.</span></label>
+            <label className="text-sm font-medium text-slate-700">Tên chủ tài khoản<input type="text" required={value.transfer} maxLength={150} className={`${fieldClass} mt-2 uppercase`} value={value.accountHolder} placeholder="NGUYỄN VĂN A" onChange={e => patch({ accountHolder: e.target.value.toLocaleUpperCase('vi') })} /></label>
+            <label className="text-sm font-medium text-slate-700">Chi nhánh <span className="font-normal text-slate-400">(không bắt buộc)</span><input type="text" maxLength={150} className={`${fieldClass} mt-2`} value={value.branch} placeholder="Ví dụ: Chi nhánh Hà Nội" onChange={e => patch({ branch: e.target.value })} /></label>
+        </div></Card><Card><h3 className="mb-2 font-semibold text-slate-800">Phương thức thanh toán</h3><p className="mb-5 text-sm text-slate-500">Bật ít nhất một hình thức thu tiền cho tòa nhà.</p><div className="space-y-4">{([{ key: 'transfer', title: 'Chuyển khoản', detail: 'Nhận tiền qua tài khoản ngân hàng đã cấu hình.' }, { key: 'cash', title: 'Tiền mặt', detail: 'Thu trực tiếp tại quầy quản lý.' }, { key: 'pos', title: 'Quẹt thẻ POS', detail: 'Thanh toán bằng thẻ qua thiết bị POS.' }] as const).map(method => <div key={method.key} className="flex items-center justify-between gap-4 border-t border-slate-100 pt-4"><div><p className="text-sm font-medium text-slate-800">{method.title}</p><p className="mt-1 text-xs leading-5 text-slate-500">{method.detail}</p></div><Toggle checked={value[method.key]} disabled={!editable} onChange={checked => patch({ [method.key]: checked })} label={method.title} /></div>)}</div></Card></fieldset>
+        <div className="mt-6 flex flex-wrap items-center justify-end gap-4">{editable && message && <p role="status" className="text-sm text-emerald-700">{message}</p>}{editable && error && <p role="alert" className="text-sm text-red-600">{error}</p>}{editable && <button className={saveClass}><Icon name="save" />Lưu cấu hình tài chính</button>}</div>
+    </form>;
+}
