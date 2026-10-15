@@ -411,7 +411,7 @@
         return readUsers().filter(function (user) {
             if (user.role !== ROLES.RESIDENT) return false;
             if (record.userId && user.id === record.userId) return true;
-            if (user.residentId) return !!record.customerId && user.residentId === record.customerId;
+            if (user.residentId) return (record.customerIds || [record.customerId]).indexOf(user.residentId) !== -1;
             if (record.residentEmail && normalizeEmail(record.residentEmail) === user.email) return true;
             return !!apartment && (user.apartmentId === apartment.id || normalize(apartment.name) === normalize(user.unit));
         });
@@ -625,7 +625,19 @@
         }).length;
     }
 
-    function createUser(data) {
+    var residentApprovalToken = {};
+    function createUser(data, approvalToken) {
+        if ((data.accountTypeId && portalOfType(data.accountTypeId) === ROLES.RESIDENT) || data.role === ROLES.RESIDENT) {
+            var permission = approvalToken === residentApprovalToken ? 'users.approveResident' : 'users.createResident';
+            if (!global.RHP || !global.RHP.can(permission)) return { ok: false, error: 'Bạn không có quyền tạo tài khoản cư dân.' };
+            var profile = global.RHD && global.RHD.get('customers', data.residentId);
+            var apt = global.RHD && global.RHD.get('apartments', data.apartmentId);
+            if (!profile || !apt || !global.RHP.inScope(apt.buildingId)) return { ok: false, error: 'Chọn hồ sơ và căn hộ trong phạm vi quản lý.' };
+            if (!global.RHP.scopeList('customers', [profile]).length) return { ok:false,error:'Hồ sơ cư dân ngoài phạm vi quản lý.' };
+            if (readUsers().some(function (u) { return u.role === ROLES.RESIDENT && (u.residentId === profile.id || (data.phone && normalizePhone(u.phone) === normalizePhone(data.phone))); })) return { ok: false, error: 'Hồ sơ hoặc số điện thoại đã có tài khoản cư dân.' };
+            var linked = global.RHD.list('contracts').filter(function (c) { return (c.customerIds || [c.customerId]).indexOf(profile.id) !== -1 && c.status !== 'ended'; })[0];
+            if (linked && linked.apartmentId !== apt.id) return { ok: false, error: 'Căn hộ không khớp hợp đồng đang hiệu lực.' };
+        }
         var name = String(data.name || '').trim();
         var email = normalizeEmail(data.email);
         var phone = String(data.phone || '').trim();
@@ -965,6 +977,7 @@
     }
 
     function approveAccountRequest(requestId, managerId, opts) {
+        if (!global.RHP || !global.RHP.can('users.approveResident')) return {ok:false,error:'Bạn không có quyền duyệt tài khoản cư dân.'};
         opts = opts || {};
         var requests = readAccountRequests();
         var idx = -1;
@@ -1004,7 +1017,7 @@
         // resident picked (from the same RHD dropdown) when registering.
         var linkedContract = null;
         if (global.RHD) {
-            linkedContract = global.RHD.list('contracts').filter(function (c) { return c.customerId === residentId && c.status !== 'ended'; })
+            linkedContract = global.RHD.list('contracts').filter(function (c) { return (c.customerIds || [c.customerId]).indexOf(residentId) !== -1 && c.status !== 'ended'; })
                 .sort(function (a, b) { return b.createdAt - a.createdAt; })[0] || null;
         }
         var apartmentId = (linkedContract && linkedContract.apartmentId) || request.apartmentId;
@@ -1022,7 +1035,7 @@
             apartmentId: apartmentId,
             building: building ? (building.shortName || building.name) : '',
             residentId: residentId
-        });
+        }, residentApprovalToken);
         if (!userResult.ok) return userResult;
 
         requests[idx] = Object.assign({}, request, {

@@ -282,6 +282,10 @@
         if (!tab) return;
         var canUsers = U().can('users.view');
         var canRequests = U().can('users.approveResident');
+        if (!canUsers && !canRequests) {
+            tab.innerHTML = U().can('users.createResident') ? '<div class="card"><h2>Tài khoản cư dân</h2><button class="btn-primary" onclick="RHAccounts.openUser()">+ Thêm người dùng</button></div>' : '';
+            return;
+        }
         // Dashboard links pass a request filter ('pending', ...) to open the approval queue.
         if (filter && canRequests) userState.panel = 'requests';
         if (userState.panel === 'requests' && !canRequests) userState.panel = 'users';
@@ -291,7 +295,8 @@
 
         tab.innerHTML = '<div class="card">' +
             '<div class="acc-head"><div><h2>Người dùng</h2><p>Tài khoản đăng nhập của Admin, nhân viên và cư dân. Quyền của mỗi người lấy từ Loại tài khoản; phạm vi dữ liệu theo tòa nhà phụ trách.</p></div>' +
-            (userState.panel === 'users' ? U().addButton('Thêm người dùng', 'RHAccounts.openUser()', null, 'users.create') : '') + '</div>' +
+
+            (userState.panel === 'users' ? U().addButton('Thêm người dùng', 'RHAccounts.openUser()', null, U().can('users.create') ? 'users.create' : 'users.createResident') : '') + '</div>' +
             '<div class="acc-subtabs">' +
             (canUsers ? '<button type="button" class="' + (userState.panel === 'users' ? 'active' : '') + '" onclick="RHAccounts.showPanel(\'users\')"><i class="fas fa-users"></i> Danh sách người dùng <span>' + global.RH.getUsers().length + '</span></button>' : '') +
             (canRequests ? '<button type="button" class="' + (userState.panel === 'requests' ? 'active' : '') + '" onclick="RHAccounts.showPanel(\'requests\')"><i class="fas fa-user-clock"></i> Tài khoản cư dân chờ duyệt' + (pending ? ' <span class="rh-nav-badge" style="display:inline-flex;margin-left:.35rem;">' + pending + '</span>' : '') + '</button>' : '') +
@@ -329,7 +334,8 @@
     function typeOptionsFor(user) {
         var portal = user ? user.role : 'manager';
         return global.RHP.listTypes().filter(function (t) {
-            if ((t.portal === 'resident' ? 'resident' : 'manager') !== portal) return false;
+            if (user && (t.portal === 'resident' ? 'resident' : 'manager') !== portal) return false;
+            if (!user && !U().can(t.portal === 'resident' ? 'users.createResident' : 'users.create')) return false;
             if (t.fullAccess && !isAdmin()) return false;
             return true;
         }).map(function (t) { return { value: t.id, label: t.name, sub: t.description || '' }; });
@@ -337,7 +343,7 @@
 
     function residentProfileSelect(user) {
         var linkedElsewhere = global.RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && u.id !== user.id; }).map(function (u) { return u.residentId; });
-        var customers = RHD.list('customers').filter(function (c) { return linkedElsewhere.indexOf(c.id) === -1; });
+        var customers = U().scoped('customers').filter(function (c) { return linkedElsewhere.indexOf(c.id) === -1; });
         return '<select id="ufResident"><option value="">— Chưa liên kết —</option>' + customers.map(function (c) {
             return '<option value="' + c.id + '"' + (c.id === user.residentId ? ' selected' : '') + '>' + esc(c.fullName) + (c.phone ? ' • ' + esc(c.phone) : '') + '</option>';
         }).join('') + '</select>';
@@ -362,16 +368,17 @@
         if (userState.fields.buildings) userState.fields.buildings.setDisabled(locked);
     }
 
-    function openUser(id) {
+    function openUser(id, selectedType) {
         var u = id ? global.RH.getUsers().filter(function (x) { return x.id === id; })[0] : null;
         if (id && !u) return;
-        if (!U().guard(id ? 'users.update' : 'users.create')) return;
+        if (id ? !U().guard('users.update') : !U().can('users.create') && !U().guard('users.createResident')) return;
+        if (!u && !selectedType) { var choices=typeOptionsFor(null);selectedType=(choices.filter(function(t){return t.value==='at-staff';})[0]||choices[0]||{}).value; }
         if (u && !canManageUser(u, 'users.update')) { alert('Chỉ Admin mới được sửa tài khoản Admin.'); return; }
         userState.editingId = id || null;
         userState.fields = {};
         var self = me();
         var isSelf = !!(u && self && u.id === self.id);
-        var resident = !!(u && u.role === 'resident');
+        var resident = !!(u && u.role === 'resident') || !!(!u && global.RHP.getType(selectedType) && global.RHP.getType(selectedType).portal === 'resident');
         var v = function (k) { return esc(u ? u[k] || '' : ''); };
         // New staff start limited to the buildings explicitly assigned to them.
         var allBuildings = u ? (global.RHP.isAdmin(u) || u.allBuildings) : false;
@@ -386,12 +393,12 @@
             '<div class="rh-field"><label>Số điện thoại' + (resident ? '' : ' <span style="color:#ef4444;">*</span>') + '</label><input id="ufPhone" inputmode="tel" maxlength="20" value="' + v('phone') + '" placeholder="Nhập số điện thoại"></div>' +
             '<div class="rh-field"><label>Email</label><input id="ufEmail" type="email" maxlength="120" value="' + v('email') + '" placeholder="ten@congty.vn"></div>' +
             '<div class="rh-field"><label>Loại tài khoản <span style="color:#ef4444;">*</span></label><div id="ufTypeField"></div></div>' +
-            (resident ? '<div class="rh-field" style="grid-column:span 2;"><label>Hồ sơ cư dân liên kết</label>' + residentProfileSelect(u) + '</div>'
+            (resident ? '<div class="rh-field" style="grid-column:span 2;"><label>Hồ sơ cư dân liên kết</label>' + residentProfileSelect(u || {id:'',residentId:''}) + '<div id="ufResidentPlacement"></div>' + '</div>'
                 : '<div class="rh-field"><label>Bộ phận</label><input id="ufDept" list="ufDeptList" maxlength="60" value="' + v('department') + '" placeholder="Chọn hoặc nhập bộ phận">' + datalist('ufDeptList', 'department') + '</div>' +
                 '<div class="rh-field"><label>Chức danh</label><input id="ufTitle" list="ufTitleList" maxlength="60" value="' + v('title') + '" placeholder="Chức danh">' + datalist('ufTitleList', 'title') + '</div>' +
                 '<div class="rh-field"><label>Mã nhân viên</label><input id="ufCode" maxlength="30" value="' + v('employeeCode') + '" placeholder="Mã nhân viên"></div>') +
             '</div>' +
-            (!u ? '<p class="uf-hint"><i class="fas fa-circle-info"></i> Tài khoản cư dân được tạo qua phê duyệt đăng ký (tab "Tài khoản cư dân chờ duyệt"), không tạo tại đây.</p>' : '') +
+            (!u ? '<p class="uf-hint"><i class="fas fa-circle-info"></i> Chọn loại Cư dân để liên kết hồ sơ đã có. Cư dân tự đăng ký vẫn chờ phê duyệt.</p>' : '') +
             '</div>' +
 
             '<div class="uf-card"><div class="uf-card-head"><span>Mật khẩu</span></div><div class="rh-grid-2 uf-card-body">' +
@@ -414,7 +421,7 @@
 
         global.RHUI.openDrawer(u ? 'Sửa người dùng' : 'Thêm người dùng', html, { width: 820 });
 
-        var defaultType = u ? u.accountTypeId : (typeOptionsFor(null).filter(function (o) { return o.value === 'at-staff'; })[0] || {}).value || '';
+        var defaultType = u ? u.accountTypeId : selectedType || (typeOptionsFor(null).filter(function (o) { return o.value === 'at-staff'; })[0] || {}).value || '';
         userState.fields.type = RHSelect.create(byId('ufTypeField'), {
             inputId: 'ufType',
             value: defaultType,
@@ -424,7 +431,12 @@
             clearable: false,
             disabled: isSelf && !isAdmin(),
             options: function () { return typeOptionsFor(u); },
-            onChange: syncScopeSection
+            onChange: function (typeId) {
+                if (!u && (global.RHP.getType(typeId).portal === 'resident') !== resident) {
+                    var draft={}; ['ufName','ufPhone','ufEmail','ufPassword','ufPassword2'].forEach(function(key){draft[key]=byId(key).value;});
+                    openUser(null,typeId); Object.keys(draft).forEach(function(key){byId(key).value=draft[key];});
+                } else syncScopeSection();
+            }
         });
         if (!resident) {
             userState.fields.buildings = RHSelect.createMulti(byId('ufBuildingsField'), {
@@ -439,6 +451,21 @@
             byId('ufAllBuildings').addEventListener('change', syncScopeSection);
             syncScopeSection();
         }
+        if(resident) {
+            var select=byId('ufResident');
+            var picker=document.createElement('div');select.after(picker);select.hidden=true;
+            userState.fields.resident=RHSelect.create(picker,{value:select.value,placeholder:'Tìm hồ sơ cư dân...',options:Array.from(select.options).filter(function(o){return o.value;}).map(function(o){return {value:o.value,label:o.textContent};}),onChange:function(value){select.value=value;fillResident();}});
+            var placement=byId('ufResidentPlacement');
+            placement.innerHTML='<label>Tòa nhà</label><div id="ufResidentBuilding"></div><label>Căn hộ</label><div id="ufResidentApartment"></div>';
+            userState.fields.residentBuilding=RHSelect.create(byId('ufResidentBuilding'),{options:U().scoped('buildings').map(function(b){return {value:b.id,label:b.name};}),onChange:function(){userState.fields.residentApartment.setValue('');userState.fields.residentApartment.refresh();}});
+            userState.fields.residentApartment=RHSelect.create(byId('ufResidentApartment'),{options:function(){return U().scoped('apartments').filter(function(a){return a.buildingId===userState.fields.residentBuilding.getValue();}).map(function(a){return {value:a.id,label:a.name};});}});
+            function fillResident(){var profile=RHD.get('customers',select.value);if(!profile)return;
+                if(!u){byId('ufName').value=profile.fullName||'';byId('ufPhone').value=profile.phone||'';byId('ufEmail').value=profile.email||'';}
+                var ctx=RHD.residentPlacement(profile.id),apt=ctx&&ctx.apartment;
+                if(apt){userState.fields.residentBuilding.setValue(apt.buildingId);userState.fields.residentApartment.refresh();userState.fields.residentApartment.setValue(apt.id);}
+            }
+            fillResident();
+        }
         byId('ufName').focus();
     }
 
@@ -451,7 +478,7 @@
         var fail = function (msg) { err.textContent = msg; };
         var self = me();
         var isSelf = !!(u && self && u.id === self.id);
-        var resident = !!(u && u.role === 'resident');
+        var resident = !!(u && u.role === 'resident') || !!(!u && (global.RHP.getType(userState.fields.type.getValue())||{}).portal === 'resident');
 
         var name = byId('ufName').value.trim();
         var phone = byId('ufPhone').value.trim();
@@ -468,7 +495,7 @@
         if (email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return fail('Email không hợp lệ.');
         if (!type) return fail('Vui lòng chọn loại tài khoản.');
         if (type.fullAccess && !isAdmin()) return fail('Chỉ Admin mới được gán loại tài khoản Admin.');
-        if (!u && type.portal === 'resident') return fail('Tài khoản cư dân được tạo qua phê duyệt đăng ký.');
+        if (!u && !U().guard(type.portal === 'resident' ? 'users.createResident' : 'users.create')) return;
         if (!u || pw) {
             if (pw.length < 6) return fail('Mật khẩu phải có ít nhất 6 ký tự.');
             if (pw !== pw2) return fail('Mật khẩu xác nhận không khớp.');
@@ -481,7 +508,9 @@
         if (resident) {
             var residentId = byId('ufResident').value;
             // Keep the account's display cache in step with the Resident Profile's contract.
-            var ctx = RHD.residentContext({ id: u.id, email: u.email, residentId: residentId, apartmentId: residentId === u.residentId ? u.apartmentId : '' });
+            var apt = RHD.get('apartments',userState.fields.residentApartment.getValue());
+            if(!residentId || !apt) return fail('Chọn hồ sơ cư dân, tòa nhà và căn hộ.');
+            var ctx = {apartment:apt,building:RHD.get('buildings',apt.buildingId)};
             payload.residentId = residentId;
             payload.apartmentId = ctx && ctx.apartment ? ctx.apartment.id : '';
             payload.unit = ctx && ctx.apartment ? ctx.apartment.name : '';

@@ -17,6 +17,8 @@
     <script src="data.js"></script>
     <script src="billing.js"></script>
     <script src="searchable-select.js"></script>
+    <script src="money-input.js"></script>
+    <script src="contract-documents.js"></script>
     <script src="manager-modules.js"></script>
     <script src="asset-module.js"></script>
     <script src="account-modules.js"></script>
@@ -2608,6 +2610,7 @@
         @media(max-width:1000px){.set-panel.active{grid-template-columns:1fr}}
         @media(max-width:640px){.set-grid{grid-template-columns:1fr}.set-item-block>.set-grid,.set-item-block>.set-input,.set-item-block>.set-checks,.set-item-block>.set-actions{margin-left:0}.set-input{width:100%}}
     </style>
+<link rel="stylesheet" href="document-editor.css">
 </head>
 <body>
     <script>
@@ -2695,7 +2698,7 @@
                     <i class="fas fa-id-badge"></i>
                     <span>Loại tài khoản</span>
                 </div>
-                <div class="sidebar-menu-item rh-nav-child" data-perm="users.view,users.approveResident" onclick="switchTab('accounts')">
+                <div class="sidebar-menu-item rh-nav-child" data-perm="users.view,users.approveResident,users.createResident" onclick="switchTab('accounts')">
                     <i class="fas fa-users-gear"></i>
                     <span>Người dùng</span>
                     <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
@@ -4234,7 +4237,7 @@
             dashboard: 'dashboard.view', buildings: 'buildings.view', apartments: 'apartments.view', 'service-fees': 'buildings.update', assets: 'assets.view',
             customers: 'customers.view', meters: 'meters.view', contracts: 'contracts.view', invoices: 'invoices.view',
             cashflow: 'invoices.view',
-            support: 'support.view', reports: 'reports.view', roles: 'roles.view', accounts: ['users.view', 'users.approveResident']
+            support: 'support.view', reports: 'reports.view', roles: 'roles.view', accounts: ['users.view', 'users.approveResident', 'users.createResident']
         };
         const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'assets', 'customers', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
 
