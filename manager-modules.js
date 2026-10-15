@@ -1349,16 +1349,13 @@
             var st = statusMeta(RHD.SUPPORT_STATUSES, r.status);
             var pr = statusMeta(RHD.SUPPORT_PRIORITIES, r.priority);
             return '<tr>' +
-                '<td><strong>' + escapeHtml(r.code) + '</strong></td>' +
-                '<td>' + escapeHtml(r.residentName || '—') + '</td>' +
-                '<td>' + escapeHtml(building ? building.shortName : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</td>' +
-                '<td>' + escapeHtml(r.title) + '<div style="font-size:.72rem;color:#94a3b8;">' + escapeHtml(r.category) + '</div></td>' +
-                '<td>' + badge(pr.label || r.priority, '#61708a', '#f1f5f9') + '</td>' +
+                '<td class="support-request-cell"><strong class="support-request-code">' + escapeHtml(r.code || '—') + '</strong><span class="support-request-name">' + escapeHtml(r.title || 'Yêu cầu hỗ trợ') + '</span><small>' + escapeHtml(r.category || 'Khác') + '</small></td>' +
+                '<td class="support-resident-cell"><strong>' + escapeHtml(r.residentName || '—') + '</strong><small>' + escapeHtml(building ? building.shortName : '—') + ' · Căn hộ ' + escapeHtml(apt ? apt.name : '—') + '</small></td>' +
+                '<td>' + badge(pr.label || r.priority || 'Bình thường', pr.color || '#526174', pr.bg || '#f1f5f9') + '</td>' +
                 '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
-                '<td>' + escapeHtml(r.assignee || '—') + '</td>' +
-                '<td>' + escapeHtml(r.handlingNote || r.resolutionNote || '—') + '</td>' +
-                '<td style="white-space:nowrap;">' + new Date(r.createdAt).toLocaleString('vi-VN') + '</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
+                '<td class="support-assignee-cell"><strong>' + escapeHtml(r.assignee || 'Chưa phân công') + '</strong><small>' + escapeHtml(r.handlingNote || r.resolutionNote || 'Chưa có ghi chú') + '</small></td>' +
+                '<td class="support-date-cell">' + new Date(r.createdAt).toLocaleString('vi-VN') + '</td>' +
+                '<td class="support-actions-cell">' +
                 '<button type="button" data-support-edit="' + escapeHtml(r.id) + '" class="rh-row-btn support-update-btn" title="Cập nhật yêu cầu"><i class="fas fa-pen"></i> Cập nhật</button>' +
                 '<button type="button" data-support-delete="' + escapeHtml(r.id) + '" class="rh-row-btn" title="Xóa yêu cầu" style="color:#ef4444;"><i class="fas fa-trash"></i></button>' +
                 '</td></tr>';
@@ -1371,7 +1368,7 @@
                 return '<button type="button" class="' + (supportStatusFilter === filter.id ? 'active' : '') + '" data-support-status-filter="' + escapeHtml(filter.id) + '" aria-pressed="' + (supportStatusFilter === filter.id) + '">' + escapeHtml(filter.label) + '<span>' + filter.count + '</span></button>';
             }).join('') + '</div>' +
             '<p class="support-status-help">Để cập nhật: chọn Cập nhật trên yêu cầu, chọn trạng thái rồi bấm “Lưu & cập nhật cho cư dân”. Khi chọn “Đã xử lý”, cần nhập kết quả xử lý trước khi lưu.</p>' +
-            (filteredRequests.length ? '<div class="table-container"><table><thead><tr><th>Mã YC</th><th>Người gửi</th><th>Căn hộ</th><th>Nội dung / loại sự cố</th><th>Mức độ</th><th>Trạng thái</th><th>Người phụ trách</th><th>Ghi chú xử lý</th><th>Thời gian gửi</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+            (filteredRequests.length ? '<div class="table-container support-request-table-wrap"><table class="support-request-table"><thead><tr><th>Yêu cầu</th><th>Cư dân / căn hộ</th><th>Mức độ</th><th>Trạng thái</th><th>Phụ trách / ghi chú</th><th>Thời gian gửi</th><th>Thao tác</th></tr></thead><tbody>' + rows + '</tbody></table></div>'
                 : (requests.length ? emptyState('fa-filter', 'Không có yêu cầu nào ở trạng thái này.') : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.'))) + '</div></section>' +
             '<section class="support-view-panel' + (activeSupportView === 'chat' ? ' active' : '') + '" data-support-panel="chat"><div class="support-inbox">' +
             '<aside class="support-inbox-sidebar"><div class="support-inbox-title"><div><h3>Hộp thư cư dân</h3><p>' + requests.length + ' cuộc trò chuyện theo yêu cầu</p></div><i class="fas fa-inbox"></i></div>' +

@@ -113,9 +113,9 @@
         notifyAccountApproved: true
     };
     var SUPPORT_PRIORITIES = [
-        { id: 'normal', label: 'Bình thường' },
-        { id: 'needed', label: 'Cần xử lý' },
-        { id: 'urgent', label: 'Khẩn cấp' }
+        { id: 'normal', label: 'Bình thường', color: '#526174', bg: '#f1f5f9' },
+        { id: 'needed', label: 'Cần xử lý', color: '#a16207', bg: '#fff7df' },
+        { id: 'urgent', label: 'Khẩn cấp', color: '#c24141', bg: '#fff0f0' }
     ];
     var SUPPORT_CATEGORIES = ['Sửa chữa căn hộ', 'Cơ sở vật chất chung', 'An ninh', 'Vệ sinh', 'Phí & thanh toán', 'Phản ánh / góp ý', 'Khác'];
 
