@@ -2379,6 +2379,27 @@
         .rh-nav-children.open{display:block}
         .sidebar-menu-item.rh-nav-child{padding-left:2.4rem;font-size:.92rem}
         .sidebar-menu-item.rh-nav-child.active{padding-left:calc(2.4rem - 3px)}
+        .rh-fee-toolbar{display:grid;gap:.75rem;grid-template-columns:repeat(3,minmax(0,1fr));margin:.25rem 0 1.25rem}
+        .rh-fee-toolbar select,.rh-fee-toolbar input{background:#fff;border:1px solid #dce3eb;border-radius:8px;color:#526275;font:inherit;font-size:.85rem;min-width:0;padding:.65rem .75rem;width:100%}
+        .rh-fee-table-wrap{border:1px solid #e4eaf2;border-radius:10px;overflow:auto}
+        .rh-fee-table{border-collapse:collapse;min-width:760px;width:100%}
+        .rh-fee-table th,.rh-fee-table td{border-bottom:1px solid #e7ebf0;padding:.72rem .65rem;text-align:left;vertical-align:middle}
+        .rh-fee-table th{background:#f7f8fa;color:#556273;font-size:.75rem;font-weight:600;white-space:nowrap}
+        .rh-fee-table tbody tr:nth-child(odd){background:#f8f9fa}
+        .rh-fee-table tbody tr:hover{background:#eff6ff}
+        .rh-fee-table .fee-code{color:#438967;font-size:.76rem;font-weight:700;white-space:nowrap}
+        .rh-fee-actions{display:flex;gap:.35rem}
+        .rh-fee-icon-btn{align-items:center;background:#68737d;border:0;border-radius:5px;color:#fff;cursor:pointer;display:inline-flex;height:29px;justify-content:center;width:30px}
+        .rh-fee-icon-btn.delete{background:#e64e55}
+        .rh-fee-icon-btn:hover{filter:brightness(.92)}
+        .rh-fee-default{border-radius:4px;display:inline-block;font-size:.68rem;font-weight:700;padding:.2rem .45rem}
+        .rh-fee-default.yes{background:#e5f5ed;color:#178250}
+        .rh-fee-default.no{background:#fdebec;color:#c5474e}
+        .rh-fee-top-actions{display:flex;gap:.45rem}
+        .rh-fee-top-button{align-items:center;border-radius:7px;color:#fff;display:inline-flex;height:36px;justify-content:center;width:38px}
+        .rh-fee-top-button.add{background:#218c5a}
+        .rh-fee-top-button.delete{background:#df5559}
+        @media(max-width:700px){.rh-fee-toolbar{grid-template-columns:1fr}}
         /* Shared 3-column form grid + list filters */
         .rh-grid-3{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr))}
         @media(max-width:760px){.rh-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
@@ -2628,6 +2649,10 @@
                 <i class="fas fa-door-open"></i>
                 <span>Căn hộ</span>
             </div>
+            <div class="sidebar-menu-item" data-perm="buildings.update" onclick="switchTab('service-fees', this)">
+                <i class="fas fa-coins"></i>
+                <span>Phí dịch vụ</span>
+            </div>
             <div class="sidebar-menu-item" data-perm="assets.view" onclick="switchTab('assets')">
                 <i class="fas fa-couch"></i>
                 <span>Tài sản</span>
@@ -2649,6 +2674,10 @@
                 <i class="fas fa-receipt"></i>
                 <span>Hóa đơn</span>
                 <span class="rh-nav-badge" id="rhNavInvoiceReviewCount" style="display:none;" title="Hóa đơn nháp chờ duyệt">0</span>
+            </div>
+            <div class="sidebar-menu-item" data-perm="invoices.view" onclick="switchTab('cashflow', this)">
+                <i class="fas fa-money-bill-transfer"></i>
+                <span>Thu chi</span>
             </div>
             <div class="sidebar-menu-item" data-perm="support.view" onclick="switchTab('support', this)">
                 <i class="fas fa-tools"></i>
@@ -4184,10 +4213,12 @@
         const TAB_RENDERERS = {
             buildings: (f) => RHUI.renderBuildingsTab(f),
             apartments: (f) => RHUI.renderApartmentsTab(f),
+            'service-fees': (f) => RHUI.renderServiceFeesTab(f),
             customers: (f) => RHUI.renderCustomersTab(f),
             meters: (f) => RHUI.renderMetersTab(f),
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
+            cashflow: (f) => RHUI.renderCashflowTab(f),
             support: (f) => RHUI.renderSupportTab(f),
             assets: () => RHAssets.renderTab(),
             roles: () => RHAccounts.renderRolesTab(),
@@ -4200,11 +4231,12 @@
         // Page access = the "view" permission of its module (permissions.js).
         // Pages not listed here (Cài đặt, Quy trình...) are open to every staff account.
         const TAB_PERMS = {
-            dashboard: 'dashboard.view', buildings: 'buildings.view', apartments: 'apartments.view', assets: 'assets.view',
+            dashboard: 'dashboard.view', buildings: 'buildings.view', apartments: 'apartments.view', 'service-fees': 'buildings.update', assets: 'assets.view',
             customers: 'customers.view', meters: 'meters.view', contracts: 'contracts.view', invoices: 'invoices.view',
+            cashflow: 'invoices.view',
             support: 'support.view', reports: 'reports.view', roles: 'roles.view', accounts: ['users.view', 'users.approveResident']
         };
-        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'assets', 'customers', 'meters', 'contracts', 'invoices', 'support', 'accounts', 'roles', 'reports'];
+        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'assets', 'customers', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
 
         function canOpenTab(tabName) {
             const perm = TAB_PERMS[tabName];
@@ -4281,12 +4313,14 @@
                 'dashboard': 'Quản lý',
                 'buildings': 'Tòa nhà',
                 'apartments': 'Căn hộ',
+                'service-fees': 'Phí dịch vụ',
                 'assets': 'Tài sản',
                 'roles': 'Loại tài khoản',
                 'customers': 'Khách hàng',
                 'residents': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
+                'cashflow': 'Thu chi',
                 'support': 'Yêu cầu hỗ trợ',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
@@ -5122,7 +5156,7 @@
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
             applyNavPermissions(); // another tab may have changed this user's account type / permissions
             renderCurrentUser();
-            if (['support', 'accounts', 'roles', 'assets', 'invoices', 'contracts', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
+            if (['support', 'accounts', 'roles', 'assets', 'invoices', 'cashflow', 'service-fees', 'contracts', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }
