@@ -1,0 +1,26 @@
+import { useMemo, useState } from 'react';
+import type { ActivityEntry, ActivityModule } from './types';
+import { filterActivity } from './settingsStore';
+import { Card, Icon, SectionHeading, fieldClass } from './components';
+
+const moduleColors: Record<ActivityModule, string> = { 'Cài đặt': 'bg-violet-50 text-violet-700', 'Cư dân': 'bg-sky-50 text-sky-700', 'Hợp đồng': 'bg-emerald-50 text-emerald-700', 'Hóa đơn': 'bg-orange-50 text-orange-700', 'Yêu cầu hỗ trợ': 'bg-indigo-50 text-indigo-700' };
+const actionColors = { 'Thêm mới': 'bg-emerald-50 text-emerald-700', 'Cập nhật': 'bg-blue-50 text-blue-700', 'Xóa': 'bg-red-50 text-red-700' };
+const timestamp = (iso: string) => new Intl.DateTimeFormat('vi-VN', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', hourCycle: 'h23' }).format(new Date(iso));
+export function ActivityLog({ entries, demo }: { entries: ActivityEntry[]; demo: boolean }) {
+    const [search, setSearch] = useState('');
+    const [from, setFrom] = useState('');
+    const [to, setTo] = useState('');
+    const [module, setModule] = useState('');
+    const invalid = !!from && !!to && from > to;
+    const filtered = useMemo(() => invalid ? [] : filterActivity(entries, search, from, to, module), [entries, search, from, to, module, invalid]);
+    return <div><SectionHeading title="Nhật ký hoạt động" description="Tra cứu lịch sử thao tác theo người thực hiện, thời gian và phân hệ." />
+        {demo && <p className="mb-5 rounded-xl border border-blue-100 bg-blue-50 p-4 text-sm leading-6 text-blue-800">Các thao tác Cư dân, Hợp đồng, Hóa đơn và Hỗ trợ bên dưới là dữ liệu minh họa. Các lần lưu Cài đặt trong trang này được ghi nhận riêng.</p>}
+        <Card><div className="grid items-end gap-4 md:grid-cols-2 xl:grid-cols-4"><label className="text-sm font-medium text-slate-700">Người thực hiện<div className="relative mt-2"><span className="pointer-events-none absolute left-3 top-3 text-slate-400"><Icon name="search" /></span><input type="search" className={`${fieldClass} pl-10`} placeholder="Tìm theo tên…" value={search} onChange={e => setSearch(e.target.value)} /></div></label>
+            <label className="min-w-0 text-sm font-medium text-slate-700">Từ ngày<input type="date" className={`${fieldClass} mt-2 min-w-0`} value={from} onChange={e => setFrom(e.target.value)} aria-invalid={invalid} aria-describedby={invalid ? 'activity-date-error' : undefined} /></label>
+            <label className="min-w-0 text-sm font-medium text-slate-700">Đến ngày<input type="date" className={`${fieldClass} mt-2 min-w-0`} value={to} onChange={e => setTo(e.target.value)} aria-invalid={invalid} aria-describedby={invalid ? 'activity-date-error' : undefined} /></label>
+            <label className="text-sm font-medium text-slate-700">Phân hệ<select className={`${fieldClass} mt-2`} value={module} onChange={e => setModule(e.target.value)}><option value="">Tất cả phân hệ</option>{Object.keys(moduleColors).map(name => <option key={name}>{name}</option>)}</select></label></div>
+            {invalid && <p id="activity-date-error" role="alert" className="mt-3 text-sm text-red-600">Ngày bắt đầu phải trước hoặc bằng ngày kết thúc.</p>}<div className="mt-4 flex items-center justify-between gap-3"><p role="status" className="text-xs text-slate-500">{filtered.length} hoạt động · Giờ Việt Nam (UTC+7)</p><button type="button" className="rounded-lg px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50" onClick={() => { setSearch(''); setFrom(''); setTo(''); setModule(''); }}>Xóa bộ lọc</button></div>
+        </Card>
+        <div className="mt-5 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-sm"><div className="overflow-x-auto" role="region" aria-label="Bảng nhật ký hoạt động" tabIndex={0}><table className="w-full min-w-[800px] text-left text-sm"><caption className="sr-only">Lịch sử thao tác người dùng theo bộ lọc đang chọn</caption><thead className="border-b border-slate-200 bg-slate-50 text-xs text-slate-500"><tr>{['Thời gian', 'Người thực hiện', 'Phân hệ', 'Hành động', 'Nội dung chi tiết'].map(title => <th key={title} scope="col" className="px-5 py-4 font-semibold">{title}</th>)}</tr></thead><tbody className="divide-y divide-slate-100">{filtered.map(entry => <tr key={entry.id} className="transition hover:bg-slate-50"><td className="whitespace-nowrap px-5 py-5 text-slate-500"><time dateTime={entry.at}>{timestamp(entry.at)}</time></td><td className="px-5 py-5"><p className="font-medium text-slate-800">{entry.actorName}</p><p className="mt-1 text-xs text-slate-400">{entry.actorRole}</p></td><td className="px-5 py-5"><span className={`inline-block whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium ${moduleColors[entry.module]}`}>{entry.module}</span></td><td className="px-5 py-5"><span className={`inline-block whitespace-nowrap rounded-lg px-2.5 py-1 text-xs font-medium ${actionColors[entry.action]}`}>{entry.action}</span></td><td className="max-w-sm break-words px-5 py-5 leading-6 text-slate-600">{entry.detail}</td></tr>)}{!filtered.length && <tr><td colSpan={5} className="px-5 py-12 text-center text-slate-500">{invalid ? 'Vui lòng chọn lại khoảng thời gian.' : 'Không có hoạt động phù hợp bộ lọc.'}</td></tr>}</tbody></table></div></div>
+    </div>;
+}

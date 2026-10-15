@@ -13,7 +13,7 @@
  */
 (function (global) {
     // billingRuns = ledger of automatically generated invoice periods (billing.js).
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'cashflows', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -25,6 +25,7 @@
         meters: 12,
         contracts: 6,
         invoices: 10,
+        cashflows: 30,
         assets: 15,
         assetTypes: 20
     };
@@ -36,6 +37,7 @@
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
         invoices: 'hóa đơn',
+        cashflows: 'phiếu thu chi',
         assets: 'tài sản',
         assetTypes: 'loại tài sản'
     };
@@ -184,6 +186,7 @@
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
         writeAll(entity, items);
+        if (entity === 'meters' && global.RHB) global.RHB.meterChanged(record);
         return { ok: true, item: record };
     }
 
@@ -192,8 +195,10 @@
         var idx = -1;
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
+        var before = items[idx];
         items[idx] = Object.assign({}, items[idx], patch, { id: items[idx].id, createdAt: items[idx].createdAt });
         writeAll(entity, items);
+        if (entity === 'meters' && global.RHB) { global.RHB.meterChanged(before); global.RHB.meterChanged(items[idx]); }
         return { ok: true, item: items[idx] };
     }
 
@@ -202,6 +207,7 @@
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
+        if (entity === 'meters' && global.RHB) global.RHB.meterChanged(items.filter(function (r) { return r.id === id; })[0]);
         return { ok: true };
     }
 
@@ -663,13 +669,26 @@
     // when the service is billed 'meter'-style (electricity/water) and a
     // generic quantity for the other calc methods. This is a pitch-ready
     // approximation, not a full billing engine.
+    // Electricity/water entered with the default "fixed" method is ambiguous.
+    // Only an explicit package label/flag permits billing it without a meter.
+    function utilityPolicy(service) {
+        var label = String(service.name || '').toLowerCase();
+        var type = service.feeType === 'water' || service.feeType === 'electricity' ? service.feeType :
+            (/^(tiền\s+)?nước\b|m³|m3/i.test(label) ? 'water' : /^(tiền\s+)?điện\b|kwh/i.test(label) ? 'electricity' : null);
+        var packageFee = service.calcMethod === 'fixed' && (service.billingMode === 'flat' || service.flatRate === true || /trọn gói|tron goi/i.test(label));
+        return { meterType: type, metered: service.calcMethod === 'meter' || (!!type && !packageFee), packageFee: packageFee };
+    }
+
     function calcServiceAmount(service, ctx) {
         ctx = ctx || {};
         var unitPrice = Number(service.unitPrice) || 0;
         var qty = 1;
-        if (service.calcMethod === 'meter') {
+        if (utilityPolicy(service).metered) {
             var reading = ctx.meterReading;
-            qty = reading ? Number(reading.consumption) || 0 : 0;
+            var approved = reading && (reading.approvalStatus ? reading.approvalStatus === 'đã_duyệt' : reading.status === 'đã_chốt');
+            var valid = reading && reading.latestIndex !== '' && reading.latestIndex != null && reading.previousIndex !== '' && reading.previousIndex != null && isFinite(Number(reading.latestIndex)) && isFinite(Number(reading.previousIndex)) && Number(reading.latestIndex) >= Number(reading.previousIndex);
+            var matching = reading && (!ctx.readingPeriod || (reading.readingPeriod || reading.periodMonth) === ctx.readingPeriod);
+            qty = approved && valid && matching ? Number(reading.latestIndex) - Number(reading.previousIndex) : 0;
         } else if (service.calcMethod === 'quantity' || service.calcMethod === 'person') {
             qty = ctx.quantity != null ? Number(ctx.quantity) : 1;
         } else {
@@ -749,8 +768,8 @@
             var rentLine = { qty: 1, unitPrice: apt1.rentPrice, amount: apt1.rentPrice, tax: 0, total: apt1.rentPrice };
             var items = [
                 { serviceId: building.services[0].id, label: 'Tiền thuê nhà', qty: 1, unitPrice: rentLine.unitPrice, amount: rentLine.amount, tax: rentLine.tax },
-                { serviceId: elecSvc.id, label: 'Tiền điện (' + elecLine.qty + ' kWh)', qty: elecLine.qty, unitPrice: elecLine.unitPrice, amount: elecLine.amount, tax: elecLine.tax },
-                { serviceId: waterSvc.id, label: 'Tiền nước (' + waterLine.qty + ' m³)', qty: waterLine.qty, unitPrice: waterLine.unitPrice, amount: waterLine.amount, tax: waterLine.tax }
+                { serviceId: elecSvc.id, label: 'Tiền điện — chỉ số chưa duyệt', kind: 'meter', source: 'meter', missing: true, consumptionPeriod: '2026-09', qty: elecLine.qty, unitPrice: elecLine.unitPrice, amount: elecLine.amount, tax: elecLine.tax },
+                { serviceId: waterSvc.id, label: 'Tiền nước — chỉ số chưa duyệt', kind: 'meter', source: 'meter', missing: true, consumptionPeriod: '2026-09', qty: waterLine.qty, unitPrice: waterLine.unitPrice, amount: waterLine.amount, tax: waterLine.tax }
             ];
             var subtotal = items.reduce(function (s, it) { return s + it.amount; }, 0);
             var taxTotal = items.reduce(function (s, it) { return s + it.tax; }, 0);
@@ -759,7 +778,7 @@
                 buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id, invoiceTemplateId: contract1.invoiceTemplateId,
                 period: '2026-09', issueDate: '2026-09-30', dueDate: '2026-10-10',
                 items: items, subtotal: subtotal, tax: taxTotal, total: subtotal + taxTotal,
-                status: 'unpaid', sentAt: null, paidAt: null, createdAt: Date.now()
+                type: 'monthly', status: 'draft', issues: ['Chỉ số điện/nước kỳ 09/2026 chưa duyệt'], sentAt: null, paidAt: null, createdAt: Date.now()
             };
             writeAll('invoices', [invoice1]);
 
@@ -872,6 +891,7 @@
         nextSupportCode: nextSupportCode,
         buildingFullAddress: buildingFullAddress,
         calcServiceAmount: calcServiceAmount,
+        utilityPolicy: utilityPolicy,
         resetDemo: resetDemo
     };
 })(window);

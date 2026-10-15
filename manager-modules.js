@@ -13,7 +13,11 @@
         buildingInvoiceTemplates: [],
         buildingContractTemplates: [],
         customerVehicles: [],
-        contractServiceSel: {}
+        contractServiceSel: {},
+        serviceFeeBuildingFilter: '',
+        serviceFeeTypeFilter: '',
+        serviceFeeSearch: '',
+        selectedServiceFees: []
     };
 
     // ---------------------------------------------------------------- utils
@@ -40,59 +44,221 @@
         return '<span style="background:' + bg + ';color:' + color + ';font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;white-space:nowrap;">' + escapeHtml(label) + '</span>';
     }
 
-    function statusMeta(list, id) {
-        for (var i = 0; i < list.length; i++) if (list[i].id === id) return list[i];
-        return { label: id || '—', color: '#61708a', bg: '#f1f5f9' };
+    function renderCashflowTab() {
+        var tab = byId('cashflow-tab');
+        if (!tab) return;
+        ensureCashflowStyles();
+        var state = RHUI.cashflowFilters || (RHUI.cashflowFilters = { type: 'all', area: '', building: '', apartment: '', from: '', to: '', account: '', search: '', filtersOpen: true });
+        var allRecords = RHD.list('cashflows').slice().sort(function (a, b) {
+            return String(b.date || '').localeCompare(String(a.date || '')) || (b.createdAt || 0) - (a.createdAt || 0);
+        });
+        var allBuildings = RHD.list('buildings');
+        var areas = allBuildings.map(function (b) { return b.province || b.ward || ''; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var apartments = RHD.list('apartments');
+        var visibleRecords = allRecords.filter(function (record) {
+            var building = RHD.get('buildings', record.buildingId) || {};
+            var apartment = RHD.get('apartments', record.apartmentId) || {};
+            var area = building.province || building.ward || '';
+            if (state.type !== 'all' && record.type !== state.type) return false;
+            if (state.area && area !== state.area) return false;
+            if (state.building && record.buildingId !== state.building) return false;
+            if (state.apartment && record.apartmentId !== state.apartment) return false;
+            if (state.from && String(record.date || '') < state.from) return false;
+            if (state.to && String(record.date || '') > state.to) return false;
+            if (state.account && (record.accountName || record.paymentMethod || '') !== state.account) return false;
+            if (state.search) {
+                var searchText = [record.code, record.category, record.description, record.reference, record.personName, record.accountName, record.paymentMethod, building.name, building.shortName, apartment.name].join(' ').toLocaleLowerCase();
+                if (searchText.indexOf(state.search.toLocaleLowerCase()) === -1) return false;
+            }
+            return true;
+        });
+        var totals = visibleRecords.reduce(function (sum, record) {
+            sum[record.type === 'income' ? 'income' : 'expense'] += Number(record.amount) || 0;
+            return sum;
+        }, { income: 0, expense: 0 });
+        var buildingOptions = '<option value="">Chọn tòa nhà</option>' + allBuildings.map(function (b) {
+            return '<option value="' + escapeHtml(b.id) + '"' + (state.building === b.id ? ' selected' : '') + '>' + escapeHtml(b.name || b.shortName) + '</option>';
+        }).join('');
+        var apartmentOptions = '<option value="">Chọn phòng</option>' + apartments.filter(function (apt) { return !state.building || apt.buildingId === state.building; }).map(function (apt) {
+            return '<option value="' + escapeHtml(apt.id) + '"' + (state.apartment === apt.id ? ' selected' : '') + '>' + escapeHtml(apt.name || apt.code || 'Căn hộ') + '</option>';
+        }).join('');
+        var accountNames = allRecords.map(function (record) { return record.accountName || record.paymentMethod || ''; }).filter(function (v, i, a) { return v && a.indexOf(v) === i; });
+        var accountOptions = '<option value="">Sổ quỹ</option>' + accountNames.map(function (account) {
+            return '<option value="' + escapeHtml(account) + '"' + (state.account === account ? ' selected' : '') + '>' + escapeHtml(account) + '</option>';
+        }).join('');
+        var rows = visibleRecords.map(function (record) {
+            var building = RHD.get('buildings', record.buildingId);
+            var apartment = RHD.get('apartments', record.apartmentId);
+            var sign = record.type === 'income' ? '+' : '−';
+            return '<tr><td><input class="rh-cashflow-select" type="checkbox" value="' + escapeHtml(record.id) + '" aria-label="Chọn phiếu ' + escapeHtml(record.code || '') + '"></td>' +
+                '<td class="rh-cashflow-code">' + escapeHtml(record.code || '—') + ' <i class="fas fa-shield-halved" title="Đã lưu"></i></td>' +
+                '<td><strong>' + escapeHtml(record.description || record.category || 'Thu chi') + '</strong><div class="rh-cashflow-row-sub">' + escapeHtml(record.category || '') + (record.reference ? ' · ' + escapeHtml(record.reference) : '') + '</div></td>' +
+                '<td class="rh-cashflow-amount" style="color:' + (record.type === 'income' ? '#198754' : '#d17a0b') + ';text-align:right;">' + sign + money(record.amount) + '</td>' +
+                '<td>' + escapeHtml(building ? building.name : '—') + (apartment ? '<div class="rh-cashflow-row-sub">' + escapeHtml(apartment.name || apartment.code) + '</div>' : '') + '</td>' +
+                '<td>' + fmtDate(record.date) + '</td><td>' + escapeHtml(record.personName || '—') + '</td><td>' + escapeHtml(record.accountName || record.paymentMethod || '—') + '</td>' +
+                '<td><div class="rh-cashflow-actions-cell"><button class="view" type="button" title="Xem chi tiết" aria-label="Xem chi tiết" onclick="RHUI.openCashflowDetail(\'' + record.id + '\')"><i class="fas fa-eye"></i></button><button class="edit" type="button" title="Sửa" aria-label="Sửa" onclick="RHUI.openCashflowForm(\'' + record.id + '\')"><i class="fas fa-pen-to-square"></i></button><button class="print" type="button" title="In phiếu" aria-label="In phiếu" onclick="RHUI.printCashflow(\'' + record.id + '\')"><i class="fas fa-print"></i></button><button class="delete" type="button" title="Xóa" aria-label="Xóa" onclick="RHUI.deleteCashflow(\'' + record.id + '\')"><i class="fas fa-trash"></i></button></div></td></tr>';
+        }).join('');
+        var areaOptions = '<option value="">Chọn khu vực</option>' + areas.map(function (area) { return '<option value="' + escapeHtml(area) + '"' + (state.area === area ? ' selected' : '') + '>' + escapeHtml(area) + '</option>'; }).join('');
+        var typeOptions = '<option value="all">Loại thu/chi</option><option value="income"' + (state.type === 'income' ? ' selected' : '') + '>Thu</option><option value="expense"' + (state.type === 'expense' ? ' selected' : '') + '>Chi</option>';
+        tab.innerHTML = '<div class="card"><div class="rh-cashflow-summary">' +
+            '<div class="rh-cashflow-stat income"><span class="rh-cashflow-stat-icon"><i class="fas fa-plus"></i></span><div><strong>' + Number(totals.income).toLocaleString('vi-VN') + '</strong><small>Thu</small></div></div>' +
+            '<div class="rh-cashflow-stat expense"><span class="rh-cashflow-stat-icon"><i class="fas fa-minus"></i></span><div><strong>' + Number(totals.expense).toLocaleString('vi-VN') + '</strong><small>Chi</small></div></div>' +
+            '<div class="rh-cashflow-stat balance"><span class="rh-cashflow-stat-icon"><i class="fas fa-wallet"></i></span><div><strong>' + Number(totals.income - totals.expense).toLocaleString('vi-VN') + '</strong><small>Thu - chi</small></div></div></div>' +
+            '<div class="rh-cashflow-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><input id="cashflowFrom" type="date" aria-label="Từ ngày" value="' + escapeHtml(state.from) + '"><input id="cashflowTo" type="date" aria-label="Đến ngày" value="' + escapeHtml(state.to) + '"><select id="cashflowArea" aria-label="Khu vực">' + areaOptions + '</select><select id="cashflowBuilding" aria-label="Tòa nhà">' + buildingOptions + '</select><select id="cashflowApartment" aria-label="Phòng">' + apartmentOptions + '</select><select id="cashflowAccount" aria-label="Sổ quỹ">' + accountOptions + '</select><select id="cashflowType" aria-label="Loại giao dịch" style="grid-column:span 2;">' + typeOptions + '</select><button type="button" class="btn-secondary" onclick="RHUI.clearCashflowFilters()">Xóa bộ lọc</button></div>' +
+            '<div class="rh-cashflow-toolbar"><div class="rh-cashflow-search"><i class="fas fa-search"></i><input id="cashflowSearch" type="search" aria-label="Tìm kiếm phiếu" placeholder="Tìm kiếm..." value="' + escapeHtml(state.search) + '"></div><button type="button" class="rh-cashflow-toolbar-btn add" title="Thêm phiếu thu chi" aria-label="Thêm phiếu thu chi" onclick="RHUI.openCashflowForm(null,\'income\')"><i class="fas fa-plus"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="Xuất CSV" aria-label="Xuất CSV" onclick="RHUI.exportCashflows()"><i class="fas fa-cloud-arrow-down"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="Nhập CSV" aria-label="Nhập CSV" onclick="document.getElementById(\'cashflowCsvInput\').click()"><i class="fas fa-cloud-arrow-up"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="In danh sách" aria-label="In danh sách" onclick="RHUI.printCashflowList()"><i class="fas fa-print"></i></button><button type="button" class="rh-cashflow-toolbar-btn danger" title="Xóa phiếu đã chọn" aria-label="Xóa phiếu đã chọn" onclick="RHUI.deleteSelectedCashflows()"><i class="fas fa-trash"></i></button><button type="button" class="rh-cashflow-toolbar-btn" title="Bộ lọc" aria-label="Bộ lọc" onclick="RHUI.toggleCashflowFilters()"><i class="fas fa-filter"></i></button><input id="cashflowCsvInput" type="file" accept=".csv,text/csv" hidden onchange="RHUI.importCashflows(this)"></div>' +
+            '<div class="rh-cashflow-table-wrap"><table class="rh-cashflow-table"><thead><tr><th><input id="cashflowSelectAll" type="checkbox" aria-label="Chọn tất cả"></th><th>Mã</th><th>Tên</th><th style="text-align:right;">Số tiền</th><th>Tòa nhà</th><th>Ngày thu/chi</th><th>Người nhận/trả</th><th>Tài khoản</th><th>Thao tác</th></tr></thead><tbody>' + (rows || '<tr><td colspan="9" style="color:#718096;padding:2rem;text-align:center;">Chưa có phiếu phù hợp. Nhấn dấu + để ghi nhận thu hoặc chi.</td></tr>') + '</tbody></table></div></div>';
+        ['cashflowFrom', 'cashflowTo', 'cashflowArea', 'cashflowBuilding', 'cashflowApartment', 'cashflowAccount', 'cashflowType'].forEach(function (id) {
+            byId(id).addEventListener('change', function () {
+                state.from = byId('cashflowFrom').value;
+                state.to = byId('cashflowTo').value;
+                state.area = byId('cashflowArea').value;
+                state.building = byId('cashflowBuilding').value;
+                state.apartment = byId('cashflowApartment').value;
+                state.account = byId('cashflowAccount').value;
+                state.type = byId('cashflowType').value;
+                renderCashflowTab();
+            });
+        });
+        byId('cashflowSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            renderCashflowTab();
+            var next = byId('cashflowSearch');
+            if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+        });
+        byId('cashflowSelectAll').addEventListener('change', function () {
+            tab.querySelectorAll('.rh-cashflow-select').forEach(function (checkbox) { checkbox.checked = byId('cashflowSelectAll').checked; });
+        });
     }
 
-    function apartmentDetailStatus(apartment) {
-        var status = apartment && apartment.status ? apartment.status : (apartment && apartment.active === false ? 'maintenance' : 'vacant');
-        return statusMeta(RHD.APARTMENT_STATUSES || [], status);
+    RHUI.toggleCashflowFilters = function () {
+        RHUI.cashflowFilters.filtersOpen = !RHUI.cashflowFilters.filtersOpen;
+        renderCashflowTab();
+    };
+
+    RHUI.clearCashflowFilters = function () {
+        RHUI.cashflowFilters = { type: 'all', area: '', building: '', apartment: '', from: '', to: '', account: '', search: '', filtersOpen: true };
+        renderCashflowTab();
+    };
+
+    RHUI.openCashflowDetail = function (id) {
+        var record = RHD.get('cashflows', id);
+        if (!record) return;
+        var building = RHD.get('buildings', record.buildingId);
+        var apartment = RHD.get('apartments', record.apartmentId);
+        var isIncome = record.type === 'income';
+        var detail = '<div class="rh-print-area" style="padding:1.5rem;"><div style="align-items:center;border-bottom:2px solid #e6edf4;display:flex;justify-content:space-between;padding-bottom:1rem;"><div><strong style="color:#10213c;font-size:1.25rem;">ResidentHub</strong><div style="color:#718096;font-size:.82rem;">PHIẾU ' + (isIncome ? 'THU' : 'CHI') + '</div></div><strong style="color:#23845c;">' + escapeHtml(record.code || '') + '</strong></div><div style="display:grid;gap:.85rem;grid-template-columns:1fr 1fr;margin-top:1.25rem;">' +
+            detailItem('Ngày', escapeHtml(fmtDate(record.date))) + detailItem('Danh mục', escapeHtml(record.category || '')) +
+            detailItem('Tòa nhà', escapeHtml(building ? building.name : '')) + detailItem('Căn hộ / Phòng', escapeHtml(apartment ? apartment.name : '')) +
+            detailItem(isIncome ? 'Người nộp' : 'Người nhận', escapeHtml(record.personName || '')) + detailItem('Tài khoản', escapeHtml(record.accountName || record.paymentMethod || '')) +
+            detailItem('Mã tham chiếu', escapeHtml(record.reference || '')) + detailItem('Nội dung', escapeHtml(record.description || ''), true) +
+            '</div><div style="border-top:1px solid #e6edf4;margin-top:1.25rem;padding-top:1rem;text-align:right;"><span style="color:#718096;">Số tiền</span><strong style="color:' + (isIncome ? '#198754' : '#d17a0b') + ';display:block;font-size:1.5rem;">' + (isIncome ? '+' : '−') + money(record.amount) + '</strong></div></div>' +
+            '<div style="display:flex;gap:.6rem;margin-top:1rem;"><button type="button" class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> In phiếu</button><button type="button" onclick="RHUI.openCashflowForm(\'' + record.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Sửa</button></div>';
+        openDrawer('Chi tiết phiếu ' + (record.code || ''), detail);
+    };
+
+    RHUI.printCashflow = function (id) {
+        RHUI.openCashflowDetail(id);
+        window.setTimeout(function () { window.print(); }, 100);
+    };
+
+    RHUI.printCashflowList = function () {
+        var state = RHUI.cashflowFilters || {};
+        var items = RHD.list('cashflows').filter(function (record) {
+            var building = RHD.get('buildings', record.buildingId) || {};
+            var apartment = RHD.get('apartments', record.apartmentId) || {};
+            var area = building.province || building.ward || '';
+            var text = [record.code, record.category, record.description, record.reference, record.personName, record.accountName, building.name, apartment.name].join(' ').toLocaleLowerCase();
+            return (!state.type || state.type === 'all' || record.type === state.type) && (!state.area || area === state.area) &&
+                (!state.building || record.buildingId === state.building) && (!state.apartment || record.apartmentId === state.apartment) &&
+                (!state.from || record.date >= state.from) && (!state.to || record.date <= state.to) &&
+                (!state.account || (record.accountName || record.paymentMethod || '') === state.account) &&
+                (!state.search || text.indexOf(state.search.toLocaleLowerCase()) !== -1);
+        });
+        var rows = items.map(function (record) {
+            var building = RHD.get('buildings', record.buildingId);
+            var apartment = RHD.get('apartments', record.apartmentId);
+            return '<tr><td>' + escapeHtml(record.code || '') + '</td><td>' + (record.type === 'income' ? 'Thu' : 'Chi') + '</td><td>' + escapeHtml(record.description || record.category || '') + '</td><td>' + money(record.amount) + '</td><td>' + escapeHtml(building ? building.name : '') + ' / ' + escapeHtml(apartment ? apartment.name : '') + '</td><td>' + escapeHtml(fmtDate(record.date)) + '</td><td>' + escapeHtml(record.personName || '') + '</td><td>' + escapeHtml(record.accountName || record.paymentMethod || '') + '</td></tr>';
+        }).join('');
+        var printArea = document.createElement('div');
+        printArea.className = 'rh-print-area';
+        printArea.innerHTML = '<h2 style="margin-bottom:1rem;">Danh sách thu chi</h2><table style="border-collapse:collapse;width:100%;"><thead><tr><th>Mã</th><th>Loại</th><th>Nội dung</th><th>Số tiền</th><th>Tòa nhà / Phòng</th><th>Ngày</th><th>Người nhận/trả</th><th>Tài khoản</th></tr></thead><tbody>' + rows + '</tbody></table>';
+        document.body.appendChild(printArea);
+        var cleanUp = function () { if (printArea.parentNode) printArea.parentNode.removeChild(printArea); window.removeEventListener('afterprint', cleanUp); };
+        window.addEventListener('afterprint', cleanUp);
+        window.print();
+        window.setTimeout(cleanUp, 1500);
+    };
+
+    RHUI.deleteSelectedCashflows = function () {
+        var checks = Array.prototype.slice.call(document.querySelectorAll('#cashflow-tab .rh-cashflow-select:checked'));
+        var ids = checks.map(function (checkbox) { return checkbox.value; });
+        if (!ids.length) { alert('Vui lòng chọn phiếu thu chi cần xóa.'); return; }
+        if (!confirm('Xóa ' + ids.length + ' phiếu thu chi đã chọn?')) return;
+        ids.forEach(function (id) { RHD.remove('cashflows', id); });
+        renderCashflowTab();
+    };
+
+    RHUI.exportCashflows = function () {
+        var records = RHD.list('cashflows');
+        var headers = ['code', 'type', 'date', 'buildingId', 'apartmentId', 'category', 'description', 'amount', 'personName', 'accountName', 'reference'];
+        var csvCell = function (value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; };
+        var csv = [headers.join(','), records.map(function (record) { return headers.map(function (key) { return csvCell(record[key]); }).join(','); }).join('\r\n')].join('\r\n');
+        var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
+        var url = URL.createObjectURL(blob);
+        var link = document.createElement('a');
+        link.href = url;
+        link.download = 'residenthub-thu-chi.csv';
+        link.click();
+        URL.revokeObjectURL(url);
+    };
+
+    function parseCsvLine(line) {
+        var fields = [], value = '', quoted = false;
+        for (var i = 0; i < line.length; i++) {
+            var ch = line.charAt(i);
+            if (ch === '"' && quoted && line.charAt(i + 1) === '"') { value += '"'; i++; }
+            else if (ch === '"') quoted = !quoted;
+            else if (ch === ',' && !quoted) { fields.push(value); value = ''; }
+            else value += ch;
+        }
+        fields.push(value);
+        return fields;
     }
 
-    function apartmentDetailLeaseStatus(contract) {
-        if (!contract) return { label: 'Chưa thuê', color: '#64748b', bg: '#f1f5f9' };
-        var map = {
-            active: { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' },
-            pending: { label: 'Chờ ký', color: '#a5680c', bg: '#fff4df' },
-            ended: { label: 'Đã kết thúc', color: '#64748b', bg: '#f1f5f9' },
-            terminated: { label: 'Đã thanh lý', color: '#ef4444', bg: '#fee2e2' },
-            draft: { label: 'Bản nháp', color: '#61708a', bg: '#f1f5f9' }
-        };
-        return map[contract.status] || { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' };
-    }
-
-    function normalizeApartmentRecord(apartment) {
-        if (!apartment) return null;
-        return {
-            id: apartment.id || apartment.code || '',
-            name: apartment.name || apartment.code || 'Căn hộ',
-            code: apartment.code || apartment.unitCode || '',
-            buildingId: apartment.buildingId || apartment.building_id || '',
-            buildingName: apartment.buildingName || apartment.building || '',
-            buildingCode: apartment.buildingCode || apartment.codeBuilding || '',
-            floor: apartment.floor || (apartment.level ? 'Tầng ' + apartment.level : ''),
-            area: apartment.area || apartment.square || apartment.size || 0,
-            rentPrice: apartment.rentPrice != null ? apartment.rentPrice : (apartment.rent != null ? apartment.rent : 0),
-            depositPrice: apartment.depositPrice != null ? apartment.depositPrice : (apartment.deposit != null ? apartment.deposit : 0),
-            status: apartment.status || (apartment.active === false ? 'maintenance' : 'vacant'),
-            active: apartment.active !== false,
-            photos: Array.isArray(apartment.photos) ? apartment.photos : (Array.isArray(apartment.images) ? apartment.images : []),
-            address: apartment.address || apartment.location || '',
-            note: apartment.note || ''
-        };
-    }
-
-    function readFileAsDataUrl(input, cb) {
+    RHUI.importCashflows = function (input) {
         var file = input.files && input.files[0];
-        if (!file) { cb(''); return; }
+        if (!file) return;
         var reader = new FileReader();
-        reader.onload = function () { cb(reader.result); };
-        reader.readAsDataURL(file);
-    }
+        reader.onload = function () {
+            var lines = String(reader.result || '').replace(/^\uFEFF/, '').split(/\r?\n/).filter(Boolean);
+            if (lines.length < 2) { alert('Tệp CSV chưa có dữ liệu.'); input.value = ''; return; }
+            var headers = parseCsvLine(lines[0]).map(function (header) { return header.trim(); });
+            var imported = 0;
+            lines.slice(1).forEach(function (line) {
+                var values = parseCsvLine(line);
+                var item = {};
+                headers.forEach(function (header, index) { item[header] = values[index] || ''; });
+                var type = item.type === 'expense' || item.type === 'Chi' ? 'expense' : 'income';
+                var amount = Number(String(item.amount || '').replace(/[\s,]/g, ''));
+                if (!item.date || !isFinite(amount) || amount <= 0) return;
+                var result = RHD.create('cashflows', {
+                    code: item.code || 'TC-' + String(Date.now() + imported).slice(-8), type: type, date: item.date,
+                    buildingId: item.buildingId || '', apartmentId: item.apartmentId || '', category: item.category || (type === 'income' ? 'Thu khác' : 'Chi khác'),
+                    description: item.description || '', amount: amount, personName: item.personName || '', accountName: item.accountName || '',
+                    reference: item.reference || '', paymentMethod: item.accountName || 'Khác', paymentMethodId: 'other'
+                });
+                if (result.ok) imported++;
+            });
+            input.value = '';
+            renderCashflowTab();
+            alert('Đã nhập ' + imported + ' phiếu thu chi.');
+        };
+        reader.readAsText(file, 'utf-8');
+    };
 
     function selectOptions(items, valueKey, labelKey, selected, placeholder) {
         var html = placeholder ? '<option value="">' + escapeHtml(placeholder) + '</option>' : '';
+        if (!items) return html;
         html += items.map(function (it) {
             var v = typeof valueKey === 'function' ? valueKey(it) : it[valueKey];
             var l = typeof labelKey === 'function' ? labelKey(it) : it[labelKey];
@@ -177,6 +343,14 @@
         var attrs = blocked ? ' disabled title="Đã đạt giới hạn bản Demo"' : ' onclick="' + onclick + '"';
         var style = 'background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff;border:0;border-radius:10px;padding:.65rem 1.1rem;font:inherit;font-weight:600;cursor:pointer;display:inline-flex;align-items:center;gap:.5rem;' + (blocked ? 'opacity:.5;cursor:not-allowed;' : '');
         return '<button' + attrs + ' style="' + style + '"><i class="fas fa-plus"></i> ' + escapeHtml(label) + '</button>';
+    }
+
+    function statusMeta(list, id) {
+        var items = Array.isArray(list) ? list : [];
+        for (var i = 0; i < items.length; i++) {
+            if ((items[i].id || items[i].value) === id) return items[i];
+        }
+        return { id: id, label: String(id || '—'), color: '#61708a', bg: '#f1f5f9' };
     }
 
     function renderDemoBanner(entity) {
@@ -344,6 +518,184 @@
 
     function feeTypeLabel(id) { return statusMeta(RHD.FEE_TYPES, id).label || id; }
     function calcMethodLabel(id) { return statusMeta(RHD.CALC_METHODS, id).label || id; }
+
+    function renderServiceFeesTab(selectedBuildingId) {
+        var tab = byId('service-fees-tab');
+        if (!tab) return;
+        var buildings = RHD.list('buildings');
+        if (selectedBuildingId !== undefined) RHUI.serviceFeeBuildingFilter = selectedBuildingId;
+        if (!buildings.some(function (b) { return b.id === RHUI.serviceFeeBuildingFilter; })) RHUI.serviceFeeBuildingFilter = '';
+        var services = [];
+        buildings.forEach(function (building) {
+            (building.services || []).forEach(function (service, index) {
+                var typeMatches = !RHUI.serviceFeeTypeFilter || service.feeType === RHUI.serviceFeeTypeFilter;
+                var buildingMatches = !RHUI.serviceFeeBuildingFilter || building.id === RHUI.serviceFeeBuildingFilter;
+                var searchValue = [service.name, service.code, feeTypeLabel(service.feeType), building.name, building.shortName].join(' ').toLocaleLowerCase();
+                var searchMatches = !RHUI.serviceFeeSearch || searchValue.indexOf(RHUI.serviceFeeSearch.toLocaleLowerCase()) !== -1;
+                if (typeMatches && buildingMatches && searchMatches) services.push({ building: building, service: service, index: index });
+            });
+        });
+        var visibleKeys = services.map(function (entry) { return entry.building.id + ':' + entry.index; });
+        RHUI.selectedServiceFees = RHUI.selectedServiceFees.filter(function (key) { return visibleKeys.indexOf(key) !== -1; });
+        var rows = services.map(function (entry) {
+            var service = entry.service;
+            var rowKey = entry.building.id + ':' + entry.index;
+            var codeSeed = String(service.id || (entry.building.id + '-' + entry.index)).split('').reduce(function (sum, ch) { return (sum * 31 + ch.charCodeAt(0)) % 1000000; }, 0);
+            var code = service.code || ('DV' + String(codeSeed).padStart(6, '0'));
+            var unit = service.unit || (service.calcMethod === 'meter' ? (service.feeType === 'water' ? '/m³' : '/kWh') : service.calcMethod === 'person' ? '/Người' : service.calcMethod === 'apartment' ? '/Phòng' : service.calcMethod === 'quantity' ? '/Đơn vị' : '');
+            return '<tr>' +
+                '<td><input type="checkbox" aria-label="Chọn ' + escapeHtml(service.name || 'phí dịch vụ') + '" ' + (RHUI.selectedServiceFees.indexOf(rowKey) !== -1 ? 'checked ' : '') + 'onchange="RHUI.toggleServiceFeeSelection(\'' + rowKey + '\',this.checked)"></td>' +
+                '<td class="fee-code">' + escapeHtml(code) + '</td>' +
+                '<td>' + escapeHtml(service.name || 'Chưa đặt tên') + '</td>' +
+                '<td>' + escapeHtml(feeTypeLabel(service.feeType)) + '</td>' +
+                '<td style="text-align:right;white-space:nowrap;">' + (Number(service.unitPrice) ? Number(service.unitPrice).toLocaleString('vi-VN') : '---') + (Number(service.unitPrice) ? ' đ' : '') + escapeHtml(unit) + '</td>' +
+                '<td style="text-align:center;"><span class="rh-fee-default ' + (service.isDefault ? 'yes' : 'no') + '">' + (service.isDefault ? 'Có' : 'Không') + '</span></td>' +
+                '<td><div class="rh-fee-actions"><button type="button" class="rh-fee-icon-btn" title="Chỉnh sửa" aria-label="Chỉnh sửa" onclick="RHUI.openServiceFeeForm(\'' + entry.building.id + '\',' + entry.index + ')"><i class="fas fa-pen-to-square"></i></button><button type="button" class="rh-fee-icon-btn delete" title="Xóa" aria-label="Xóa" onclick="RHUI.deleteServiceFee(\'' + entry.building.id + '\',' + entry.index + ')"><i class="fas fa-trash"></i></button></div></td></tr>';
+        }).join('');
+
+        var buildingOptions = '<option value="">Tòa nhà</option>' + buildings.map(function (building) {
+            return '<option value="' + escapeHtml(building.id) + '"' + (building.id === RHUI.serviceFeeBuildingFilter ? ' selected' : '') + '>' + escapeHtml(building.name || building.shortName) + '</option>';
+        }).join('');
+        var noBuildings = !buildings.length;
+        var typeOptions = '<option value="">Loại dịch vụ</option>' + (RHD.FEE_TYPES || []).map(function (type) {
+            return '<option value="' + escapeHtml(type.id) + '"' + (type.id === RHUI.serviceFeeTypeFilter ? ' selected' : '') + '>' + escapeHtml(type.label) + '</option>';
+        }).join('');
+        tab.innerHTML = renderDemoBanner('buildings') +
+            '<div class="card">' +
+            '<div style="align-items:center;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1rem;">' +
+            '<h2 style="color:#526275;font-size:1.05rem;font-weight:600;">Danh sách dịch vụ</h2>' +
+            '<div class="rh-fee-top-actions">' +
+            (noBuildings ? '<button type="button" class="rh-fee-top-button add" title="Thêm tòa nhà" onclick="RHUI.openBuildingForm()"><i class="fas fa-plus"></i></button>' : '<button type="button" class="rh-fee-top-button add" title="Thêm dịch vụ" aria-label="Thêm dịch vụ" onclick="RHUI.openServiceFeeForm(\'' + (RHUI.serviceFeeBuildingFilter || buildings[0].id) + '\',null)"><i class="fas fa-plus"></i></button>') +
+            '<button type="button" class="rh-fee-top-button delete" title="Xóa dịch vụ đã chọn" aria-label="Xóa dịch vụ đã chọn" onclick="RHUI.deleteSelectedServiceFees()"><i class="fas fa-trash"></i></button></div>' +
+            '</div>' +
+            (noBuildings ? emptyState('fa-building', 'Hãy tạo tòa nhà trước khi khai báo phí dịch vụ.') :
+                '<div class="rh-fee-toolbar"><select id="serviceFeeTypeFilter" aria-label="Lọc loại dịch vụ" onchange="RHUI.setServiceFeeFilters()">' + typeOptions + '</select><select id="serviceFeeBuildingFilter" aria-label="Lọc tòa nhà" onchange="RHUI.setServiceFeeFilters()">' + buildingOptions + '</select><input id="serviceFeeSearch" type="search" aria-label="Tìm kiếm dịch vụ" placeholder="Tìm kiếm" value="' + escapeHtml(RHUI.serviceFeeSearch) + '" oninput="RHUI.setServiceFeeFilters()"></div>' +
+                (services.length ? '<div class="rh-fee-table-wrap"><table class="rh-fee-table"><thead><tr><th><input type="checkbox" aria-label="Chọn tất cả" ' + (services.length && RHUI.selectedServiceFees.length === services.length ? 'checked' : '') + ' onchange="RHUI.toggleAllServiceFees(this.checked)"></th><th>Mã</th><th>Tên dịch vụ</th><th>Loại dịch vụ</th><th style="text-align:right;">Giá tiền</th><th style="text-align:center;">Mặc định</th><th>Thao tác</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div style="color:#718096;padding:2rem;text-align:center;">' + (RHUI.serviceFeeSearch || RHUI.serviceFeeTypeFilter || RHUI.serviceFeeBuildingFilter ? 'Không tìm thấy dịch vụ phù hợp.' : 'Chưa có dịch vụ nào. Nhấn nút + để thêm dịch vụ.') + '</div>')) +
+            '</div>';
+    }
+
+    RHUI.setServiceFeeFilters = function () {
+        RHUI.serviceFeeTypeFilter = byId('serviceFeeTypeFilter').value;
+        RHUI.serviceFeeBuildingFilter = byId('serviceFeeBuildingFilter').value;
+        RHUI.serviceFeeSearch = byId('serviceFeeSearch').value.trim();
+        renderServiceFeesTab();
+        var search = byId('serviceFeeSearch');
+        if (search) { search.focus(); search.setSelectionRange(search.value.length, search.value.length); }
+    };
+
+    RHUI.toggleServiceFeeSelection = function (key, checked) {
+        var selected = RHUI.selectedServiceFees.filter(function (item) { return item !== key; });
+        if (checked) selected.push(key);
+        RHUI.selectedServiceFees = selected;
+        renderServiceFeesTab();
+    };
+
+    RHUI.toggleAllServiceFees = function (checked) {
+        var buildings = RHD.list('buildings');
+        var keys = [];
+        buildings.forEach(function (building) {
+            if (RHUI.serviceFeeBuildingFilter && building.id !== RHUI.serviceFeeBuildingFilter) return;
+            (building.services || []).forEach(function (service, index) {
+                var searchValue = [service.name, service.code, feeTypeLabel(service.feeType), building.name, building.shortName].join(' ').toLocaleLowerCase();
+                if ((!RHUI.serviceFeeTypeFilter || service.feeType === RHUI.serviceFeeTypeFilter) && (!RHUI.serviceFeeSearch || searchValue.indexOf(RHUI.serviceFeeSearch.toLocaleLowerCase()) !== -1)) keys.push(building.id + ':' + index);
+            });
+        });
+        RHUI.selectedServiceFees = checked ? keys : [];
+        renderServiceFeesTab();
+    };
+
+    RHUI.deleteSelectedServiceFees = function () {
+        if (!RHUI.selectedServiceFees.length) { alert('Vui lòng chọn dịch vụ cần xóa.'); return; }
+        if (!confirm('Xóa ' + RHUI.selectedServiceFees.length + ' dịch vụ đã chọn?')) return;
+        var selectedByBuilding = {};
+        RHUI.selectedServiceFees.forEach(function (key) {
+            var splitAt = key.lastIndexOf(':');
+            var buildingId = key.slice(0, splitAt);
+            var index = Number(key.slice(splitAt + 1));
+            (selectedByBuilding[buildingId] || (selectedByBuilding[buildingId] = [])).push(index);
+        });
+        Object.keys(selectedByBuilding).forEach(function (buildingId) {
+            var building = RHD.get('buildings', buildingId);
+            if (!building) return;
+            var removed = selectedByBuilding[buildingId].sort(function (a, b) { return b - a; });
+            var services = (building.services || []).slice();
+            removed.forEach(function (index) { services.splice(index, 1); });
+            RHD.update('buildings', buildingId, { services: services });
+        });
+        RHUI.selectedServiceFees = [];
+        renderServiceFeesTab();
+        renderBuildingsTab();
+    };
+
+    RHUI.openServiceFeeForm = function (buildingId, index) {
+        var building = RHD.get('buildings', buildingId);
+        if (!building) return;
+        var services = building.services || [];
+        var service = index == null ? null : services[index];
+        if (index != null && !service) return;
+        RHUI.serviceFeeBuildingId = buildingId;
+        RHUI.serviceFeeIndex = index;
+        var html = '<form onsubmit="RHUI.saveServiceFee(event)">' +
+            '<div class="rh-field" style="margin-bottom:1rem;"><label>Tòa nhà</label><select id="sfBuilding"' + (service ? ' disabled' : '') + '>' + selectOptions(RHD.list('buildings'), 'id', 'name', buildingId) + '</select></div>' +
+            '<div class="rh-grid-2">' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Tên khoản phí *</label><input id="sfName" required value="' + escapeHtml(service ? service.name : '') + '" placeholder="Ví dụ: Phí quản lý vận hành"></div>' +
+            '<div class="rh-field"><label>Loại phí</label><select id="sfFeeType">' + selectOptions(RHD.FEE_TYPES, 'id', 'label', service ? service.feeType : 'service') + '</select></div>' +
+            '<div class="rh-field"><label>Cách tính</label><select id="sfCalcMethod">' + selectOptions(RHD.CALC_METHODS, 'id', 'label', service ? service.calcMethod : 'fixed') + '</select></div>' +
+            '<div class="rh-field"><label>Giá tiền (đ)</label><input id="sfUnitPrice" type="number" min="0" step="1" value="' + (service ? Number(service.unitPrice) || 0 : 0) + '"></div>' +
+            '<div class="rh-field"><label>Đơn vị tính</label><input id="sfUnit" value="' + escapeHtml(service ? service.unit || '' : '') + '" placeholder="/Phòng, /Người, /kWh..."></div>' +
+            '<div class="rh-field"><label>Thuế suất (%)</label><input id="sfTaxRate" type="number" min="0" max="100" step="0.01" value="' + (service ? Number(service.taxRate) || 0 : 0) + '"></div>' +
+            '<label class="rh-choice" style="grid-column:1/-1;"><input id="sfDefault" type="checkbox" ' + (service && service.isDefault ? 'checked' : '') + '> Đặt làm phí mặc định</label>' +
+            '</div><div id="sfError" style="color:#ef4444;font-size:.85rem;margin-top:.75rem;"></div>' +
+            '<div style="display:flex;gap:.6rem;margin-top:1.25rem;"><button type="submit" class="btn-primary">Lưu phí dịch vụ</button><button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Hủy</button></div></form>';
+        openDrawer(service ? 'Sửa phí dịch vụ' : 'Thêm phí dịch vụ', html);
+    };
+
+    RHUI.saveServiceFee = function (ev) {
+        ev.preventDefault();
+        var building = RHD.get('buildings', RHUI.serviceFeeBuildingId);
+        if (!building) return;
+        var services = (building.services || []).slice();
+        var fee = {
+            id: RHUI.serviceFeeIndex == null ? 'svc-' + Date.now() + Math.random().toString(36).slice(2, 6) : (services[RHUI.serviceFeeIndex].id || 'svc-' + Date.now()),
+            code: RHUI.serviceFeeIndex == null ? 'DV' + String(Date.now()).slice(-6) : (services[RHUI.serviceFeeIndex].code || ''),
+            name: byId('sfName').value.trim(),
+            feeType: byId('sfFeeType').value,
+            calcMethod: byId('sfCalcMethod').value,
+            unitPrice: Number(byId('sfUnitPrice').value) || 0,
+            unit: byId('sfUnit').value.trim(),
+            taxRate: Number(byId('sfTaxRate').value) || 0,
+            isDefault: byId('sfDefault').checked
+        };
+        if (!fee.name) { byId('sfError').textContent = 'Vui lòng nhập tên khoản phí.'; return; }
+        if (RHUI.serviceFeeIndex == null) services.push(fee);
+        else services[RHUI.serviceFeeIndex] = Object.assign({}, services[RHUI.serviceFeeIndex], fee);
+        var targetBuildingId = byId('sfBuilding').value || building.id;
+        var result;
+        if (targetBuildingId !== building.id) {
+            var targetBuilding = RHD.get('buildings', targetBuildingId);
+            result = targetBuilding
+                ? RHD.update('buildings', targetBuildingId, { services: (targetBuilding.services || []).concat([fee]) })
+                : { ok: false, error: 'Không tìm thấy tòa nhà đã chọn.' };
+        } else {
+            result = RHD.update('buildings', building.id, { services: services });
+        }
+        if (!result.ok) { byId('sfError').textContent = result.error; return; }
+        RHUI.closeDrawer();
+        renderServiceFeesTab(RHUI.serviceFeeBuildingFilter);
+        renderBuildingsTab();
+    };
+
+    RHUI.deleteServiceFee = function (buildingId, index) {
+        var building = RHD.get('buildings', buildingId);
+        if (!building || !building.services || !building.services[index]) return;
+        if (!confirm('Xóa khoản phí "' + (building.services[index].name || 'Chưa đặt tên') + '"?')) return;
+        var services = building.services.slice();
+        services.splice(index, 1);
+        var result = RHD.update('buildings', buildingId, { services: services });
+        if (!result.ok) { alert(result.error); return; }
+        renderServiceFeesTab(RHUI.serviceFeeBuildingFilter);
+        renderBuildingsTab();
+    };
 
     function serviceRowHtml(svc, idx) {
         return '<div class="rh-service-row" data-idx="' + idx + '">' +
@@ -689,6 +1041,41 @@
     }
 
     // ============================================================ APARTMENTS
+
+    function normalizeApartmentRecord(apartment) {
+        if (!apartment) return null;
+        var normalized = Object.assign({}, apartment, {
+            id: apartment.id,
+            name: apartment.name || apartment.apartmentNo || apartment.code || 'Căn hộ',
+            buildingId: apartment.buildingId || '',
+            floor: apartment.floor || '',
+            area: apartment.area || '',
+            rentPrice: Number(apartment.rentPrice) || 0,
+            depositPrice: Number(apartment.depositPrice) || 0,
+            status: apartment.status || 'vacant',
+            active: apartment.active !== false,
+            photos: Array.isArray(apartment.photos) ? apartment.photos : (apartment.photo ? [apartment.photo] : []),
+            buildingName: apartment.buildingName || '',
+            buildingCode: apartment.buildingCode || '',
+            address: apartment.address || '',
+            notes: apartment.notes || ''
+        });
+        return normalized;
+    }
+
+    function apartmentDetailStatus(apartment) {
+        var statusList = RHD.APARTMENT_STATUSES || [];
+        var key = apartment && apartment.statusGroup ? apartment.statusGroup : (apartment && apartment.status ? apartment.status : 'vacant');
+        var meta = statusMeta(statusList, key);
+        if (meta.id === key || key === 'occupied' || key === 'vacant' || key === 'maintenance' || key === 'deposited') return meta;
+        return statusMeta(statusList, 'vacant');
+    }
+
+    function apartmentDetailLeaseStatus(contract) {
+        if (!contract) return { label: 'Chưa có hợp đồng', color: '#94a3b8', bg: '#f1f5f9' };
+        if (contract.status === 'ended' || contract.status === 'terminated') return { label: 'Đã kết thúc', color: '#61708a', bg: '#f1f5f9' };
+        return { label: 'Đang thuê', color: '#18a878', bg: '#e6f8ef' };
+    }
 
     function renderApartmentsTab() {
         var tab = byId('apartments-tab');
@@ -1244,6 +1631,14 @@
         style.textContent += '#contracts-tab .rh-contract-tab{font-family:"Be Vietnam Pro",sans-serif;font-size:.85rem;font-weight:600}';
         style.textContent += '#invoices-tab .rh-invoice-clear,#invoices-tab .rh-invoice-tab{font-family:inherit;font-size:.82rem;font-weight:600}#invoices-tab .rh-invoice-period-chip{position:relative}#invoices-tab .rh-invoice-period-chip input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer}';
         document.head.appendChild(style);
+
+    }
+
+    function currentInvoicePeriod() { return new Intl.DateTimeFormat('en-CA', { timeZone: 'Asia/Bangkok', year: 'numeric', month: '2-digit' }).format(new Date()).slice(0, 7); }
+
+    function invoicePeriod(inv) {
+        var period = inv.billingPeriod || inv.period || '';
+        return /^\d{4}-(0[1-9]|1[0-2])$/.test(period) ? period : '';
     }
 
     function contractStatusKey(contract, today, expiringDays) {
@@ -1489,6 +1884,164 @@
         confirmDelete('contracts', id, function () { renderContractsTab(); renderDashboardCounts(); }, hasInvoice ? 'Không thể xoá: hợp đồng đang gắn với hóa đơn.' : null);
     };
 
+    // ============================================================ CASHFLOW
+
+    var CASHFLOW_CATEGORIES = {
+        income: ['Thu tiền thuê', 'Thu phí dịch vụ', 'Thu tiền điện', 'Thu tiền nước', 'Thu khác'],
+        expense: ['Chi vận hành', 'Chi bảo trì', 'Chi vệ sinh', 'Chi nhân sự', 'Chi khác']
+    };
+
+    function ensureCashflowStyles() {
+        if (byId('rhCashflowStyles')) return;
+        var style = document.createElement('style');
+        style.id = 'rhCashflowStyles';
+        style.textContent = '#cashflow-tab .rh-cashflow-head{align-items:center;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1rem}#cashflow-tab .rh-cashflow-head h2{color:#10213c;font:800 1.45rem "Plus Jakarta Sans",sans-serif}#cashflow-tab .rh-cashflow-actions{display:flex;flex-wrap:wrap;gap:.55rem}#cashflow-tab .rh-cashflow-actions button{align-items:center;border:0;border-radius:9px;color:#fff;cursor:pointer;display:inline-flex;font-family:inherit;font-size:.84rem;font-weight:600;gap:.45rem;padding:.65rem .85rem}#cashflow-tab .rh-cashflow-add-income{background:#198754}#cashflow-tab .rh-cashflow-add-expense{background:#e05252}#cashflow-tab .rh-cashflow-filters{display:grid;gap:.65rem;grid-template-columns:repeat(4,minmax(0,1fr));margin:1rem 0}#cashflow-tab .rh-cashflow-filters input,#cashflow-tab .rh-cashflow-filters select{background:#fff;border:1px solid #dce3eb;border-radius:9px;font:inherit;min-width:0;padding:.65rem .75rem;width:100%}#cashflow-tab .rh-cashflow-summary{display:grid;gap:.75rem;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:1rem}#cashflow-tab .rh-cashflow-stat{background:#fff;border:1px solid #e3eaf2;border-radius:12px;padding:1rem}#cashflow-tab .rh-cashflow-stat small{color:#718096;display:block;font-size:.78rem;font-weight:700}#cashflow-tab .rh-cashflow-stat strong{color:#10213c;display:block;font:800 1.2rem "Plus Jakarta Sans",sans-serif;margin-top:.45rem}#cashflow-tab .rh-cashflow-stat.income strong{color:#198754}#cashflow-tab .rh-cashflow-stat.expense strong{color:#dc4b4b}#cashflow-tab .rh-cashflow-table-wrap{border:1px solid #e4eaf2;border-radius:10px;overflow:auto}#cashflow-tab .rh-cashflow-table{border-collapse:collapse;min-width:860px;width:100%}#cashflow-tab .rh-cashflow-table th,#cashflow-tab .rh-cashflow-table td{border-bottom:1px solid #e7ebf0;padding:.72rem .65rem;text-align:left;vertical-align:middle}#cashflow-tab .rh-cashflow-table th{background:#f7f8fa;color:#556273;font-size:.72rem;white-space:nowrap}#cashflow-tab .rh-cashflow-table tbody tr:nth-child(odd){background:#f8f9fa}#cashflow-tab .rh-cashflow-type{border-radius:999px;display:inline-block;font-size:.7rem;font-weight:700;padding:.25rem .6rem;white-space:nowrap}#cashflow-tab .rh-cashflow-type.income{background:#e5f5ed;color:#178250}#cashflow-tab .rh-cashflow-type.expense{background:#fdebec;color:#c5474e}@media(max-width:850px){#cashflow-tab .rh-cashflow-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#cashflow-tab .rh-cashflow-filters,#cashflow-tab .rh-cashflow-summary{grid-template-columns:1fr}}';
+        style.textContent += '#cashflow-tab .rh-cashflow-summary{gap:.7rem}#cashflow-tab .rh-cashflow-stat{align-items:center;display:flex;gap:.9rem;min-height:82px;padding:.8rem 1rem}#cashflow-tab .rh-cashflow-stat-icon{align-items:center;background:#effbf4;border:1px solid #d1f0df;border-radius:14px;color:#18a878;display:inline-flex;flex:0 0 44px;font-size:1.15rem;height:44px;justify-content:center}#cashflow-tab .rh-cashflow-stat.expense .rh-cashflow-stat-icon{background:#fff7ec;border-color:#f6e3c8;color:#e59a23}#cashflow-tab .rh-cashflow-stat.balance .rh-cashflow-stat-icon{background:#edf5ff;border-color:#d5e7fb;color:#337bc7}#cashflow-tab .rh-cashflow-stat strong{font-size:1.12rem;margin-top:.22rem}#cashflow-tab .rh-cashflow-toolbar{align-items:center;display:flex;flex-wrap:wrap;gap:.5rem;margin:.75rem 0}#cashflow-tab .rh-cashflow-search{flex:1 1 220px;position:relative}#cashflow-tab .rh-cashflow-search input{padding-left:2rem}#cashflow-tab .rh-cashflow-search i{color:#94a3b8;left:.72rem;position:absolute;top:50%;transform:translateY(-50%)}#cashflow-tab .rh-cashflow-toolbar-btn{align-items:center;background:#fff;border:1px solid #dce3eb;border-radius:8px;color:#526275;cursor:pointer;display:inline-flex;height:39px;justify-content:center;min-width:40px;padding:0 .65rem}#cashflow-tab .rh-cashflow-toolbar-btn:hover{background:#eff7ff;border-color:#b8d8f6;color:#0d65d5}#cashflow-tab .rh-cashflow-toolbar-btn.add{background:#198754;border-color:#198754;color:#fff}#cashflow-tab .rh-cashflow-toolbar-btn.danger{color:#d54444}#cashflow-tab .rh-cashflow-toolbar-btn[disabled]{cursor:not-allowed;opacity:.45}#cashflow-tab .rh-cashflow-filter-panel{display:none;background:#fff;border:1px solid #e3eaf2;border-radius:10px;gap:.6rem;grid-template-columns:repeat(6,minmax(0,1fr));margin:.5rem 0 1rem;padding:.75rem}#cashflow-tab .rh-cashflow-filter-panel.open{display:grid}#cashflow-tab .rh-cashflow-table th:first-child,#cashflow-tab .rh-cashflow-table td:first-child{width:34px;text-align:center}#cashflow-tab .rh-cashflow-actions-cell{display:flex;gap:.3rem;white-space:nowrap}#cashflow-tab .rh-cashflow-actions-cell button{align-items:center;border:0;border-radius:6px;color:#fff;cursor:pointer;display:inline-flex;height:29px;justify-content:center;width:30px}#cashflow-tab .rh-cashflow-actions-cell .view{background:#f59e0b}#cashflow-tab .rh-cashflow-actions-cell .edit{background:#52a884}#cashflow-tab .rh-cashflow-actions-cell .print{background:#2563eb}#cashflow-tab .rh-cashflow-actions-cell .delete{background:#e05252}#cashflow-tab .rh-cashflow-code{color:#23845c;font-size:.76rem;font-weight:700;white-space:nowrap}#cashflow-tab .rh-cashflow-amount{font-weight:700;white-space:nowrap}#cashflow-tab .rh-cashflow-row-sub{color:#8793a1;font-size:.7rem;margin-top:.2rem}@media(max-width:850px){#cashflow-tab .rh-cashflow-filter-panel{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#cashflow-tab .rh-cashflow-filter-panel{grid-template-columns:1fr}#cashflow-tab .rh-cashflow-summary{grid-template-columns:1fr}}';
+        document.head.appendChild(style);
+    }
+
+    function renderCashflowTabLegacy() {
+        var tab = byId('cashflow-tab');
+        if (!tab) return;
+        ensureCashflowStyles();
+        var state = RHUI.cashflowFilters || (RHUI.cashflowFilters = { type: 'all', building: '', month: '', search: '' });
+        var buildings = RHD.list('buildings');
+        var records = RHD.list('cashflows').slice().sort(function (a, b) {
+            return String(b.date || '').localeCompare(String(a.date || '')) || (b.createdAt || 0) - (a.createdAt || 0);
+        }).filter(function (record) {
+            if (state.type !== 'all' && record.type !== state.type) return false;
+            if (state.building && record.buildingId !== state.building) return false;
+            if (state.month && String(record.date || '').slice(0, 7) !== state.month) return false;
+            if (state.search) {
+                var building = RHD.get('buildings', record.buildingId) || {};
+                var text = [record.code, record.category, record.description, record.reference, building.name, building.shortName].join(' ').toLocaleLowerCase();
+                if (text.indexOf(state.search.toLocaleLowerCase()) === -1) return false;
+            }
+            return true;
+        });
+        var income = records.filter(function (r) { return r.type === 'income'; }).reduce(function (sum, r) { return sum + (Number(r.amount) || 0); }, 0);
+        var expense = records.filter(function (r) { return r.type === 'expense'; }).reduce(function (sum, r) { return sum + (Number(r.amount) || 0); }, 0);
+        var buildingOptions = '<option value="">Tất cả tòa nhà</option>' + buildings.map(function (b) {
+            return '<option value="' + escapeHtml(b.id) + '"' + (state.building === b.id ? ' selected' : '') + '>' + escapeHtml(b.name || b.shortName) + '</option>';
+        }).join('');
+        var rows = records.map(function (record) {
+            var building = RHD.get('buildings', record.buildingId);
+            var sign = record.type === 'income' ? '+' : '−';
+            return '<tr><td>' + fmtDate(record.date) + '</td><td><strong>' + escapeHtml(record.code || '—') + '</strong></td>' +
+                '<td><span class="rh-cashflow-type ' + escapeHtml(record.type) + '">' + (record.type === 'income' ? 'Thu' : 'Chi') + '</span></td>' +
+                '<td>' + escapeHtml(record.category || '—') + '</td><td>' + escapeHtml(building ? building.name : '—') + '</td>' +
+                '<td>' + escapeHtml(record.description || '—') + (record.reference ? '<div style="color:#94a3b8;font-size:.72rem;">' + escapeHtml(record.reference) + '</div>' : '') + '</td>' +
+                '<td>' + escapeHtml(record.paymentMethod || '—') + '</td>' +
+                '<td style="color:' + (record.type === 'income' ? '#178250' : '#c5474e') + ';font-weight:700;text-align:right;white-space:nowrap;">' + sign + money(record.amount) + '</td>' +
+                '<td style="text-align:right;white-space:nowrap;"><button type="button" class="rh-row-btn" title="Sửa" onclick="RHUI.openCashflowForm(\'' + record.id + '\')"><i class="fas fa-pen"></i></button><button type="button" class="rh-row-btn danger" title="Xóa" onclick="RHUI.deleteCashflow(\'' + record.id + '\')"><i class="fas fa-trash"></i></button></td></tr>';
+        }).join('');
+        tab.innerHTML = '<div class="card"><div class="rh-cashflow-head"><div><h2>Thu chi</h2><p style="color:#718096;font-size:.84rem;margin-top:.25rem;">Theo dõi các khoản thu và chi của tòa nhà.</p></div><div class="rh-cashflow-actions"><button class="rh-cashflow-add-income" type="button" onclick="RHUI.openCashflowForm(null,\'income\')"><i class="fas fa-plus"></i> Ghi nhận thu</button><button class="rh-cashflow-add-expense" type="button" onclick="RHUI.openCashflowForm(null,\'expense\')"><i class="fas fa-minus"></i> Ghi nhận chi</button></div></div>' +
+            '<div class="rh-cashflow-summary"><div class="rh-cashflow-stat income"><small>Tổng thu · ' + records.filter(function (r) { return r.type === 'income'; }).length + ' phiếu</small><strong>' + money(income) + '</strong></div><div class="rh-cashflow-stat expense"><small>Tổng chi · ' + records.filter(function (r) { return r.type === 'expense'; }).length + ' phiếu</small><strong>' + money(expense) + '</strong></div><div class="rh-cashflow-stat"><small>Chênh lệch thu - chi</small><strong style="color:' + (income - expense >= 0 ? '#178250' : '#c5474e') + ';">' + money(income - expense) + '</strong></div></div>' +
+            '<div class="rh-cashflow-filters"><select id="cashflowTypeFilter" aria-label="Lọc thu chi"><option value="all">Thu và chi</option><option value="income"' + (state.type === 'income' ? ' selected' : '') + '>Khoản thu</option><option value="expense"' + (state.type === 'expense' ? ' selected' : '') + '>Khoản chi</option></select><select id="cashflowBuildingFilter" aria-label="Lọc tòa nhà">' + buildingOptions + '</select><input id="cashflowMonthFilter" type="month" aria-label="Lọc theo tháng" value="' + escapeHtml(state.month) + '"><input id="cashflowSearch" type="search" aria-label="Tìm kiếm phiếu thu chi" placeholder="Tìm mã phiếu, nội dung..." value="' + escapeHtml(state.search) + '"></div>' +
+            (records.length ? '<div class="rh-cashflow-table-wrap"><table class="rh-cashflow-table"><thead><tr><th>Ngày</th><th>Mã phiếu</th><th>Loại</th><th>Danh mục</th><th>Tòa nhà</th><th>Nội dung</th><th>Hình thức</th><th style="text-align:right;">Số tiền</th><th>Thao tác</th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div style="color:#718096;padding:2rem;text-align:center;">Chưa có phiếu thu chi phù hợp. Nhấn “Ghi nhận thu” hoặc “Ghi nhận chi” để bắt đầu.</div>') + '</div>';
+        ['cashflowTypeFilter', 'cashflowBuildingFilter', 'cashflowMonthFilter'].forEach(function (id) {
+            byId(id).addEventListener('change', function () {
+                state.type = byId('cashflowTypeFilter').value;
+                state.building = byId('cashflowBuildingFilter').value;
+                state.month = byId('cashflowMonthFilter').value;
+                renderCashflowTab();
+            });
+        });
+        byId('cashflowSearch').addEventListener('input', function () {
+            state.search = this.value.trim();
+            renderCashflowTab();
+            var next = byId('cashflowSearch');
+            if (next) { next.focus(); next.setSelectionRange(next.value.length, next.value.length); }
+        });
+    }
+
+    RHUI.openCashflowForm = function (id, type) {
+        var record = id ? RHD.get('cashflows', id) : null;
+        if (id && !record) return;
+        var buildings = RHD.list('buildings');
+        var selectedType = record ? record.type : (type === 'expense' ? 'expense' : 'income');
+        var today = new Date();
+        var todayValue = today.getFullYear() + '-' + String(today.getMonth() + 1).padStart(2, '0') + '-' + String(today.getDate()).padStart(2, '0');
+        var categoryOptions = (CASHFLOW_CATEGORIES[selectedType] || CASHFLOW_CATEGORIES.income).map(function (category) {
+            return '<option value="' + escapeHtml(category) + '"' + (record && record.category === category ? ' selected' : '') + '>' + escapeHtml(category) + '</option>';
+        }).join('');
+        if (record && record.category && (CASHFLOW_CATEGORIES[selectedType] || []).indexOf(record.category) === -1) {
+            categoryOptions = '<option value="' + escapeHtml(record.category) + '" selected>' + escapeHtml(record.category) + '</option>' + categoryOptions;
+        }
+        var initialBuildingId = record ? record.buildingId : '';
+        var apartmentOptions = '<option value="">Chọn phòng (không bắt buộc)</option>' + RHD.apartmentsOf(initialBuildingId).map(function (apt) {
+            return '<option value="' + escapeHtml(apt.id) + '"' + (record && record.apartmentId === apt.id ? ' selected' : '') + '>' + escapeHtml(apt.name || apt.code || 'Căn hộ') + '</option>';
+        }).join('');
+        var html = '<form onsubmit="RHUI.saveCashflow(event)"><div class="rh-grid-2">' +
+            '<div class="rh-field"><label>Loại giao dịch *</label><select id="cashflowFormType" required onchange="RHUI.updateCashflowCategories()"><option value="income"' + (selectedType === 'income' ? ' selected' : '') + '>Thu</option><option value="expense"' + (selectedType === 'expense' ? ' selected' : '') + '>Chi</option></select></div>' +
+            '<div class="rh-field"><label>Ngày *</label><input id="cashflowFormDate" type="date" required value="' + escapeHtml(record ? record.date : todayValue) + '"></div>' +
+            '<div class="rh-field"><label>Tòa nhà</label><select id="cashflowFormBuilding">' + selectOptions(buildings, 'id', 'name', initialBuildingId, 'Chọn tòa nhà (không bắt buộc)') + '</select></div>' +
+            '<div class="rh-field"><label>Căn hộ / Phòng</label><select id="cashflowFormApartment">' + apartmentOptions + '</select></div>' +
+            '<div class="rh-field"><label>Danh mục *</label><select id="cashflowFormCategory" required>' + categoryOptions + '</select></div>' +
+            '<div class="rh-field"><label>Số tiền (đ) *</label><input id="cashflowFormAmount" type="number" min="1" step="1" required value="' + (record ? Number(record.amount) || '' : '') + '"></div>' +
+            '<div class="rh-field"><label>Hình thức thanh toán</label><select id="cashflowFormMethod">' + selectOptions([{ id: 'cash', label: 'Tiền mặt' }, { id: 'bank', label: 'Chuyển khoản' }, { id: 'other', label: 'Khác' }], 'id', 'label', record ? record.paymentMethodId : 'bank') + '</select></div>' +
+            '<div class="rh-field"><label>Người nhận / trả</label><input id="cashflowFormPerson" value="' + escapeHtml(record ? record.personName : '') + '" placeholder="Tên người giao dịch"></div>' +
+            '<div class="rh-field"><label>Tài khoản / sổ quỹ</label><input id="cashflowFormAccount" list="cashflowAccounts" value="' + escapeHtml(record ? record.accountName || record.paymentMethod : '') + '" placeholder="Tiền mặt, ngân hàng..." ><datalist id="cashflowAccounts"><option value="Tiền mặt"><option value="Vietcombank"><option value="Techcombank"><option value="MBBank"></datalist></div>' +
+            '<div class="rh-field"><label>Mã tham chiếu</label><input id="cashflowFormReference" value="' + escapeHtml(record ? record.reference : '') + '" placeholder="Mã giao dịch / chứng từ"></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Nội dung</label><textarea id="cashflowFormDescription" rows="3" placeholder="Ghi chú cho khoản thu hoặc chi">' + escapeHtml(record ? record.description : '') + '</textarea></div>' +
+            '</div><div id="cashflowFormError" style="color:#ef4444;font-size:.85rem;margin-top:.75rem;"></div><div style="display:flex;gap:.6rem;margin-top:1.25rem;"><button type="submit" class="btn-primary">Lưu phiếu</button><button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Hủy</button></div></form>';
+        RHUI.drawerId = record ? record.id : null;
+        openDrawer(record ? 'Sửa phiếu thu chi' : (selectedType === 'income' ? 'Ghi nhận khoản thu' : 'Ghi nhận khoản chi'), html);
+        byId('cashflowFormBuilding').addEventListener('change', function () {
+            var options = '<option value="">Chọn phòng (không bắt buộc)</option>' + RHD.apartmentsOf(this.value).map(function (apt) {
+                return '<option value="' + escapeHtml(apt.id) + '">' + escapeHtml(apt.name || apt.code || 'Căn hộ') + '</option>';
+            }).join('');
+            byId('cashflowFormApartment').innerHTML = options;
+        });
+    };
+
+    RHUI.updateCashflowCategories = function () {
+        var type = byId('cashflowFormType').value;
+        byId('cashflowFormCategory').innerHTML = (CASHFLOW_CATEGORIES[type] || CASHFLOW_CATEGORIES.income).map(function (category) {
+            return '<option value="' + escapeHtml(category) + '">' + escapeHtml(category) + '</option>';
+        }).join('');
+    };
+
+    RHUI.saveCashflow = function (ev) {
+        ev.preventDefault();
+        var amount = Number(byId('cashflowFormAmount').value);
+        if (!isFinite(amount) || amount <= 0) { byId('cashflowFormError').textContent = 'Số tiền phải lớn hơn 0.'; return; }
+        var methodId = byId('cashflowFormMethod').value;
+        var methodLabels = { cash: 'Tiền mặt', bank: 'Chuyển khoản', other: 'Khác' };
+        var existing = RHUI.drawerId ? RHD.get('cashflows', RHUI.drawerId) : null;
+        var data = {
+            type: byId('cashflowFormType').value,
+            date: byId('cashflowFormDate').value,
+            buildingId: byId('cashflowFormBuilding').value,
+            apartmentId: byId('cashflowFormApartment').value,
+            category: byId('cashflowFormCategory').value,
+            amount: amount,
+            paymentMethodId: methodId,
+            paymentMethod: methodLabels[methodId] || 'Khác',
+            accountName: byId('cashflowFormAccount').value.trim() || methodLabels[methodId] || 'Khác',
+            personName: byId('cashflowFormPerson').value.trim(),
+            reference: byId('cashflowFormReference').value.trim(),
+            description: byId('cashflowFormDescription').value.trim()
+        };
+        var result;
+        if (existing) result = RHD.update('cashflows', existing.id, data);
+        else {
+            data.code = 'TC-' + String(Date.now()).slice(-8);
+            result = RHD.create('cashflows', data);
+        }
+        if (!result.ok) { byId('cashflowFormError').textContent = result.error || 'Không thể lưu phiếu thu chi.'; return; }
+        RHUI.closeDrawer();
+        renderCashflowTab();
+    };
+
+    RHUI.deleteCashflow = function (id) {
+        var record = RHD.get('cashflows', id);
+        if (!record || !confirm('Xóa phiếu ' + (record.code || '') + '? Hành động không thể hoàn tác.')) return;
+        var result = RHD.remove('cashflows', id);
+        if (!result.ok) { alert(result.error); return; }
+        renderCashflowTab();
+    };
+
     // ============================================================== INVOICES
 
     function ensureInvoiceStyles() {
@@ -1497,15 +2050,17 @@
         style.id = 'rhInvoiceStyles';
         style.textContent = '#invoices-tab .rh-invoices-module{position:relative;color:#172b45}#invoices-tab .rh-invoice-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}#invoices-tab .rh-invoice-head h2{font-size:1.45rem;font-weight:800;color:#10213c}#invoices-tab .rh-invoice-tools{display:flex;gap:.55rem}#invoices-tab .rh-invoice-icon{position:relative;width:40px;height:40px;display:grid;place-items:center;border:1px solid #e0e8f1;border-radius:10px;background:#fff;color:#53677f;cursor:pointer}#invoices-tab .rh-invoice-icon:hover{border-color:#9ccaff;color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-dot{position:absolute;top:7px;right:7px;width:7px;height:7px;border-radius:50%;background:#ef4444;box-shadow:0 0 0 2px #fff}#invoices-tab .rh-invoice-search{display:none;margin:0 0 .85rem}#invoices-tab .rh-invoice-search.open{display:block}#invoices-tab .rh-invoice-search input{width:min(100%,420px);padding:.7rem .85rem;border:1px solid #dbe4ef;border-radius:8px;font:inherit}#invoices-tab .rh-invoice-period{display:flex;align-items:center;gap:.7rem;flex-wrap:wrap;margin-bottom:1rem;padding:.8rem 1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-period>span{font-size:.82rem;font-weight:700;color:#718096}#invoices-tab .rh-invoice-period-chip{display:inline-flex;align-items:center;gap:.45rem;padding:.45rem .7rem;border:1px solid #ccebdc;border-radius:7px;background:#f1fbf5;color:#18845c;font-size:.82rem;font-weight:700}#invoices-tab .rh-invoice-period-chip input{width:110px;border:0;background:transparent;color:#176d50;font:inherit;outline:0}#invoices-tab .rh-invoice-clear{margin-left:auto;border:0;background:none;color:#d54444;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.75rem;margin-bottom:1rem}#invoices-tab .rh-invoice-stat{min-width:0;padding:1rem;border:1px solid #e3eaf2;border-radius:10px;background:#fff}#invoices-tab .rh-invoice-stat small{display:block;color:#718096;font-size:.76rem;font-weight:700}#invoices-tab .rh-invoice-stat strong{display:block;margin-top:.55rem;font-size:1.25rem;line-height:1.3;color:#176fd1;overflow-wrap:anywhere}#invoices-tab .rh-invoice-stat.collected strong{color:#16875d}#invoices-tab .rh-invoice-stat.debt strong{color:#d54444}#invoices-tab .rh-invoice-progress{height:6px;margin-top:.7rem;overflow:hidden;border-radius:99px;background:#edf1f5}#invoices-tab .rh-invoice-progress span{display:block;height:100%;border-radius:inherit;background:#18a878;transition:width .2s}#invoices-tab .rh-invoice-rate{display:flex;justify-content:space-between;gap:.5rem;margin-top:.5rem;color:#718096;font-size:.72rem}#invoices-tab .rh-invoice-tabs{display:flex;gap:.4rem;overflow:auto;margin-bottom:.85rem;padding-bottom:.1rem}#invoices-tab .rh-invoice-tab{display:inline-flex;align-items:center;gap:.5rem;white-space:nowrap;padding:.58rem .8rem;border:1px solid #e0e8f1;border-radius:8px;background:#fff;color:#5c6b7d;font:600 .82rem inherit;cursor:pointer}#invoices-tab .rh-invoice-tab b{font-size:.72rem;color:#8090a2}#invoices-tab .rh-invoice-tab.active{border-color:#17212e;background:#17212e;color:#fff}#invoices-tab .rh-invoice-tab.active b{color:#d6dee8}#invoices-tab .rh-invoice-filter-panel{display:none;gap:.6rem;margin-bottom:.85rem;padding:.75rem;border:1px solid #e3eaf2;border-radius:8px;background:#fff}#invoices-tab .rh-invoice-filter-panel.open{display:flex}#invoices-tab .rh-invoice-filter-panel select{max-width:100%;padding:.55rem .7rem;border:1px solid #dbe4ef;border-radius:7px;background:#fff;font:inherit;color:#44566c}#invoices-tab .rh-invoice-table-wrap{overflow-x:auto;border:1px solid #e3eaf2;border-radius:9px;background:#fff}#invoices-tab .rh-invoice-table{width:100%;border-collapse:collapse;min-width:760px;text-align:left}#invoices-tab .rh-invoice-table th{padding:.7rem .8rem;background:#f3f7fb;color:#718096;font-size:.69rem;letter-spacing:.04em;text-transform:uppercase}#invoices-tab .rh-invoice-table td{padding:.7rem .8rem;border-top:1px solid #edf1f5;font-size:.8rem}#invoices-tab .rh-invoice-actions{display:flex;justify-content:flex-end;gap:.3rem;white-space:nowrap}#invoices-tab .rh-invoice-actions button{width:30px;height:30px;border:1px solid #e0e8f1;border-radius:6px;background:#fff;color:#53708e;cursor:pointer}#invoices-tab .rh-invoice-actions button:hover{color:#0d65d5;background:#f4f9ff}#invoices-tab .rh-invoice-actions button.danger{color:#dc4b4b}#invoices-tab .rh-invoice-empty{padding:2.5rem 1rem;text-align:center;color:#718096}#invoices-tab .rh-invoice-empty i{display:block;margin-bottom:.65rem;color:#9aabba;font-size:1.5rem}#invoices-tab .rh-invoice-fab{position:fixed;right:30px;bottom:28px;z-index:30;width:56px;height:56px;border:0;border-radius:50%;background:#18a878;color:#fff;font-size:1.7rem;line-height:1;box-shadow:0 8px 22px rgba(24,168,120,.28);cursor:pointer}#invoices-tab .rh-invoice-fab:hover{background:#11845d;transform:translateY(-2px)}#invoices-tab .rh-invoice-fab:disabled{opacity:.55;cursor:not-allowed}@media(max-width:850px){#invoices-tab .rh-invoice-summary{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:560px){#invoices-tab .rh-invoice-head{align-items:flex-start}#invoices-tab .rh-invoice-head h2{font-size:1.25rem}#invoices-tab .rh-invoice-period{align-items:flex-start}#invoices-tab .rh-invoice-clear{margin-left:0}#invoices-tab .rh-invoice-summary{gap:.5rem}#invoices-tab .rh-invoice-stat{padding:.75rem}#invoices-tab .rh-invoice-stat strong{font-size:1rem}#invoices-tab .rh-invoice-fab{right:18px;bottom:18px;width:52px;height:52px}';
         document.head.appendChild(style);
+        var periodStyle = document.createElement('style');
+        periodStyle.textContent = '#invoices-tab .rh-invoice-period-picker{position:relative;min-width:0;max-width:100%}#invoices-tab .rh-invoice-period-picker summary{display:flex;align-items:center;gap:.5rem;padding:.65rem .85rem;border:1px solid #ccebdc;border-radius:8px;background:#f1fbf5;color:#176d50;font-size:.82rem;font-weight:700;cursor:pointer;list-style:none;touch-action:manipulation}#invoices-tab .rh-invoice-period-picker summary::-webkit-details-marker{display:none}#invoices-tab .rh-invoice-period-picker summary>*{pointer-events:none}#invoices-tab .rh-invoice-period-picker summary:focus-visible{outline:2px solid #1683ff;outline-offset:2px}#invoices-tab .rh-invoice-period-picker[open]{z-index:35}#invoices-tab .rh-invoice-period-popover{position:absolute;top:calc(100% + 6px);left:0;width:280px;max-width:calc(100vw - 64px);padding:1rem;border:1px solid #dbe4ef;border-radius:10px;background:#fff;box-shadow:0 8px 24px rgba(23,43,69,.12)}#invoices-tab .rh-invoice-period-fields{display:grid;grid-template-columns:1fr 1fr;gap:.75rem}#invoices-tab .rh-invoice-period-fields label{min-width:0;color:#718096;font-size:.8rem}#invoices-tab .rh-invoice-period-fields select{display:block;width:100%;margin-top:.4rem;padding:.6rem;border:1px solid #dbe4ef;border-radius:7px;background:#fff;font:inherit;color:#172b45}#invoices-tab .rh-invoice-period-step,#invoices-tab .rh-invoice-period-current,#invoices-tab .rh-invoice-period-all{border:1px solid #dbe4ef;border-radius:8px;background:#fff;padding:.65rem;color:#53677f;font:inherit;font-size:.82rem;cursor:pointer;touch-action:manipulation}#invoices-tab .rh-invoice-period-all{width:100%;margin-top:.85rem}';
+        document.head.appendChild(periodStyle);
     }
 
     function renderInvoicesTab(filter) {
         var tab = byId('invoices-tab');
         if (!tab) return;
         ensureInvoiceStyles();
-        RHD.markOverdueInvoices();
         var state = RHUI.invoiceFilters || (RHUI.invoiceFilters = {
-            status: 'all', period: new Date().toISOString().slice(0, 7), search: '', building: '', searchOpen: false, filtersOpen: false, overdueOnly: false
+            status: 'all', period: currentInvoicePeriod(), search: '', building: '', searchOpen: false, filtersOpen: false, overdueOnly: false
         });
         if (filter === 'unpaid' || filter === 'overdue') {
             state.status = 'debt';
@@ -1514,11 +2069,7 @@
         var contracts = scoped('contracts');
         var todayStr = new Date().toISOString().slice(0, 10);
         var allInvoices = scoped('invoices').slice().sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
-        var invoiceMonth = function (inv) {
-            if (inv.period) return inv.period;
-            if (inv.issueDate) return inv.issueDate.slice(0, 7);
-            return new Date(inv.createdAt || Date.now()).toISOString().slice(0, 7);
-        };
+        var invoiceMonth = invoicePeriod;
         var baseInvoices = allInvoices.filter(function (inv) {
             if (state.period && invoiceMonth(inv) !== state.period) return false;
             if (state.building && inv.buildingId !== state.building) return false;
@@ -1545,7 +2096,7 @@
         var collected = sumTotal(issuedVisible.filter(function (inv) { return inv.status === 'paid'; }));
         var debt = sumTotal(issuedVisible.filter(function (inv) { return inv.status !== 'paid'; }));
         var collectionRate = billed ? Math.round(collected * 100 / billed) : 0;
-        var monthLabel = state.period ? state.period.slice(5, 7) + '-' + state.period.slice(0, 4) : 'Tất cả kỳ';
+        var monthLabel = state.period ? RHB.periodLabel(state.period) : 'Tất cả kỳ';
         var rows = visibleInvoices.map(function (inv) {
             var apt = RHD.get('apartments', inv.apartmentId);
             var cus = RHD.get('customers', inv.customerId);
@@ -1572,11 +2123,18 @@
             return '<option value="' + escapeHtml(building.id) + '"' + (state.building === building.id ? ' selected' : '') + '>' + escapeHtml(building.name) + '</option>';
         }).join('');
         var canAdd = contracts.length > 0 && !demoLimitReached('invoices');
-        var periodValue = state.period;
+        var pickerPeriod = state.period || currentInvoicePeriod();
+        var pickerYear = Number(pickerPeriod.slice(0, 4));
+        var yearValues = [pickerYear, Number(currentInvoicePeriod().slice(0, 4))];
+        allInvoices.forEach(function (inv) { if (invoicePeriod(inv)) yearValues.push(Number(invoicePeriod(inv).slice(0, 4))); });
+        var yearOptions = '';
+        for (var year = Math.min.apply(null, yearValues) - 5; year <= Math.max.apply(null, yearValues) + 5; year++) yearOptions += '<option value="' + year + '"' + (year === pickerYear ? ' selected' : '') + '>' + year + '</option>';
+        var monthOptions = '';
+        for (var month = 1; month <= 12; month++) { var monthValue = String(month).padStart(2, '0'); monthOptions += '<option value="' + monthValue + '"' + (monthValue === pickerPeriod.slice(5, 7) ? ' selected' : '') + '>Tháng ' + month + '</option>'; }
         var emptyMessage = allInvoices.length ? 'Không có hóa đơn phù hợp bộ lọc.' : (contracts.length ? 'Chưa có hóa đơn nào.' : 'Cần có Hợp đồng trước khi lập hóa đơn.');
 
         tab.innerHTML = renderDemoBanner('invoices') + '<section class="rh-invoices-module">' +
-            '<div class="rh-invoice-head"><h2>Hoá đơn</h2><div class="rh-invoice-tools">' +
+            '<div class="rh-invoice-head"><div class="rh-invoice-tools" style="margin-left:auto;">' +
             '<button type="button" class="rh-invoice-icon" data-invoice-search-toggle title="Tìm kiếm" aria-label="Tìm kiếm"><i class="fas fa-search"></i></button>' +
             (can('invoices.create') ? '<button type="button" class="rh-invoice-icon" onclick="RHUI.runAutoBilling()" title="Lập hóa đơn tự động cho các kỳ đến hạn' + (RHB.lastRun().lastRunAt ? ' — lần chạy gần nhất ' + new Date(RHB.lastRun().lastRunAt).toLocaleString('vi-VN') : '') + '" aria-label="Lập hóa đơn tự động"><i class="fas fa-wand-magic-sparkles"></i></button>' : '') +
             (can('invoices.send') ? '<button type="button" class="rh-invoice-icon" onclick="RHUI.sendSelectedInvoices()" title="Gửi hàng loạt" aria-label="Gửi hàng loạt"><i class="fas fa-file-export"></i></button>' +
@@ -1584,7 +2142,9 @@
             '<button type="button" class="rh-invoice-icon" data-invoice-filter-toggle title="Bộ lọc nâng cao" aria-label="Bộ lọc nâng cao"><i class="fas fa-sliders"></i><span class="rh-invoice-dot"></span></button>' +
             '</div></div>' +
             '<div class="rh-invoice-search' + (state.searchOpen ? ' open' : '') + '"><input type="search" data-invoice-search placeholder="Tìm mã hóa đơn, căn hộ, khách hàng..." value="' + escapeHtml(state.search) + '"></div>' +
-            '<div class="rh-invoice-period"><span>Đang lọc theo:</span><label class="rh-invoice-period-chip"><i class="fas fa-circle-check"></i><span>Tháng: ' + escapeHtml(monthLabel) + '</span><input type="month" data-invoice-period aria-label="Chọn kỳ hóa đơn" value="' + escapeHtml(periodValue) + '"></label><button type="button" class="rh-invoice-clear" data-invoice-clear>Xóa lọc</button></div>' +
+            '<div class="rh-invoice-period"><button type="button" class="rh-invoice-period-step" data-invoice-period-step="-1" aria-label="Tháng trước" title="Tháng trước"><i class="fas fa-chevron-left"></i></button>' +
+            '<details class="rh-invoice-period-picker"' + (state.periodPickerOpen ? ' open' : '') + '><summary aria-label="Chọn kỳ hóa đơn"><i class="fas fa-calendar-alt" aria-hidden="true"></i><span>Kỳ hóa đơn: ' + escapeHtml(monthLabel) + '</span><i class="fas fa-chevron-down" aria-hidden="true"></i></summary><div class="rh-invoice-period-popover"><div class="rh-invoice-period-fields"><label>Tháng<select data-invoice-period-month aria-label="Tháng hóa đơn">' + monthOptions + '</select></label><label>Năm<select data-invoice-period-year aria-label="Năm hóa đơn">' + yearOptions + '</select></label></div><button type="button" class="rh-invoice-period-all" data-invoice-period-all>Tất cả kỳ</button></div></details>' +
+            '<button type="button" class="rh-invoice-period-step" data-invoice-period-step="1" aria-label="Tháng sau" title="Tháng sau"><i class="fas fa-chevron-right"></i></button><button type="button" class="rh-invoice-period-current" data-invoice-period-current>Tháng hiện tại</button><button type="button" class="rh-invoice-clear" data-invoice-clear>Xóa lọc</button></div>' +
             '<div class="rh-invoice-summary">' +
             '<div class="rh-invoice-stat"><small>Phát sinh kỳ này</small><strong>' + money(billed) + '</strong></div>' +
             '<div class="rh-invoice-stat collected"><small>Đã thu</small><strong>' + money(collected) + '</strong></div>' +
@@ -1600,7 +2160,7 @@
             '</div>' +
             '<div class="rh-invoice-filter-panel' + (state.filtersOpen ? ' open' : '') + '"><select data-invoice-building aria-label="Lọc theo tòa nhà">' + buildingOptions + '</select></div>' +
             (visibleInvoices.length ? '<div class="rh-invoice-table-wrap"><table class="rh-invoice-table"><thead><tr><th></th><th>Mã hóa đơn</th><th>Căn hộ</th><th>Khách hàng</th><th>Kỳ</th><th>Thành tiền</th><th>Trạng thái</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' : '<div class="rh-invoice-empty"><i class="fas fa-receipt"></i><p>' + emptyMessage + '</p></div>') +
-            '<button type="button" class="rh-invoice-fab" data-invoice-add title="Thêm hóa đơn" aria-label="Thêm hóa đơn"' + (canAdd ? '' : ' disabled') + (can('invoices.create') ? '' : ' hidden') + '>+</button></section>';
+            '<div style="display:flex;justify-content:flex-end;margin-top:1rem;"><button type="button" class="rh-invoice-fab" style="position:static;" data-invoice-add title="Thêm hóa đơn" aria-label="Thêm hóa đơn"' + (canAdd ? '' : ' disabled') + (can('invoices.create') ? '' : ' hidden') + '>+</button></div></section>';
 
         tab.querySelector('[data-invoice-search-toggle]').addEventListener('click', function () {
             state.searchOpen = !state.searchOpen;
@@ -1616,7 +2176,34 @@
             if (next) { next.focus(); next.setSelectionRange(cursor, cursor); }
         });
         tab.querySelector('[data-invoice-filter-toggle]').addEventListener('click', function () { state.filtersOpen = !state.filtersOpen; renderInvoicesTab(); });
-        tab.querySelector('[data-invoice-period]').addEventListener('change', function () { state.period = this.value; state.overdueOnly = false; renderInvoicesTab(); });
+        var picker = tab.querySelector('.rh-invoice-period-picker');
+        function positionPeriodPicker() {
+            if (!picker.isConnected || !picker.open) return;
+            var popover = picker.querySelector('.rh-invoice-period-popover');
+            popover.style.left = '0px';
+            var bounds = popover.getBoundingClientRect();
+            var shift = Math.min(0, document.documentElement.clientWidth - 16 - bounds.right);
+            shift = Math.max(shift, 16 - bounds.left);
+            popover.style.left = shift + 'px';
+        }
+        picker.addEventListener('toggle', function () {
+            if (picker.isConnected) { state.periodPickerOpen = picker.open; positionPeriodPicker(); }
+        });
+        positionPeriodPicker();
+        function changePeriod(value, keepOpen) {
+            state.period = value; state.overdueOnly = false; state.periodPickerOpen = !!keepOpen;
+            renderInvoicesTab();
+        }
+        ['month', 'year'].forEach(function (part) {
+            tab.querySelector('[data-invoice-period-' + part + ']').addEventListener('change', function () {
+                changePeriod(tab.querySelector('[data-invoice-period-year]').value + '-' + tab.querySelector('[data-invoice-period-month]').value, true);
+                tab.querySelector('[data-invoice-period-' + part + ']').focus();
+            });
+        });
+        tab.querySelectorAll('[data-invoice-period-step]').forEach(function (button) { button.addEventListener('click', function () { changePeriod(RHB.addMonths(state.period || currentInvoicePeriod(), Number(this.getAttribute('data-invoice-period-step')))); }); });
+        tab.querySelector('[data-invoice-period-current]').addEventListener('click', function () { changePeriod(currentInvoicePeriod()); });
+        tab.querySelector('[data-invoice-period-all]').addEventListener('click', function () { changePeriod(''); });
+        picker.addEventListener('keydown', function (event) { if (event.key === 'Escape') { picker.open = false; state.periodPickerOpen = false; picker.querySelector('summary').focus(); } });
         tab.querySelector('[data-invoice-clear]').addEventListener('click', function () {
             state.status = 'all'; state.period = ''; state.search = ''; state.building = ''; state.overdueOnly = false;
             renderInvoicesTab();
@@ -1647,7 +2234,7 @@
     // here too). Lines come from RHB.prefill/computeMonthly and stay editable
     // until the invoice is issued; RHB.normalizeLines recomputes amounts/issues.
 
-    var invoiceDraft = { id: null, lines: [], source: 'manual' };
+    var invoiceDraft = { id: null, lines: [], source: 'manual', issues: [] };
 
     function invoiceLineRowHtml(l, idx) {
         var num = function (field, value, step) {
@@ -1655,7 +2242,7 @@
         };
         return '<tr class="' + (l.missing ? 'if-line-missing' : '') + '">' +
             '<td><input type="text" value="' + escapeHtml(l.label) + '" data-line="' + idx + '" data-field="label" aria-label="Khoản mục">' +
-            (l.missing ? '<div class="if-line-warn"><i class="fas fa-triangle-exclamation"></i> Thiếu dữ liệu — nhập số tiền hoặc duyệt chỉ số rồi bấm "Tính lại"</div>' : '') + '</td>' +
+            (l.missing ? '<div class="if-line-warn"><i class="fas fa-triangle-exclamation"></i> Thiếu dữ liệu — bổ sung, duyệt chỉ số đúng kỳ rồi bấm "Tính lại"</div>' : '') + '</td>' +
             '<td>' + num('qty', l.qty) + '</td>' +
             '<td>' + num('unitPrice', l.unitPrice, 1) + '</td>' +
             '<td>' + num('taxRate', l.taxRate || 0, 'any') + '</td>' +
@@ -1673,6 +2260,7 @@
 
     function refreshInvoiceTotals() {
         var norm = RHB.normalizeLines(invoiceDraft.lines);
+        norm.issues = Array.from(new Set(norm.issues.concat(invoiceDraft.issues || [])));
         norm.items.forEach(function (it, i) {
             var cell = document.querySelector('[data-amount="' + i + '"]');
             if (cell) cell.textContent = money(it.amount + it.tax);
@@ -1692,6 +2280,7 @@
         var c = formContract();
         var calc = RHB.prefill(byId('ifType').value, c, byId('ifPeriod').value);
         invoiceDraft.lines = (calc.items || []).map(function (it) { return Object.assign({}, it); });
+        invoiceDraft.issues = calc.issues || [];
         renderInvoiceLines();
         var info = byId('ifPrefillNote');
         if (info) info.textContent = (calc.issues && calc.issues.length && !calc.items.length) ? calc.issues[0] : '';
@@ -1723,7 +2312,7 @@
         if (!contracts.length) { alert('Cần có Hợp đồng trước khi lập hóa đơn.'); return; }
         RHUI.drawerEntity = 'invoices';
         RHUI.drawerId = id || null;
-        invoiceDraft = { id: id || null, lines: inv ? (inv.items || []).map(function (it) { return Object.assign({ taxRate: it.amount ? Math.round((Number(it.tax) || 0) * 10000 / it.amount) / 100 : 0 }, it); }) : [], source: inv ? inv.source || 'manual' : 'manual' };
+        invoiceDraft = { id: id || null, lines: inv ? (inv.items || []).map(function (it) { return Object.assign({ taxRate: it.amount ? Math.round((Number(it.tax) || 0) * 10000 / it.amount) / 100 : 0 }, it); }) : [], source: inv ? inv.source || 'manual' : 'manual', issues: inv ? inv.issues || [] : [] };
         var today = RHB.today();
         var type = inv ? RHB.invoiceType(inv) : 'monthly';
         var defaultContract = inv ? inv.contractId : contracts[0].id;
@@ -1736,7 +2325,7 @@
             '<div class="rh-grid-2">' +
             '<div class="rh-field"><label>Loại hóa đơn *</label><select id="ifType"' + (type === 'adjustment' ? ' disabled' : '') + '>' + selectOptions(types, 'id', 'label', type) + '</select></div>' +
             '<div class="rh-field"><label>Hợp đồng *</label><select id="ifContract"' + (adjusts ? ' disabled' : '') + '>' + selectOptions(contracts, 'id', invoiceContractLabel, defaultContract) + '</select></div>' +
-            '<div class="rh-field" id="ifPeriodField"><label>Kỳ hóa đơn</label><input id="ifPeriod" type="month" value="' + escapeHtml(inv ? inv.period : today.slice(0, 7)) + '"></div>' +
+            '<div class="rh-field" id="ifPeriodField"><label>Kỳ hóa đơn</label><input id="ifPeriod" type="month" value="' + escapeHtml(inv ? invoicePeriod(inv) : ((RHUI.invoiceFilters || {}).period || currentInvoicePeriod())) + '"></div>' +
             '<div class="rh-field"><label>Mẫu hóa đơn</label><select id="ifTemplate">' + selectOptions(RHT.list('INVOICE'), 'id', 'name', inv ? inv.invoiceTemplateId : '') + '</select></div>' +
             '<div class="rh-field"><label>Ngày lập hóa đơn</label><input id="ifIssueDate" type="date" value="' + escapeHtml(inv ? inv.issueDate : today) + '"></div>' +
             '<div class="rh-field"><label>Hạn thanh toán</label><input id="ifDueDate" type="date" value="' + escapeHtml(inv ? inv.dueDate : '') + '"></div>' +
@@ -1783,8 +2372,12 @@
             byId('ifDueDate').value = RHB.dueDateFor(c ? RHD.get('buildings', c.buildingId) : null, this.value);
         });
         byId('ifRecalc').addEventListener('click', function () {
-            if (invoiceDraft.lines.length && !confirm('Tính lại sẽ thay toàn bộ khoản phí bằng dữ liệu hiện tại (giá thuê, dịch vụ, chỉ số đã duyệt). Tiếp tục?')) return;
-            prefillInvoiceLines();
+            var calc = RHB.refreshUtilityLines(invoiceDraft.lines, formContract(), byId('ifPeriod').value);
+            if (calc.requiresConfirmation && confirm(calc.error)) calc = RHB.refreshUtilityLines(invoiceDraft.lines, formContract(), byId('ifPeriod').value, true);
+            if (!calc.ok) { if (!calc.requiresConfirmation) byId('ifError').textContent = calc.error; return; }
+            invoiceDraft.lines = calc.items;
+            invoiceDraft.issues = calc.issues;
+            renderInvoiceLines();
         });
         byId('ifLines').addEventListener('input', function (ev) {
             var el = ev.target;
@@ -1792,6 +2385,8 @@
             var field = el.getAttribute('data-field');
             if (!field || !invoiceDraft.lines[idx]) return;
             invoiceDraft.lines[idx][field] = field === 'label' ? el.value : el.value === '' ? 0 : Number(el.value);
+            invoiceDraft.lines[idx].source = 'manual';
+            invoiceDraft.lines[idx].manualOverride = true;
             refreshInvoiceTotals();
         });
     };
@@ -1824,9 +2419,13 @@
             if (dup) { err.textContent = 'Kỳ ' + RHB.periodLabel(period) + ' của hợp đồng này đã có hóa đơn định kỳ ' + dup.code + ' (' + statusMeta(RHD.INVOICE_STATUSES, dup.status).label + '). Không lập trùng kỳ.'; return; }
         }
         var norm = RHB.normalizeLines(invoiceDraft.lines);
+        if (type === 'monthly') {
+            var monthly = RHB.computeMonthly(contract, period);
+            norm.issues = Array.from(new Set(norm.issues.concat(monthly ? monthly.issues : ['Hợp đồng không có hiệu lực trong kỳ hóa đơn.'])));
+        }
         var data = {
             type: type, contractId: contract.id, buildingId: contract.buildingId, apartmentId: contract.apartmentId, customerId: contract.customerId,
-            invoiceTemplateId: byId('ifTemplate').value, period: period, issueDate: issueDate, dueDate: dueDate,
+            invoiceTemplateId: byId('ifTemplate').value, period: period, billingPeriod: period, issueDate: issueDate, dueDate: dueDate,
             note: byId('ifNote').value.trim(),
             items: norm.items, subtotal: norm.subtotal, tax: norm.tax, total: norm.total, issues: norm.issues,
             // Any edit sends an approved invoice back for review.
@@ -1892,7 +2491,11 @@
     var INVOICE_ACTIONS = {
         approve: { perm: 'invoices.approve', run: function (id) { return RHB.approve(id, actorName()); } },
         reopen: { perm: 'invoices.approve', run: function (id) { return RHB.backToDraft(id, actorName()); } },
-        recalc: { perm: 'invoices.update', run: function (id) { return RHB.recalculate(id, actorName()); } },
+        recalc: { perm: 'invoices.update', run: function (id) {
+            var result = RHB.recalculate(id, actorName());
+            if (result.requiresConfirmation && confirm(result.error)) return RHB.recalculate(id, actorName(), true);
+            return result.requiresConfirmation ? null : result;
+        } },
         issue: {
             perm: 'invoices.issue',
             confirm: 'Phát hành hóa đơn này? Sau khi phát hành cư dân sẽ thấy hóa đơn và không thể sửa trực tiếp.',
@@ -1966,6 +2569,8 @@
     };
 
     function invoiceWorkflowPanel(inv) {
+        // Display current audit findings without changing persisted invoices.
+        inv = Object.assign({}, inv, { issues: Array.from(new Set((inv.issues || []).concat(RHB.dataIssues(inv)))) });
         var st = statusMeta(RHD.INVOICE_STATUSES, inv.status || 'unpaid');
         var adjusts = inv.adjustsInvoiceId ? RHD.get('invoices', inv.adjustsInvoiceId) : null;
         var adjustments = RHD.list('invoices').filter(function (x) { return x.adjustsInvoiceId === inv.id; });
@@ -1988,6 +2593,9 @@
         if (!guard('invoices.create')) return;
         var res = RHB.run();
         if (!res.ran) { alert('Một tab khác đang chạy lập hóa đơn. Vui lòng thử lại sau ít giây.'); return; }
+        var scopedIds = scoped('invoices').map(function (inv) { return inv.id; });
+        var affected = RHB.auditInvoices().filter(function (row) { return row.issued && scopedIds.indexOf(row.id) !== -1; });
+        if (affected.length) alert('Hóa đơn đã phát hành/thanh toán cần kiểm tra riêng (không tự sửa):\n' + affected.map(function (row) { return row.code + ' · ' + RHB.periodLabel(row.period) + ': ' + row.issues.join('; '); }).join('\n'));
         alert(res.created.length
             ? 'Đã lập ' + res.created.length + ' hóa đơn nháp' + (res.created.some(function (i) { return (i.issues || []).length; }) ? ' (có hóa đơn cần kiểm tra chỉ số)' : '') + '. Hãy kiểm tra và duyệt trong tab "Chờ duyệt".'
             : 'Không có kỳ nào đến hạn cần lập thêm. Các kỳ đã lập sẽ không bị lập trùng.' + (res.skipped.length ? ' Bỏ qua ' + res.skipped.length + ' (' + res.skipped[0].reason + ').' : ''));
@@ -2022,7 +2630,8 @@
         var lineReading = function (item, meterType) {
             if (item && item.meterId) return RHD.get('meters', item.meterId);
             if (item && item.kind) return null;
-            return RHD.latestMeter(inv.apartmentId, meterType);
+            var found = RHB.approvedReading(inv.apartmentId, meterType, inv.billingPeriod || inv.period);
+            return found.state === 'approved' ? found.reading : null;
         };
         var elecReading = lineReading(elecItem, 'electricity');
         var waterReading = lineReading(waterItem, 'water');
@@ -2438,10 +3047,12 @@
         refreshOpenDrawer: refreshOpenDrawer,
         renderBuildingsTab: renderBuildingsTab,
         renderApartmentsTab: renderApartmentsTab,
+        renderServiceFeesTab: renderServiceFeesTab,
         renderCustomersTab: renderCustomersTab,
         renderMetersTab: renderMetersTab,
         renderContractsTab: renderContractsTab,
         renderInvoicesTab: renderInvoicesTab,
+        renderCashflowTab: renderCashflowTab,
         openApartmentDetail: RHUI.openApartmentDetail,
         renderSupportTab: renderSupportTab,
         renderDashboardCounts: renderDashboardCounts,

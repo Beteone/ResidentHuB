@@ -88,15 +88,20 @@
     // The latest closed + approved reading of one meter for one period.
     // (meters store: meterType electricity|water, periodMonth, approvalStatus
     //  'đã_duyệt' — legacy rows used status 'đã_chốt' to mean approved.)
+    function readingTime(row) {
+        var value = row.recordedAt || row.createdAt || 0;
+        return isFinite(Number(value)) ? Number(value) : Date.parse(value) || 0;
+    }
     function approvedReading(apartmentId, meterType, period) {
         var rows = RHD.list('meters').filter(function (m) {
-            return m.apartmentId === apartmentId && m.meterType === meterType && m.periodMonth === period;
-        }).sort(function (a, b) { return (b.recordedAt || b.createdAt || 0) - (a.recordedAt || a.createdAt || 0); });
+            return m.apartmentId === apartmentId && m.meterType === meterType && (m.readingPeriod || m.periodMonth) === period;
+        }).sort(function (a, b) { return readingTime(b) - readingTime(a); });
         var latest = rows[0] || null;
         if (!latest) return { reading: null, state: 'missing' };
         var approved = latest.approvalStatus ? latest.approvalStatus === 'đã_duyệt' : latest.status === 'đã_chốt';
         var closed = latest.latestIndex !== undefined && latest.latestIndex !== null && latest.latestIndex !== '' && isFinite(Number(latest.latestIndex));
-        if (!closed) return { reading: latest, state: 'missing' };
+        var previous = latest.previousIndex;
+        if (!closed || previous === '' || previous == null || !isFinite(Number(previous)) || Number(latest.latestIndex) < Number(previous)) return { reading: latest, state: 'missing' };
         return { reading: latest, state: approved ? 'approved' : 'unapproved' };
     }
 
@@ -130,9 +135,8 @@
      *    (period - start month) % cycle == 0, for the whole cycle, prorated by
      *    the days the contract covers (start/end mid-period).
      *  - Utilities (meter services) are billed every month from APPROVED readings
-     *    of the consumption month (building.meterPeriod: 'previous' = month
-     *    before the billing period [default], 'current' = same month).
-     *    Missing / unapproved reading -> line flagged, amount 0, invoice issue.
+     *    of the same consumption/billing month, independently of closing date.
+     *    Missing / unapproved reading -> no utility charge, invoice issue.
      *  - Other services are monthly fees prorated by occupied days.
      * Prices are read at calculation time and snapshotted into the lines, so a
      * later price change only affects invoices calculated after it.
@@ -170,26 +174,27 @@
 
         var serviceIds = contract.serviceIds || [];
         var overrides = contract.serviceOverrides || {};
-        var consumption = building.meterPeriod === 'current' ? period : addMonths(period, -1);
+        // Invoice period is the consumption period, never the date of closing.
+        var consumption = period;
         (building.services || []).forEach(function (s) {
             if (s.feeType === 'rent' || s.feeType === 'deposit' || serviceIds.indexOf(s.id) === -1) return;
             var unitPrice = overrides[s.id] != null && overrides[s.id] !== '' ? Number(overrides[s.id]) : Number(s.unitPrice) || 0;
-            if (s.calcMethod === 'meter') {
-                var meterType = s.feeType === 'water' ? 'water' : 'electricity';
+            var policy = RHD.utilityPolicy(s);
+            if (policy.metered) {
+                var meterType = policy.meterType || (s.feeType === 'water' ? 'water' : 'electricity');
                 // Tenant must have lived there during the consumption month.
                 var cStart = consumption + '-01', cEnd = consumption + '-' + pad(daysInMonth(consumption));
                 if (!occupiedShare(contract, cStart, cEnd).days) return;
                 var found = approvedReading(contract.apartmentId, meterType, consumption);
                 var meta = METER_LABEL[meterType];
                 if (found.state === 'approved') {
-                    var qty = Number(found.reading.consumption) || 0;
-                    items.push(line(s.id, s.name + ' tháng ' + periodLabel(consumption) + ' (' + qty + ' ' + meta.unit + ': ' + found.reading.previousIndex + ' → ' + found.reading.latestIndex + ')', qty, unitPrice, s.taxRate, { kind: 'meter', meterId: found.reading.id, consumptionPeriod: consumption }));
+                    var qty = Number(found.reading.latestIndex) - Number(found.reading.previousIndex);
+                    items.push(line(s.id, s.name + ' tháng ' + periodLabel(consumption) + ' (' + qty + ' ' + meta.unit + ': ' + found.reading.previousIndex + ' → ' + found.reading.latestIndex + ')', qty, unitPrice, s.taxRate, { kind: 'meter', source: 'meter', meterId: found.reading.id, consumptionPeriod: consumption }));
                 } else {
                     var msg = found.state === 'unapproved'
                         ? 'Chỉ số ' + meta.name + ' tháng ' + periodLabel(consumption) + ' đã chốt nhưng chưa được duyệt'
-                        : 'Chưa có chỉ số ' + meta.name + ' tháng ' + periodLabel(consumption);
+                        : 'Chưa có chỉ số tháng ' + periodLabel(consumption) + ' (' + meta.name + ')';
                     issues.push(msg);
-                    items.push(line(s.id, s.name + ' tháng ' + periodLabel(consumption) + ' — ' + msg.toLowerCase(), 0, unitPrice, s.taxRate, { kind: 'meter', missing: true, consumptionPeriod: consumption }));
                 }
                 return;
             }
@@ -198,7 +203,8 @@
             items.push(line(s.id, label, share, unitPrice, s.taxRate, { kind: 'service' }));
         });
 
-        return Object.assign({ items: items, issues: issues, periodStart: periodStart, periodEnd: periodEnd }, totals(items));
+        items.forEach(function (it) { it.source = it.source || 'contract'; it.dataSnapshot = lineSnapshot(it); });
+        return Object.assign({ items: items, issues: issues, billingPeriod: period, periodStart: periodStart, periodEnd: periodEnd }, totals(items));
     }
 
     // Lines a new manual invoice of a given type starts with (all editable).
@@ -217,16 +223,16 @@
         }
     }
 
-    // Recomputes amount/tax of edited lines; a "missing reading" line stays an
-    // issue until the manager enters an amount for it (manual override).
+    // Manual fees keep their provenance. Missing meter data stays an issue
+    // even when a value is typed into the draft.
     function normalizeLines(items) {
         var issues = [];
         var out = (items || []).map(function (it) {
             var l = line(it.serviceId || 'custom', String(it.label || '').trim() || 'Khoản phí', Number(it.qty) || 0, Number(it.unitPrice) || 0, it.taxRate, {
-                kind: it.kind || 'custom', meterId: it.meterId, consumptionPeriod: it.consumptionPeriod, coverFrom: it.coverFrom, coverTo: it.coverTo
+                kind: it.kind || 'custom', source: it.source || (it.kind === 'meter' ? 'meter' : 'manual'), manualOverride: it.manualOverride, dataSnapshot: it.dataSnapshot, meterId: it.meterId, consumptionPeriod: it.consumptionPeriod, coverFrom: it.coverFrom, coverTo: it.coverTo
             });
-            if (it.missing && !l.amount) { l.missing = true; issues.push('Cần nhập: ' + l.label); }
-            else if (it.missing) l.manualOverride = true;
+            if (it.missing) { l.missing = true; issues.push('Thiếu dữ liệu: ' + l.label); }
+            if (it.dataSnapshot && it.dataSnapshot !== lineSnapshot(l)) { l.manualOverride = true; l.source = 'manual'; }
             return l;
         });
         return Object.assign({ items: out, issues: issues }, totals(out));
@@ -236,7 +242,7 @@
 
     function sameMonthlyInvoice(contractId, period, exceptId) {
         return RHD.list('invoices').filter(function (inv) {
-            return inv.id !== exceptId && inv.contractId === contractId && inv.period === period &&
+            return inv.id !== exceptId && inv.contractId === contractId && (inv.billingPeriod || inv.period) === period &&
                 invoiceType(inv) === 'monthly' && inv.status !== 'cancelled';
         })[0] || null;
     }
@@ -316,7 +322,7 @@
                             type: 'monthly', source: 'auto', status: 'draft',
                             contractId: c.id, buildingId: b.id, apartmentId: c.apartmentId, customerId: c.customerId,
                             invoiceTemplateId: templateFor('monthly', c, b),
-                            period: period, periodStart: calc.periodStart, periodEnd: calc.periodEnd,
+                            period: period, billingPeriod: period, periodStart: calc.periodStart, periodEnd: calc.periodEnd,
                             issueDate: issueDate, dueDate: dueDateFor(b, issueDate),
                             items: calc.items, subtotal: calc.subtotal, tax: calc.tax, total: calc.total,
                             issues: calc.issues, billingKey: key, catchUp: issueDate < todayIso,
@@ -345,11 +351,44 @@
 
     function patch(id, changes) { return RHD.update('invoices', id, Object.assign({ updatedAt: Date.now() }, changes)); }
 
+    function lineSnapshot(it) { return JSON.stringify([it.label, Number(it.qty), Number(it.unitPrice), Number(it.taxRate) || 0]); }
+
+    // Read-only audit: never repairs issued invoices or silently overwrites drafts.
+    function dataIssues(inv) {
+        if (invoiceType(inv) !== 'monthly') return [];
+        var calc = computeMonthly(RHD.get('contracts', inv.contractId), inv.billingPeriod || inv.period);
+        if (!calc) return ['Hợp đồng không có hiệu lực trong kỳ hóa đơn.'];
+        var issues = calc.issues.slice();
+        calc.items.filter(function (it) { return it.kind === 'meter' && !it.missing; }).forEach(function (expected) {
+            var actual = (inv.items || []).filter(function (it) { return it.serviceId === expected.serviceId; })[0];
+            if (!actual || actual.missing || actual.consumptionPeriod !== expected.consumptionPeriod || actual.meterId !== expected.meterId || (!actual.manualOverride && (Number(actual.qty) !== expected.qty || Number(actual.amount) !== Math.round(Number(actual.qty) * Number(actual.unitPrice))))) {
+                issues.push('Khoản phí ' + expected.label + ' cần tính lại từ dữ liệu.');
+            }
+        });
+        return issues;
+    }
+
+    function auditInvoices() {
+        return RHD.list('invoices').filter(function (inv) { return inv.status !== 'cancelled'; }).map(function (inv) {
+            return { id: inv.id, code: inv.code, period: inv.billingPeriod || inv.period, status: inv.status, issued: isIssued(inv), issues: dataIssues(inv) };
+        }).filter(function (row) { return row.issues.length; });
+    }
+
+    function meterChanged(reading) {
+        var period = reading.readingPeriod || reading.periodMonth;
+        RHD.list('invoices').forEach(function (inv) {
+            if (inv.status !== 'draft' || invoiceType(inv) !== 'monthly' || inv.apartmentId !== reading.apartmentId || (inv.billingPeriod || inv.period) !== period) return;
+            patch(inv.id, { needsRecalculation: true, issues: dataIssues(inv) });
+        });
+    }
+
     function approve(id, actor) {
         var inv = RHD.get('invoices', id);
         if (!inv) return { ok: false, error: 'Không tìm thấy hóa đơn.' };
         if ((inv.status || 'draft') !== 'draft') return { ok: false, error: 'Chỉ duyệt được hóa đơn ở trạng thái Bản nháp.' };
         if ((inv.issues || []).length) return { ok: false, error: 'Hóa đơn còn mục cần kiểm tra: ' + inv.issues.join('; ') + '.' };
+        var issues = dataIssues(inv);
+        if (issues.length) return { ok: false, error: issues.join('; ') };
         return patch(id, { status: 'approved', approvedAt: Date.now(), approvedBy: actor, history: history(inv, 'approved', actor) });
     }
 
@@ -364,6 +403,8 @@
         var inv = RHD.get('invoices', id);
         if (!inv) return { ok: false, error: 'Không tìm thấy hóa đơn.' };
         if (inv.status !== 'approved') return { ok: false, error: 'Hóa đơn phải được duyệt trước khi phát hành.' };
+        var issues = dataIssues(inv);
+        if (issues.length || (inv.issues || []).length) return { ok: false, error: issues.concat(inv.issues || []).join('; ') };
         return patch(id, { status: send ? 'sent' : 'unpaid', issuedAt: Date.now(), issuedBy: actor, sentAt: send ? Date.now() : null, history: history(inv, send ? 'issued_sent' : 'issued', actor) });
     }
 
@@ -393,13 +434,29 @@
     }
 
     // Re-reads contract/building/meter data into an editable monthly invoice.
-    function recalculate(id, actor) {
+    function refreshUtilityLines(items, contract, period, confirmed) {
+        var calc = computeMonthly(contract, period);
+        if (!calc) return { ok: false, error: 'Hợp đồng không có hiệu lực trong kỳ hóa đơn.' };
+        var building = RHD.get('buildings', contract.buildingId);
+        var services = building.services || [];
+        function isMeterLine(it) {
+            var service = services.filter(function (s) { return s.id === it.serviceId; })[0];
+            return service ? RHD.utilityPolicy(service).metered : it.kind === 'meter';
+        }
+        var oldMeterLines = (items || []).filter(isMeterLine);
+        var hasManual = oldMeterLines.some(function (it) { return it.manualOverride || it.source === 'manual' || !it.dataSnapshot || it.dataSnapshot !== lineSnapshot(it); });
+        if (hasManual && !confirmed) return { ok: false, requiresConfirmation: true, error: 'Tính lại sẽ thay khoản điện/nước đã nhập hoặc chỉnh thủ công bằng chỉ số đúng kỳ đã duyệt. Các khoản thuê và dịch vụ khác được giữ nguyên. Tiếp tục?' };
+        var updated = (items || []).filter(function (it) { return !isMeterLine(it); }).concat(calc.items.filter(function (it) { return it.kind === 'meter'; }));
+        return Object.assign({ ok: true, items: updated, issues: calc.issues }, totals(updated));
+    }
+
+    function recalculate(id, actor, confirmed) {
         var inv = RHD.get('invoices', id);
-        if (!inv || !isEditable(inv)) return { ok: false, error: 'Chỉ tính lại được hóa đơn chưa phát hành.' };
+        if (!inv || inv.status !== 'draft') return { ok: false, error: 'Chỉ tính lại được hóa đơn nháp.' };
         if (invoiceType(inv) !== 'monthly') return { ok: false, error: 'Chỉ hóa đơn định kỳ mới tính lại từ dữ liệu.' };
-        var calc = computeMonthly(RHD.get('contracts', inv.contractId), inv.period);
-        if (!calc) return { ok: false, error: 'Hợp đồng không còn hiệu lực trong kỳ ' + periodLabel(inv.period) + '.' };
-        return patch(id, { status: 'draft', approvedAt: null, approvedBy: '', items: calc.items, issues: calc.issues, subtotal: calc.subtotal, tax: calc.tax, total: calc.total, history: history(inv, 'recalculated', actor) });
+        var calc = refreshUtilityLines(inv.items, RHD.get('contracts', inv.contractId), inv.billingPeriod || inv.period, confirmed);
+        if (!calc.ok) return calc;
+        return patch(id, { status: 'draft', billingPeriod: inv.billingPeriod || inv.period, needsRecalculation: false, approvedAt: null, approvedBy: '', items: calc.items, issues: calc.issues, subtotal: calc.subtotal, tax: calc.tax, total: calc.total, history: history(inv, 'recalculated', actor) });
     }
 
     global.RHB = {
@@ -417,6 +474,10 @@
             return d >= t ? d : billingDate(addMonths(monthOf(t), 1), building.billingDay);
         },
         computeMonthly: computeMonthly,
+        approvedReading: approvedReading,
+        dataIssues: dataIssues,
+        auditInvoices: auditInvoices,
+        meterChanged: meterChanged,
         prefill: prefill,
         normalizeLines: normalizeLines,
         sameMonthlyInvoice: sameMonthlyInvoice,
@@ -431,6 +492,7 @@
         cancel: cancel,
         createAdjustment: createAdjustment,
         recalculate: recalculate,
+        refreshUtilityLines: refreshUtilityLines,
         periodLabel: periodLabel,
         addMonths: addMonths,
         today: today
