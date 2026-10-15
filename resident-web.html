@@ -1153,6 +1153,18 @@
         .contract-progress-step.done { color:#166534; }
         .resident-feature-modal { display:none; position:fixed; inset:0; z-index:80; align-items:center; justify-content:center; padding:1rem; background:rgba(15,35,64,.48); }.resident-feature-modal.open { display:flex; }
         .resident-feature-dialog { width:min(500px,100%); max-height:90vh; overflow:auto; padding:1.4rem; border-radius:16px; background:#fff; box-shadow:0 30px 70px rgba(15,35,64,.24); }.resident-feature-dialog header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }.resident-feature-dialog h4 { margin:0; color:#10213c; font-size:1.12rem; }.resident-feature-close { border:0; background:transparent; color:#64748b; font-size:1.2rem; cursor:pointer; }.payment-method { width:100%; margin-top:.7rem; padding:.85rem; border:1px solid var(--line); border-radius:10px; background:#fff; text-align:left; cursor:pointer; color:#334155; font:600 .82rem 'Be Vietnam Pro',sans-serif; }.payment-method:hover { border-color:#60a5fa; background:#f8fbff; }
+        .resident-notification-detail { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:1rem; background:rgba(8,25,52,.52); }
+        .resident-notification-detail-card { width:min(680px,100%); max-height:min(86vh,760px); overflow:auto; padding:1.4rem; border:1px solid #e1e8f1; border-radius:18px; background:#fff; box-shadow:0 30px 80px rgba(8,25,52,.28); }
+        .resident-notification-detail-head { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; padding-bottom:1rem; border-bottom:1px solid #e8edf4; }
+        .resident-notification-detail-kicker { color:#1769e8; font-size:.7rem; font-weight:800; letter-spacing:.08em; text-transform:uppercase; }
+        .resident-notification-detail-head h2 { margin:.35rem 0 0; color:#10213c; font-size:1.35rem; line-height:1.35; overflow-wrap:anywhere; }
+        .resident-notification-detail-close { flex:0 0 36px; width:36px; height:36px; border:0; border-radius:50%; color:#64748b; background:#f1f5f9; cursor:pointer; }
+        .resident-notification-detail-meta { display:flex; flex-wrap:wrap; gap:.55rem; margin:1rem 0; }
+        .resident-notification-detail-meta span { display:inline-flex; align-items:center; gap:.4rem; padding:.45rem .6rem; border:1px solid #e5ebf3; border-radius:8px; color:#526174; background:#f8fafc; font-size:.72rem; }
+        .resident-notification-detail-body { padding:1rem; border:1px solid #e5ebf3; border-radius:12px; color:#334155; background:#fbfdff; font-size:.9rem; line-height:1.8; white-space:pre-wrap; overflow-wrap:anywhere; }
+        .resident-notification-detail-files { display:grid; gap:.5rem; margin-top:1rem; color:#526174; font-size:.78rem; }
+        .resident-notification-detail-files div { display:flex; align-items:center; gap:.45rem; }
+        .resident-notification-detail-card footer { display:flex; justify-content:flex-end; margin-top:1rem; }
         @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}#contractsSection .contract-history-row{grid-template-columns:1fr auto}#contractsSection .contract-history-row small{grid-column:1/-1;text-align:left}}
     </style>
 </head>
@@ -1687,6 +1699,7 @@
         // to — refreshing them again here from a separate, disconnected store
         // would silently blank them back out after every action.
         let notificationData = [];
+        let selectedNotificationId = null;
 
         function syncResidentDashboardData() {
             refreshResidentUserData();
@@ -1696,10 +1709,23 @@
             if (typeof renderNotifications === 'function') renderNotifications();
         }
 
-        function refreshResidentUserData() {
+        function notificationIsVisible(item) {
+            if (!item || item.isArchived) return false;
+            if (item.status === 'draft') return false;
+            if (item.status === 'scheduled' && item.scheduledAt) {
+                const scheduled = new Date(item.scheduledAt).getTime();
+                if (!Number.isNaN(scheduled) && scheduled > Date.now()) return false;
+            }
+            if (item.expiresAt) {
+                const expires = new Date(item.expiresAt).getTime();
+                if (!Number.isNaN(expires) && expires <= Date.now()) return false;
+            }
+            return true;
+        }
+        function refreshResidentUserData(){
             const userId = getCurrentResidentUserId();
             const notifications = userId && RH && RH.getNotificationsForUser ? RH.getNotificationsForUser(userId) : [];
-            notificationData = Array.isArray(notifications) ? notifications : [];
+            notificationData = Array.isArray(notifications) ? notifications.filter(notificationIsVisible) : [];
         }
         const contractDeadline = () => {
             if (!contractData || !contractData.endDate) return null;
@@ -1728,14 +1754,32 @@
             if(nav) nav.click();
         }
         function notificationAction(event, id, actionUrl){ event.stopPropagation(); const item=notificationData.find(notification=>notification.id===id); if(item){ item.isRead=true; } renderNotifications(); notificationRoute(actionUrl); }
-        function notificationClick(id){ const item=notificationData.find(notification=>notification.id===id); if(!item) return; item.isRead=true; renderNotifications(); notificationRoute(item.actionUrl || item.refType || 'notifications'); }
+        function notificationClick(id){
+            const item=notificationData.find(notification=>notification.id===id);
+            if(!item) return;
+            updateResidentNotification(id,{isRead:true});
+            if(item.campaignId || item.status === 'sent' || item.status === 'scheduled' || item.status === 'draft'){
+                selectedNotificationId=id;
+                renderNotifications();
+                return;
+            }
+            renderNotifications();
+            notificationRoute(item.actionUrl || item.refType || 'notifications');
+        }
+        function closeNotificationDetail(){ selectedNotificationId=null; renderNotifications(); }
+        window.addEventListener('keydown',event=>{if(event.key==='Escape'&&selectedNotificationId)closeNotificationDetail();});
+        function notificationDetailDate(value){
+            if(!value) return '—';
+            const date=new Date(value);
+            return Number.isNaN(date.getTime()) ? String(value) : date.toLocaleString('vi-VN',{day:'2-digit',month:'2-digit',year:'numeric',hour:'2-digit',minute:'2-digit'});
+        }
         function notificationIcon(type){ return '<span class="notification-icon '+notificationTypeClasses[type]+'"><i class="fas '+notificationTypeIcons[type]+'"></i></span>'; }
         function notificationItemMarkup(item){
             const tags=(item.tags||[]).map(tag=>'<span class="notification-tag '+(tag==='Đã ghim'?'pinned':'')+'">'+(tag==='Đã ghim'?'<i class="fas fa-thumbtack"></i> ':'')+tag+'</span>').join('');
             const attachment=item.attachments&&item.attachments[0]?'<div class="notification-attachment"><i class="fas fa-file-pdf" style="color:#e05252"></i>'+item.attachments[0].name+'</div>':'';
             const ack=item.requiresAck?'<div class="notification-ack"><span><i class="fas fa-circle-info"></i> Vui lòng xác nhận bạn đã nắm thông tin này.</span><button onclick="acknowledgeNotification(event,\''+item.id+'\')">Tôi đã đọc và hiểu</button></div>':'';
             const action=item.actionLabel?'<div class="notification-buttons"><button onclick="notificationAction(event,\''+item.id+'\',\''+(item.actionUrl||'notifications')+'\')">'+item.actionLabel+'</button>'+(item.refType==='invoice'&&item.actionLabel==='Thanh toán ngay'?'<button onclick="notificationAction(event,\''+item.id+'\',\'invoices\')">Xem hóa đơn</button>':'')+'</div>':'';
-            return '<article class="notification-item '+(!item.isRead?'unread':'')+'" data-notification="'+item.id+'" onclick="notificationClick(\''+item.id+'\')"><div class="notification-main">'+notificationIcon(item.type)+'<div class="notification-copy"><div class="notification-title">'+(!item.isRead?'<span class="unread-dot"></span>':'')+'<strong>'+item.title+'</strong></div><div class="notification-meta"><span>'+notificationTypeLabels[item.type]+'</span><span>•</span><span>'+item.time+'</span>'+tags+'</div><p class="notification-body">'+item.body+'</p>'+attachment+ack+action+'</div></div><div class="notification-right"><span>'+item.time+'</span><div class="notification-side-actions"><button class="'+(item.isPinned?'active':'')+'" title="Ghim" onclick="toggleNotificationPin(event,\''+item.id+'\')"><i class="fas fa-thumbtack"></i></button><button title="Đánh dấu đã đọc" onclick="toggleNotificationRead(event,\''+item.id+'\')"><i class="fas fa-envelope-open"></i></button><button title="Lưu trữ" onclick="archiveNotification(event,\''+item.id+'\')"><i class="fas fa-box-archive"></i></button></div></div></article>';
+            return '<article class="notification-item '+(!item.isRead?'unread':'')+'" data-notification="'+escapeHtml(item.id)+'" onclick="notificationClick(\''+escapeHtml(item.id)+'\')"><div class="notification-main">'+notificationIcon(item.type)+'<div class="notification-copy"><div class="notification-title">'+(!item.isRead?'<span class="unread-dot"></span>':'')+'<strong>'+escapeHtml(item.title)+'</strong></div><div class="notification-meta"><span>'+escapeHtml(notificationTypeLabels[item.type]||item.type||'Thông báo')+'</span><span>•</span><span>'+escapeHtml(item.time)+'</span>'+tags+'</div><p class="notification-body">'+escapeHtml(item.body)+'</p>'+attachment+ack+action+'</div></div><div class="notification-right"><span>'+escapeHtml(item.time)+'</span><div class="notification-side-actions"><button class="'+(item.isPinned?'active':'')+'" title="Ghim" onclick="toggleNotificationPin(event,\''+escapeHtml(item.id)+'\')"><i class="fas fa-thumbtack"></i></button><button title="Đánh dấu đã đọc" onclick="toggleNotificationRead(event,\''+escapeHtml(item.id)+'\')"><i class="fas fa-envelope-open"></i></button><button title="Lưu trữ" onclick="archiveNotification(event,\''+escapeHtml(item.id)+'\')"><i class="fas fa-box-archive"></i></button></div></div></article>';
         }
         function renderNotifications(){
             refreshResidentUserData();
@@ -1744,7 +1788,10 @@
             const query=(document.getElementById('notificationSearch')?.value||'').toLowerCase(); const unreadOnly=document.getElementById('notificationUnreadOnly')?.checked; const pinnedOnly=document.getElementById('notificationPinnedOnly')?.checked;
             const filtered=notificationData.filter(item=> (showArchivedNotifications?item.isArchived:!item.isArchived) && (notificationFilter==='ALL'||item.type===notificationFilter) && (!unreadOnly||!item.isRead) && (!pinnedOnly||item.isPinned) && (item.title+' '+item.body+' '+item.subType).toLowerCase().includes(query)).sort((a,b)=>(b.isPinned-a.isPinned));
             const groups=['Hôm nay','Hôm qua','Trước đó']; const list=groups.map(group=>{const items=filtered.filter(item=>item.group===group); return items.length?'<div class="notification-group"><h3>'+group+' <span>'+items.length+'</span></h3><div class="notification-list">'+items.map(notificationItemMarkup).join('')+'</div></div>':''}).join('');
-            root.innerHTML='<div class="notification-workspace"><div class="notification-head"><div><h1>Thông báo</h1><p>Bạn có <strong>'+unread+'</strong> thông báo chưa đọc và cần xử lý.</p></div><div class="notification-actions"><button class="notification-button" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc</button><button class="notification-button primary" onclick="openNotificationSettings()"><i class="fas fa-sliders"></i> Cài đặt nhận thông báo</button></div></div><div class="notification-tabs">'+Object.keys(notificationTypeLabels).map(key=>'<button class="notification-tab '+(notificationFilter===key?'active':'')+'" onclick="setNotificationFilter(\''+key+'\')">'+notificationTypeLabels[key]+' <span class="count-badge">'+counts[key]+'</span></button>').join('')+'</div><div class="notification-tools"><label class="notification-search"><i class="fas fa-search"></i><input id="notificationSearch" type="search" placeholder="Tìm theo tiêu đề, nội dung hoặc mã..." value="'+(query.replace(/"/g,'&quot;'))+'" oninput="renderNotifications()"></label><label class="notification-check"><input id="notificationUnreadOnly" type="checkbox" '+(unreadOnly?'checked':'')+' onchange="renderNotifications()"> Chỉ chưa đọc</label><label class="notification-check"><input id="notificationPinnedOnly" type="checkbox" '+(pinnedOnly?'checked':'')+' onchange="renderNotifications()"> Đã ghim</label><button class="notification-button" onclick="showArchivedNotifications=!showArchivedNotifications;renderNotifications()"><i class="fas fa-box-archive"></i> '+(showArchivedNotifications?'Thông báo đã lưu trữ':'Đã lưu trữ')+'</button></div><div class="notification-groups">'+(list||'<div class="notification-empty"><i class="far fa-bell-slash"></i><strong>Không có thông báo nào ở đây</strong><p>Hãy thử bỏ bớt một vài bộ lọc để xem thêm thông báo.</p></div>')+'</div></div><div class="drawer-backdrop" id="notificationDrawer" onclick="closeNotificationSettings(event)"><aside class="notification-drawer" onclick="event.stopPropagation()"><div class="notification-drawer-head"><h2>Cài đặt nhận thông báo</h2><button class="drawer-close" onclick="closeNotificationSettings()"><i class="fas fa-times"></i></button></div>'+notificationSettingsMarkup()+'</aside></div><div class="toast-stack" id="notificationToastStack"></div>';
+            const selectedNotification=selectedNotificationId?notificationData.find(item=>item.id===selectedNotificationId):null;
+            const notificationPriorityLabels={NORMAL:'Bình thường',IMPORTANT:'Quan trọng',URGENT:'Khẩn cấp'};
+            const notificationDetail=selectedNotification?'<div class="resident-notification-detail" role="presentation" onclick="if(event.target===this)closeNotificationDetail()"><section class="resident-notification-detail-card" role="dialog" aria-modal="true" aria-labelledby="residentNotificationDetailTitle"><header class="resident-notification-detail-head"><div><span class="resident-notification-detail-kicker">Thông báo từ ban quản lý</span><h2 id="residentNotificationDetailTitle">'+escapeHtml(selectedNotification.title||'Thông báo')+'</h2></div><button class="resident-notification-detail-close" aria-label="Đóng chi tiết thông báo" onclick="closeNotificationDetail()"><i class="fas fa-times"></i></button></header><div class="resident-notification-detail-meta"><span><i class="fas fa-tag"></i> '+escapeHtml(notificationTypeLabels[selectedNotification.type]||selectedNotification.type||'Thông báo')+'</span><span><i class="fas fa-clock"></i> '+escapeHtml(selectedNotification.scheduledAt?notificationDetailDate(selectedNotification.scheduledAt):(selectedNotification.time||'—'))+'</span><span><i class="fas fa-users"></i> '+escapeHtml(selectedNotification.audience==='building'?'Theo tòa nhà':selectedNotification.audience==='apartment'?'Theo căn hộ':'Tất cả cư dân')+'</span>'+(selectedNotification.priority?'<span><i class="fas fa-flag"></i> '+escapeHtml(notificationPriorityLabels[selectedNotification.priority]||selectedNotification.priority)+'</span>':'')+(selectedNotification.expiresAt?'<span><i class="fas fa-calendar-xmark"></i> Hết hạn: '+escapeHtml(notificationDetailDate(selectedNotification.expiresAt))+'</span>':'')+'</div><div class="resident-notification-detail-body">'+escapeHtml(selectedNotification.body||'Thông báo không có nội dung chi tiết.')+'</div>'+(selectedNotification.attachments&&selectedNotification.attachments.length?'<div class="resident-notification-detail-files"><strong>Tệp đính kèm</strong>'+selectedNotification.attachments.map(file=>'<div><i class="fas fa-paperclip"></i> '+escapeHtml(file.name||'Tệp đính kèm')+'</div>').join('')+'</div>':'')+'<footer><button class="notification-button primary" onclick="closeNotificationDetail()">Đã hiểu</button></footer></section></div>':'';
+            root.innerHTML='<div class="notification-workspace"><div class="notification-head"><div><h1>Thông báo</h1><p>Bạn có <strong>'+unread+'</strong> thông báo chưa đọc và cần xử lý.</p></div><div class="notification-actions"><button class="notification-button" onclick="markAllNotificationsRead()"><i class="fas fa-check-double"></i> Đánh dấu tất cả đã đọc</button><button class="notification-button primary" onclick="openNotificationSettings()"><i class="fas fa-sliders"></i> Cài đặt nhận thông báo</button></div></div><div class="notification-tabs">'+Object.keys(notificationTypeLabels).map(key=>'<button class="notification-tab '+(notificationFilter===key?'active':'')+'" onclick="setNotificationFilter(\''+key+'\')">'+notificationTypeLabels[key]+' <span class="count-badge">'+counts[key]+'</span></button>').join('')+'</div><div class="notification-tools"><label class="notification-search"><i class="fas fa-search"></i><input id="notificationSearch" type="search" placeholder="Tìm theo tiêu đề, nội dung hoặc mã..." value="'+(query.replace(/"/g,'&quot;'))+'" oninput="renderNotifications()"></label><label class="notification-check"><input id="notificationUnreadOnly" type="checkbox" '+(unreadOnly?'checked':'')+' onchange="renderNotifications()"> Chỉ chưa đọc</label><label class="notification-check"><input id="notificationPinnedOnly" type="checkbox" '+(pinnedOnly?'checked':'')+' onchange="renderNotifications()"> Đã ghim</label><button class="notification-button" onclick="showArchivedNotifications=!showArchivedNotifications;renderNotifications()"><i class="fas fa-box-archive"></i> '+(showArchivedNotifications?'Thông báo đã lưu trữ':'Đã lưu trữ')+'</button></div><div class="notification-groups">'+(list||'<div class="notification-empty"><i class="far fa-bell-slash"></i><strong>Không có thông báo nào ở đây</strong><p>Hãy thử bỏ bớt một vài bộ lọc để xem thêm thông báo.</p></div>')+'</div></div><div class="drawer-backdrop" id="notificationDrawer" onclick="closeNotificationSettings(event)"><aside class="notification-drawer" onclick="event.stopPropagation()"><div class="notification-drawer-head"><h2>Cài đặt nhận thông báo</h2><button class="drawer-close" onclick="closeNotificationSettings()"><i class="fas fa-times"></i></button></div>'+notificationSettingsMarkup()+'</aside></div><div class="toast-stack" id="notificationToastStack"></div>'+notificationDetail;
             const sidebarCount=document.getElementById('sidebarNotificationCount'); if(sidebarCount){sidebarCount.textContent=unread;sidebarCount.style.display=unread?'inline-block':'none';} const topBadge=document.querySelector('.topbar-actions .badge-dot'); if(topBadge) topBadge.textContent=unread;
         }
         function notificationSettingsMarkup(){ const groups=[['Thanh toán','BILLING'],['Yêu cầu','REQUEST'],['Hợp đồng','CONTRACT'],['Ban quản lý','ANNOUNCEMENT'],['Tiện ích','UTILITY']]; return groups.map(group=>'<div class="settings-card"><h3>'+group[0]+'</h3>'+['Trong ứng dụng','Email','Zalo','SMS'].map((channel,index)=>'<label class="channel-row"><span>'+channel+(group[1]==='ANNOUNCEMENT'&&index===0?' <small>(bắt buộc)</small>':'')+'</span><input class="channel-toggle" type="checkbox" '+(index<2||group[1]==='ANNOUNCEMENT'&&index===0?'checked':'')+' '+(group[1]==='ANNOUNCEMENT'&&index===0?'disabled':'')+'></label>').join('')+'</div>').join('')+'<div class="settings-card"><h3>Nhắc hóa đơn trước hạn</h3><select class="settings-select"><option>1 ngày</option><option selected>3 ngày</option><option>5 ngày</option><option>7 ngày</option></select></div><div class="settings-card"><h3>Không làm phiền</h3><label class="channel-row"><span>Tắt</span><input name="quietHours" type="radio" checked></label><label class="channel-row"><span>22:00–07:00</span><input name="quietHours" type="radio"></label></div><div class="drawer-footer"><button class="notification-button primary notification-save" onclick="saveNotificationSettings()"><i class="fas fa-check"></i> Lưu cài đặt</button></div>'; }
@@ -3023,5 +3070,3 @@
     </script>
 </body>
 </html>
-
-

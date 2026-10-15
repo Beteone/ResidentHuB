@@ -2655,6 +2655,10 @@
                 <span>Yêu cầu hỗ trợ</span>
                 <span class="rh-nav-badge" id="rhNavSupportCount" style="display:none;">0</span>
             </div>
+            <div class="sidebar-menu-item" onclick="switchTab('notifications')">
+                <i class="fas fa-bell"></i>
+                <span>Quản lý thông báo</span>
+            </div>
             <div class="sidebar-menu-item rh-nav-parent" id="rhAccountsMenuItem" role="button" aria-expanded="false" aria-controls="rhAccountsGroup" onclick="toggleNavGroup('rhAccountsGroup')">
                 <i class="fas fa-user-shield"></i>
                 <span>Tài khoản</span>
@@ -2900,6 +2904,8 @@
                 </div>
             </div>
         </div>
+
+        <div id="notifications-tab" style="display: none;"></div>
 
         <!-- Buildings -->
         <div id="buildings-tab" style="display: none;"></div>
@@ -5166,6 +5172,722 @@
             workflowTab.innerHTML = `<div class="workflow-hero"><h2>Quy trình làm việc</h2><p>Theo dõi các luồng vận hành quan trọng từ lúc phát sinh đến khi hoàn tất trên cùng một hệ thống.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Tiếp nhận cư dân</h3><p>Tạo hồ sơ và kích hoạt quyền truy cập</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Tạo hồ sơ cư dân</p></li><li><span>2</span><p>Gán tòa nhà, căn hộ và hợp đồng</p></li><li><span>3</span><p>Gửi lời mời đăng nhập tự động</p></li><li><span>4</span><p>Cư dân xác nhận và bắt đầu sử dụng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Đã chuẩn hóa</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Thu phí và thanh toán</h3><p>Tự động hóa chu kỳ thu phí hàng tháng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Hệ thống tạo hóa đơn theo kỳ</p></li><li><span>2</span><p>Gửi thông báo đến cư dân</p></li><li><span>3</span><p>Cư dân kiểm tra và thanh toán trực tuyến</p></li><li><span>4</span><p>Cập nhật công nợ và biên lai</p></li></ol><div class="workflow-footer"><span class="workflow-role">Tự động trên hệ thống</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu</h3><p>Minh bạch tiến độ từ báo sự cố đến hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm hình ảnh</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật trạng thái đang xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Cần theo dõi</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn hợp đồng</h3><p>Chủ động giữ chân cư dân trước ngày hết hạn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Phát hiện hợp đồng sắp hết hạn</p></li><li><span>2</span><p>Gửi cảnh báo cho ban quản lý</p></li><li><span>3</span><p>Cư dân chọn gia hạn hoặc kết thúc</p></li><li><span>4</span><p>Cập nhật trạng thái hợp đồng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Nhắc trước 30 ngày</span></div></article></div>`;
         }
     </script>
+<script>
+(function () {
+    function escapeHtml(value) {
+        return String(value == null ? '' : value)
+            .replace(/&/g, '&amp;')
+            .replace(/</g, '&lt;')
+            .replace(/>/g, '&gt;')
+            .replace(/"/g, '&quot;')
+            .replace(/'/g, '&#39;');
+    }
+
+    function readInternalData() {
+        try {
+            var raw = localStorage.getItem('residenthub_internal_data');
+            var parsed = raw ? JSON.parse(raw) : { users: {} };
+            return parsed && parsed.users ? parsed : { users: {} };
+        } catch (e) {
+            return { users: {} };
+        }
+    }
+
+    function toLocalDateTime(value) {
+        if (!value) return '';
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        var pad = function (n) { return String(n).padStart(2, '0'); };
+        return date.getFullYear() + '-' + pad(date.getMonth() + 1) + '-' + pad(date.getDate()) + 'T' + pad(date.getHours()) + ':' + pad(date.getMinutes());
+    }
+
+    function formatDateValue(value) {
+        if (!value) return '—';
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return value;
+        return date.toLocaleString('vi-VN', { day: '2-digit', month: '2-digit', year: 'numeric', hour: '2-digit', minute: '2-digit' });
+    }
+
+    function getAudienceLabel(value) {
+        var mapping = {
+            all: 'Tất cả cư dân',
+            building: 'Theo tòa nhà',
+            apartment: 'Theo căn hộ'
+        };
+        return mapping[value] || 'Tất cả cư dân';
+    }
+
+    function getResidentUsers() {
+        if (!window.RH || !window.RH.getUsers) return [];
+        var users = window.RH.getUsers();
+        return (Array.isArray(users) ? users : []).filter(function (user) {
+            return user && (user.role === 'resident' || user.accountTypeId === 'at-resident');
+        });
+    }
+
+    function getResidentsByAudience(audience, buildingId, apartmentId) {
+        var residents = getResidentUsers();
+        if (!residents.length) return [];
+        if (audience === 'building') {
+            var buildings = window.RHD && window.RHD.list ? window.RHD.list('buildings') : [];
+            var selectedBuilding = buildings.filter(function (item) { return String(item.id) === String(buildingId); })[0];
+            var buildingValues = [buildingId, selectedBuilding && selectedBuilding.name, selectedBuilding && selectedBuilding.code].filter(Boolean).map(String);
+            return residents.filter(function (user) {
+                var userBuildings = [user.building, user.buildingId].concat(Array.isArray(user.buildingIds) ? user.buildingIds : []).filter(Boolean).map(String);
+                return userBuildings.some(function (value) { return buildingValues.indexOf(value) !== -1; });
+            });
+        }
+        if (audience === 'apartment') {
+            var apartments = window.RHD && window.RHD.list ? window.RHD.list('apartments') : [];
+            var selectedApartment = apartments.filter(function (item) { return String(item.id) === String(apartmentId); })[0];
+            var apartmentValues = [apartmentId, selectedApartment && selectedApartment.name, selectedApartment && selectedApartment.code].filter(Boolean).map(function (value) { return String(value).toLocaleLowerCase(); });
+            return residents.filter(function (user) {
+                var userApartments = [user.apartmentId, user.unit].filter(Boolean).map(function (value) { return String(value).toLocaleLowerCase(); });
+                return userApartments.some(function (value) { return apartmentValues.indexOf(value) !== -1; });
+            });
+        }
+        return residents;
+    }
+
+    function getNotificationList() {
+        var store = readInternalData();
+        var userMap = {};
+        var grouped = {};
+        var users = getResidentUsers();
+        users.forEach(function (user) {
+            userMap[String(user.id)] = user.name || 'Cư dân';
+        });
+        var rows = [];
+        Object.keys(store.users || {}).forEach(function (userId) {
+            var userData = store.users[userId] || {};
+            var notifications = Array.isArray(userData.notifications) ? userData.notifications : [];
+            notifications.forEach(function (record) {
+                var item = Object.assign({}, record, {
+                    userId: userId,
+                    userName: userMap[String(userId)] || 'Cư dân',
+                    audience: record && record.audience ? record.audience : 'all',
+                    status: record && record.status === 'scheduled' && record.scheduledAt && new Date(record.scheduledAt).getTime() <= Date.now()
+                        ? 'sent'
+                        : (record && record.status ? record.status : ((record && record.scheduledAt) ? 'scheduled' : 'sent'))
+                });
+                var legacyKey = JSON.stringify([
+                    item.title || '', item.body || '', item.type || '', item.status,
+                    item.time || '', item.scheduledAt || '', item.expiresAt || ''
+                ]);
+                var groupKey = item.campaignId || (
+                    item.time && item.title && item.body
+                        ? 'legacy:' + legacyKey
+                        : 'notification:' + userId + ':' + item.id
+                );
+                var group = grouped[groupKey];
+                if (!group) {
+                    group = grouped[groupKey] = Object.assign({}, item, {
+                        id: item.campaignId || item.id,
+                        userIds: [],
+                        readCount: 0
+                    });
+                    rows.push(group);
+                }
+                if (group.userIds.indexOf(String(userId)) === -1) {
+                    group.userIds.push(String(userId));
+                    if (item.isRead) group.readCount += 1;
+                }
+                group.recipientCount = group.userIds.length;
+            });
+        });
+        rows.sort(function (a, b) {
+            var aTime = new Date(a.updatedAt || a.createdAt || a.scheduledAt || a.time || 0).getTime();
+            var bTime = new Date(b.updatedAt || b.createdAt || b.scheduledAt || b.time || 0).getTime();
+            return bTime - aTime;
+        });
+        return rows;
+    }
+
+    function updateNotificationAudienceOptions() {
+        var audience = document.getElementById('notificationManagerAudience');
+        var building = document.getElementById('notificationManagerBuilding');
+        var apartment = document.getElementById('notificationManagerApartment');
+        if (!audience || !building || !apartment) return;
+        var selected = audience.value || 'all';
+        building.parentNode.style.display = selected === 'building' ? '' : 'none';
+        apartment.parentNode.style.display = selected === 'apartment' ? '' : 'none';
+    }
+
+    function submitManagerNotificationForm(action) {
+        action = action || 'send';
+        var titleEl = document.getElementById('notificationManagerTitle');
+        var bodyEl = document.getElementById('notificationManagerBody');
+        var typeEl = document.getElementById('notificationManagerType');
+        var audienceEl = document.getElementById('notificationManagerAudience');
+        var buildingEl = document.getElementById('notificationManagerBuilding');
+        var apartmentEl = document.getElementById('notificationManagerApartment');
+        var priorityEl = document.getElementById('notificationManagerPriority');
+        var scheduledAtEl = document.getElementById('notificationManagerScheduledAt');
+        var expiresAtEl = document.getElementById('notificationManagerExpiresAt');
+        if (!titleEl || !bodyEl || !typeEl || !audienceEl) return;
+
+        var title = String(titleEl.value || '').trim();
+        var body = String(bodyEl.value || '').trim();
+        if (!title || !body) {
+            alert('Vui lòng nhập tiêu đề và nội dung thông báo.');
+            return;
+        }
+
+        var audience = audienceEl.value || 'all';
+        var buildingId = buildingEl ? buildingEl.value : '';
+        var apartmentId = apartmentEl ? apartmentEl.value : '';
+        if (audience === 'building' && !buildingId) {
+            alert('Vui lòng chọn tòa nhà nhận thông báo.');
+            return;
+        }
+        if (audience === 'apartment' && !apartmentId) {
+            alert('Vui lòng chọn căn hộ nhận thông báo.');
+            return;
+        }
+
+        var recipients = getResidentsByAudience(audience, buildingId, apartmentId);
+
+        if (!recipients.length) {
+            alert('Không tìm thấy cư dân nào phù hợp với đối tượng nhận được chọn.');
+            return;
+        }
+
+        var scheduledValue = scheduledAtEl && scheduledAtEl.value ? scheduledAtEl.value : '';
+        var scheduledDate = scheduledValue ? new Date(scheduledValue) : null;
+        if (action === 'schedule' && !scheduledDate) {
+            alert('Vui lòng chọn thời điểm muốn gửi thông báo.');
+            return;
+        }
+        if (scheduledDate && Number.isNaN(scheduledDate.getTime())) {
+            alert('Thời điểm gửi không hợp lệ.');
+            return;
+        }
+        if (action === 'schedule' && scheduledDate.getTime() <= Date.now()) {
+            alert('Thời điểm lên lịch phải ở trong tương lai.');
+            return;
+        }
+        var expiresValue = expiresAtEl && expiresAtEl.value ? expiresAtEl.value : '';
+        var expiresDate = expiresValue ? new Date(expiresValue) : null;
+        if (expiresDate && (Number.isNaN(expiresDate.getTime()) || expiresDate.getTime() <= (action === 'schedule' ? scheduledDate.getTime() : Date.now()))) {
+            alert('Thời điểm hết hạn phải sau thời điểm gửi.');
+            return;
+        }
+        var isDraft = action === 'draft';
+        var isScheduled = action === 'schedule';
+        if (!isDraft && !isScheduled && action !== 'send') {
+            alert('Thao tác thông báo không hợp lệ.');
+            return;
+        }
+        var payload = {
+            audience: audience,
+            title: title,
+            body: body,
+            type: typeEl.value || 'ANNOUNCEMENT',
+            priority: priorityEl ? (priorityEl.value || 'NORMAL') : 'NORMAL',
+            scheduledAt: isScheduled ? scheduledDate.toISOString() : '',
+            expiresAt: expiresDate ? expiresDate.toISOString() : '',
+            status: isDraft ? 'draft' : (isScheduled ? 'scheduled' : 'sent'),
+            campaignId: 'notice-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+            recipientCount: recipients.length,
+            buildingId: buildingId,
+            apartmentId: apartmentId,
+            selectedIds: recipients.map(function (user) { return String(user.id); })
+        };
+
+        var created = 0;
+        var failed = 0;
+        var lastError = '';
+        var api = window.RH || window.RHManager || null;
+        if (!api || !api.createNotificationForUser) {
+            alert('Không thể kết nối kho thông báo. Vui lòng tải lại trang và thử lại.');
+            return;
+        }
+        recipients.forEach(function (user) {
+            try {
+                var result = api.createNotificationForUser(user.id, Object.assign({}, payload, {
+                    id: null,
+                    userId: user.id,
+                    userName: user.name || user.email || 'Cư dân',
+                    recipientCount: recipients.length,
+                    status: payload.status,
+                    time: isScheduled ? scheduledDate.toLocaleString('vi-VN') : new Date().toLocaleString('vi-VN'),
+                    createdAt: Date.now(),
+                    updatedAt: Date.now()
+                }));
+                if (result && result.ok) created += 1;
+                else {
+                    failed += 1;
+                    lastError = result && result.error ? result.error : 'Không thể lưu thông báo cho một số cư dân.';
+                }
+            } catch (error) {
+                failed += 1;
+                lastError = error && error.message ? error.message : 'Lỗi khi lưu thông báo.';
+                console.error('Không thể lưu thông báo cho cư dân ' + user.id, error);
+            }
+        });
+
+        if (!created) {
+            alert('Không thể lưu thông báo. ' + (lastError || 'Hãy thử lại.'));
+            return;
+        }
+
+        notificationManagerState.createVisible = false;
+        notificationManagerState.historyVisible = true;
+        notificationManagerState.selectedId = null;
+        notificationManagerState.search = '';
+        notificationManagerState.statusFilter = '';
+        notificationManagerState.audienceFilter = '';
+        notificationManagerState.daysFilter = '';
+        notificationManagerState.listTab = 'all';
+        notificationManagerState.page = 1;
+        renderNotificationsManagerTab();
+        alert((isDraft
+            ? 'Đã lưu bản nháp.'
+            : (isScheduled ? 'Đã lên lịch thông báo.' : 'Đã gửi thông báo.'))
+            + (failed ? ' Không lưu được cho ' + failed + ' cư dân. ' + lastError : ''));
+    }
+
+    var notificationManagerState = {
+        createVisible: false,
+        historyVisible: true,
+        selectedId: null,
+        search: '',
+        statusFilter: '',
+        audienceFilter: '',
+        daysFilter: '',
+        listTab: 'all',
+        page: 1,
+        pageSize: 7
+    };
+
+    function updateNotificationFilter(filter, value) {
+        notificationManagerState[filter] = value;
+        notificationManagerState.page = 1;
+        var active = document.activeElement;
+        var selectionStart = filter === 'search' && active ? active.selectionStart : null;
+        var selectionEnd = filter === 'search' && active ? active.selectionEnd : null;
+        renderNotificationsManagerTab();
+        if (filter === 'search') {
+            var searchInput = document.getElementById('notificationManagerSearch');
+            if (searchInput) {
+                searchInput.focus();
+                if (selectionStart !== null && selectionEnd !== null) searchInput.setSelectionRange(selectionStart, selectionEnd);
+            }
+        }
+    }
+
+    function showNotificationHistory() {
+        notificationManagerState.historyVisible = true;
+        notificationManagerState.createVisible = false;
+        renderNotificationsManagerTab();
+        var history = document.getElementById('notificationManagerHistory');
+        if (history) history.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+
+    function setNotificationListTab(tab) {
+        notificationManagerState.listTab = tab;
+        notificationManagerState.page = 1;
+        renderNotificationsManagerTab();
+    }
+
+    function resetNotificationFilters() {
+        notificationManagerState.search = '';
+        notificationManagerState.statusFilter = '';
+        notificationManagerState.audienceFilter = '';
+        notificationManagerState.daysFilter = '';
+        notificationManagerState.listTab = 'all';
+        notificationManagerState.page = 1;
+        renderNotificationsManagerTab();
+    }
+
+    function changeNotificationPage(page) {
+        notificationManagerState.page = page;
+        renderNotificationsManagerTab();
+    }
+
+    function notificationStatus(item) {
+        return item.status || (item.scheduledAt ? 'scheduled' : 'sent');
+    }
+
+    function notificationDateParts(value) {
+        if (!value) return { time: '—', date: '' };
+        var date = new Date(value);
+        if (Number.isNaN(date.getTime())) return { time: escapeHtml(value), date: '' };
+        return {
+            time: escapeHtml(date.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' })),
+            date: escapeHtml(date.toLocaleDateString('vi-VN'))
+        };
+    }
+
+    function renderNotificationsManagerTab() {
+        var root = document.getElementById('notifications-tab');
+        if (!root) return;
+        var notifications = getNotificationList();
+        var total = notifications.length;
+        var sent = notifications.filter(function (item) { return item.status === 'sent' || (!item.status && !item.scheduledAt); }).length;
+        var scheduled = notifications.filter(function (item) { return item.status === 'scheduled'; }).length;
+        var draft = notifications.filter(function (item) { return item.status === 'draft'; }).length;
+        var sentReadCount = notifications.filter(function (item) { return item.status === 'sent' || !item.status; }).reduce(function (sum, item) {
+            return sum + (Number(item.readCount) || (item.isRead ? 1 : 0));
+        }, 0);
+        var sentRecipientCount = notifications.filter(function (item) { return item.status === 'sent' || !item.status; }).reduce(function (sum, item) {
+            return sum + (Number(item.recipientCount) || 1);
+        }, 0);
+        var readRate = sentRecipientCount ? Math.round((sentReadCount / sentRecipientCount) * 100) : 0;
+        var searchTerm = String(notificationManagerState.search || '').trim().toLocaleLowerCase();
+        var daysLimit = Number(notificationManagerState.daysFilter || 0);
+        var now = Date.now();
+        var filteredNotifications = notifications.filter(function (item) {
+            var status = notificationStatus(item);
+            if (notificationManagerState.listTab === 'sent' && status !== 'sent') return false;
+            if (notificationManagerState.listTab === 'unsent' && status !== 'scheduled' && status !== 'draft') return false;
+            if (notificationManagerState.statusFilter && status !== notificationManagerState.statusFilter) return false;
+            if (notificationManagerState.audienceFilter && item.audience !== notificationManagerState.audienceFilter) return false;
+            if (searchTerm && (String(item.title || '').toLocaleLowerCase().indexOf(searchTerm) === -1 && String(item.body || '').toLocaleLowerCase().indexOf(searchTerm) === -1)) return false;
+            if (daysLimit) {
+                var timestamp = new Date(item.scheduledAt || item.createdAt || item.time || 0).getTime();
+                if (!Number.isFinite(timestamp) || timestamp < now - daysLimit * 24 * 60 * 60 * 1000 || timestamp > now) return false;
+            }
+            return true;
+        });
+        var pageCount = Math.max(1, Math.ceil(filteredNotifications.length / notificationManagerState.pageSize));
+        notificationManagerState.page = Math.min(Math.max(1, notificationManagerState.page), pageCount);
+        var pageStart = (notificationManagerState.page - 1) * notificationManagerState.pageSize;
+        var pageNotifications = filteredNotifications.slice(pageStart, pageStart + notificationManagerState.pageSize);
+        var buildings = window.RHD && window.RHD.list ? window.RHD.list('buildings') : [];
+        var apartments = window.RHD && window.RHD.list ? window.RHD.list('apartments') : [];
+        var buildingOptions = buildings.map(function (item) { return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml(item.name || item.code || 'Tòa nhà') + '</option>'; }).join('');
+        var apartmentOptions = apartments.map(function (item) { return '<option value="' + escapeHtml(item.id) + '">' + escapeHtml((item.name || item.code || 'Căn hộ') + (item.buildingName ? ' • ' + item.buildingName : '')) + '</option>'; }).join('');
+        var selectedDetail = notificationManagerState.selectedId ? notifications.filter(function (item) { return item.id === notificationManagerState.selectedId; })[0] || null : null;
+
+        var createPanel = notificationManagerState.createVisible ? [
+            '<div class="card" style="padding:1rem; margin-bottom:1.25rem;">',
+            '  <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;margin-bottom:1rem;">',
+            '    <div>',
+            '      <div style="font-size:0.76rem;color:#6b7a90;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Tạo mới</div>',
+            '      <h3 style="margin:0.25rem 0 0;color:#0f172a;font-size:1.2rem;font-weight:800;">Soạn thông báo cư dân</h3>',
+            '    </div>',
+            '    <button type="button" class="btn-secondary" onclick="notificationManagerState.createVisible = false; notificationManagerState.historyVisible = true; renderNotificationsManagerTab();">Đóng</button>',
+            '  </div>',
+            '  <form id="notificationManagerForm" onsubmit="return false;" style="display:grid;gap:1rem;">',
+            '    <div class="grid-2">',
+            '      <div class="form-field"><label>Tiêu đề</label><input id="notificationManagerTitle" type="text" placeholder="VD: Hệ thống tăng cường bảo trì tầng 5" required></div>',
+            '      <div class="form-field"><label>Loại thông báo</label><select id="notificationManagerType"><option value="ANNOUNCEMENT">Thông báo chung</option><option value="BILLING">Hóa đơn</option><option value="CONTRACT">Hợp đồng</option><option value="REQUEST">Yêu cầu</option><option value="UTILITY">Dịch vụ</option></select></div>',
+            '    </div>',
+            '    <div class="form-field"><label>Nội dung</label><textarea id="notificationManagerBody" rows="4" placeholder="Nhập nội dung chi tiết cho cư dân..." required></textarea></div>',
+            '    <div class="grid-3">',
+            '      <div class="form-field"><label>Đối tượng nhận</label><select id="notificationManagerAudience" onchange="updateNotificationAudienceOptions()"><option value="all">Tất cả cư dân</option><option value="building">Theo tòa nhà</option><option value="apartment">Theo căn hộ</option></select></div>',
+            '      <div class="form-field"><label>Tòa nhà</label><select id="notificationManagerBuilding"><option value="">-- Chọn tòa nhà --</option>' + buildingOptions + '</select></div>',
+            '      <div class="form-field"><label>Căn hộ</label><select id="notificationManagerApartment"><option value="">-- Chọn căn hộ --</option>' + apartmentOptions + '</select></div>',
+            '    </div>',
+            '    <div class="grid-3">',
+            '      <div class="form-field"><label>Mức độ ưu tiên</label><select id="notificationManagerPriority"><option value="NORMAL">Bình thường</option><option value="IMPORTANT">Quan trọng</option><option value="URGENT">Khẩn cấp</option></select></div>',
+            '      <div class="form-field"><label>Thời điểm gửi</label><input id="notificationManagerScheduledAt" type="datetime-local"></div>',
+            '      <div class="form-field"><label>Hết hạn</label><input id="notificationManagerExpiresAt" type="datetime-local"></div>',
+            '    </div>',
+            '    <div style="display:flex;justify-content:flex-end;gap:.75rem;flex-wrap:wrap;">',
+            '      <button type="button" class="btn-secondary" onclick="notificationManagerState.createVisible = false; notificationManagerState.historyVisible = true; renderNotificationsManagerTab();">Hủy</button>',
+            '      <button type="button" class="btn-secondary" onclick="submitManagerNotificationForm(\'draft\');"><i class="far fa-floppy-disk"></i> Lưu bản nháp</button>',
+            '      <button type="button" class="btn-secondary" onclick="submitManagerNotificationForm(\'schedule\');"><i class="far fa-clock"></i> Lên lịch gửi</button>',
+            '      <button type="button" class="btn-primary" onclick="submitManagerNotificationForm(\'send\');"><i class="fas fa-paper-plane"></i> Gửi ngay</button>',
+            '    </div>',
+            '  </form>',
+            '</div>'
+        ].join('') : '';
+
+        var historyPanel = notificationManagerState.historyVisible ? [
+            '<div class="card notification-manager-history" id="notificationManagerHistory">',
+            '  <div class="notification-manager-tabs" role="tablist" aria-label="Phân loại thông báo">',
+            '    <button type="button" role="tab" aria-selected="' + (notificationManagerState.listTab === 'all') + '" class="' + (notificationManagerState.listTab === 'all' ? 'active' : '') + '" onclick="setNotificationListTab(\'all\')"><i class="fas fa-circle-dot"></i> Tất cả <span>' + total + '</span></button>',
+            '    <button type="button" role="tab" aria-selected="' + (notificationManagerState.listTab === 'sent') + '" class="' + (notificationManagerState.listTab === 'sent' ? 'active' : '') + '" onclick="setNotificationListTab(\'sent\')"><i class="fas fa-circle-check"></i> Đã gửi <span>' + sent + '</span></button>',
+            '    <button type="button" role="tab" aria-selected="' + (notificationManagerState.listTab === 'unsent') + '" class="' + (notificationManagerState.listTab === 'unsent' ? 'active' : '') + '" onclick="setNotificationListTab(\'unsent\')"><i class="far fa-clock"></i> Chưa gửi <span>' + (scheduled + draft) + '</span></button>',
+            '  </div>',
+            '  <div class="table-container notification-manager-table-wrap"><table class="notification-manager-table"><thead><tr><th>Tiêu đề</th><th>Loại</th><th>Nhóm</th><th>Trạng thái</th><th>Thời điểm</th><th>Hết hạn</th><th>Thao tác</th></tr></thead><tbody>',
+            (pageNotifications.length ? pageNotifications.map(function (item) {
+                var status = notificationStatus(item);
+                var statusLabel = status === 'draft' ? 'Bản nháp' : (status === 'scheduled' ? 'Chưa gửi' : 'Đã gửi');
+                var statusIcon = status === 'draft' ? 'fa-file-lines' : (status === 'scheduled' ? 'fa-clock' : 'fa-check');
+                var type = escapeHtml(item.type || 'ANNOUNCEMENT');
+                var title = escapeHtml(item.title || 'Thông báo');
+                var date = notificationDateParts(item.scheduledAt || item.time || item.createdAt);
+                var expires = item.expiresAt ? notificationDateParts(item.expiresAt).date : '—';
+                return '<tr data-notification-detail-id="' + escapeHtml(item.id || '') + '" onclick="notificationManagerState.selectedId = this.dataset.notificationDetailId; renderNotificationsManagerTab();">' +
+                    '<td><div class="notification-manager-title-cell"><span class="notification-manager-type-icon type-' + type.toLowerCase() + '"><i class="fas ' + (type === 'BILLING' ? 'fa-file-invoice-dollar' : (type === 'REQUEST' ? 'fa-bell' : 'fa-bullhorn')) + '"></i></span><span><strong>' + title + '</strong>' + (item.body ? '<small>' + escapeHtml(item.body.length > 100 ? item.body.slice(0, 100) + '…' : item.body) + '</small>' : '') + '</span></div></td>' +
+                    '<td><span class="notification-manager-type type-' + type.toLowerCase() + '">' + type + '</span></td>' +
+                    '<td><span class="notification-manager-audience"><i class="fas fa-user-group"></i>' + escapeHtml(getAudienceLabel(item.audience || 'all')) + '</span></td>' +
+                    '<td><span class="notification-manager-status status-' + status + '"><i class="fas ' + statusIcon + '"></i>' + statusLabel + '</span></td>' +
+                    '<td><span class="notification-manager-date">' + date.time + '</span>' + (date.date ? '<small class="notification-manager-date-sub">' + date.date + '</small>' : '') + '</td>' +
+                    '<td>' + expires + '</td>' +
+                    '<td><button type="button" class="notification-manager-more" aria-label="Xem chi tiết ' + title + '" title="Xem chi tiết" onclick="event.stopPropagation(); notificationManagerState.selectedId = this.closest(\'tr\').dataset.notificationDetailId; renderNotificationsManagerTab();"><i class="fas fa-ellipsis-vertical"></i></button></td>' +
+                    '</tr>';
+            }).join('') : '<tr><td colspan="7" class="notification-manager-empty">' + (notifications.length ? 'Không tìm thấy thông báo phù hợp với bộ lọc.' : 'Chưa có thông báo nào.') + '</td></tr>') +
+            '</tbody></table></div>',
+            '  <div class="notification-manager-pagination"><span>Hiển thị ' + (filteredNotifications.length ? (pageStart + 1) : 0) + '–' + Math.min(pageStart + notificationManagerState.pageSize, filteredNotifications.length) + ' / ' + filteredNotifications.length + ' thông báo</span><div><button type="button" aria-label="Trang trước" onclick="changeNotificationPage(' + (notificationManagerState.page - 1) + ')"' + (notificationManagerState.page <= 1 ? ' disabled' : '') + '><i class="fas fa-chevron-left"></i></button><span class="current">' + notificationManagerState.page + '</span><button type="button" aria-label="Trang sau" onclick="changeNotificationPage(' + (notificationManagerState.page + 1) + ')"' + (notificationManagerState.page >= pageCount ? ' disabled' : '') + '><i class="fas fa-chevron-right"></i></button></div></div>',
+            '</div>'
+        ].join('') : '';
+
+        var detailModal = selectedDetail ? [
+            '<div class="modal-backdrop open" style="display:flex; position:fixed; inset:0; background:rgba(15,23,42,.55); z-index:80; align-items:center; justify-content:center; padding:1rem;">',
+            '  <div class="request-modal" style="width:min(760px,100%); background:#fff; border-radius:1.1rem; box-shadow:0 24px 60px rgba(15,23,42,.22); overflow:hidden;">',
+            '    <div class="modal-head" style="display:flex;justify-content:space-between;align-items:flex-start;padding:1.2rem 1.4rem;border-bottom:1px solid #e2e8f0;">',
+            '      <div>',
+            '        <div style="font-size:0.72rem;font-weight:800;letter-spacing:.08em;color:#6b7a90;text-transform:uppercase;">Chi tiết thông báo</div>',
+            '        <h3 style="margin:0.45rem 0 0;color:#0f172a;font-size:1.35rem;font-weight:800;">' + escapeHtml(selectedDetail.title || 'Thông báo') + '</h3>',
+            '      </div>',
+            '      <button type="button" class="modal-close" onclick="notificationManagerState.selectedId = null; renderNotificationsManagerTab();" style="border:0;background:#f1f5f9;color:#64748b;width:34px;height:34px;border-radius:50%;cursor:pointer;">×</button>',
+            '    </div>',
+            '    <div class="modal-body" style="padding:1.4rem; display:grid; gap:1rem;">',
+            '      <div class="detail-meta" style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;">',
+            '        <div class="meta-box" style="padding:.8rem;border-radius:.75rem;background:#f8fafc;border:1px solid #e2e8f0;">',
+            '          <small style="display:block;color:#64748b;margin-bottom:.35rem;">Loại</small>',
+            '          <strong>' + escapeHtml(selectedDetail.type || 'ANNOUNCEMENT') + '</strong>',
+            '        </div>',
+            '        <div class="meta-box" style="padding:.8rem;border-radius:.75rem;background:#f8fafc;border:1px solid #e2e8f0;">',
+            '          <small style="display:block;color:#64748b;margin-bottom:.35rem;">Mục tiêu</small>',
+            '          <strong>' + escapeHtml(getAudienceLabel(selectedDetail.audience || 'all')) + '</strong>',
+            '        </div>',
+            '        <div class="meta-box" style="padding:.8rem;border-radius:.75rem;background:#f8fafc;border:1px solid #e2e8f0;">',
+            '          <small style="display:block;color:#64748b;margin-bottom:.35rem;">Trạng thái</small>',
+            '          <strong>' + escapeHtml(selectedDetail.status === 'draft' ? 'Bản nháp' : (selectedDetail.status === 'scheduled' ? 'Đã lên lịch' : 'Đã gửi')) + '</strong>',
+            '        </div>',
+            '        <div class="meta-box" style="padding:.8rem;border-radius:.75rem;background:#f8fafc;border:1px solid #e2e8f0;">',
+            '          <small style="display:block;color:#64748b;margin-bottom:.35rem;">Số lượng nhận</small>',
+            '          <strong>' + escapeHtml(String(selectedDetail.recipientCount || (selectedDetail.userId ? 1 : 0))) + '</strong>',
+            '        </div>',
+            '      </div>',
+            '      <div style="padding:1rem 1.1rem;border:1px solid #e2e8f0;border-radius:.9rem;background:#f8fafc;">',
+            '        <div style="font-size:.72rem;font-weight:800;letter-spacing:.08em;color:#6b7a90;text-transform:uppercase;margin-bottom:.4rem;">Nội dung</div>',
+            '        <div style="white-space:pre-wrap;line-height:1.8;color:#0f172a;">' + escapeHtml(selectedDetail.body || 'Không có nội dung.') + '</div>',
+            '      </div>',
+            '      <div style="display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem;">',
+            '        <div class="meta-box" style="padding:.8rem;border-radius:.75rem;background:#f8fafc;border:1px solid #e2e8f0;">',
+            '          <small style="display:block;color:#64748b;margin-bottom:.35rem;">Thời điểm gửi</small>',
+            '          <strong>' + escapeHtml(formatDateValue(selectedDetail.scheduledAt || selectedDetail.time || selectedDetail.createdAt)) + '</strong>',
+            '        </div>',
+            '        <div class="meta-box" style="padding:.8rem;border-radius:.75rem;background:#f8fafc;border:1px solid #e2e8f0;">',
+            '          <small style="display:block;color:#64748b;margin-bottom:.35rem;">Hết hạn</small>',
+            '          <strong>' + escapeHtml(formatDateValue(selectedDetail.expiresAt)) + '</strong>',
+            '        </div>',
+            '      </div>',
+            '    </div>',
+            '  </div>',
+            '</div>'
+        ].join('') : '';
+
+        root.innerHTML = [
+            '<div class="card notification-manager-page-header" style="margin-bottom: 1.25rem; border-color:#e7edf6; background:linear-gradient(180deg,#ffffff 0%,#f8fafc 100%); box-shadow:none;">',
+            '  <div style="display:flex;justify-content:space-between;align-items:center;gap:1rem;flex-wrap:wrap;">',
+            '    <div style="display:flex;align-items:center;gap:.85rem;">',
+            '      <div style="width:44px;height:44px;border-radius:14px;background:linear-gradient(135deg,#dfeeff 0%,#cfe2ff 100%);display:flex;align-items:center;justify-content:center;color:#1d4ed8;box-shadow:inset 0 0 0 1px rgba(29,78,216,.08);"><i class="fas fa-bell"></i></div>',
+            '      <div>',
+            '        <div style="font-size:0.76rem;color:#64748b;text-transform:uppercase;letter-spacing:.08em;font-weight:800;">Quản lý thông báo</div>',
+            '        <h2 style="margin:0.3rem 0 0;color:#0f172a;font-size:2rem;font-weight:800;letter-spacing:-0.04em;">Quản lý thông báo</h2>',
+            '        <div class="notification-manager-subtitle">Xem và quản lý các thông báo được gửi đến cư dân.</div>',
+            '      </div>',
+            '    </div>',
+            '    <div style="display:flex;gap:.75rem;flex-wrap:wrap;">',
+            '      <button type="button" class="btn-primary" onclick="notificationManagerState.createVisible = true; notificationManagerState.historyVisible = false; renderNotificationsManagerTab();" style="display:inline-flex;align-items:center;gap:.55rem;border-radius:12px;padding:.72rem 1rem;">',
+            '        <i class="fas fa-plus"></i> Tạo thông báo',
+            '      </button>',
+            '    </div>',
+            '  </div>',
+            '</div>',
+            '<div id="notificationManagerStats" style="display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:1rem;margin-bottom:1.25rem;">',
+            '  <div class="card" style="padding:1rem 1.1rem;border-radius:18px;border:1px solid #e8edf6;box-shadow:none;min-height:104px;">',
+            '    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem;">',
+            '      <div style="width:42px;height:42px;border-radius:50%;background:#eaf3ff;color:#2f6eed;display:flex;align-items:center;justify-content:center;"><i class="fas fa-bell"></i></div>',
+            '      <div style="flex:1;">',
+            '        <div style="font-size:.9rem;color:#64748b;">Tổng số</div>',
+            '        <div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1;">' + total + '</div>',
+            '      </div>',
+            '    </div>',
+            '    <div style="font-size:.8rem;color:#64748b;">Thông báo tới cư dân</div>',
+            '  </div>',
+            '  <div class="card" style="padding:1rem 1.1rem;border-radius:18px;border:1px solid #e8edf6;box-shadow:none;min-height:104px;">',
+            '    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem;">',
+            '      <div style="width:42px;height:42px;border-radius:50%;background:#def7eb;color:#169a68;display:flex;align-items:center;justify-content:center;"><i class="fas fa-check"></i></div>',
+            '      <div style="flex:1;">',
+            '        <div style="font-size:.9rem;color:#64748b;">Đã gửi</div>',
+            '        <div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1;">' + sent + '</div>',
+            '      </div>',
+            '    </div>',
+            '    <div style="font-size:.8rem;color:#64748b;">Lượt nhận đã gửi</div>',
+            '  </div>',
+            '  <div class="card" style="padding:1rem 1.1rem;border-radius:18px;border:1px solid #e8edf6;box-shadow:none;min-height:104px;">',
+            '    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem;">',
+            '      <div style="width:42px;height:42px;border-radius:50%;background:#f1ebff;color:#7c3aed;display:flex;align-items:center;justify-content:center;"><i class="far fa-clock"></i></div>',
+            '      <div style="flex:1;">',
+            '        <div style="font-size:.9rem;color:#64748b;">Đã lên lịch</div>',
+            '        <div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1;">' + scheduled + '</div>',
+            '      </div>',
+            '    </div>',
+            '    <div style="font-size:.8rem;color:#64748b;">Đang chờ thời điểm gửi</div>',
+            '  </div>',
+            '  <div class="card" style="padding:1rem 1.1rem;border-radius:18px;border:1px solid #e8edf6;box-shadow:none;min-height:104px;">',
+            '    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem;">',
+            '      <div style="width:42px;height:42px;border-radius:50%;background:#fff2d6;color:#d97706;display:flex;align-items:center;justify-content:center;"><i class="far fa-file-lines"></i></div>',
+            '      <div style="flex:1;">',
+            '        <div style="font-size:.9rem;color:#64748b;">Bản nháp</div>',
+            '        <div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1;">' + draft + '</div>',
+            '      </div>',
+            '    </div>',
+            '    <div style="font-size:.8rem;color:#64748b;">Thông báo chưa gửi</div>',
+            '  </div>',
+            '  <div class="card" style="padding:1rem 1.1rem;border-radius:18px;border:1px solid #e8edf6;box-shadow:none;min-height:104px;">',
+            '    <div style="display:flex;align-items:center;gap:.8rem;margin-bottom:.75rem;">',
+            '      <div style="width:42px;height:42px;border-radius:50%;background:#eaf7ff;color:#0ea5e9;display:flex;align-items:center;justify-content:center;"><i class="fas fa-eye"></i></div>',
+            '      <div style="flex:1;">',
+            '        <div style="font-size:.9rem;color:#64748b;">Tỷ lệ đã đọc</div>',
+            '        <div style="font-size:2rem;font-weight:800;color:#0f172a;line-height:1;">' + readRate + '%</div>',
+            '      </div>',
+            '    </div>',
+            '    <div style="font-size:.8rem;color:#64748b;">' + sentReadCount + ' / ' + sentRecipientCount + ' lượt nhận đã đọc</div>',
+            '  </div>',
+            '</div>',
+            '<div id="notificationManagerFilters" style="display:flex;flex-wrap:wrap;align-items:center;gap:.75rem;margin-bottom:1rem;padding:0;">',
+            '  <div style="position:relative;flex:1;min-width:220px;">',
+            '    <i class="fas fa-magnifying-glass" style="position:absolute;left:1rem;top:50%;transform:translateY(-50%);color:#64748b;"></i>',
+            '    <input id="notificationManagerSearch" type="search" value="' + escapeHtml(notificationManagerState.search) + '" oninput="updateNotificationFilter(\'search\', this.value)" placeholder="Tìm theo tiêu đề hoặc nội dung..." style="width:100%;padding:.8rem 1rem .8rem 2.8rem;border:1px solid #dfe7f2;border-radius:12px;background:#fff;color:#0f172a;font:inherit;">',
+            '  </div>',
+            '  <select aria-label="Lọc theo trạng thái" onchange="updateNotificationFilter(\'statusFilter\', this.value)" style="padding:.8rem 1rem;border:1px solid #dfe7f2;border-radius:12px;background:#fff;color:#0f172a;min-width:160px;">',
+            '    <option value=""' + (!notificationManagerState.statusFilter ? ' selected' : '') + '>Tất cả trạng thái</option>',
+            '    <option value="sent"' + (notificationManagerState.statusFilter === 'sent' ? ' selected' : '') + '>Đã gửi</option>',
+            '    <option value="scheduled"' + (notificationManagerState.statusFilter === 'scheduled' ? ' selected' : '') + '>Đã lên lịch</option>',
+            '    <option value="draft"' + (notificationManagerState.statusFilter === 'draft' ? ' selected' : '') + '>Bản nháp</option>',
+            '  </select>',
+            '  <select aria-label="Lọc theo đối tượng nhận" onchange="updateNotificationFilter(\'audienceFilter\', this.value)" style="padding:.8rem 1rem;border:1px solid #dfe7f2;border-radius:12px;background:#fff;color:#0f172a;min-width:180px;">',
+            '    <option value=""' + (!notificationManagerState.audienceFilter ? ' selected' : '') + '>Tất cả đối tượng</option>',
+            '    <option value="all"' + (notificationManagerState.audienceFilter === 'all' ? ' selected' : '') + '>Tất cả cư dân</option>',
+            '    <option value="building"' + (notificationManagerState.audienceFilter === 'building' ? ' selected' : '') + '>Theo tòa nhà</option>',
+            '    <option value="apartment"' + (notificationManagerState.audienceFilter === 'apartment' ? ' selected' : '') + '>Theo căn hộ</option>',
+            '  </select>',
+            '  <select aria-label="Lọc theo thời gian gửi" onchange="updateNotificationFilter(\'daysFilter\', this.value)" style="padding:.8rem 1rem;border:1px solid #dfe7f2;border-radius:12px;background:#fff;color:#0f172a;min-width:160px;">',
+            '    <option value=""' + (!notificationManagerState.daysFilter ? ' selected' : '') + '>Thời gian gửi: Tất cả</option>',
+            '    <option value="7"' + (notificationManagerState.daysFilter === '7' ? ' selected' : '') + '>7 ngày gần đây</option>',
+            '    <option value="30"' + (notificationManagerState.daysFilter === '30' ? ' selected' : '') + '>30 ngày gần đây</option>',
+            '    <option value="90"' + (notificationManagerState.daysFilter === '90' ? ' selected' : '') + '>90 ngày gần đây</option>',
+            '  </select>',
+            '  <button type="button" class="notification-manager-reset" onclick="resetNotificationFilters()"><i class="fas fa-rotate-left"></i> Đặt lại</button>',
+            '</div>',
+            (notificationManagerState.createVisible ? createPanel : ''),
+            (notificationManagerState.historyVisible ? historyPanel : ''),
+            detailModal
+        ].join('');
+
+        if (!document.getElementById('notificationManagerStyles')) {
+            var styles = document.createElement('style');
+            styles.id = 'notificationManagerStyles';
+            styles.textContent = `
+                #notifications-tab.notification-manager-page { display:grid; gap:12px; }
+                .notification-manager-page-header { padding:14px 18px!important; border-radius:14px!important; background:#fff!important; box-shadow:0 6px 20px rgba(20,55,95,.045)!important; }
+                .notification-manager-page-header:hover,.notification-manager-history:hover { transform:none!important; }
+                .notification-manager-header-row { display:flex; align-items:center; justify-content:space-between; gap:16px; flex-wrap:wrap; }
+                .notification-manager-page-header h2 { font-size:1.15rem!important; letter-spacing:-.02em!important; }
+                .notification-manager-subtitle { margin-top:3px; color:#8394aa; font-size:.7rem; }
+                .notification-manager-page-header .notification-manager-filters { display:flex; align-items:center; justify-content:flex-end; flex:1 1 620px; gap:8px; margin:0!important; }
+                .notification-manager-page-header .notification-manager-filters > div { min-width:150px!important; flex:1 1 180px!important; }
+                .notification-manager-page-header .notification-manager-filters input,
+                .notification-manager-page-header .notification-manager-filters select,
+                .notification-manager-reset { min-height:40px; padding:0 12px!important; border:1px solid #e1e9f3!important; border-radius:9px!important; background:#fff!important; color:#334b69!important; font-size:.76rem!important; }
+                .notification-manager-page-header .notification-manager-filters select { min-width:0!important; width:100%; }
+                .notification-manager-reset { white-space:nowrap; cursor:pointer; }
+                .notification-manager-reset:hover,.notification-manager-more:hover { border-color:#9fc7fa!important; color:#1769e8!important; background:#f5f9ff!important; }
+                #notificationManagerStats { display:none!important; }
+                .notification-manager-history { overflow:hidden; padding:0!important; border:1px solid #e3ebf5!important; border-radius:13px!important; background:#fff!important; box-shadow:0 5px 18px rgba(20,55,95,.035)!important; }
+                .notification-manager-tabs { display:flex; align-items:stretch; gap:4px; min-height:48px; padding:0 16px; border-bottom:1px solid #e7edf5; }
+                .notification-manager-tabs button { display:inline-flex; align-items:center; gap:8px; padding:0 16px; border:0; border-bottom:2px solid transparent; background:transparent; color:#71839b; font-family:inherit; font-size:.78rem; font-weight:600; cursor:pointer; white-space:nowrap; }
+                .notification-manager-tabs button.active { border-bottom-color:#1683ff; color:#1769e8; }
+                .notification-manager-tabs button i { color:#8ea4bf; }
+                .notification-manager-tabs button.active i { color:#1683ff; }
+                .notification-manager-tabs button:nth-child(2) i { color:#20ad8b; }
+                .notification-manager-tabs button span { display:inline-grid; min-width:20px; height:20px; place-items:center; padding:0 5px; border-radius:99px; background:#f0f4f9; color:#63758e; font-size:.68rem; }
+                .notification-manager-table-wrap { border:0!important; border-radius:0!important; overflow-x:auto; }
+                .notification-manager-table { width:100%; min-width:850px!important; border-collapse:collapse; }
+                .notification-manager-table thead th { padding:10px 14px!important; background:#f2f7fc!important; color:#5d7594!important; font-size:.68rem!important; font-weight:700!important; letter-spacing:0!important; text-transform:none; white-space:nowrap; }
+                .notification-manager-table tbody td { padding:9px 14px!important; border-bottom:1px solid #edf1f6!important; color:#425872; font-size:.76rem; }
+                .notification-manager-table tbody tr { cursor:pointer; transition:background .15s ease; }
+                .notification-manager-table tbody tr:hover { background:#f8fbff; }
+                .notification-manager-table tbody tr:last-child td { border-bottom:0!important; }
+                .notification-manager-title-cell { display:flex; align-items:center; gap:11px; min-width:230px; }
+                .notification-manager-type-icon { display:grid; flex:0 0 38px; width:38px; height:38px; place-items:center; border-radius:10px; background:#eaf3ff; color:#1683ff; font-size:.9rem; }
+                .notification-manager-type-icon.type-request { background:#fff0ed; color:#e35a42; }
+                .notification-manager-type-icon.type-billing { background:#eaf4ff; color:#4487df; }
+                .notification-manager-type-icon.type-contract,.notification-manager-type-icon.type-utility { background:#f1edff; color:#8062d8; }
+                .notification-manager-title-cell strong { display:block; color:#263b56; font-size:.77rem; font-weight:700; }
+                .notification-manager-title-cell small,.notification-manager-date-sub { display:block; max-width:300px; margin-top:3px; overflow:hidden; color:#8a9ab0; font-size:.68rem; text-overflow:ellipsis; white-space:nowrap; }
+                .notification-manager-type { display:inline-block; padding:4px 8px; border-radius:5px; background:#eaf3ff; color:#3980d9; font-size:.65rem; font-weight:700; white-space:nowrap; }
+                .notification-manager-type.type-announcement { background:#f1edff; color:#8062d8; }
+                .notification-manager-type.type-request { background:#fff1e8; color:#d76536; }
+                .notification-manager-type.type-contract,.notification-manager-type.type-utility { background:#f1edff; color:#8062d8; }
+                .notification-manager-audience { display:inline-flex; align-items:center; gap:7px; white-space:nowrap; color:#536b88; }
+                .notification-manager-audience i { color:#8ba7c9; }
+                .notification-manager-status { display:inline-flex; align-items:center; gap:6px; padding:5px 9px; border-radius:99px; background:#e1f8f0; color:#159879; font-size:.68rem; font-weight:700; white-space:nowrap; }
+                .notification-manager-status.status-scheduled { background:#fff5df; color:#ad7415; }
+                .notification-manager-status.status-draft { background:#f1f4f8; color:#64748b; }
+                .notification-manager-date { color:#3f5877; font-size:.75rem; font-weight:600; white-space:nowrap; }
+                .notification-manager-date-sub { margin-top:1px; }
+                .notification-manager-more { display:grid; width:32px; height:32px; place-items:center; border:1px solid transparent; border-radius:8px; background:#f1f6fc; color:#55708f; cursor:pointer; }
+                .notification-manager-empty { padding:32px 14px!important; color:#8192a8!important; text-align:center; cursor:default; }
+                .notification-manager-pagination { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:10px 14px; border-top:1px solid #edf1f6; color:#71839b; font-size:.7rem; }
+                .notification-manager-pagination div { display:flex; align-items:center; gap:6px; }
+                .notification-manager-pagination button,.notification-manager-pagination .current { display:grid; width:30px; height:30px; place-items:center; border:1px solid #e1e9f3; border-radius:7px; background:#fff; color:#607894; }
+                .notification-manager-pagination button { cursor:pointer; }
+                .notification-manager-pagination button:disabled { opacity:.45; cursor:default; }
+                .notification-manager-pagination .current { border-color:#1683ff; background:#1683ff; color:#fff; }
+                @media(max-width:900px) { .notification-manager-page-header .notification-manager-filters { flex-basis:100%; justify-content:flex-start; } }
+                @media(max-width:600px) { .notification-manager-page-header { padding:12px!important; } .notification-manager-page-header .notification-manager-filters { display:grid; grid-template-columns:1fr 1fr; } .notification-manager-page-header .notification-manager-filters > div { min-width:0!important; } .notification-manager-page-header .notification-manager-filters > div:first-child { grid-column:1/-1; } .notification-manager-tabs { padding:0 6px; } .notification-manager-tabs button { padding:0 10px; font-size:.7rem; } }
+            `;
+            document.head.appendChild(styles);
+        }
+        root.classList.add('notification-manager-page');
+        var managerHeader = root.querySelector('.notification-manager-page-header');
+        var managerHeaderRow = managerHeader && managerHeader.firstElementChild;
+        var managerFilters = document.getElementById('notificationManagerFilters');
+        if (managerHeaderRow) managerHeaderRow.classList.add('notification-manager-header-row');
+        if (managerFilters && managerHeaderRow) {
+            managerFilters.classList.add('notification-manager-filters');
+            managerHeaderRow.appendChild(managerFilters);
+        }
+        updateNotificationAudienceOptions();
+    }
+
+    window.renderNotificationsManagerTab = renderNotificationsManagerTab;
+    window.updateNotificationAudienceOptions = updateNotificationAudienceOptions;
+    window.updateNotificationFilter = updateNotificationFilter;
+    window.submitManagerNotificationForm = submitManagerNotificationForm;
+    window.notificationManagerState = notificationManagerState;
+    window.showNotificationHistory = showNotificationHistory;
+    window.setNotificationListTab = setNotificationListTab;
+    window.resetNotificationFilters = resetNotificationFilters;
+    window.changeNotificationPage = changeNotificationPage;
+
+    function wrapSwitchTab() {
+        var original = window.switchTab;
+        if (!original || original.__residenthubNotificationWrapped) return;
+        window.switchTab = function (tabName, evt, filter) {
+            var result = original.apply(this, arguments);
+            if (tabName === 'notifications') {
+                window.renderNotificationsManagerTab && window.renderNotificationsManagerTab();
+            }
+            return result;
+        };
+        window.switchTab.__residenthubNotificationWrapped = true;
+    }
+
+    wrapSwitchTab();
+    window.addEventListener('storage', function (event) {
+        if (event.key === 'residenthub_internal_data') {
+            if (document.getElementById('notifications-tab') && document.getElementById('notifications-tab').style.display !== 'none') {
+                renderNotificationsManagerTab();
+            }
+        }
+    });
+    window.addEventListener('residenthub:data-changed', function () {
+        if (document.getElementById('notifications-tab') && document.getElementById('notifications-tab').style.display !== 'none') {
+            renderNotificationsManagerTab();
+        }
+    });
+})();
+</script>
 </body>
 </html>
-
