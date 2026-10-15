@@ -36,13 +36,15 @@ interface ApprovalToggleProps {
     size?: 'sm' | 'md';
     /** Text next to the switch; defaults to the current state ("Chưa duyệt" / "Đã duyệt"). */
     label?: string;
+    /** Read-only (no meters.approve permission): shows the state, cannot flip it. */
+    disabled?: boolean;
 }
 
 /**
  * Two-way approval control: a switch labelled with the current state.
  * Clicking flips "Chưa duyệt" ⇄ "Đã duyệt".
  */
-export function ApprovalToggle({ status, onToggle, subject, size = 'sm', label }: ApprovalToggleProps) {
+export function ApprovalToggle({ status, onToggle, subject, size = 'sm', label, disabled }: ApprovalToggleProps) {
     const approved = status === 'đã_duyệt';
     return (
         <button
@@ -50,10 +52,11 @@ export function ApprovalToggle({ status, onToggle, subject, size = 'sm', label }
             role="switch"
             aria-checked={approved}
             aria-label={'Trạng thái duyệt ' + subject}
-            title={approved ? 'Bấm để bỏ duyệt' : 'Bấm để duyệt'}
-            onClick={e => { e.stopPropagation(); onToggle(); }}
+            disabled={disabled}
+            title={disabled ? 'Bạn không có quyền duyệt chỉ số' : approved ? 'Bấm để bỏ duyệt' : 'Bấm để duyệt'}
+            onClick={e => { e.stopPropagation(); if (!disabled) onToggle(); }}
             className={cx(
-                'group inline-flex items-center gap-2 whitespace-nowrap rounded-full border font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300',
+                'group inline-flex items-center gap-2 whitespace-nowrap rounded-full border font-semibold transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-300 disabled:cursor-not-allowed disabled:opacity-60',
                 size === 'md' ? 'py-1 pl-1 pr-3 text-sm' : 'py-0.5 pl-0.5 pr-2.5 text-xs',
                 approved ? 'border-emerald-200 bg-emerald-50 text-emerald-700 hover:bg-emerald-100' : 'border-amber-200 bg-amber-50 text-amber-700 hover:bg-amber-100'
             )}

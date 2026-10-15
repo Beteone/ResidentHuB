@@ -50,6 +50,21 @@
         '.rh-ss-option mark{background:#fff1b8;border-radius:2px;color:inherit;padding:0}',
         '.rh-ss-empty{color:#94a3b8;font-size:.85rem;padding:1rem .75rem;text-align:center}',
         '.rh-ss-count{border-top:1px solid #edf2f7;color:#94a3b8;font-size:.72rem;padding:.35rem .75rem}',
+        '.rh-ss-create{border-top:1px solid #edf2f7;padding:.35rem}',
+        '.rh-ss-create-btn{align-items:center;background:none;border:0;border-radius:8px;color:#10213c;cursor:pointer;display:flex;font:inherit;font-size:.88rem;gap:.5rem;padding:.55rem .65rem;text-align:left;width:100%}',
+        '.rh-ss-create-btn:hover{background:#f1f7fd;color:#0d65d5}',
+        '.rh-ss-create-form{display:flex;gap:.4rem;padding:.15rem}',
+        '.rh-ss-create-form input{border:1px solid #1683ff;border-radius:8px;flex:1;font:inherit;font-size:.88rem;height:34px;min-width:0;outline:none;padding:0 .6rem}',
+        '.rh-ss-create-form button{background:#1683ff;border:0;border-radius:8px;color:#fff;cursor:pointer;font:inherit;font-size:.82rem;font-weight:600;padding:0 .75rem}',
+        '.rh-ss-create-error{color:#ef4444;font-size:.75rem;padding:.2rem .5rem 0}',
+        /* multi-select */
+        '.rh-ms .rh-ss-value{display:flex;flex-wrap:wrap;gap:.3rem}',
+        '.rh-ms-chip{align-items:center;background:#eaf3ff;border-radius:999px;color:#0d65d5;display:inline-flex;font-size:.78rem;font-weight:600;gap:.3rem;max-width:100%;padding:.15rem .55rem}',
+        '.rh-ms-chip span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}',
+        '.rh-ms .rh-ss-option{align-items:flex-start;display:flex;gap:.55rem}',
+        '.rh-ms .rh-ss-option input{accent-color:#1683ff;flex:0 0 auto;height:16px;margin-top:.15rem;pointer-events:none;width:16px}',
+        '.rh-ms-tools{border-top:1px solid #edf2f7;display:flex;justify-content:space-between;padding:.35rem .6rem}',
+        '.rh-ms-tools button{background:none;border:0;color:#1683ff;cursor:pointer;font:inherit;font-size:.78rem;font-weight:600}',
         /* dark variant — the landing-page signup modal */
         '.rh-ss--dark .rh-ss-trigger{background:rgba(255,255,255,.07);border-color:rgba(255,255,255,.15);color:#fff;min-height:44px}',
         '.rh-ss--dark .rh-ss-trigger:focus-visible,.rh-ss--dark.open .rh-ss-trigger{border-color:#00b4d8;box-shadow:0 0 0 3px rgba(0,180,216,.12)}',
@@ -136,6 +151,7 @@
             '<div class="rh-ss-search">' + ICON_SEARCH + '<input type="text" autocomplete="off" spellcheck="false" placeholder="' + escapeHtml(cfg.searchPlaceholder) + '"></div>' +
             '<ul class="rh-ss-list" role="listbox"></ul>' +
             '<div class="rh-ss-count" style="display:none"></div>' +
+            (cfg.create ? '<div class="rh-ss-create"></div>' : '') +
             '</div>';
         container.innerHTML = '';
         container.appendChild(root);
@@ -147,6 +163,45 @@
         var searchEl = root.querySelector('.rh-ss-search input');
         var listEl = root.querySelector('.rh-ss-list');
         var countEl = root.querySelector('.rh-ss-count');
+        var createEl = root.querySelector('.rh-ss-create');
+
+        // Optional "+ Thêm ..." footer (cfg.create = { label, onCreate(name) -> {ok, value, error} }).
+        // It expands into an inline input so a missing option can be added without leaving the form.
+        function renderCreate(editing) {
+            if (!createEl) return;
+            if (!editing) {
+                createEl.innerHTML = '<button type="button" class="rh-ss-create-btn"><span style="font-size:1.05rem;line-height:1;">+</span> ' + escapeHtml(cfg.create.label || 'Thêm mới') + '</button>';
+                return;
+            }
+            createEl.innerHTML = '<div class="rh-ss-create-form"><input type="text" maxlength="80" placeholder="' + escapeHtml(cfg.create.placeholder || 'Nhập tên') + '"><button type="button">Lưu</button></div><div class="rh-ss-create-error"></div>';
+            var input = createEl.querySelector('input');
+            input.value = searchEl.value.trim();
+            input.focus();
+            input.addEventListener('keydown', function (ev) {
+                if (ev.key === 'Enter') { ev.preventDefault(); submitCreate(); }
+                else if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); renderCreate(false); searchEl.focus(); }
+            });
+        }
+
+        function submitCreate() {
+            var input = createEl.querySelector('input');
+            var name = input ? input.value.trim() : '';
+            var errEl = createEl.querySelector('.rh-ss-create-error');
+            if (!name) { if (errEl) errEl.textContent = 'Vui lòng nhập tên.'; return; }
+            var res = cfg.create.onCreate(name) || {};
+            if (!res.ok) { if (errEl) errEl.textContent = res.error || 'Không thể thêm.'; return; }
+            readOptions();
+            commit(res.value);
+            close(true);
+        }
+
+        if (createEl) {
+            createEl.addEventListener('mousedown', function (ev) { if (ev.target.tagName !== 'INPUT') ev.preventDefault(); });
+            createEl.addEventListener('click', function (ev) {
+                if (ev.target.closest('.rh-ss-create-btn')) renderCreate(true);
+                else if (ev.target.closest('.rh-ss-create-form button')) submitCreate();
+            });
+        }
 
         function readOptions() {
             var raw = typeof cfg.options === 'function' ? cfg.options() : (cfg.options || []);
@@ -225,6 +280,7 @@
             searchEl.value = '';
             activeIndex = -1;
             renderList();
+            renderCreate(false);
             // Open upward when the field sits near the bottom of the viewport.
             var rect = trigger.getBoundingClientRect();
             var below = (global.innerHeight || document.documentElement.clientHeight) - rect.bottom;
@@ -306,11 +362,134 @@
         return api;
     }
 
+    // Searchable multi-select (e.g. "Tòa nhà phụ trách"). Same options() contract
+    // as create(); the value is an array of option values.
+    //   var f = RHSelect.createMulti(el, { options, values: [], placeholder, onChange(values) });
+    //   f.getValues() / setValues(arr) / setDisabled(b)
+    function createMulti(container, config) {
+        ensureStyles();
+        var cfg = Object.assign({ placeholder: '— Chọn —', searchPlaceholder: 'Tìm kiếm...', emptyText: 'Không tìm thấy kết quả', noOptionsText: 'Chưa có dữ liệu' }, config || {});
+        var values = (cfg.values || []).map(String);
+        var disabled = !!cfg.disabled;
+        var cache = [];
+        var filtered = [];
+
+        var root = document.createElement('div');
+        root.className = 'rh-ss rh-ms';
+        root.innerHTML =
+            '<button type="button" class="rh-ss-trigger" aria-haspopup="listbox" aria-expanded="false"' + (cfg.ariaLabel ? ' aria-label="' + escapeHtml(cfg.ariaLabel) + '"' : '') + '>' +
+            '<span class="rh-ss-value"></span><span class="rh-ss-icon rh-ss-chevron">' + ICON_CHEVRON + '</span></button>' +
+            '<div class="rh-ss-panel">' +
+            '<div class="rh-ss-search">' + ICON_SEARCH + '<input type="text" autocomplete="off" spellcheck="false" placeholder="' + escapeHtml(cfg.searchPlaceholder) + '"></div>' +
+            '<ul class="rh-ss-list" role="listbox" aria-multiselectable="true"></ul>' +
+            '<div class="rh-ms-tools"><button type="button" data-ms="all">Chọn tất cả</button><button type="button" data-ms="none">Bỏ chọn</button></div>' +
+            '</div>';
+        container.innerHTML = '';
+        container.appendChild(root);
+        var trigger = root.querySelector('.rh-ss-trigger');
+        var valueEl = root.querySelector('.rh-ss-value');
+        var searchEl = root.querySelector('.rh-ss-search input');
+        var listEl = root.querySelector('.rh-ss-list');
+
+        function readOptions() {
+            var raw = typeof cfg.options === 'function' ? cfg.options() : (cfg.options || []);
+            cache = (raw || []).map(function (o) {
+                return { value: String(o.value), label: String(o.label == null ? '' : o.label), sub: String(o.sub == null ? '' : o.sub), haystack: fold([o.label, o.sub].concat(o.keywords || []).join(' ')) };
+            });
+        }
+        function labelOf(v) {
+            for (var i = 0; i < cache.length; i++) if (cache[i].value === v) return cache[i].label;
+            return null;
+        }
+        function renderValue() {
+            var known = values.filter(function (v) { return labelOf(v) !== null; });
+            valueEl.innerHTML = known.length
+                ? known.map(function (v) { return '<span class="rh-ms-chip"><span>' + escapeHtml(labelOf(v)) + '</span></span>'; }).join('')
+                : '<span class="rh-ss-label rh-ss-placeholder">' + escapeHtml(cfg.placeholder) + '</span>';
+            root.classList.toggle('disabled', disabled);
+            trigger.disabled = disabled;
+        }
+        function renderList() {
+            var q = fold(searchEl.value.trim());
+            filtered = q ? cache.filter(function (o) { return o.haystack.indexOf(q) !== -1; }) : cache.slice();
+            listEl.innerHTML = filtered.length ? filtered.map(function (o, i) {
+                var on = values.indexOf(o.value) !== -1;
+                return '<li class="rh-ss-option' + (on ? ' selected' : '') + '" role="option" aria-selected="' + on + '" data-index="' + i + '">' +
+                    '<input type="checkbox" tabindex="-1"' + (on ? ' checked' : '') + '><span style="min-width:0;"><span class="rh-ss-label">' + highlight(o.label, q) + '</span>' +
+                    (o.sub ? '<span class="rh-ss-sub">' + highlight(o.sub, q) + '</span>' : '') + '</span></li>';
+            }).join('') : '<li class="rh-ss-empty">' + escapeHtml(cache.length ? cfg.emptyText : cfg.noOptionsText) + '</li>';
+        }
+        function emit() {
+            renderValue();
+            renderList();
+            if (typeof cfg.onChange === 'function') cfg.onChange(values.slice());
+        }
+        function open() {
+            if (disabled || root.classList.contains('open')) return;
+            if (openInstance && openInstance !== api) openInstance.close();
+            openInstance = api;
+            readOptions();
+            searchEl.value = '';
+            renderList();
+            var rect = trigger.getBoundingClientRect();
+            var below = (global.innerHeight || document.documentElement.clientHeight) - rect.bottom;
+            root.classList.toggle('up', below < 320 && rect.top > below);
+            root.classList.add('open');
+            trigger.setAttribute('aria-expanded', 'true');
+            searchEl.focus();
+        }
+        function close(focusTrigger) {
+            if (!root.classList.contains('open')) return;
+            root.classList.remove('open');
+            trigger.setAttribute('aria-expanded', 'false');
+            if (openInstance === api) openInstance = null;
+            if (focusTrigger) trigger.focus();
+        }
+
+        trigger.addEventListener('click', function () { root.classList.contains('open') ? close() : open(); });
+        searchEl.addEventListener('input', renderList);
+        searchEl.addEventListener('keydown', function (ev) { if (ev.key === 'Escape') { ev.preventDefault(); ev.stopPropagation(); close(true); } });
+        listEl.addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+        listEl.addEventListener('click', function (ev) {
+            var li = ev.target.closest('.rh-ss-option');
+            if (!li) return;
+            var opt = filtered[Number(li.getAttribute('data-index'))];
+            if (!opt) return;
+            var idx = values.indexOf(opt.value);
+            if (idx === -1) values.push(opt.value); else values.splice(idx, 1);
+            emit();
+        });
+        root.querySelector('.rh-ms-tools').addEventListener('mousedown', function (ev) { ev.preventDefault(); });
+        root.querySelector('.rh-ms-tools').addEventListener('click', function (ev) {
+            var btn = ev.target.closest('[data-ms]');
+            if (!btn) return;
+            // Acts on the filtered list, so "search + Chọn tất cả" selects just the matches.
+            filtered.forEach(function (o) {
+                var idx = values.indexOf(o.value);
+                if (btn.getAttribute('data-ms') === 'all' && idx === -1) values.push(o.value);
+                if (btn.getAttribute('data-ms') === 'none' && idx !== -1) values.splice(idx, 1);
+            });
+            emit();
+        });
+
+        var api = {
+            element: root,
+            getValues: function () { return values.filter(function (v) { return labelOf(v) !== null; }); },
+            setValues: function (arr) { values = (arr || []).map(String); readOptions(); renderValue(); },
+            setDisabled: function (b) { disabled = !!b; if (disabled) close(); renderValue(); },
+            close: close,
+            destroy: function () { close(); if (root.parentNode) root.parentNode.removeChild(root); }
+        };
+        readOptions();
+        renderValue();
+        return api;
+    }
+
     // One document-level listener closes whichever dropdown is open when the
     // user clicks anywhere outside it.
     document.addEventListener('mousedown', function (ev) {
         if (openInstance && !openInstance.element.contains(ev.target)) openInstance.close();
     });
 
-    global.RHSelect = { create: create, fold: fold };
+    global.RHSelect = { create: create, createMulti: createMulti, fold: fold };
 })(window);

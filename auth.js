@@ -3,7 +3,7 @@
  * No backend exists in this project, so accounts and sessions are persisted
  * in localStorage/sessionStorage. This is the single source of truth for
  * users and roles used by: the landing page login/signup modals, the
- * manager dashboard's "Tài khoản" screen, and the
+ * manager dashboard's Settings > "Quản lý tài khoản" screen, and the
  * access guards on the manager/resident pages.
  */
 (function (global) {
@@ -239,49 +239,169 @@
         return { ok: true, item: userData.notifications[index] };
     }
 
-    // Resident login accounts a manager-side RHD record (contract / invoice /
-    // support request) belongs to. residentId (== record.customerId) is the
-    // identity link; the apartment match is only for legacy accounts that were
-    // linked by apartment before residentId existed.
-    function usersForManagerRecord(record) {
-        // Demo Mode records are sandboxed sample data — never notify real accounts.
-        if (!record || (global.RHD && global.RHD.mode() === 'demo')) return [];
-        var normalize = function (value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, ''); };
-        var apartment = (record.apartmentId && global.RHD) ? global.RHD.get('apartments', record.apartmentId) : null;
-        return readUsers().filter(function (user) {
-            if (user.role !== ROLES.RESIDENT) return false;
-            if (record.userId && user.id === record.userId) return true;
-            if (user.residentId) return !!record.customerId && user.residentId === record.customerId;
-            if (record.residentEmail && normalizeEmail(record.residentEmail) === user.email) return true;
-            return !!apartment && (user.apartmentId === apartment.id || normalize(apartment.name) === normalize(user.unit));
-        });
+    function managerStore(store) {
+        if (global.RHD && typeof global.RHD.list === 'function') {
+            return global.RHD.list(store) || [];
+        }
+        try {
+            var mode = global.RHDB_MODE || 'live';
+            var raw = localStorage.getItem('rh_db_' + mode + '_' + store);
+            return raw ? JSON.parse(raw) : [];
+        } catch (e) {
+            return [];
+        }
     }
 
-    // Contracts/invoices live only in RHD (data.js) and the resident page reads
-    // them from there by residentId — this just notifies the linked account(s).
-    // It deliberately does not copy the record into the per-user store, which
-    // would be a second, drifting copy of manager data.
-    function residentNotifySetting(name) {
-        return !global.RHD || global.RHD.getSettings()[name] !== false;
+    function usersForManagerRecord(record) {
+        if (!record) return [];
+        if (global.RHD && typeof global.RHD.mode === 'function' && global.RHD.mode() === 'demo') return [];
+        var customers = managerStore('customers');
+        var customer = customers.filter(function (item) { return item.id === record.customerId; })[0];
+        var apartments = managerStore('apartments');
+        var apartment = apartments.filter(function (item) { return item.id === record.apartmentId; })[0];
+        var normalize = function (value) { return String(value || '').toLowerCase().replace(/[^a-z0-9]/g, ''); };
+        var users = readUsers();
+        var buildings = managerStore('buildings');
+        var building = apartment && buildings.filter(function (item) { return item.id === apartment.buildingId; })[0];
+        var legacyUnitUsers = [];
+        if (apartment && !apartments.some(function (item) { return item.id !== apartment.id && normalize(item.name) === normalize(apartment.name); })) {
+            legacyUnitUsers = users.filter(function (user) {
+                if (user.role !== ROLES.RESIDENT || user.apartmentId || normalize(user.unit) !== normalize(apartment.name)) return false;
+                if (user.building && [apartment.buildingId, building && building.shortName, building && building.name].every(function (value) { return normalize(value) !== normalize(user.building); })) return false;
+                return true;
+            });
+            if (legacyUnitUsers.length !== 1) legacyUnitUsers = [];
+        }
+        return users.filter(function (user) {
+            if (user.role !== ROLES.RESIDENT) return false;
+            if (record.userId && user.id === record.userId) return true;
+            if (user.apartmentId && record.apartmentId && user.apartmentId !== record.apartmentId) return false;
+            if (customer && ((customer.userId && user.id === customer.userId) || (user.residentId && user.residentId === customer.id))) return true;
+            if (user.apartmentId && record.apartmentId && user.apartmentId === record.apartmentId) return true;
+            if (customer && customer.email && user.email && customer.email.toLowerCase() === user.email.toLowerCase()) return true;
+            return legacyUnitUsers.indexOf(user) !== -1;
+        });
     }
 
     function syncManagerRecord(record, kind) {
-        // Cài đặt > Thông báo can switch these in-app notifications off.
-        if (!residentNotifySetting(kind === 'contract' ? 'notifyContract' : 'notifyInvoice')) return { ok: true, count: 0 };
         var targets = usersForManagerRecord(record);
         targets.forEach(function (user) {
-            createNotificationForUser(user.id, {
-                type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
-                subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
-                title: kind === 'contract' ? 'Hợp đồng đã được cập nhật' : 'Hóa đơn mới đã được cập nhật',
-                body: kind === 'contract' ? 'Ban quản lý đã cập nhật hợp đồng của bạn.' : 'Ban quản lý đã tạo hoặc cập nhật hóa đơn của bạn.',
-                refType: kind === 'contract' ? 'contract' : 'invoice',
-                refId: record.id,
-                actionUrl: kind === 'contract' ? 'contracts' : 'invoices',
-                actionLabel: kind === 'contract' ? 'Xem hợp đồng' : 'Xem hóa đơn'
-            });
+            var collection = kind === 'contract' ? 'contracts' : 'invoices';
+            var existing = getUserData(user.id)[collection].filter(function (item) {
+                return item.managerRecordId === record.id || item.id === record.id;
+            })[0];
+            var data = readDataStore();
+            var userData = data.users[user.id] || ensureUserContainer(user.id);
+            userData[collection] = Array.isArray(userData[collection]) ? userData[collection] : [];
+            var mapped = Object.assign({}, record, { managerRecordId: record.id, userId: user.id });
+            var changed = !existing || JSON.stringify(existing) !== JSON.stringify(mapped);
+            if (existing) {
+                userData[collection] = userData[collection].map(function (item) { return item.id === existing.id ? Object.assign({}, item, mapped) : item; });
+            } else {
+                userData[collection].unshift(mapped);
+            }
+            data.users[user.id] = userData;
+            writeDataStore(data);
+            if (changed) {
+                createNotificationForUser(user.id, {
+                    type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
+                    subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
+                    title: kind === 'contract' ? 'Hợp đồng đã được cập nhật' : 'Hóa đơn mới đã được cập nhật',
+                    body: kind === 'contract' ? 'Ban quản lý đã cập nhật hợp đồng của bạn.' : 'Ban quản lý đã tạo hoặc cập nhật hóa đơn của bạn.',
+                    refType: kind === 'contract' ? 'contract' : 'invoice',
+                    refId: record.id,
+                    actionUrl: kind === 'contract' ? 'contracts' : 'invoices',
+                    actionLabel: kind === 'contract' ? 'Xem hợp đồng' : 'Xem hóa đơn'
+                });
+            }
         });
         return { ok: true, count: targets.length };
+    }
+
+    function syncResidentApartmentRecords(user) {
+        if (!user || user.role !== ROLES.RESIDENT || !user.apartmentId || !global.RHD || global.RHD.mode() === 'demo') return;
+        var contracts = managerStore('contracts').filter(function (contract) {
+            return contract.apartmentId === user.apartmentId && contract.status !== 'ended' && contract.status !== 'terminated' && contract.status !== 'expired';
+        });
+        contracts.sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+        if (!contracts.length && user.residentId && global.RHD) {
+            var apartment = global.RHD.get('apartments', user.apartmentId);
+            var building = apartment && global.RHD.get('buildings', apartment.buildingId);
+            var customer = global.RHD.get('customers', user.residentId);
+            if (apartment && customer) {
+                var start = new Date();
+                var startDate = [start.getFullYear(), String(start.getMonth() + 1).padStart(2, '0'), String(start.getDate()).padStart(2, '0')].join('-');
+                var end = new Date(start.getFullYear(), start.getMonth(), start.getDate());
+                end.setFullYear(end.getFullYear() + 1);
+                var endDate = [end.getFullYear(), String(end.getMonth() + 1).padStart(2, '0'), String(end.getDate()).padStart(2, '0')].join('-');
+                var draft = global.RHD.create('contracts', {
+                    code: global.RHD.nextContractCode && building ? global.RHD.nextContractCode(building, apartment) : 'HD-' + Date.now(),
+                    buildingId: apartment.buildingId,
+                    apartmentId: apartment.id,
+                    customerId: customer.id,
+                    startDate: startDate,
+                    endDate: endDate,
+                    signDate: '',
+                    noticeDays: 30,
+                    rentPrice: Number(apartment.rentPrice) || 0,
+                    depositPrice: Number(apartment.depositPrice) || 0,
+                    paymentCycle: 'monthly',
+                    files: [],
+                    status: 'draft',
+                    note: 'Bản nháp được tạo khi duyệt tài khoản cư dân; ban quản lý cần rà soát và xác nhận trước khi ký.'
+                });
+                if (draft && draft.ok) contracts.push(draft.item);
+            }
+        }
+        if (!contracts.length) return;
+        var customerContracts = user.residentId ? contracts.filter(function (contract) { return contract.customerId === user.residentId; }) : [];
+        var currentContract = customerContracts[0] || contracts[0];
+        var linkedContracts = contracts.filter(function (contract) { return contract.customerId === currentContract.customerId; });
+        var linkedContractIds = {};
+        linkedContracts.forEach(function (contract) { linkedContractIds[contract.id] = true; });
+        var invoices = managerStore('invoices').filter(function (invoice) {
+            if (invoice.apartmentId !== user.apartmentId) return false;
+            if (invoice.contractId) return !!linkedContractIds[invoice.contractId];
+            return invoice.customerId === currentContract.customerId;
+        });
+        var linkedInvoiceIds = {};
+        invoices.forEach(function (invoice) { linkedInvoiceIds[invoice.id] = true; });
+        var data = readDataStore();
+        var userData = data.users && data.users[user.id];
+        if (userData) {
+            ['contracts', 'invoices'].forEach(function (collection) {
+                var allowed = collection === 'contracts' ? linkedContractIds : linkedInvoiceIds;
+                userData[collection] = (userData[collection] || []).filter(function (record) {
+                    return !record.managerRecordId || !!allowed[record.managerRecordId];
+                });
+            });
+            data.users[user.id] = userData;
+            writeDataStore(data);
+        }
+        linkedContracts.forEach(function (contract) { syncManagerRecord(contract, 'contract'); });
+        invoices.forEach(function (invoice) { syncManagerRecord(invoice, 'invoice'); });
+    }
+
+    function removeManagerRecord(record, kind) {
+        if (!record) return { ok: false, count: 0 };
+        var collection = kind === 'contract' ? 'contracts' : 'invoices';
+        var removed = 0;
+        usersForManagerRecord(record).forEach(function (user) {
+            var data = readDataStore();
+            var userData = data.users && data.users[user.id];
+            if (!userData || !Array.isArray(userData[collection])) return;
+            var records = userData[collection];
+            userData[collection] = records.filter(function (item) {
+                var matches = item.managerRecordId === record.id || item.id === record.id;
+                if (matches) removed++;
+                return !matches;
+            });
+            if (userData[collection].length !== records.length) {
+                data.users[user.id] = userData;
+                writeDataStore(data);
+            }
+        });
+        return { ok: true, count: removed };
     }
 
     function syncManagerNotification(record) {
@@ -372,24 +492,7 @@
         return normalized.id && normalized.email && normalized.password ? normalized : null;
     }
 
-    // Earlier builds seeded a mock resident login (u-resident-1 /
-    // resident@residenthub.vn). Remove it from browsers that still have it.
-    function purgeLegacyMockResident() {
-        var users = readUsers();
-        var next = users.filter(function (u) {
-            return !(u.role === ROLES.RESIDENT && (u.id === 'u-resident-1' || u.email === 'resident@residenthub.vn'));
-        });
-        if (next.length === users.length) return;
-        writeUsers(next);
-        var data = readDataStore();
-        if (data.users && data.users['u-resident-1']) {
-            delete data.users['u-resident-1'];
-            localStorage.setItem(DATA_KEY, JSON.stringify(data));
-        }
-    }
-
     function seedIfEmpty() {
-        purgeLegacyMockResident();
         var users = readUsers();
         if (users.length > 0) return;
         // No seeded resident login account: residents only ever get an active
@@ -465,6 +568,7 @@
         var users = readUsers();
         users.push(user);
         writeUsers(users);
+        syncResidentApartmentRecords(user);
         return { ok: true, user: user };
     }
 
@@ -497,11 +601,12 @@
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
         if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
-        if (patch.status !== undefined) user.status = patch.status === 'locked' ? 'locked' : 'active';
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
         writeUsers(users);
+
+        syncResidentApartmentRecords(user);
 
         var session = getSession();
         if (session && session.id === id) {
@@ -688,11 +793,8 @@
         if (!buildingId || !apartmentId) {
             return { ok: false, error: 'Vui lòng chọn tòa nhà và căn hộ.' };
         }
-        if (global.RHD) {
-            var chosenApartment = global.RHD.get('apartments', apartmentId);
-            if (!global.RHD.get('buildings', buildingId) || !chosenApartment || chosenApartment.buildingId !== buildingId) {
-                return { ok: false, error: 'Căn hộ đã chọn không hợp lệ. Vui lòng chọn lại.' };
-            }
+        if (global.RHD && !global.RHD.get('apartments', apartmentId)) {
+            return { ok: false, error: 'Căn hộ đã chọn không hợp lệ. Vui lòng chọn lại.' };
         }
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
@@ -759,24 +861,12 @@
         if (!residentId) {
             return { ok: false, error: 'Vui lòng liên kết một hồ sơ cư dân trước khi phê duyệt.' };
         }
-        if (global.RHD && !global.RHD.get('customers', residentId)) {
-            return { ok: false, error: 'Hồ sơ cư dân đã chọn không còn tồn tại. Vui lòng chọn lại.' };
-        }
         var conflictingUser = readUsers().filter(function (u) { return u.role === ROLES.RESIDENT && u.residentId === residentId; })[0];
         if (conflictingUser) {
             return { ok: false, error: 'Hồ sơ cư dân này đã được liên kết với một tài khoản khác (' + conflictingUser.email + ').' };
         }
 
-        // Building/Apartment come from the manager's data: the linked Resident
-        // Profile's active contract if there is one, else the apartment the
-        // resident picked (from the same RHD dropdown) when registering.
-        var linkedContract = null;
-        if (global.RHD) {
-            linkedContract = global.RHD.list('contracts').filter(function (c) { return c.customerId === residentId && c.status !== 'ended'; })
-                .sort(function (a, b) { return b.createdAt - a.createdAt; })[0] || null;
-        }
-        var apartmentId = (linkedContract && linkedContract.apartmentId) || request.apartmentId;
-        var apartment = global.RHD ? global.RHD.get('apartments', apartmentId) : null;
+        var apartment = global.RHD ? global.RHD.get('apartments', request.apartmentId) : null;
         var building = (apartment && global.RHD) ? global.RHD.get('buildings', apartment.buildingId) : null;
 
         var userResult = createUser({
@@ -785,7 +875,7 @@
             password: request.password,
             role: ROLES.RESIDENT,
             unit: apartment ? apartment.name : '',
-            apartmentId: apartmentId,
+            apartmentId: request.apartmentId,
             building: building ? (building.shortName || building.name) : '',
             residentId: residentId
         });
@@ -800,7 +890,7 @@
         });
         writeAccountRequests(requests);
 
-        if (residentNotifySetting('notifyAccountApproved')) createNotificationForUser(userResult.user.id, {
+        createNotificationForUser(userResult.user.id, {
             type: 'ANNOUNCEMENT',
             subType: 'ACCOUNT_APPROVED',
             title: 'Tài khoản của bạn đã được phê duyệt',
@@ -879,7 +969,7 @@
             if (!raw) return null;
             var session = JSON.parse(raw);
             var user = readUsers().filter(function (item) { return item.id === session.id; })[0];
-            if (!user || user.status === 'locked') {
+            if (!user) {
                 logout();
                 return null;
             }
@@ -950,6 +1040,7 @@
         createContractForUser: createContractForUser,
         createInvoiceForUser: createInvoiceForUser,
         syncManagerRecord: syncManagerRecord,
+        removeManagerRecord: removeManagerRecord,
         syncManagerNotification: syncManagerNotification,
         updateNotificationForUser: updateNotificationForUser,
         updateRequestForUser: updateRequestForUser,

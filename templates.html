@@ -9,7 +9,11 @@
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
 <script src="auth.js"></script>
+<script src="permissions.js"></script>
 <script src="templates.js"></script>
+<script src="data.js"></script>
+<script src="contract-documents.js"></script>
+<script src="searchable-select.js"></script>
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 :root{--bg-soft:#f5f8fc;--surface:#fff;--ink:#10213c;--muted:#61708a;--primary:#1683ff;--primary-strong:#0d65d5;--line:#e4eaf2;--success:#18a878;--warning:#d6a85f;--danger:#ef4444}
@@ -75,6 +79,7 @@ body{background:linear-gradient(180deg,#f7f9fc 0%,#edf3fb 100%);color:var(--ink)
     .rh-print-area.paper-thermal{width:80mm;font-size:11px}
 }
 </style>
+<link rel="stylesheet" href="document-editor.css">
 </head>
 <body>
 <script>
@@ -83,6 +88,8 @@ body{background:linear-gradient(180deg,#f7f9fc 0%,#edf3fb 100%);color:var(--ink)
         ? { id: 'demo', name: 'Khách demo', email: '', role: 'manager', unit: '', demo: true }
         : RH.requireRole('manager');
     window.RHD_MODE = RH_IS_DEMO ? 'demo' : 'live';
+    // Page-level permission (Loại tài khoản > Biểu mẫu > Xem).
+    if (RH_SESSION && !RHP.can('templates.view')) window.location.replace('dashboard.html?denied=templates');
     RHT.seed();
 </script>
 
@@ -194,54 +201,23 @@ function previewTemplate(id) {
         '<div class="rh-print-area">' + rendered + '</div>' +
         '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
         '<button type="button" class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> In / Tải PDF</button>' +
-        (tpl.type === 'INVOICE' ? '<button type="button" onclick="setDefaultTemplate(\'' + tpl.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đặt làm mặc định</button>' : '') +
+        (canTpl('update') ? '<button type="button" onclick="setDefaultTemplate(\'' + tpl.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đặt làm mặc định</button>' : '') +
         '<button type="button" onclick="closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Đóng</button>' +
         '</div>';
     openDrawer('Xem trước — ' + tpl.name, html);
 }
 
-function editTemplate(id) {
-    var tpl = RHT.get(id);
-    if (!tpl) return;
-    var varsHtml = tpl.metadata.variables.map(function (v) { return '<span class="var-chip">{{' + v + '}}</span>'; }).join('');
-    var html = '<form onsubmit="saveTemplate(event,\'' + tpl.id + '\')">' +
-        '<div class="rh-field"><label>Tên mẫu</label><input id="tplName" value="' + escapeHtml(tpl.name) + '" required></div>' +
-        '<div class="rh-section"><div class="rh-section-title">Biến khả dụng trong mẫu này</div><div>' + varsHtml + '</div></div>' +
-        '<div class="rh-section"><div class="rh-section-title">Nội dung mẫu (HTML)</div>' +
-        '<textarea id="tplHtml" rows="16">' + escapeHtml(tpl.html_template) + '</textarea>' +
-        '<p style="color:#94a3b8;font-size:.75rem;margin-top:.4rem;">Dùng cú pháp <code>{{ten_bien}}</code> để chèn dữ liệu động. ' + (tpl.is_system ? 'Đây là mẫu hệ thống — lưu thay đổi sẽ tạo bản tuỳ chỉnh riêng, không ảnh hưởng mẫu gốc.' : '') + '</p></div>' +
-        '<div id="tplError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
-        '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
-        '<button type="submit" class="btn-primary">Lưu mẫu</button>' +
-        '<button type="button" onclick="closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.1rem;font:inherit;cursor:pointer;">Huỷ</button>' +
-        '</div></form>';
-    openDrawer((tpl.is_system ? 'Tuỳ chỉnh mẫu (hệ thống)' : 'Chỉnh sửa mẫu') + ' — ' + tpl.name, html);
-}
-
-function saveTemplate(ev, id) {
-    ev.preventDefault();
-    var tpl = RHT.get(id);
-    var name = byId('tplName').value.trim();
-    var htmlContent = byId('tplHtml').value;
-    var res;
-    if (tpl.is_system) {
-        res = RHT.clone(id);
-        if (res.ok) res = RHT.update(res.item.id, { name: name, html_template: htmlContent, is_system_default: false });
-    } else {
-        res = RHT.update(id, { name: name, html_template: htmlContent });
-    }
-    if (!res.ok) { byId('tplError').textContent = res.error; return; }
-    closeDrawer();
-    renderContractTab(); renderInvoiceTab();
-}
+function canTpl(action) { return RHP.can('templates.' + action); }
 
 function cloneTemplate(id) {
+    if (!RHP.guard('templates.create')) return;
     var res = RHT.clone(id);
     if (!res.ok) { alert(res.error); return; }
     renderContractTab(); renderInvoiceTab();
 }
 
 function deleteTemplateAction(id) {
+    if (!RHP.guard('templates.delete')) return;
     if (!confirm('Xoá mẫu này? Hành động không thể hoàn tác.')) return;
     var res = RHT.remove(id);
     if (!res.ok) { alert(res.error); return; }
@@ -249,24 +225,25 @@ function deleteTemplateAction(id) {
 }
 
 function setDefaultTemplate(id) {
+    if (!RHP.guard('templates.update')) return;
     RHT.setDefault(id);
     closeDrawer();
     renderContractTab(); renderInvoiceTab();
 }
 
 function templateCardHtml(tpl) {
-    var badges = '<span class="badge-pill badge-category">' + escapeHtml(tpl.category) + '</span>' +
+    var badges = '<span class="badge-pill badge-category">' + escapeHtml(tpl.category || (RHT.groups.find(function(g){return g.id===RHT.groupOf(tpl);})||{}).label || 'Tùy chỉnh') + '</span>' +
         (tpl.is_system_default ? '<span class="badge-pill badge-default"><i class="fas fa-star"></i> Mặc định</span>' : '') +
-        (tpl.is_system ? '<span class="badge-pill badge-system">Hệ thống</span>' : '<span class="badge-pill badge-system">Tuỳ chỉnh</span>');
+        (tpl.is_system ? '<span class="badge-pill badge-system">Hệ thống</span>' : '<span class="badge-pill badge-system">Tuỳ chỉnh · v' + (tpl.version || 1) + '</span>') + '<span class="badge-pill">' + escapeHtml(tpl.buildingId ? (RHD.get('buildings', tpl.buildingId) || {}).name || tpl.buildingId : 'Toàn hệ thống') + ' · ' + (tpl.status === 'archived' ? 'Ngừng áp dụng' : 'Đang dùng') + ' · ' + new Date(tpl.updatedAt || tpl.createdAt).toLocaleDateString('vi-VN') + '</span>';
     return '<article class="tpl-card">' +
         '<div class="tpl-card-top"><h3>' + escapeHtml(tpl.name) + '</h3></div>' +
         '<div class="tpl-badges">' + badges + '</div>' +
         '<div class="tpl-actions">' +
         '<button onclick="previewTemplate(\'' + tpl.id + '\')"><i class="fas fa-eye"></i> Xem trước</button>' +
-        '<button onclick="editTemplate(\'' + tpl.id + '\')"><i class="fas fa-pen"></i> ' + (tpl.is_system ? 'Tuỳ chỉnh' : 'Chỉnh sửa') + '</button>' +
-        '<button onclick="cloneTemplate(\'' + tpl.id + '\')"><i class="fas fa-clone"></i> Nhân bản</button>' +
-        (tpl.type === 'INVOICE' && !tpl.is_system_default ? '<button onclick="setDefaultTemplate(\'' + tpl.id + '\')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '') +
-        (!tpl.is_system ? '<button class="danger" onclick="deleteTemplateAction(\'' + tpl.id + '\')"><i class="fas fa-trash"></i> Xoá</button>' : '') +
+        ((tpl.is_system ? canTpl('create') : canTpl('update')) ? '<button onclick="editTemplate(\'' + tpl.id + '\')"><i class="fas fa-pen"></i> ' + (tpl.is_system ? 'Tuỳ chỉnh' : 'Chỉnh sửa') + '</button>' : '') +
+        (canTpl('create') ? '<button onclick="cloneTemplate(\'' + tpl.id + '\')"><i class="fas fa-clone"></i> Nhân bản</button>' : '') +
+        (!tpl.is_system_default && canTpl('update') ? '<button onclick="setDefaultTemplate(\'' + tpl.id + '\')"><i class="fas fa-star"></i> Đặt mặc định</button>' : '') +
+        (!tpl.is_system && canTpl('delete') ? '<button class="danger" onclick="deleteTemplateAction(\'' + tpl.id + '\')"><i class="fas fa-trash"></i> Xoá</button>' : '') +
         '</div></article>';
 }
 
@@ -297,5 +274,8 @@ function setInvoiceFilter(cat) { invoiceFilter = cat; renderInvoiceTab(); }
 
 renderContractTab();
 </script>
+<script src="table-tools.js"></script>
+<script src="template-editor.js"></script>
+<script src="template-library.js"></script>
 </body>
 </html>

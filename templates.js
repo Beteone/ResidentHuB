@@ -256,20 +256,39 @@
         for (var i = 0; i < all.length; i++) if (all[i].id === id) return all[i];
         return null;
     }
+    var GROUPS=[{id:'lease',label:'Hợp đồng thuê'},{id:'deposit',label:'Hợp đồng đặt cọc'},{id:'handover',label:'Biên bản bàn giao'},{id:'vouchers',label:'Hóa đơn & Chứng từ'},{id:'other',label:'Biểu mẫu khác'}];
+    function groupOf(t){if(GROUPS.some(function(g){return g.id===t.groupId;}))return t.groupId;var name=(t.name||'').toLocaleLowerCase('vi'),code=t.code||'';if(/bàn giao|handover/.test(name+' '+code))return 'handover';if(/thanh lý|liquidat|settlement/.test(name+' '+code))return 'lease';if(/đặt cọc|biên nhận cọc|deposit/.test(name+' '+code)||t.category==='Đặt cọc')return 'deposit';if(/hợp đồng thuê|phụ lục gia hạn|contract_standard|contract_extension/.test(name+' '+code)||t.is_system&&t.type==='CONTRACT')return 'lease';if(t.type==='INVOICE')return 'vouchers';return 'other';}
+    function create(patch){
+        if(!global.RHP||!global.RHP.can('templates.create'))return {ok:false,error:'Bạn không có quyền tạo biểu mẫu.'};
+        if(!String(patch.name||'').trim()||['CONTRACT','INVOICE'].indexOf(patch.type)<0)return {ok:false,error:'Nhập tên mẫu và chọn nghiệp vụ sử dụng.'};
+        var html=sanitize(patch.html_template||'<div class="doc"><p>Nhập nội dung biểu mẫu tại đây.</p></div>'),now=Date.now();
+        var record={id:genId('tpl-custom'),name:String(patch.name).trim(),type:patch.type,groupId:patch.groupId||'other',description:String(patch.description||''),html_template:html,metadata:{variables:extractVariables(html)},is_system:false,is_system_default:false,version:1,status:'active',createdAt:now,updatedAt:now,history:[],originalFile:patch.originalFile||null};
+        var all=readAll();all.push(record);try{writeAll(all);}catch(_){return {ok:false,error:'Không đủ bộ nhớ để lưu mẫu và file gốc. Hãy chọn file nhỏ hơn hoặc giải phóng bộ nhớ trình duyệt.'};}return {ok:true,item:record};
+    }
+    function moveGroup(id,groupId){if(!global.RHP||!global.RHP.can('templates.update'))return {ok:false,error:'Bạn không có quyền phân nhóm biểu mẫu.'};if(!GROUPS.some(function(g){return g.id===groupId;}))return {ok:false,error:'Nhóm biểu mẫu không hợp lệ.'};var rows=readAll(),target=rows.filter(function(t){return t.id===id;})[0];if(!target)return {ok:false,error:'Không tìm thấy mẫu.'};target.groupId=groupId;writeAll(rows);return {ok:true,item:target};}
 
-    function getDefault(type) {
-        var items = list(type);
+    function getDefault(type, buildingId) {
+        var items = list(type).filter(function (t) { return t.status !== 'archived' && (!t.buildingId || t.buildingId === buildingId); });
+        var scoped = items.filter(function (t) { return t.defaultBuildingIds && t.defaultBuildingIds.indexOf(buildingId) !== -1; })[0];
+        if (scoped) return scoped;
         return items.filter(function (t) { return t.is_system_default; })[0] || items[0] || null;
     }
 
-    function clone(id) {
+    function clone(id, asVersion, patch) {
+        if (!global.RHP || !global.RHP.can('templates.create')) return { ok:false,error:'Bạn không có quyền tạo biểu mẫu.' };
         var src = get(id);
         if (!src) return { ok: false, error: 'Không tìm thấy mẫu.' };
         var all = readAll();
         var copy = Object.assign({}, src, {
             id: genId(src.code), name: src.name + ' (bản sao)', is_system_default: false,
-            is_system: false, createdAt: Date.now()
+            is_system: false, createdAt: Date.now(), updatedAt: Date.now(), version: asVersion ? src.version || 1 : 1, parentId: src.id, rootId: src.rootId || src.id, status: 'active', defaultBuildingIds: [], history: []
         });
+        if (patch) {
+            ['name','buildingId','status','groupId','description'].forEach(function(key){if(patch[key]!==undefined)copy[key]=patch[key];});
+            if(patch.html_template!==undefined)copy.html_template=sanitize(patch.html_template);
+            copy.version=asVersion?(src.version||1)+1:1;
+            copy.metadata={variables:extractVariables(copy.html_template)};
+        }
         all.push(copy);
         writeAll(all);
         return { ok: true, item: copy };
@@ -280,14 +299,23 @@
         var idx = -1;
         for (var i = 0; i < all.length; i++) if (all[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy mẫu.' };
-        var next = Object.assign({}, all[idx], patch, { id: all[idx].id });
-        if (patch.html_template) next.metadata = { variables: extractVariables(patch.html_template) };
+        if (!global.RHP || !global.RHP.can('templates.update')) return { ok:false,error:'Bạn không có quyền sửa biểu mẫu.' };
+        if (all[idx].is_system) return { ok:false,error:'Mẫu gốc chỉ đọc. Hãy tạo bản sao để tùy chỉnh.' };
+        if (global.RHDocuments) global.RHDocuments.freezeLegacy(id);
+        var allowed = {};
+        ['name','html_template','buildingId','status','groupId','description'].forEach(function (key) { if (patch[key] !== undefined) allowed[key] = patch[key]; });
+        if (allowed.html_template !== undefined) allowed.html_template = sanitize(allowed.html_template);
+        var previous = Object.assign({}, all[idx]); delete previous.history;
+        if(previous.originalFile){delete previous.originalFile;previous.originalFileTemplateId=all[idx].id;}
+        var next = Object.assign({}, all[idx], allowed, { id: all[idx].id, version:(all[idx].version || 1) + 1, updatedAt:Date.now(), history:(all[idx].history || []).concat([previous]) });
+        if (allowed.html_template !== undefined) next.metadata = { variables: extractVariables(allowed.html_template) };
         all[idx] = next;
-        writeAll(all);
+        try{writeAll(all);}catch(_){return {ok:false,error:'Không đủ bộ nhớ để lưu phiên bản. Nội dung đang soạn vẫn được giữ trong editor.'};}
         return { ok: true, item: next };
     }
 
     function remove(id) {
+        if (!global.RHP || !global.RHP.can('templates.delete')) return { ok:false,error:'Bạn không có quyền xóa biểu mẫu.' };
         var all = readAll();
         var target = all.filter(function (t) { return t.id === id; })[0];
         if (target && target.is_system) return { ok: false, error: 'Không thể xoá mẫu hệ thống — chỉ có thể nhân bản rồi tuỳ chỉnh.' };
@@ -297,11 +325,19 @@
         return { ok: true };
     }
 
-    function setDefault(id) {
+    function setDefault(id, buildingId) {
+        if (!global.RHP || !global.RHP.can('templates.update')) return { ok:false,error:'Bạn không có quyền đặt mặc định.' };
         var tpl = get(id);
         if (!tpl) return { ok: false, error: 'Không tìm thấy mẫu.' };
+        if (tpl.status === 'archived' || (buildingId && (!global.RHP.inScope(buildingId) || (tpl.buildingId && tpl.buildingId !== buildingId)))) return {ok:false,error:'Mẫu hoặc phạm vi mặc định không hợp lệ.'};
         var all = readAll();
-        all.forEach(function (t) { t.is_system_default = (t.type === tpl.type) ? (t.id === id) : t.is_system_default; });
+        all.forEach(function (t) {
+            if (t.type !== tpl.type) return;
+            if (buildingId) {
+                t.defaultBuildingIds = (t.defaultBuildingIds || []).filter(function (bid) { return bid !== buildingId; });
+                if (t.id === id) t.defaultBuildingIds.push(buildingId);
+            } else t.is_system_default = t.id === id;
+        });
         writeAll(all);
         return { ok: true };
     }
@@ -315,7 +351,21 @@
         });
     }
 
+    function sanitize(html) {
+        if (!global.document) return html;
+        var root = document.createElement('template'); root.innerHTML = html;
+        root.content.querySelectorAll('script,iframe,object,embed,link,meta,base,form,input,button,svg,math').forEach(function (node) { node.remove(); });
+        root.content.querySelectorAll('*').forEach(function (node) {
+            Array.from(node.attributes).forEach(function (attr) {
+                if (/^on/i.test(attr.name) || ['srcdoc','src','href','action','formaction'].indexOf(attr.name) >= 0 || (attr.name === 'style' && /url\s*\(|expression|@import/i.test(attr.value))) node.removeAttribute(attr.name);
+            });
+        });
+        root.content.querySelectorAll('style').forEach(function (node) { if (/@import|url\s*\(/i.test(node.textContent)) node.remove(); });
+        return root.innerHTML;
+    }
     global.RHT = {
+        groups:GROUPS,groupOf:groupOf,create:create,moveGroup:moveGroup,
+        sanitize:sanitize, extractVariables:extractVariables,
         seed: seed,
         list: list,
         get: get,
