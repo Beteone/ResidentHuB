@@ -1698,6 +1698,7 @@
         // to — refreshing them again here from a separate, disconnected store
         // would silently blank them back out after every action.
         let notificationData = [];
+        let activeRequestDetailId = null;
 
         function syncResidentDashboardData() {
             refreshResidentUserData();
@@ -1705,6 +1706,7 @@
             if (typeof renderOverview === 'function') renderOverview();
             if (typeof renderRequests === 'function') renderRequests();
             if (typeof renderNotifications === 'function') renderNotifications();
+            if (activeRequestDetailId && document.querySelector('#requestModal.open')) openRequestDetail(activeRequestDetailId);
         }
 
         function refreshResidentUserData() {
@@ -1819,7 +1821,7 @@
         // words here means none of the render/filter functions below had to change.
         const SR_TO_LEGACY_STATUS = { new: 'processing', in_progress: 'processing', resolved: 'waiting', closed: 'completed' };
         const LEGACY_TO_SR_STATUS = { processing: 'in_progress', waiting: 'resolved', completed: 'closed', cancelled: 'closed' };
-        const REQUEST_STEP_BY_STATUS = { processing: 2, waiting: 5, completed: 6, cancelled: 6 };
+        const REQUEST_STEP_BY_STATUS = { new: 0, in_progress: 3, resolved: 4, closed: 6 };
         function loadResidentRequests() {
             const items = (RH_CTX && RH_CTX.supportRequests) || [];
             return items.map(r => {
@@ -1830,11 +1832,16 @@
                     priority: r.priority, status: legacyStatus,
                     date: created.toLocaleDateString('vi-VN'),
                     time: created.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
+                    createdAt: r.createdAt, acceptedAt: r.acceptedAt, assignedAt: r.assignedAt,
+                    resolvedAt: r.resolvedAt, closedAt: r.closedAt,
                     description: r.description, location: r.location,
                     assignee: r.assignee || 'Đang phân công',
                     expected: r.assignee ? (r.status === 'resolved' || r.status === 'closed' ? 'Đã xử lý' : 'Đang xử lý') : 'Chưa phân công',
-                    step: REQUEST_STEP_BY_STATUS[legacyStatus] || 2,
-                    attachments: r.attachments || 0, messages: r.messages || [], rating: r.rating || 0
+                    step: Object.prototype.hasOwnProperty.call(REQUEST_STEP_BY_STATUS, r.status) ? REQUEST_STEP_BY_STATUS[r.status] : 1,
+                    preferredTime: r.preferredTime || '',
+                    scheduledAt: r.scheduledAt || '',
+                    resolutionNote: r.resolutionNote || '',
+                    attachments: r.attachments || 0, messages: Array.isArray(r.messages) ? r.messages : [], rating: r.rating || 0
                 };
             });
         }
@@ -2534,7 +2541,7 @@
         let newRequestDraft = null;
 
         function openModal() { modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
-        function closeModal() { modal.classList.remove('open'); document.body.style.overflow = ''; }
+        function closeModal() { modal.classList.remove('open'); document.body.style.overflow = ''; activeRequestDetailId = null; }
         function setModalHeader(title, subtitle) { document.getElementById('modalTitle').textContent = title; document.getElementById('modalSubtitle').textContent = subtitle; }
 
         function renderCreateStep() {
@@ -2579,6 +2586,7 @@
                 residentName: RH_SESSION ? RH_SESSION.name : '',
                 category: selectedType, title: newRequestDraft.title, description: newRequestDraft.description,
                 location: newRequestDraft.location, priority: newRequestDraft.priority,
+                preferredTime: newRequestDraft.time,
                 status: 'new', assignee: '', attachments: newRequestDraft.files, messages: []
             });
             refreshRequestData();
@@ -2597,17 +2605,53 @@
             refreshRequestData();
             const request = requestData.find(item => item.id === id);
             if (!request) return;
+            activeRequestDetailId = id;
             setModalHeader(request.title, request.id + ' • ' + statusLabels[request.status]);
-            const steps = [['Đã gửi yêu cầu', request.date + ' • 09:20'], ['Ban quản lý đã tiếp nhận', request.date + ' • 09:35'], ['Đã phân công nhân viên', request.assignee], ['Đang xử lý', 'Dự kiến: ' + request.expected], ['Chờ cư dân xác nhận', ''], ['Hoàn tất', '']];
-            const messages = request.messages.length ? request.messages.map(message => '<div class="message ' + (message.from === 'Cư dân' ? 'resident' : '') + '"><small>' + message.from + ' • ' + message.time + '</small>' + message.text + '</div>').join('') : '<div style="color:#64748b; font-size:.85rem;">Chưa có trao đổi.</div>';
-            const resolution = request.status === 'waiting' ? '<div class="support-card" style="margin-top:1rem;"><strong>Yêu cầu đã được xử lý</strong><p style="margin:.4rem 0; color:#475569;">Vui lòng kiểm tra kết quả và xác nhận.</p><button class="btn-primary" id="confirmDone">✓ Đã giải quyết</button> <button class="btn-secondary" id="notDone">⚠ Chưa giải quyết</button></div>' : '';
+            const eventTime = (value, fallback) => value ? new Date(value).toLocaleString('vi-VN') : fallback;
+            const steps = [
+                ['Đã gửi yêu cầu', eventTime(request.createdAt, request.date + ' • ' + request.time)],
+                ['Ban quản lý đã tiếp nhận', eventTime(request.acceptedAt, ['processing', 'waiting', 'completed'].includes(request.status) ? 'Đã tiếp nhận' : 'Chờ tiếp nhận')],
+                ['Đã phân công nhân viên', request.assignee === 'Đang phân công' ? 'Chưa phân công' : request.assignee + (request.assignedAt ? ' • ' + eventTime(request.assignedAt, '') : '')],
+                ['Đang xử lý', request.status === 'processing' ? 'Đang xử lý' : ''],
+                ['Chờ cư dân xác nhận', eventTime(request.resolvedAt, request.status === 'waiting' ? 'Đang chờ bạn xác nhận' : '')],
+                ['Hoàn tất', eventTime(request.closedAt, request.status === 'completed' ? 'Đã xác nhận' : '')]
+            ];
+            const messages = request.messages.length ? request.messages.map(message => '<div class="message ' + (message.from === 'Cư dân' ? 'resident' : '') + '"><small>' + escapeHtml(message.from) + ' • ' + escapeHtml(message.time) + '</small>' + escapeHtml(message.text) + '</div>').join('') : '<div style="color:#64748b; font-size:.85rem;">Chưa có trao đổi.</div>';
+            const resolution = request.status === 'waiting' ? '<div class="support-card" style="margin-top:1rem;"><strong>Yêu cầu đã được xử lý</strong>' + (request.resolutionNote ? '<p style="margin:.4rem 0; color:#475569;">' + escapeHtml(request.resolutionNote) + '</p>' : '<p style="margin:.4rem 0; color:#475569;">Vui lòng kiểm tra kết quả và xác nhận.</p>') + '<button class="btn-primary" id="confirmDone">✓ Đã giải quyết</button> <button class="btn-secondary" id="notDone">⚠ Chưa giải quyết</button></div>' : '';
             const review = request.status === 'completed' && RH_SETTINGS.supportAllowRating && !request.rating ? '<div class="support-card" style="margin-top:1rem;"><strong>Đánh giá dịch vụ</strong><p style="margin:.4rem 0; color:#475569;">Bạn hài lòng với cách xử lý yêu cầu?</p><div class="star-rating" id="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><textarea id="reviewText" rows="2" placeholder="Góp ý thêm" style="margin-top:.6rem;"></textarea><button class="btn-primary" id="sendReview" style="margin-top:.6rem;">Gửi đánh giá</button></div>' : '';
-            modalBody.innerHTML = '<div class="detail-grid"><div><div class="detail-meta"><div class="meta-box"><small>Loại yêu cầu</small><strong>' + request.type + '</strong></div><div class="meta-box"><small>Vị trí</small><strong>' + request.location + '</strong></div><div class="meta-box"><small>Mức độ</small><strong>' + priorityLabels[request.priority] + '</strong></div><div class="meta-box"><small>Người xử lý</small><strong>' + request.assignee + '</strong></div></div><p style="color:#475569; margin:1rem 0;">' + request.description + '</p><h4 style="margin-bottom:.8rem;">Tiến trình xử lý</h4><div class="timeline">' + steps.map((step, index) => '<div class="timeline-item ' + (index < request.step ? 'done' : index === request.step ? 'current' : '') + '"><strong>' + step[0] + '</strong><br><small>' + step[1] + '</small></div>').join('') + '</div></div><div><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="margin:0;">💬 Trao đổi</h4><span class="badge badge-info">Thông báo bật</span></div><div class="chat-box">' + messages + '</div><div class="chat-compose" style="display:flex; gap:.5rem; margin-top:.8rem;"><input id="chatMessage" placeholder="Nhắn tin cho ban quản lý..."><button class="btn-primary" id="sendChat" title="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div>' + resolution + review + '</div></div>';
+            const scheduled = request.scheduledAt ? new Date(request.scheduledAt).toLocaleString('vi-VN') : 'Chưa hẹn lịch';
+            const visitTime = request.preferredTime ? '<div class="meta-box"><small>Thời gian thuận tiện</small><strong>' + escapeHtml(request.preferredTime) + '</strong></div>' : '';
+            const resolutionSummary = request.resolutionNote && request.status !== 'waiting' ? '<div class="support-card" style="margin-top:1rem;"><strong>Kết quả xử lý</strong><p style="margin:.4rem 0;color:#475569;">' + escapeHtml(request.resolutionNote) + '</p></div>' : '';
+            modalBody.innerHTML = '<div class="detail-grid"><div><div class="detail-meta"><div class="meta-box"><small>Loại yêu cầu</small><strong>' + escapeHtml(request.type) + '</strong></div><div class="meta-box"><small>Vị trí</small><strong>' + escapeHtml(request.location) + '</strong></div><div class="meta-box"><small>Mức độ</small><strong>' + escapeHtml(priorityLabels[request.priority] || 'Bình thường') + '</strong></div><div class="meta-box"><small>Người xử lý</small><strong>' + escapeHtml(request.assignee) + '</strong></div>' + visitTime + '<div class="meta-box"><small>Lịch hẹn xử lý / kiểm tra</small><strong>' + escapeHtml(scheduled) + '</strong></div></div><p style="color:#475569; margin:1rem 0;">' + escapeHtml(request.description) + '</p>' + resolutionSummary + '<h4 style="margin-bottom:.8rem;">Tiến trình xử lý</h4><div class="timeline">' + steps.map((step, index) => '<div class="timeline-item ' + (index < request.step ? 'done' : index === request.step ? 'current' : '') + '"><strong>' + step[0] + '</strong><br><small>' + escapeHtml(step[1]) + '</small></div>').join('') + '</div></div><div><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="margin:0;">💬 Trao đổi</h4><span class="badge badge-info">Thông báo bật</span></div><div class="chat-box">' + messages + '</div><div class="chat-compose" style="display:flex; gap:.5rem; margin-top:.8rem;"><input id="chatMessage" placeholder="Nhắn tin cho ban quản lý..."><button class="btn-primary" id="sendChat" title="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div>' + resolution + review + '</div></div>';
             openModal();
             modalBody.insertAdjacentHTML('afterbegin', '<div class="detail-meta" style="margin-bottom:1.2rem;"><div class="meta-box"><small>Tệp đính kèm</small><strong><i class="fas fa-paperclip" style="color:#1769e8;"></i> ' + request.attachments + ' tệp</strong></div><div class="meta-box"><small>Chi phí dự kiến</small><strong>' + (request.cost || 'Chưa phát sinh') + '</strong></div></div>');
-            document.getElementById('sendChat').addEventListener('click', () => { const input = document.getElementById('chatMessage'); if (input.value.trim()) { const msg = { from: 'Cư dân', text: input.value.trim(), time: 'Vừa xong' }; request.messages.push(msg); if (request._rhId) RHD.update('supportRequests', request._rhId, { messages: request.messages, updatedAt: Date.now() }); openRequestDetail(request.id); } });
-            document.getElementById('confirmDone')?.addEventListener('click', () => { request.status = 'completed'; request.step = 6; if (request._rhId) RHD.update('supportRequests', request._rhId, { status: 'closed', updatedAt: Date.now() }); renderRequests(); if (typeof renderOverview === 'function') renderOverview(); renderNotifications(); openRequestDetail(request.id); });
-            document.getElementById('notDone')?.addEventListener('click', () => { alert('Phản hồi của bạn đã được gửi đến ban quản lý.'); });
+            document.getElementById('sendChat').addEventListener('click', () => {
+                const input = document.getElementById('chatMessage');
+                const text = input.value.trim();
+                if (!text) return;
+                if (request._rhId) {
+                    const current = RHD.get('supportRequests', request._rhId);
+                    if (!current) { alert('Không tìm thấy yêu cầu này. Vui lòng tải lại trang.'); return; }
+                    const result = RHD.update('supportRequests', request._rhId, {
+                        messages: (Array.isArray(current.messages) ? current.messages : []).concat([{ from: 'Cư dân', text: text, time: new Date().toLocaleString('vi-VN') }]),
+                        updatedAt: Date.now()
+                    });
+                    if (!result.ok) { alert(result.error || 'Không thể gửi tin nhắn. Vui lòng thử lại.'); return; }
+                } else {
+                    request.messages.push({ from: 'Cư dân', text: text, time: new Date().toLocaleString('vi-VN') });
+                }
+                refreshRequestData();
+                openRequestDetail(request.id);
+            });
+            document.getElementById('confirmDone')?.addEventListener('click', () => { request.status = 'completed'; request.step = 6; if (request._rhId) RHD.update('supportRequests', request._rhId, { status: 'closed', closedAt: Date.now(), updatedAt: Date.now() }); renderRequests(); if (typeof renderOverview === 'function') renderOverview(); renderNotifications(); openRequestDetail(request.id); });
+            document.getElementById('notDone')?.addEventListener('click', () => {
+                const messages = [...request.messages, { from: 'Cư dân', text: 'Công việc chưa được xử lý triệt để. Vui lòng kiểm tra lại.', time: 'Vừa xong' }];
+                if (request._rhId) RHD.update('supportRequests', request._rhId, { status: 'in_progress', resolvedAt: null, closedAt: null, messages: messages, updatedAt: Date.now() });
+                refreshRequestData();
+                renderRequests();
+                if (typeof renderOverview === 'function') renderOverview();
+                openRequestDetail(request.id);
+            });
             document.querySelectorAll('#stars span').forEach((star, index, stars) => star.addEventListener('click', () => stars.forEach((item, itemIndex) => item.classList.toggle('chosen', itemIndex <= index))));
             document.getElementById('sendReview')?.addEventListener('click', () => {
                 const stars = document.querySelectorAll('#stars span.chosen').length;
@@ -2638,14 +2682,14 @@
             const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
             requestPage = Math.min(requestPage, totalPages);
             const pageItems = filtered.slice((requestPage - 1) * pageSize, requestPage * pageSize);
-            const rows = pageItems.map(request => '<tr data-request="' + request.id + '"><td><strong style="color:#526174; font-size:.8rem;">' + request.id + '</strong></td><td><div class="request-title-cell"><div class="request-thumb"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '"></i></div><div><strong>' + request.title + '</strong><small>' + request.description + '</small></div></div></td><td><span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + request.type + '</span></td><td><span class="badge priority-' + request.priority + '">' + priorityLabels[request.priority] + '</span></td><td><span class="badge ' + (request.status === 'completed' ? 'badge-paid' : request.status === 'waiting' ? 'badge-pending' : 'badge-info') + '">' + statusLabels[request.status] + '</span></td><td style="white-space:nowrap; color:#526174; font-size:.82rem;">' + request.date + '</td><td><button class="request-action" data-open-request="' + request.id + '">Xem chi tiết <i class="fas fa-arrow-right"></i></button></td></tr>').join('');
+            const rows = pageItems.map(request => '<tr data-request="' + escapeHtml(request.id) + '"><td><strong style="color:#526174; font-size:.8rem;">' + escapeHtml(request.id) + '</strong></td><td><div class="request-title-cell"><div class="request-thumb"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '"></i></div><div><strong>' + escapeHtml(request.title) + '</strong><small>' + escapeHtml(request.description) + '</small></div></div></td><td><span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + escapeHtml(request.type) + '</span></td><td><span class="badge priority-' + escapeHtml(request.priority) + '">' + escapeHtml(priorityLabels[request.priority] || 'Bình thường') + '</span></td><td><span class="badge ' + (request.status === 'completed' ? 'badge-paid' : request.status === 'waiting' ? 'badge-pending' : 'badge-info') + '">' + escapeHtml(statusLabels[request.status] || 'Đang xử lý') + '</span></td><td style="white-space:nowrap; color:#526174; font-size:.82rem;">' + escapeHtml(request.date) + '</td><td><button class="request-action" data-open-request="' + escapeHtml(request.id) + '">Xem chi tiết <i class="fas fa-arrow-right"></i></button></td></tr>').join('');
             document.getElementById('requestList').innerHTML = '<div class="request-table-wrap"><table class="request-table"><thead><tr><th>Mã yêu cầu</th><th>Nội dung</th><th>Loại yêu cầu</th><th>Mức độ</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody>' + (rows || '<tr><td colspan="7"><div class="request-empty"><i class="fas fa-inbox" style="font-size:2rem; color:#9bb8dc;"></i><p>Không tìm thấy yêu cầu phù hợp.</p></div></td></tr>') + '</tbody></table></div><div class="request-pagination"><span>Hiển thị ' + (filtered.length ? ((requestPage - 1) * pageSize + 1) : 0) + '–' + Math.min(requestPage * pageSize, filtered.length) + ' trong ' + filtered.length + ' yêu cầu</span><div class="pagination-buttons"><button class="page-button" data-page="prev" ' + (requestPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>' + Array.from({ length: totalPages }, (_, index) => '<button class="page-button ' + (requestPage === index + 1 ? 'active' : '') + '" data-page="' + (index + 1) + '">' + (index + 1) + '</button>').join('') + '<button class="page-button" data-page="next" ' + (requestPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button></div></div>';
-            document.querySelectorAll('.request-table tbody tr[data-request]').forEach(row => { const request = requestData.find(item => item.id === row.dataset.request); row.children[0].innerHTML = '<strong style="color:#526174; font-size:.8rem;">' + request.id + '</strong>' + '<small style="display:block;color:#8a99ac;margin-top:.25rem;">' + (REAL_APARTMENT ? 'Căn hộ ' + REAL_APARTMENT.name : '') + '</small>'; row.children[2].innerHTML = '<span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + request.type + '<small style="display:block;color:#8a99ac;margin:.2rem 0 0 18px;">' + (request.subType || 'Hỗ trợ cư dân') + '</small></span>'; row.children[5].innerHTML = '<span style="white-space:nowrap;color:#526174;font-size:.82rem;">' + request.date + '<small style="display:block;color:#8a99ac;margin-top:.2rem;">' + (request.time || '09:00') + '</small></span>'; });
+            document.querySelectorAll('.request-table tbody tr[data-request]').forEach(row => { const request = requestData.find(item => item.id === row.dataset.request); row.children[0].innerHTML = '<strong style="color:#526174; font-size:.8rem;">' + escapeHtml(request.id) + '</strong>' + '<small style="display:block;color:#8a99ac;margin-top:.25rem;">' + escapeHtml(REAL_APARTMENT ? 'Căn hộ ' + REAL_APARTMENT.name : '') + '</small>'; row.children[2].innerHTML = '<span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + escapeHtml(request.type) + '<small style="display:block;color:#8a99ac;margin:.2rem 0 0 18px;">' + escapeHtml(request.subType || 'Hỗ trợ cư dân') + '</small></span>'; row.children[5].innerHTML = '<span style="white-space:nowrap;color:#526174;font-size:.82rem;">' + escapeHtml(request.date) + '<small style="display:block;color:#8a99ac;margin-top:.2rem;">' + escapeHtml(request.time || '09:00') + '</small></span>'; });
             document.querySelectorAll('[data-request], [data-open-request]').forEach(item => item.addEventListener('click', event => { event.stopPropagation(); openRequestDetail(item.dataset.request || item.dataset.openRequest); }));
             document.querySelectorAll('[data-page]').forEach(button => button.addEventListener('click', () => { if (button.disabled) return; const page = button.dataset.page; requestPage = page === 'prev' ? requestPage - 1 : page === 'next' ? requestPage + 1 : Number(page); renderRequests(); }));
         }
 
-        document.querySelectorAll('.js-new-request').forEach(button => button.addEventListener('click', () => { modalStep = 1; selectedType = ''; renderCreateStep(); }));
+        document.querySelectorAll('.js-new-request').forEach(button => button.addEventListener('click', () => { activeRequestDetailId = null; modalStep = 1; selectedType = ''; renderCreateStep(); }));
         document.querySelector('[data-close-modal]').addEventListener('click', closeModal);
         modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
         ['requestSearch', 'requestStatus', 'requestType', 'requestPriority', 'requestPeriod'].forEach(id => document.getElementById(id).addEventListener('input', () => { requestPage = 1; renderRequests(); }));
@@ -3142,5 +3186,3 @@
     </script>
 </body>
 </html>
-
-

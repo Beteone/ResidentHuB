@@ -45,6 +45,16 @@
         return { label: id || '—', color: '#61708a', bg: '#f1f5f9' };
     }
 
+    function supportConversationHtml(messages) {
+        if (!messages.length) return '<div style="color:#94a3b8;font-size:.85rem;">Chưa có trao đổi.</div>';
+        return messages.map(function (message) {
+            var resident = message.from === 'Cư dân';
+            return '<div class="support-message' + (resident ? ' is-resident' : ' is-manager') + '">' +
+                '<div class="support-message-meta"><strong>' + escapeHtml(message.from || 'Người dùng') + '</strong><time>' + escapeHtml(message.time || '') + '</time></div>' +
+                '<div class="support-message-text">' + escapeHtml(message.text || '') + '</div></div>';
+        }).join('');
+    }
+
     function readFileAsDataUrl(input, cb) {
         var file = input.files && input.files[0];
         if (!file) { cb(''); return; }
@@ -1476,10 +1486,45 @@
     // (RHD.create('supportRequests', ...)) lands here untouched, and a status
     // change made here is what the resident sees reflected on their side.
 
+    var activeSupportView = 'requests';
+    var selectedSupportChatId = null;
+
+    function supportConversationListItem(request, selected) {
+        var apt = RHD.get('apartments', request.apartmentId);
+        var messages = Array.isArray(request.messages) ? request.messages : [];
+        var lastMessage = messages.length ? messages[messages.length - 1] : null;
+        var lastText = lastMessage ? lastMessage.text : request.title;
+        return '<button type="button" class="support-inbox-item' + (selected ? ' active' : '') + '" data-support-chat-id="' + escapeHtml(request.id) + '">' +
+            '<span class="support-inbox-avatar"><i class="fas fa-user"></i></span><span class="support-inbox-copy">' +
+            '<span class="support-inbox-name">' + escapeHtml(request.residentName || 'Cư dân') + '<small>' + escapeHtml(request.code || '') + '</small></span>' +
+            '<span class="support-inbox-preview">' + escapeHtml(lastText || 'Chưa có tin nhắn') + '</span>' +
+            '<span class="support-inbox-meta">' + escapeHtml(apt ? 'Căn hộ ' + apt.name : request.location || 'Chưa gán căn hộ') + (lastMessage ? ' · ' + escapeHtml(lastMessage.time || '') : '') + '</span>' +
+            '</span></button>';
+    }
+
+    function supportChatPane(request) {
+        if (!request) return '<div class="support-chat-empty"><span><i class="fas fa-comments"></i></span><h3>Chọn một cuộc trò chuyện</h3><p>Chọn cư dân ở danh sách bên trái để xem và trả lời tin nhắn.</p></div>';
+        var messages = Array.isArray(request.messages) ? request.messages : [];
+        var status = statusMeta(RHD.SUPPORT_STATUSES, request.status);
+        var apt = RHD.get('apartments', request.apartmentId);
+        return '<div class="support-chat-thread">' +
+            '<div class="support-chat-head"><div class="support-chat-avatar"><i class="fas fa-user"></i></div><div class="support-chat-person"><strong>' + escapeHtml(request.residentName || 'Cư dân') + '</strong><span>' + escapeHtml(request.code || '') + ' · ' + escapeHtml(apt ? 'Căn hộ ' + apt.name : request.location || 'Chưa gán căn hộ') + '</span></div>' +
+            '<div class="support-chat-context"><strong>' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</strong>' + badge(status.label, status.color, status.bg) + '<button type="button" class="rh-link-btn" data-open-support-request="' + escapeHtml(request.id) + '">Chi tiết yêu cầu <i class="fas fa-arrow-up-right-from-square"></i></button></div></div>' +
+            '<div class="support-chat-messages" id="supportInboxMessages">' + (messages.length ? supportConversationHtml(messages) : '<div class="support-chat-empty"><span><i class="fas fa-comment-dots"></i></span><h3>Bắt đầu cuộc trò chuyện</h3><p>Gửi tin nhắn để trao đổi với cư dân về yêu cầu này.</p></div>') + '</div>' +
+            '<div class="support-chat-compose"><textarea id="supportInboxReply" rows="2" placeholder="Nhập tin nhắn cho cư dân..."></textarea><button type="button" class="btn-primary" data-support-send="' + escapeHtml(request.id) + '" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i><span>Gửi</span></button></div>' +
+            '</div>';
+    }
+
     function renderSupportTab() {
         var tab = byId('support-tab');
         if (!tab) return;
         var requests = RHD.list('supportRequests').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        if (!selectedSupportChatId || !requests.some(function (r) { return r.id === selectedSupportChatId; })) {
+            selectedSupportChatId = requests.length ? requests[0].id : null;
+        }
+        var selectedChat = requests.filter(function (r) { return r.id === selectedSupportChatId; })[0] || null;
+        var openCount = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; }).length;
+        var chatCount = requests.filter(function (r) { return Array.isArray(r.messages) && r.messages.length; }).length;
         var rows = requests.map(function (r) {
             var apt = RHD.get('apartments', r.apartmentId);
             var building = RHD.get('buildings', r.buildingId);
@@ -1493,19 +1538,49 @@
                 '<td>' + badge(pr.label || r.priority, '#61708a', '#f1f5f9') + '</td>' +
                 '<td>' + badge(st.label, st.color, st.bg) + '</td>' +
                 '<td>' + escapeHtml(r.assignee || '—') + '</td>' +
+                '<td>' + escapeHtml(r.handlingNote || r.resolutionNote || '—') + '</td>' +
                 '<td style="white-space:nowrap;">' + new Date(r.createdAt).toLocaleString('vi-VN') + '</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
                 '<button onclick="RHUI.openSupportForm(\'' + r.id + '\')" class="rh-row-btn" title="Xử lý"><i class="fas fa-pen"></i></button>' +
+                '<button onclick="RHUI.deleteSupportRequest(\'' + r.id + '\')" class="rh-row-btn" title="Xóa yêu cầu" style="color:#ef4444;"><i class="fas fa-trash"></i></button>' +
                 '</td></tr>';
         }).join('');
 
-        tab.innerHTML = '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Yêu cầu hỗ trợ</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Yêu cầu do cư dân gửi từ ứng dụng — cập nhật trạng thái tại đây sẽ phản ánh ngay bên cư dân.</p></div>' +
-            '</div>' +
-            (requests.length ? '<div class="table-container"><table><thead><tr><th>Mã YC</th><th>Người gửi</th><th>Căn hộ</th><th>Nội dung</th><th>Mức độ</th><th>Trạng thái</th><th>Người phụ trách</th><th>Thời gian gửi</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.')) +
-            '</div>';
+        tab.innerHTML = '<section class="support-workspace">' +
+            '<header class="support-page-head"><div class="support-page-icon"><i class="fas fa-headset"></i></div><div><h2>Yêu cầu hỗ trợ</h2><p>Theo dõi sự cố, cập nhật tiến độ và trao đổi trực tiếp với cư dân.</p></div><div class="support-page-stats"><span><strong>' + requests.length + '</strong>Tổng yêu cầu</span><span><strong>' + openCount + '</strong>Đang mở</span></div></header>' +
+            '<nav class="support-view-tabs" aria-label="Khu vực yêu cầu hỗ trợ"><button type="button" class="' + (activeSupportView === 'requests' ? 'active' : '') + '" data-support-view="requests"><i class="fas fa-clipboard-list"></i> Danh sách yêu cầu <span>' + requests.length + '</span></button><button type="button" class="' + (activeSupportView === 'chat' ? 'active' : '') + '" data-support-view="chat"><i class="fas fa-comments"></i> Tin nhắn <span>' + chatCount + '</span></button></nav>' +
+            '<section class="support-view-panel' + (activeSupportView === 'requests' ? ' active' : '') + '" data-support-panel="requests"><div class="card support-request-card"><div class="support-section-heading"><div><h3>Yêu cầu từ cư dân</h3><p>Chọn xử lý để phân công, cập nhật trạng thái và kết quả.</p></div><span class="support-total-pill">' + openCount + ' cần theo dõi</span></div>' +
+            (requests.length ? '<div class="table-container"><table><thead><tr><th>Mã YC</th><th>Người gửi</th><th>Căn hộ</th><th>Nội dung / loại sự cố</th><th>Mức độ</th><th>Trạng thái</th><th>Người phụ trách</th><th>Ghi chú xử lý</th><th>Thời gian gửi</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
+                : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.')) + '</div></section>' +
+            '<section class="support-view-panel' + (activeSupportView === 'chat' ? ' active' : '') + '" data-support-panel="chat"><div class="support-inbox">' +
+            '<aside class="support-inbox-sidebar"><div class="support-inbox-title"><div><h3>Hộp thư cư dân</h3><p>' + requests.length + ' cuộc trò chuyện theo yêu cầu</p></div><i class="fas fa-inbox"></i></div>' +
+            '<div class="support-inbox-list">' + (requests.length ? requests.map(function (r) { return supportConversationListItem(r, r.id === selectedSupportChatId); }).join('') : '<div class="support-inbox-empty"><i class="fas fa-comments"></i><p>Chưa có tin nhắn từ cư dân.</p></div>') + '</div></aside>' +
+            '<section class="support-inbox-main">' + supportChatPane(selectedChat) + '</section></div></section></section>';
+        tab.querySelectorAll('[data-support-view]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                activeSupportView = button.getAttribute('data-support-view');
+                renderSupportTab();
+            });
+        });
+        tab.querySelectorAll('[data-support-chat-id]').forEach(function (button) {
+            button.addEventListener('click', function () {
+                selectedSupportChatId = button.getAttribute('data-support-chat-id');
+                renderSupportTab();
+            });
+        });
+        tab.querySelectorAll('[data-support-send]').forEach(function (button) {
+            button.addEventListener('click', function () { sendSupportMessage(button.getAttribute('data-support-send'), 'supportInboxReply'); });
+        });
+        var inboxReply = byId('supportInboxReply');
+        if (inboxReply) inboxReply.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' && !ev.shiftKey) {
+                ev.preventDefault();
+                sendSupportMessage(selectedSupportChatId, 'supportInboxReply');
+            }
+        });
+        tab.querySelectorAll('[data-open-support-request]').forEach(function (button) {
+            button.addEventListener('click', function () { RHUI.openSupportForm(button.getAttribute('data-open-support-request')); });
+        });
     }
 
     RHUI.openSupportForm = function (id) {
@@ -1515,35 +1590,140 @@
         RHUI.drawerId = id;
         var apt = RHD.get('apartments', r.apartmentId);
         var building = RHD.get('buildings', r.buildingId);
+        var messages = Array.isArray(r.messages) ? r.messages : [];
+        var categories = RHD.SUPPORT_CATEGORIES.slice();
+        if (r.category && categories.indexOf(r.category) === -1) categories.unshift(r.category);
         var html = '<form onsubmit="RHUI.submitSupportForm(event)">' +
             '<div class="rh-grid-2">' +
             '<div><label style="font-size:.8rem;color:#94a3b8;">Người gửi</label><div style="font-weight:600;">' + escapeHtml(r.residentName || '—') + '</div></div>' +
             '<div><label style="font-size:.8rem;color:#94a3b8;">Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</div></div>' +
             '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
+            '<div class="support-drawer-chat"><div class="support-drawer-chat-head"><span class="support-drawer-chat-icon"><i class="fas fa-comments"></i></span><span><strong>Trao đổi với cư dân</strong><small>Tin nhắn được đồng bộ trực tiếp sang ứng dụng cư dân</small></span></div><div id="srConversation" class="support-drawer-messages">' + supportConversationHtml(messages) + '</div><div class="support-drawer-compose"><textarea id="srReply" rows="2" placeholder="Nhập tin nhắn gửi cư dân..."></textarea><button type="button" class="btn-primary" onclick="RHUI.sendSupportReply()" title="Gửi tin nhắn" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div></div>' +
+            '<div class="rh-field"><label>Loại sự cố</label><select id="srCategory">' + selectOptions(categories.map(function (label) { return { id: label, label: label }; }), 'id', 'label', r.category) + '</select></div>' +
+            '<div class="rh-field"><label>Mức độ</label><select id="srPriority">' + selectOptions(RHD.SUPPORT_PRIORITIES, 'id', 'label', r.priority) + '</select></div>' +
+            '<div><label style="font-size:.8rem;color:#94a3b8;">Thời gian cư dân có thể tiếp nhận</label><div style="font-weight:600;">' + escapeHtml(r.preferredTime || 'Chưa cung cấp') + '</div></div>' +
             '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
             '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"></div>' +
+            '<div class="rh-field"><label>Lịch hẹn xử lý / kiểm tra</label><input id="srScheduledAt" type="datetime-local" value="' + escapeHtml(r.scheduledAt || '') + '"></div>' +
+            '<div class="rh-field"><label>Ghi chú nội bộ</label><textarea id="srHandlingNote" rows="3" placeholder="Ghi chú để Ban quản lý theo dõi">' + escapeHtml(r.handlingNote || '') + '</textarea></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Kết quả xử lý (cư dân sẽ nhìn thấy)</label><textarea id="srResolutionNote" rows="3" placeholder="Mô tả công việc đã thực hiện trước khi gửi cư dân nghiệm thu">' + escapeHtml(r.resolutionNote || '') + '</textarea></div>' +
             '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
-            '<button type="submit" class="btn-primary">Cập nhật</button>' +
+            '<button type="submit" class="btn-primary">Lưu & cập nhật cho cư dân</button>' +
             '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Đóng</button>' +
             '</div></form>';
         openDrawer('Yêu cầu ' + r.code, html);
+        var replyInput = byId('srReply');
+        if (replyInput) replyInput.addEventListener('keydown', function (ev) {
+            if (ev.key === 'Enter' && !ev.shiftKey) {
+                ev.preventDefault();
+                RHUI.sendSupportReply();
+            }
+        });
+    };
+
+    RHUI.sendSupportReply = function () {
+        sendSupportMessage(RHUI.drawerId, 'srReply', true);
+    };
+
+    function sendSupportMessage(requestId, inputId, refreshDrawer) {
+        var input = byId(inputId);
+        var request = RHD.get('supportRequests', requestId);
+        var text = input && input.value.trim();
+        if (!request || !input || !text) return;
+        var now = Date.now();
+        var messages = Array.isArray(request.messages) ? request.messages : [];
+        var result = RHD.update('supportRequests', request.id, {
+            messages: messages.concat([{
+                from: global.RH_SESSION && global.RH_SESSION.name || 'Ban quản lý',
+                text: text,
+                time: new Date(now).toLocaleString('vi-VN')
+            }]),
+            updatedAt: now
+        });
+        if (!result.ok) {
+            alert(result.error || 'Không thể gửi tin nhắn. Vui lòng thử lại.');
+            return;
+        }
+        input.value = '';
+        if (refreshDrawer) {
+            var conversation = byId('srConversation');
+            if (conversation) {
+                conversation.innerHTML = supportConversationHtml(result.item.messages);
+                conversation.scrollTop = conversation.scrollHeight;
+            }
+        } else {
+            renderSupportTab();
+        }
+        if (RHD.getSettings().notifySupportStatus && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
+            global.RH.syncManagerNotification({
+                id: result.item.id, customerId: result.item.customerId, apartmentId: result.item.apartmentId, residentEmail: result.item.residentEmail,
+                type: 'request', title: 'Tin nhắn mới về yêu cầu ' + result.item.code,
+                body: text, refType: 'request', actionUrl: 'requests', actionLabel: 'Xem yêu cầu'
+            });
+        }
+    }
+
+    RHUI.deleteSupportRequest = function (id) {
+        confirmDelete('supportRequests', id, function () {
+            renderSupportTab();
+            renderDashboardCounts();
+        });
     };
 
     RHUI.submitSupportForm = function (ev) {
         ev.preventDefault();
         var before = RHD.get('supportRequests', RHUI.drawerId);
-        var res = RHD.update('supportRequests', RHUI.drawerId, {
-            status: byId('srStatus').value,
-            assignee: byId('srAssignee').value.trim(),
-            updatedAt: Date.now()
-        });
+        var status = byId('srStatus').value;
+        var assignee = byId('srAssignee').value.trim();
+        var resolutionNote = byId('srResolutionNote').value.trim();
+        if (status === 'resolved' && before && before.status !== 'resolved' && !resolutionNote) {
+            alert('Vui lòng nhập kết quả xử lý trước khi gửi yêu cầu cho cư dân nghiệm thu.');
+            return;
+        }
+        var now = Date.now();
+        var patch = {
+            status: status,
+            category: byId('srCategory').value,
+            priority: byId('srPriority').value,
+            assignee: assignee,
+            scheduledAt: byId('srScheduledAt').value,
+            handlingNote: byId('srHandlingNote').value.trim(),
+            resolutionNote: resolutionNote,
+            updatedAt: now
+        };
+        if (before && before.status !== status) {
+            if (status !== 'new' && !before.acceptedAt) patch.acceptedAt = now;
+            if (status === 'resolved') {
+                patch.resolvedAt = now;
+                patch.closedAt = null;
+            }
+            if (status === 'closed') patch.closedAt = now;
+            if (status === 'in_progress') {
+                patch.resolvedAt = null;
+                patch.closedAt = null;
+            }
+        }
+        if (before && before.assignee !== assignee) patch.assignedAt = assignee ? now : null;
+        var res = RHD.update('supportRequests', RHUI.drawerId, patch);
+        if (!res.ok) {
+            alert(res.error || 'Không thể cập nhật yêu cầu. Vui lòng thử lại.');
+            return;
+        }
         // Notify the resident account linked to this request (by residentId).
-        if (res.ok && RHD.getSettings().notifySupportStatus && before && before.status !== res.item.status && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
+        var requestChanged = before && (
+            before.status !== res.item.status ||
+            before.assignee !== res.item.assignee ||
+            before.category !== res.item.category ||
+            before.priority !== res.item.priority ||
+            before.resolutionNote !== res.item.resolutionNote ||
+            before.scheduledAt !== res.item.scheduledAt
+        );
+        if (requestChanged && RHD.getSettings().notifySupportStatus && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
             global.RH.syncManagerNotification({
                 id: res.item.id, customerId: res.item.customerId, apartmentId: res.item.apartmentId, residentEmail: res.item.residentEmail,
                 type: 'request', title: 'Yêu cầu ' + res.item.code + ' đã được cập nhật',
-                body: 'Trạng thái mới: ' + statusMeta(RHD.SUPPORT_STATUSES, res.item.status).label + (res.item.assignee ? ' • Phụ trách: ' + res.item.assignee : ''),
+                body: 'Trạng thái: ' + statusMeta(RHD.SUPPORT_STATUSES, res.item.status).label + (res.item.assignee ? ' • Phụ trách: ' + res.item.assignee : ''),
                 refType: 'request', actionUrl: 'requests', actionLabel: 'Xem yêu cầu'
             });
         }
@@ -1551,6 +1731,16 @@
         renderSupportTab();
         renderDashboardCounts();
     };
+
+    function refreshOpenSupportConversation() {
+        if (RHUI.drawerEntity !== 'supportRequests' || !byId('rhDrawerOverlay') || !byId('rhDrawerOverlay').classList.contains('show')) return;
+        var request = RHD.get('supportRequests', RHUI.drawerId);
+        var conversation = byId('srConversation');
+        if (!request || !conversation) return;
+        var scrollToBottom = conversation.scrollTop + conversation.clientHeight >= conversation.scrollHeight - 24;
+        conversation.innerHTML = supportConversationHtml(Array.isArray(request.messages) ? request.messages : []);
+        if (scrollToBottom) conversation.scrollTop = conversation.scrollHeight;
+    }
 
     // ============================================================ DASHBOARD
     // Pure READ -> CALCULATE -> DISPLAY: every figure below comes from RHD.list(),
@@ -1758,6 +1948,7 @@
         renderContractsTab: renderContractsTab,
         renderInvoicesTab: renderInvoicesTab,
         renderSupportTab: renderSupportTab,
+        refreshOpenSupportConversation: refreshOpenSupportConversation,
         renderDashboardCounts: renderDashboardCounts,
         renderDemoBanner: renderDemoBanner
     });
