@@ -1,0 +1,26 @@
+{
+  "name": "residenthub",
+  "private": true,
+  "version": "1.0.0",
+  "description": "ResidentHub — React modules bundled into the static manager dashboard",
+  "type": "module",
+  "scripts": {
+    "typecheck": "tsc --noEmit",
+    "build": "tsc --noEmit && vite build --emptyOutDir false && vite build --config src/document-export/vite.config.js",
+    "dev": "vite build --watch",
+    "build:documents": "vite build --config src/document-export/vite.config.js"
+  },
+  "dependencies": {
+    "docx": "^9.11.0",
+    "html2pdf.js": "^0.14.0",
+    "jszip": "^3.10.2",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.1"
+  }
+}
