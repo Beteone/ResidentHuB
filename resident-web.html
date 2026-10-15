@@ -941,7 +941,7 @@
         }
 
         .request-dashboard { display: grid; gap: 1rem; }
-        .request-stat-grid { display: grid; grid-template-columns: repeat(4, minmax(150px, 1fr)); gap: 1rem; }
+        .request-stat-grid { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 1rem; }
         .request-stat { padding: 1rem; border: 1px solid #d9e6fb; border-radius: 0.9rem; background: linear-gradient(135deg, #f5f9ff, #eaf2ff); }
         .request-toolbar { display: flex; gap: 0.75rem; flex-wrap: wrap; align-items: center; }
         .request-search { flex: 1 1 240px; position: relative; }
@@ -1374,7 +1374,7 @@
                     <div class="history-tabs request-tabs"><button class="history-tab active" data-history="active">Danh sách yêu cầu</button><button class="history-tab" data-history="all">Lịch sử yêu cầu</button></div>
                     <div class="request-toolbar">
                         <div class="request-search"><i class="fas fa-search"></i><input id="requestSearch" type="search" placeholder="Tìm kiếm yêu cầu..."></div>
-                        <select id="requestStatus"><option value="all">Tất cả trạng thái</option><option value="processing">Đang xử lý</option><option value="waiting">Chờ xác nhận</option><option value="completed">Hoàn tất</option><option value="cancelled">Đã hủy</option></select>
+                        <select id="requestStatus"><option value="all">Tất cả trạng thái</option><option value="new">Chưa kiểm tra</option><option value="accepted">Đã tiếp nhận</option><option value="in_progress">Đang xử lý</option><option value="resolved">Đã xử lý</option><option value="closed">Đã đóng</option></select>
                         <select id="requestType"><option value="all">Tất cả loại</option><option value="Sửa chữa căn hộ">Sửa chữa căn hộ</option><option value="Cơ sở vật chất chung">Cơ sở vật chất chung</option><option value="An ninh">An ninh</option><option value="Vệ sinh">Vệ sinh</option><option value="Phí & thanh toán">Phí & thanh toán</option></select>
                         <select id="requestPriority"><option value="all">Mọi mức độ</option><option value="normal">Bình thường</option><option value="needed">Cần xử lý</option><option value="urgent">Khẩn cấp</option></select>
                         <select id="requestPeriod"><option value="all">Mọi thời gian</option><option value="7">7 ngày qua</option><option value="30">30 ngày qua</option><option value="90">90 ngày qua</option></select>
@@ -1561,7 +1561,7 @@
             const nextDue = pending.map(i => i.dueDate).filter(Boolean).sort()[0];
             set('ovDueDate', nextDue ? 'Hạn: ' + nextDue.split('-').reverse().join('/') : 'Không có hóa đơn cần thanh toán');
 
-            const openReqs = requests.filter(r => r.status === 'new' || r.status === 'in_progress');
+            const openReqs = requests.filter(r => r.status === 'new' || r.status === 'accepted' || r.status === 'in_progress');
             const waitingReqs = requests.filter(r => r.status === 'resolved');
             set('ovOpenRequests', openReqs.length);
             set('ovWaitingRequests', waitingReqs.length);
@@ -1582,7 +1582,7 @@
 
             const boxes = document.getElementById('ovRequestBoxes');
             if (boxes) {
-                const statusBadge = { new: ['badge-info', 'Mới'], in_progress: ['badge-info', 'Đang xử lý'], resolved: [null, 'Chờ xác nhận'], closed: ['badge-paid', 'Hoàn tất'] };
+                const statusBadge = { new: ['badge-info', 'Chưa kiểm tra'], accepted: ['badge-info', 'Đã tiếp nhận'], in_progress: ['badge-info', 'Đang xử lý'], resolved: [null, 'Đã xử lý · Chờ xác nhận'], closed: ['badge-paid', 'Đã đóng'] };
                 boxes.innerHTML = requests.slice(0, 3).map(r => {
                     const sb = statusBadge[r.status] || ['badge-info', r.status];
                     const badgeHtml = sb[0] ? '<span class="badge ' + sb[0] + '">' + sb[1] + '</span>' : '<span class="badge" style="background:#fef3c7;color:#b45309;">' + sb[1] + '</span>';
@@ -1746,21 +1746,17 @@
             calendar: 'Lịch hẹn'
         };
 
-        // Adapter between this page's existing status words (processing/waiting/
-        // completed) and the canonical vocabulary the manager's Yêu cầu hỗ trợ tab
-        // uses (new/in_progress/resolved/closed, see data.js). Keeping the legacy
-        // words here means none of the render/filter functions below had to change.
-        const SR_TO_LEGACY_STATUS = { new: 'processing', in_progress: 'processing', resolved: 'waiting', closed: 'completed' };
-        const LEGACY_TO_SR_STATUS = { processing: 'in_progress', waiting: 'resolved', completed: 'closed', cancelled: 'closed' };
-        const REQUEST_STEP_BY_STATUS = { new: 0, in_progress: 3, resolved: 4, closed: 6 };
+        const REQUEST_STATUS_LABELS = { new: 'Chưa kiểm tra', accepted: 'Đã tiếp nhận', in_progress: 'Đang xử lý', resolved: 'Đã xử lý', closed: 'Đã đóng' };
+        const LEGACY_REQUEST_STATUSES = { processing: 'in_progress', waiting: 'resolved', completed: 'closed', cancelled: 'closed' };
+        const REQUEST_STEP_BY_STATUS = { new: 0, accepted: 1, in_progress: 3, resolved: 4, closed: 6 };
         function loadResidentRequests() {
             const items = (RH_CTX && RH_CTX.supportRequests) || [];
             return items.map(r => {
                 const created = new Date(r.createdAt);
-                const legacyStatus = SR_TO_LEGACY_STATUS[r.status] || 'processing';
+                const status = REQUEST_STATUS_LABELS[r.status] ? r.status : (LEGACY_REQUEST_STATUSES[r.status] || 'new');
                 return {
                     _rhId: r.id, id: r.code, title: r.title, type: r.category, subType: r.category,
-                    priority: r.priority, status: legacyStatus,
+                    priority: r.priority, status: status,
                     date: created.toLocaleDateString('vi-VN'),
                     time: created.toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' }),
                     createdAt: r.createdAt, acceptedAt: r.acceptedAt, assignedAt: r.assignedAt,
@@ -2458,7 +2454,7 @@
 
         renderSettingPage();
 
-        const statusLabels = { processing: 'Đang xử lý', waiting: 'Chờ xác nhận', completed: 'Hoàn tất', cancelled: 'Đã hủy' };
+        const statusLabels = REQUEST_STATUS_LABELS;
         const priorityLabels = { normal: 'Bình thường', needed: 'Cần xử lý', urgent: 'Khẩn cấp' };
         const modal = document.getElementById('requestModal');
         const modalBody = document.getElementById('modalBody');
@@ -2526,7 +2522,7 @@
             modalBody.querySelector('[data-close-modal]').addEventListener('click', closeModal);
         }
 
-        function renderStats() { const counts = { processing: requestData.filter(r => r.status === 'processing').length, waiting: requestData.filter(r => r.status === 'waiting').length, completed: requestData.filter(r => r.status === 'completed').length, all: requestData.length }; document.getElementById('requestStats').innerHTML = [['processing', 'Đang xử lý'], ['waiting', 'Chờ xác nhận'], ['completed', 'Hoàn tất'], ['all', 'Tổng yêu cầu']].map(item => '<div class="request-stat"><div style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:#64748b; margin-bottom:.5rem;">' + item[1] + '</div><div style="font-size:2rem; font-weight:800; color:#0f172a;">' + counts[item[0]] + '</div></div>').join(''); }
+        function renderStats() { const counts = { new: requestData.filter(r => r.status === 'new').length, accepted: requestData.filter(r => r.status === 'accepted').length, in_progress: requestData.filter(r => r.status === 'in_progress').length, resolved: requestData.filter(r => r.status === 'resolved').length, all: requestData.length }; document.getElementById('requestStats').innerHTML = [['new', 'Chưa kiểm tra'], ['accepted', 'Đã tiếp nhận'], ['in_progress', 'Đang xử lý'], ['resolved', 'Đã xử lý'], ['all', 'Tổng yêu cầu']].map(item => '<div class="request-stat"><div style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:#64748b; margin-bottom:.5rem;">' + item[1] + '</div><div style="font-size:2rem; font-weight:800; color:#0f172a;">' + counts[item[0]] + '</div></div>').join(''); }
 
         function openRequestDetail(id) {
             refreshRequestData();
@@ -2537,18 +2533,18 @@
             const eventTime = (value, fallback) => value ? new Date(value).toLocaleString('vi-VN') : fallback;
             const steps = [
                 ['Đã gửi yêu cầu', eventTime(request.createdAt, request.date + ' • ' + request.time)],
-                ['Ban quản lý đã tiếp nhận', eventTime(request.acceptedAt, ['processing', 'waiting', 'completed'].includes(request.status) ? 'Đã tiếp nhận' : 'Chờ tiếp nhận')],
+                ['Ban quản lý đã tiếp nhận', eventTime(request.acceptedAt, ['accepted', 'in_progress', 'resolved', 'closed'].includes(request.status) ? 'Đã tiếp nhận' : 'Chờ tiếp nhận')],
                 ['Đã phân công nhân viên', request.assignee === 'Đang phân công' ? 'Chưa phân công' : request.assignee + (request.assignedAt ? ' • ' + eventTime(request.assignedAt, '') : '')],
-                ['Đang xử lý', request.status === 'processing' ? 'Đang xử lý' : ''],
-                ['Chờ cư dân xác nhận', eventTime(request.resolvedAt, request.status === 'waiting' ? 'Đang chờ bạn xác nhận' : '')],
-                ['Hoàn tất', eventTime(request.closedAt, request.status === 'completed' ? 'Đã xác nhận' : '')]
+                ['Đang xử lý', request.status === 'in_progress' ? 'Đang xử lý' : ''],
+                ['Chờ cư dân xác nhận', eventTime(request.resolvedAt, request.status === 'resolved' ? 'Đang chờ bạn xác nhận' : '')],
+                ['Hoàn tất', eventTime(request.closedAt, request.status === 'closed' ? 'Đã xác nhận' : '')]
             ];
             const messages = request.messages.length ? request.messages.map(message => '<div class="message ' + (message.from === 'Cư dân' ? 'resident' : '') + '"><small>' + escapeHtml(message.from) + ' • ' + escapeHtml(message.time) + '</small>' + escapeHtml(message.text) + '</div>').join('') : '<div style="color:#64748b; font-size:.85rem;">Chưa có trao đổi.</div>';
-            const resolution = request.status === 'waiting' ? '<div class="support-card" style="margin-top:1rem;"><strong>Yêu cầu đã được xử lý</strong>' + (request.resolutionNote ? '<p style="margin:.4rem 0; color:#475569;">' + escapeHtml(request.resolutionNote) + '</p>' : '<p style="margin:.4rem 0; color:#475569;">Vui lòng kiểm tra kết quả và xác nhận.</p>') + '<button class="btn-primary" id="confirmDone">✓ Đã giải quyết</button> <button class="btn-secondary" id="notDone">⚠ Chưa giải quyết</button></div>' : '';
-            const review = request.status === 'completed' && RH_SETTINGS.supportAllowRating && !request.rating ? '<div class="support-card" style="margin-top:1rem;"><strong>Đánh giá dịch vụ</strong><p style="margin:.4rem 0; color:#475569;">Bạn hài lòng với cách xử lý yêu cầu?</p><div class="star-rating" id="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><textarea id="reviewText" rows="2" placeholder="Góp ý thêm" style="margin-top:.6rem;"></textarea><button class="btn-primary" id="sendReview" style="margin-top:.6rem;">Gửi đánh giá</button></div>' : '';
+            const resolution = request.status === 'resolved' ? '<div class="support-card" style="margin-top:1rem;"><strong>Yêu cầu đã được xử lý</strong>' + (request.resolutionNote ? '<p style="margin:.4rem 0; color:#475569;">' + escapeHtml(request.resolutionNote) + '</p>' : '<p style="margin:.4rem 0; color:#475569;">Vui lòng kiểm tra kết quả và xác nhận.</p>') + '<button class="btn-primary" id="confirmDone">✓ Đã giải quyết</button> <button class="btn-secondary" id="notDone">⚠ Chưa giải quyết</button></div>' : '';
+            const review = request.status === 'closed' && RH_SETTINGS.supportAllowRating && !request.rating ? '<div class="support-card" style="margin-top:1rem;"><strong>Đánh giá dịch vụ</strong><p style="margin:.4rem 0; color:#475569;">Bạn hài lòng với cách xử lý yêu cầu?</p><div class="star-rating" id="stars"><span>★</span><span>★</span><span>★</span><span>★</span><span>★</span></div><textarea id="reviewText" rows="2" placeholder="Góp ý thêm" style="margin-top:.6rem;"></textarea><button class="btn-primary" id="sendReview" style="margin-top:.6rem;">Gửi đánh giá</button></div>' : '';
             const scheduled = request.scheduledAt ? new Date(request.scheduledAt).toLocaleString('vi-VN') : 'Chưa hẹn lịch';
             const visitTime = request.preferredTime ? '<div class="meta-box"><small>Thời gian thuận tiện</small><strong>' + escapeHtml(request.preferredTime) + '</strong></div>' : '';
-            const resolutionSummary = request.resolutionNote && request.status !== 'waiting' ? '<div class="support-card" style="margin-top:1rem;"><strong>Kết quả xử lý</strong><p style="margin:.4rem 0;color:#475569;">' + escapeHtml(request.resolutionNote) + '</p></div>' : '';
+            const resolutionSummary = request.resolutionNote && request.status !== 'resolved' ? '<div class="support-card" style="margin-top:1rem;"><strong>Kết quả xử lý</strong><p style="margin:.4rem 0;color:#475569;">' + escapeHtml(request.resolutionNote) + '</p></div>' : '';
             modalBody.innerHTML = '<div class="detail-grid"><div><div class="detail-meta"><div class="meta-box"><small>Loại yêu cầu</small><strong>' + escapeHtml(request.type) + '</strong></div><div class="meta-box"><small>Vị trí</small><strong>' + escapeHtml(request.location) + '</strong></div><div class="meta-box"><small>Mức độ</small><strong>' + escapeHtml(priorityLabels[request.priority] || 'Bình thường') + '</strong></div><div class="meta-box"><small>Người xử lý</small><strong>' + escapeHtml(request.assignee) + '</strong></div>' + visitTime + '<div class="meta-box"><small>Lịch hẹn xử lý / kiểm tra</small><strong>' + escapeHtml(scheduled) + '</strong></div></div><p style="color:#475569; margin:1rem 0;">' + escapeHtml(request.description) + '</p>' + resolutionSummary + '<h4 style="margin-bottom:.8rem;">Tiến trình xử lý</h4><div class="timeline">' + steps.map((step, index) => '<div class="timeline-item ' + (index < request.step ? 'done' : index === request.step ? 'current' : '') + '"><strong>' + step[0] + '</strong><br><small>' + escapeHtml(step[1]) + '</small></div>').join('') + '</div></div><div><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="margin:0;">💬 Trao đổi</h4><span class="badge badge-info">Thông báo bật</span></div><div class="chat-box">' + messages + '</div><div class="chat-compose" style="display:flex; gap:.5rem; margin-top:.8rem;"><input id="chatMessage" placeholder="Nhắn tin cho ban quản lý..."><button class="btn-primary" id="sendChat" title="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div>' + resolution + review + '</div></div>';
             openModal();
             modalBody.insertAdjacentHTML('afterbegin', '<div class="detail-meta" style="margin-bottom:1.2rem;"><div class="meta-box"><small>Tệp đính kèm</small><strong><i class="fas fa-paperclip" style="color:#1769e8;"></i> ' + request.attachments + ' tệp</strong></div><div class="meta-box"><small>Chi phí dự kiến</small><strong>' + (request.cost || 'Chưa phát sinh') + '</strong></div></div>');
@@ -2570,7 +2566,7 @@
                 refreshRequestData();
                 openRequestDetail(request.id);
             });
-            document.getElementById('confirmDone')?.addEventListener('click', () => { request.status = 'completed'; request.step = 6; if (request._rhId) RHD.update('supportRequests', request._rhId, { status: 'closed', closedAt: Date.now(), updatedAt: Date.now() }); renderRequests(); if (typeof renderOverview === 'function') renderOverview(); renderNotifications(); openRequestDetail(request.id); });
+            document.getElementById('confirmDone')?.addEventListener('click', () => { request.status = 'closed'; request.step = 6; if (request._rhId) RHD.update('supportRequests', request._rhId, { status: 'closed', closedAt: Date.now(), updatedAt: Date.now() }); renderRequests(); if (typeof renderOverview === 'function') renderOverview(); renderNotifications(); openRequestDetail(request.id); });
             document.getElementById('notDone')?.addEventListener('click', () => {
                 const messages = [...request.messages, { from: 'Cư dân', text: 'Công việc chưa được xử lý triệt để. Vui lòng kiểm tra lại.', time: 'Vừa xong' }];
                 if (request._rhId) RHD.update('supportRequests', request._rhId, { status: 'in_progress', resolvedAt: null, closedAt: null, messages: messages, updatedAt: Date.now() });
@@ -2600,7 +2596,7 @@
             const period = document.getElementById('requestPeriod').value;
             const iconByType = { 'Sửa chữa căn hộ': 'fa-wrench', 'Cơ sở vật chất chung': 'fa-building', 'An ninh': 'fa-shield-alt', 'Vệ sinh': 'fa-broom', 'Phí & thanh toán': 'fa-credit-card' };
             const filtered = requestData.filter(request => {
-                const matchesHistory = activeHistory === 'all' || request.status !== 'completed';
+                const matchesHistory = activeHistory === 'all' || request.status !== 'closed';
                 const matchesText = (request.title + request.id + request.description).toLowerCase().includes(query);
                 const matchesDate = period === 'all' || Number(period) >= (request.id === 'YCD-014' ? 30 : 90);
                 return matchesHistory && matchesText && (status === 'all' || request.status === status) && (type === 'all' || request.type === type) && (priority === 'all' || request.priority === priority) && matchesDate;
@@ -2609,7 +2605,7 @@
             const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
             requestPage = Math.min(requestPage, totalPages);
             const pageItems = filtered.slice((requestPage - 1) * pageSize, requestPage * pageSize);
-            const rows = pageItems.map(request => '<tr data-request="' + escapeHtml(request.id) + '"><td><strong style="color:#526174; font-size:.8rem;">' + escapeHtml(request.id) + '</strong></td><td><div class="request-title-cell"><div class="request-thumb"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '"></i></div><div><strong>' + escapeHtml(request.title) + '</strong><small>' + escapeHtml(request.description) + '</small></div></div></td><td><span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + escapeHtml(request.type) + '</span></td><td><span class="badge priority-' + escapeHtml(request.priority) + '">' + escapeHtml(priorityLabels[request.priority] || 'Bình thường') + '</span></td><td><span class="badge ' + (request.status === 'completed' ? 'badge-paid' : request.status === 'waiting' ? 'badge-pending' : 'badge-info') + '">' + escapeHtml(statusLabels[request.status] || 'Đang xử lý') + '</span></td><td style="white-space:nowrap; color:#526174; font-size:.82rem;">' + escapeHtml(request.date) + '</td><td><button class="request-action" data-open-request="' + escapeHtml(request.id) + '">Xem chi tiết <i class="fas fa-arrow-right"></i></button></td></tr>').join('');
+            const rows = pageItems.map(request => '<tr data-request="' + escapeHtml(request.id) + '"><td><strong style="color:#526174; font-size:.8rem;">' + escapeHtml(request.id) + '</strong></td><td><div class="request-title-cell"><div class="request-thumb"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '"></i></div><div><strong>' + escapeHtml(request.title) + '</strong><small>' + escapeHtml(request.description) + '</small></div></div></td><td><span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + escapeHtml(request.type) + '</span></td><td><span class="badge priority-' + escapeHtml(request.priority) + '">' + escapeHtml(priorityLabels[request.priority] || 'Bình thường') + '</span></td><td><span class="badge ' + (request.status === 'closed' ? 'badge-paid' : request.status === 'resolved' ? 'badge-pending' : 'badge-info') + '">' + escapeHtml(statusLabels[request.status] || 'Chưa kiểm tra') + '</span></td><td style="white-space:nowrap; color:#526174; font-size:.82rem;">' + escapeHtml(request.date) + '</td><td><button type="button" class="request-action" data-open-request="' + escapeHtml(request.id) + '">Xem chi tiết <i class="fas fa-arrow-right"></i></button></td></tr>').join('');
             document.getElementById('requestList').innerHTML = '<div class="request-table-wrap"><table class="request-table"><thead><tr><th>Mã yêu cầu</th><th>Nội dung</th><th>Loại yêu cầu</th><th>Mức độ</th><th>Trạng thái</th><th>Ngày tạo</th><th>Thao tác</th></tr></thead><tbody>' + (rows || '<tr><td colspan="7"><div class="request-empty"><i class="fas fa-inbox" style="font-size:2rem; color:#9bb8dc;"></i><p>Không tìm thấy yêu cầu phù hợp.</p></div></td></tr>') + '</tbody></table></div><div class="request-pagination"><span>Hiển thị ' + (filtered.length ? ((requestPage - 1) * pageSize + 1) : 0) + '–' + Math.min(requestPage * pageSize, filtered.length) + ' trong ' + filtered.length + ' yêu cầu</span><div class="pagination-buttons"><button class="page-button" data-page="prev" ' + (requestPage === 1 ? 'disabled' : '') + '><i class="fas fa-chevron-left"></i></button>' + Array.from({ length: totalPages }, (_, index) => '<button class="page-button ' + (requestPage === index + 1 ? 'active' : '') + '" data-page="' + (index + 1) + '">' + (index + 1) + '</button>').join('') + '<button class="page-button" data-page="next" ' + (requestPage === totalPages ? 'disabled' : '') + '><i class="fas fa-chevron-right"></i></button></div></div>';
             document.querySelectorAll('.request-table tbody tr[data-request]').forEach(row => { const request = requestData.find(item => item.id === row.dataset.request); row.children[0].innerHTML = '<strong style="color:#526174; font-size:.8rem;">' + escapeHtml(request.id) + '</strong>' + '<small style="display:block;color:#8a99ac;margin-top:.25rem;">' + escapeHtml(REAL_APARTMENT ? 'Căn hộ ' + REAL_APARTMENT.name : '') + '</small>'; row.children[2].innerHTML = '<span style="color:#526174; font-size:.82rem;"><i class="fas ' + (iconByType[request.type] || 'fa-clipboard-list') + '" style="width:18px; color:#1769e8;"></i>' + escapeHtml(request.type) + '<small style="display:block;color:#8a99ac;margin:.2rem 0 0 18px;">' + escapeHtml(request.subType || 'Hỗ trợ cư dân') + '</small></span>'; row.children[5].innerHTML = '<span style="white-space:nowrap;color:#526174;font-size:.82rem;">' + escapeHtml(request.date) + '<small style="display:block;color:#8a99ac;margin-top:.2rem;">' + escapeHtml(request.time || '09:00') + '</small></span>'; });
             document.querySelectorAll('[data-request], [data-open-request]').forEach(item => item.addEventListener('click', event => { event.stopPropagation(); openRequestDetail(item.dataset.request || item.dataset.openRequest); }));

@@ -80,15 +80,38 @@
         { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
     ];
 
-    // Canonical status vocabulary shared by both roles: manager's Yêu cầu hỗ trợ tab
-    // uses these ids directly; resident-web.html maps its own legacy status words
-    // (processing/waiting/completed) to these at the point it reads/writes RHD.
+    // Canonical status vocabulary shared by manager and resident support screens.
     var SUPPORT_STATUSES = [
-        { id: 'new', label: 'Mới', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'new', label: 'Chưa xử lý', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'accepted', label: 'Đã tiếp nhận', color: '#7c3aed', bg: '#f3e8ff' },
         { id: 'in_progress', label: 'Đang xử lý', color: '#a5680c', bg: '#fff4df' },
         { id: 'resolved', label: 'Đã xử lý', color: '#18a878', bg: '#e6f8ef' },
         { id: 'closed', label: 'Đã đóng', color: '#61708a', bg: '#f1f5f9' }
     ];
+    var SETTINGS_DEFAULTS = {
+        orgLogo: '',
+        orgName: '',
+        orgHotline: '',
+        orgEmail: '',
+        orgAddress: '',
+        autoOccupyOnContract: false,
+        contractExpiringDays: 30,
+        contractNoticeDays: 30,
+        contractReminderDays: '30,15,7,0',
+        invoiceDueMode: 'days',
+        invoiceDueDays: 5,
+        invoiceDueDayOfMonth: 10,
+        autoMarkOverdue: false,
+        invoiceRequireSend: false,
+        residentOnlinePayment: false,
+        invoiceReminderDays: '',
+        supportAutoAssignee: '',
+        supportAllowRating: true,
+        notifyInvoice: true,
+        notifyContract: true,
+        notifySupportStatus: true,
+        notifyAccountApproved: true
+    };
     var SUPPORT_PRIORITIES = [
         { id: 'normal', label: 'Bình thường' },
         { id: 'needed', label: 'Cần xử lý' },
@@ -109,6 +132,35 @@
     function mode() { return global.RHD_MODE || 'live'; }
     function prefix() { return 'residenthub_' + mode() + '_'; }
     function key(entity) { return prefix() + entity; }
+
+    function settingsKey() {
+        var session = global.RH && global.RH.getSession ? global.RH.getSession() : null;
+        return 'residenthub_settings_v1_' + encodeURIComponent(session && session.id || 'standalone');
+    }
+
+    function getSettings() {
+        var raw = localStorage.getItem(settingsKey());
+        if (!raw) return Object.assign({}, SETTINGS_DEFAULTS);
+        var settings = JSON.parse(raw);
+        if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+            throw new Error('Cài đặt ResidentHub phải là một đối tượng hợp lệ.');
+        }
+        return Object.assign({}, SETTINGS_DEFAULTS, settings);
+    }
+
+    function saveSettings(patch) {
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+            throw new TypeError('Dữ liệu cài đặt phải là một đối tượng.');
+        }
+        Object.keys(patch).forEach(function (setting) {
+            if (!Object.prototype.hasOwnProperty.call(SETTINGS_DEFAULTS, setting)) {
+                throw new Error('Không hỗ trợ khóa cài đặt: ' + setting);
+            }
+        });
+        var settings = Object.assign(getSettings(), patch);
+        localStorage.setItem(settingsKey(), JSON.stringify(settings));
+        return settings;
+    }
 
     function readAll(entity) {
         try {
@@ -460,10 +512,13 @@
         SUPPORT_STATUSES: SUPPORT_STATUSES,
         SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
         SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,
+        SETTINGS_DEFAULTS: SETTINGS_DEFAULTS,
         PROVINCES: PROVINCES,
         WARD_SUGGESTIONS: WARD_SUGGESTIONS,
         setMode: setMode,
         mode: mode,
+        getSettings: getSettings,
+        saveSettings: saveSettings,
         list: list,
         get: get,
         create: create,
