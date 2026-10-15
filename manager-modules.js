@@ -641,7 +641,7 @@
             '<div class="rh-field" style="grid-column:1/-1;"><label>Tên khoản phí *</label><input id="sfName" required value="' + escapeHtml(service ? service.name : '') + '" placeholder="Ví dụ: Phí quản lý vận hành"></div>' +
             '<div class="rh-field"><label>Loại phí</label><select id="sfFeeType">' + selectOptions(RHD.FEE_TYPES, 'id', 'label', service ? service.feeType : 'service') + '</select></div>' +
             '<div class="rh-field"><label>Cách tính</label><select id="sfCalcMethod">' + selectOptions(RHD.CALC_METHODS, 'id', 'label', service ? service.calcMethod : 'fixed') + '</select></div>' +
-            '<div class="rh-field"><label>Giá tiền (đ)</label><input id="sfUnitPrice" type="number" min="0" step="1" value="' + (service ? Number(service.unitPrice) || 0 : 0) + '"></div>' +
+            '<div class="rh-field"><label>Giá tiền (đ)</label><input id="sfUnitPrice" data-money type="text" min="0" step="1" value="' + (service ? Number(service.unitPrice) || 0 : 0) + '"></div>' +
             '<div class="rh-field"><label>Đơn vị tính</label><input id="sfUnit" value="' + escapeHtml(service ? service.unit || '' : '') + '" placeholder="/Phòng, /Người, /kWh..."></div>' +
             '<div class="rh-field"><label>Thuế suất (%)</label><input id="sfTaxRate" type="number" min="0" max="100" step="0.01" value="' + (service ? Number(service.taxRate) || 0 : 0) + '"></div>' +
             '<label class="rh-choice" style="grid-column:1/-1;"><input id="sfDefault" type="checkbox" ' + (service && service.isDefault ? 'checked' : '') + '> Đặt làm phí mặc định</label>' +
@@ -661,7 +661,7 @@
             name: byId('sfName').value.trim(),
             feeType: byId('sfFeeType').value,
             calcMethod: byId('sfCalcMethod').value,
-            unitPrice: Number(byId('sfUnitPrice').value) || 0,
+            unitPrice: RHMoney.parse(byId('sfUnitPrice').value) || 0,
             unit: byId('sfUnit').value.trim(),
             taxRate: Number(byId('sfTaxRate').value) || 0,
             isDefault: byId('sfDefault').checked
@@ -703,7 +703,7 @@
             '<div class="rh-field"><label>Tên dịch vụ</label><input type="text" value="' + escapeHtml(svc.name || '') + '" oninput="RHUI.buildingServices[' + idx + '].name=this.value"></div>' +
             '<div class="rh-field"><label>Loại phí</label><select onchange="RHUI.buildingServices[' + idx + '].feeType=this.value">' + selectOptions(RHD.FEE_TYPES, 'id', 'label', svc.feeType) + '</select></div>' +
             '<div class="rh-field"><label>Cách tính phí</label><select onchange="RHUI.buildingServices[' + idx + '].calcMethod=this.value">' + selectOptions(RHD.CALC_METHODS, 'id', 'label', svc.calcMethod) + '</select></div>' +
-            '<div class="rh-field"><label>Đơn giá (đ)</label><input type="number" min="0" value="' + (svc.unitPrice || 0) + '" oninput="RHUI.buildingServices[' + idx + '].unitPrice=this.value"></div>' +
+            '<div class="rh-field"><label>Đơn giá (đ)</label><input data-money type="text" min="0" value="' + (svc.unitPrice || 0) + '" oninput="RHUI.buildingServices[' + idx + '].unitPrice=RHMoney.parse(this.value)"></div>' +
             '<div class="rh-field"><label>Thuế suất (%)</label><input type="number" min="0" max="100" value="' + (svc.taxRate || 0) + '" oninput="RHUI.buildingServices[' + idx + '].taxRate=this.value"></div>' +
             '</div>' +
             '<button type="button" class="rh-row-btn danger" style="margin-top:.5rem;" onclick="RHUI.removeBuildingService(' + idx + ')"><i class="fas fa-trash"></i> Xoá dịch vụ</button>' +
@@ -1123,8 +1123,8 @@
             '<select id="apartmentBrowseFloor" aria-label="Lọc theo tầng"><option value="">Tất cả tầng</option>' + floorOptions + '</select>' +
             '<input id="apartmentBrowseAreaMin" type="number" min="0" placeholder="Diện tích từ (m²)" aria-label="Diện tích tối thiểu">' +
             '<input id="apartmentBrowseAreaMax" type="number" min="0" placeholder="Diện tích đến (m²)" aria-label="Diện tích tối đa">' +
-            '<input id="apartmentBrowseRentMin" type="number" min="0" placeholder="Giá thuê từ" aria-label="Giá thuê tối thiểu">' +
-            '<input id="apartmentBrowseRentMax" type="number" min="0" placeholder="Giá thuê đến" aria-label="Giá thuê tối đa">' +
+            '<input id="apartmentBrowseRentMin" data-money type="text" min="0" placeholder="Giá thuê từ" aria-label="Giá thuê tối thiểu">' +
+            '<input id="apartmentBrowseRentMax" data-money type="text" min="0" placeholder="Giá thuê đến" aria-label="Giá thuê tối đa">' +
             '<div class="apartment-browser-filter-actions"><button class="btn-secondary" id="apartmentBrowseClear" type="button">Xóa lọc</button><button class="btn-primary" id="apartmentBrowseApply" type="button">Áp dụng</button></div></div>' +
             '<div class="apartment-browser-chips" id="apartmentBrowseChips">' +
             '<button class="apartment-browser-chip active" data-status="all" type="button"><i class="fas fa-door-open"></i> Danh sách căn hộ <span class="apartment-browser-chip-count">' + statusCounts.all + '</span></button>' +
@@ -1217,8 +1217,8 @@
                 floor: byId('apartmentBrowseFloor').value,
                 areaMin: byId('apartmentBrowseAreaMin').value,
                 areaMax: byId('apartmentBrowseAreaMax').value,
-                rentMin: byId('apartmentBrowseRentMin').value,
-                rentMax: byId('apartmentBrowseRentMax').value
+                rentMin: byId('apartmentBrowseRentMin').value === '' ? '' : RHMoney.parse(byId('apartmentBrowseRentMin').value),
+                rentMax: byId('apartmentBrowseRentMax').value === '' ? '' : RHMoney.parse(byId('apartmentBrowseRentMax').value)
             };
             filterPanel.hidden = true;
             filterToggle.classList.toggle('active', false);
@@ -1348,8 +1348,8 @@
             '<div class="rh-field" style="grid-column:1/-1;"><label>Chọn tòa nhà *</label><select id="afBuilding" required>' + selectOptions(buildings, 'id', function (b) { return b.name + ' (' + (b.shortName || b.code) + ')'; }, selectedBuildingId, 'Chọn tòa nhà') + '</select></div>' +
             '<div class="rh-field"><label>Chọn tầng *</label><select id="afFloor" required>' + floorOptions(selectedBuildingId, selectedFloor) + '</select></div>' +
             '<div class="rh-field"><label>Tên căn hộ *</label><input id="afName" required value="' + escapeHtml(a ? a.name : '') + '" placeholder="Tên căn hộ"></div>' +
-            '<div class="rh-field"><label>Giá thuê *</label><input id="afRent" type="number" min="0" required value="' + (a ? a.rentPrice : '') + '" placeholder="Giá thuê"></div>' +
-            '<div class="rh-field"><label>Cọc *</label><input id="afDeposit" type="number" min="0" required value="' + (a ? a.depositPrice : '') + '" placeholder="Cọc"></div>' +
+            '<div class="rh-field"><label>Giá thuê *</label><input id="afRent" data-money type="text" min="0" required value="' + (a ? a.rentPrice : '') + '" placeholder="Giá thuê"></div>' +
+            '<div class="rh-field"><label>Cọc *</label><input id="afDeposit" data-money type="text" min="0" required value="' + (a ? a.depositPrice : '') + '" placeholder="Cọc"></div>' +
             '<div class="rh-field"><label>Diện tích *</label><input id="afArea" type="number" min="0" required value="' + (a ? a.area : '') + '" placeholder="Diện tích"></div>' +
             '<div class="rh-field"><label>Số khách tối đa *</label><input id="afMaxGuests" type="number" min="1" required value="' + (a ? a.maxGuests || '' : '') + '" placeholder="Số khách tối đa"></div>' +
             '</div>' +
@@ -1385,8 +1385,8 @@
             maxGuests: Number(byId('afMaxGuests').value),
             active: byId('afActive').checked,
             status: byId('afActive').checked ? 'vacant' : 'maintenance',
-            rentPrice: Number(byId('afRent').value) || 0,
-            depositPrice: Number(byId('afDeposit').value) || 0,
+            rentPrice: RHMoney.parse(byId('afRent').value) || 0,
+            depositPrice: RHMoney.parse(byId('afDeposit').value) || 0,
             invoiceTemplateId: byId('afInvoiceTpl').value,
             contractTemplateId: byId('afContractTpl').value
         };
@@ -1701,6 +1701,7 @@
                 '<div class="rh-contract-cell"><small>THỜI HẠN</small><strong>' + fmtDate(c.startDate) + ' → ' + fmtDate(c.endDate) + '</strong></div>' +
                 '<div class="rh-contract-cell"><small>TIỀN THUÊ</small><strong>' + money(c.rentPrice) + '</strong></div>' +
                 '<div class="rh-contract-actions"><span>' + badge(statusLabels[contractStatus] || 'Đang thuê', tone[0], tone[1]) + '</span>' +
+                rowButton('contracts.view', "RHUI.previewContract('" + c.id + "')", 'fa-file-pdf', 'Xem / xuất hợp đồng') +
                 rowButton('contracts.update', "RHUI.openContractForm('" + c.id + "')", 'fa-pen', 'Sửa') +
                 rowButton('contracts.delete', "RHUI.deleteContract('" + c.id + "')", 'fa-trash', 'Xoá', true) + '</div></article>';
         }).join('');
@@ -1726,8 +1727,14 @@
     function refreshContractApartmentInfo() {
         var apt = RHD.get('apartments', byId('cfApartmentSel').value);
         if (!apt) return;
-        byId('cfRent').value = apt.rentPrice;
-        byId('cfDeposit').value = apt.depositPrice;
+        var b = RHD.get('buildings', apt.buildingId), cfg = RHD.getSettings();
+        byId('cfRent').value = RHMoney.format(String(apt.rentPrice != null ? apt.rentPrice : b.rentPrice || 0));
+        byId('cfDeposit').value = RHMoney.format(String(apt.depositPrice != null ? apt.depositPrice : b.depositPrice || 0));
+        byId('cfCycle').value = apt.paymentCycle || b.paymentCycle || 'monthly';
+        byId('cfBillingDay').value = apt.billingDay || b.billingDay || cfg.billingDay || '';
+        byId('cfDueDays').value = apt.dueDays != null ? apt.dueDays : b.dueDays != null ? b.dueDays : cfg.invoiceDueDays;
+        byId('cfContractTpl').value = apt.contractTemplateId || b.contractTemplateId || (RHT.getDefault('CONTRACT', b.id) || {}).id || '';
+        renderContractAssets(apt.id, []);
     }
 
     function contractServiceRows(building, checkedIds, overrides) {
@@ -1738,7 +1745,7 @@
             return '<tr>' +
                 '<td><input type="checkbox" class="rh-contract-svc" value="' + s.id + '" ' + (checked ? 'checked' : '') + '></td>' +
                 '<td>' + escapeHtml(s.name) + '<div style="font-size:.72rem;color:#94a3b8;">' + feeTypeLabel(s.feeType) + ' · ' + calcMethodLabel(s.calcMethod) + '</div></td>' +
-                '<td><input type="number" min="0" class="rh-contract-svc-price" data-svc="' + s.id + '" value="' + price + '" style="width:110px;padding:.4rem .5rem;border:1px solid var(--line);border-radius:6px;"></td>' +
+                '<td><input data-money type="text" class="rh-contract-svc-price" data-svc="' + s.id + '" value="' + price + '" style="width:110px;padding:.4rem .5rem;border:1px solid var(--line);border-radius:6px;"></td>' +
                 '</tr>';
         }).join('');
     }
@@ -1753,6 +1760,19 @@
         RHUI.openContractForm(null, customerId);
     };
 
+    function renderContractAssets(apartmentId, selected) {
+        var target = byId('cfAssetRows'); if (!target) return;
+        target.innerHTML = RHD.assetsOf('apartmentId', apartmentId).map(function (asset) {
+            var saved = selected.filter(function (a) { return a.assetId === asset.id; })[0];
+            return '<tr data-asset="' + escapeHtml(asset.id) + '"><td><input type="checkbox" class="cf-asset-check"' + (saved ? ' checked' : '') + '> ' + escapeHtml(asset.name) + '</td><td><input class="cf-asset-qty" type="number" min="1" max="' + Number(asset.quantity) + '" value="' + (saved ? saved.quantity : asset.quantity) + '"></td><td><input class="cf-asset-condition" value="' + escapeHtml(saved ? saved.condition : asset.condition) + '"></td><td><input class="cf-asset-note" value="' + escapeHtml(saved ? saved.note : '') + '"></td></tr>';
+        }).join('') || '<tr><td colspan="4">Căn hộ chưa được gán tài sản.</td></tr>';
+    }
+    function readContractAssets() {
+        return Array.from(document.querySelectorAll('#cfAssetRows tr[data-asset]')).filter(function (row) { return row.querySelector('.cf-asset-check').checked; }).map(function (row) {
+            var asset = RHD.get('assets', row.dataset.asset);
+            return { assetId:asset.id,name:asset.name,value:asset.value,quantity:Number(row.querySelector('.cf-asset-qty').value),condition:row.querySelector('.cf-asset-condition').value,note:row.querySelector('.cf-asset-note').value };
+        });
+    }
     RHUI.openContractForm = function (id, customerId) {
         if (!guard(id ? 'contracts.update' : 'contracts.create')) return;
         var c = id ? RHD.get('contracts', id) : null;
@@ -1779,6 +1799,7 @@
             '<div class="rh-field"><label>Tòa nhà *</label><select id="cfBuildingSel" required>' + selectOptions(buildings, 'id', 'name', defaultBuildingId) + '</select></div>' +
             '<div class="rh-field"><label>Căn hộ *</label><select id="cfApartmentSel" required>' + selectOptions(apartments, 'id', 'name', c ? c.apartmentId : (apartments[0] && apartments[0].id)) + '</select></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Khách hàng *</label><select id="cfCustomerSel" required>' + selectOptions(customers, 'id', function (cu) { return cu.fullName + ' — ' + cu.phone; }, selectedCustomerId, 'Chọn khách hàng') + '</select><div id="cfCustomerPreview" class="rh-customer-preview"></div></div>' +
+            '<div class="rh-field" style="grid-column:1/-1"><label>Danh sách khách thuê (gồm người đại diện)</label><div id="cfTenants"></div></div>' +
             '<div class="rh-field"><label>Mã hợp đồng</label><input id="cfCode" readonly value="' + escapeHtml(c ? c.code : '(tự động khi lưu)') + '" style="background:#f8fafc;color:#61708a;"></div>' +
             '<div class="rh-field"><label>Chu kỳ thanh toán</label><select id="cfCycle">' + selectOptions(RHD.PAYMENT_CYCLES, 'id', 'label', c ? c.paymentCycle : 'monthly') + '</select></div>' +
             '<div class="rh-field"><label>Ngày bắt đầu *</label><input id="cfStart" type="date" required value="' + escapeHtml(c ? c.startDate : '') + '"></div>' +
@@ -1786,8 +1807,8 @@
             '<div class="rh-field"><label>Ngày ký</label><input id="cfSignDate" type="date" value="' + escapeHtml(c ? c.signDate : '') + '"></div>' +
             '<div class="rh-field"><label>Mẫu hợp đồng</label><select id="cfContractTpl">' + selectOptions(RHT.list('CONTRACT'), 'id', 'name', c ? c.contractTemplateId : building.contractTemplateId) + '</select></div>' +
             '<div class="rh-field"><label>Mẫu hóa đơn</label><select id="cfInvoiceTpl">' + selectOptions(RHT.list('INVOICE'), 'id', 'name', c ? c.invoiceTemplateId : building.invoiceTemplateId) + '</select></div>' +
-            '<div class="rh-field"><label>Tiền thuê (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfRent" type="number" required value="' + (c ? c.rentPrice : '') + '"></div>' +
-            '<div class="rh-field"><label>Tiền cọc (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfDeposit" type="number" required value="' + (c ? c.depositPrice : '') + '"></div>' +
+            '<div class="rh-field"><label>Tiền thuê (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfRent" data-money type="text" required value="' + (c ? c.rentPrice : '') + '"></div>' +
+            '<div class="rh-field"><label>Tiền cọc (đ) * <span style="color:#94a3b8;font-weight:400;">— tự động từ căn hộ</span></label><input id="cfDeposit" data-money type="text" required value="' + (c ? c.depositPrice : '') + '"></div>' +
             '<div class="rh-field"><label>Người giới thiệu</label><input id="cfReferrer" value="' + escapeHtml(c ? c.referrer : '') + '"></div>' +
             '<div class="rh-field"><label>Cộng tác viên tìm khách</label><input id="cfCollaborator" value="' + escapeHtml(c ? c.collaborator : '') + '"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú</label><textarea id="cfNoteField" rows="2">' + escapeHtml(c ? c.note : '') + '</textarea></div>' +
@@ -1796,13 +1817,20 @@
             '<div class="rh-section"><div class="rh-section-title">Phí dịch vụ — lấy từ Tòa nhà</div>' +
             '<table style="width:100%;"><thead><tr><th style="width:40px;"></th><th style="text-align:left;">Dịch vụ</th><th style="text-align:left;">Đơn giá (đ)</th></tr></thead>' +
             '<tbody id="cfServiceRows">' + contractServiceRows(building, checkedIds, overrides) + '</tbody></table></div>' +
+            '<div class="rh-section"><label>Tài sản bàn giao</label><table><thead><tr><th>Tài sản</th><th>Số lượng</th><th>Tình trạng</th><th>Ghi chú</th></tr></thead><tbody id="cfAssetRows"></tbody></table></div>' +
+            '<div class="rh-grid-2"><div class="rh-field"><label>Ngày tính tiền</label><input id="cfBillingDay" type="number" min="1" max="31" value="' + escapeHtml(c ? c.billingDay : building.billingDay || '') + '"></div><div class="rh-field"><label>Hạn thanh toán (ngày)</label><input id="cfDueDays" type="number" min="0" value="' + escapeHtml(c ? c.dueDays : building.dueDays != null ? building.dueDays : RHD.getSettings().invoiceDueDays) + '"></div>' +
+            '<div class="rh-field"><label>Bên cho thuê</label><input id="cfLessorName" value="' + escapeHtml(c && c.lessorName || RHD.getSettings().orgName || '') + '"></div><div class="rh-field"><label>Người đại diện bên cho thuê</label><input id="cfLessorRepresentative" value="' + escapeHtml(c && c.lessorRepresentative || '') + '" placeholder="Người ký được ủy quyền, không mặc định là quản lý"></div><div class="rh-field"><label>Ngân hàng</label><input id="cfBank" value="' + escapeHtml((c && c.paymentSnapshot || RHDocuments.paymentDefaults(building)).bankName || '') + '"></div><div class="rh-field"><label>Số tài khoản</label><input id="cfBankNumber" value="' + escapeHtml((c && c.paymentSnapshot || RHDocuments.paymentDefaults(building)).bankAccountNumber || '') + '"></div><div class="rh-field"><label>Chủ tài khoản</label><input id="cfBankHolder" value="' + escapeHtml((c && c.paymentSnapshot || RHDocuments.paymentDefaults(building)).bankAccountHolder || '') + '"></div>' +
+            '<div class="rh-field"><label>Ngày đến hạn kỳ đầu</label><input id="cfPaymentDue" type="date" value="' + escapeHtml(c && c.paymentDueDate || '') + '"></div><div class="rh-field"><label>Phí dịch vụ kỳ đầu (nhập sau khi đối chiếu)</label><input id="cfInitialServices" data-money value="' + (c && c.initialServiceAmount != null ? c.initialServiceAmount : '') + '"></div><div class="rh-field"><label>Khoản phát sinh kỳ đầu</label><input id="cfAdditional" data-money value="' + (c && c.additionalAmount != null ? c.additionalAmount : '') + '"></div></div>' +
+            '<div class="rh-field"><label>Điều khoản tùy chỉnh</label><textarea id="cfTerms">' + escapeHtml(c && c.customTerms || '') + '</textarea></div>' +
             '<div id="cfError" style="color:#ef4444;font-size:.85rem;margin-top:1rem;"></div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
-            '<button type="submit" class="btn-primary">Lưu hợp đồng</button>' +
+            '<button type="submit" class="btn-primary">Lưu hợp đồng</button><button type="button" onclick="RHUI.previewContractForm()">Xem trước trước khi lưu</button>' +
             '<button type="button" onclick="RHUI.closeDrawer()" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Huỷ</button>' +
             '</div></form>';
 
         openDrawer(c ? 'Sửa hợp đồng' : 'Thêm hợp đồng', html);
+        RHUI.contractTenants = RHSelect.createMulti(byId('cfTenants'), { values:c ? RHDocuments.tenantIds(c) : selectedCustomerId ? [selectedCustomerId] : [], options:customers.map(function (cu) { return { value:cu.id,label:cu.fullName,sub:[cu.phone,cu.idNumber].filter(Boolean).join(' · ') }; }), placeholder:'Chọn khách thuê', searchPlaceholder:'Tìm tên, SĐT, CCCD...' });
+        renderContractAssets(byId('cfApartmentSel').value, c && c.handoverAssets || []);
         function refreshContractCustomerInfo() {
             var customer = RHD.get('customers', byId('cfCustomerSel').value);
             var preview = byId('cfCustomerPreview');
@@ -1834,19 +1862,27 @@
         var apartment = RHD.get('apartments', apartmentId);
         var serviceIds = Array.prototype.map.call(document.querySelectorAll('.rh-contract-svc:checked'), function (el) { return el.value; });
         var overrides = {};
-        document.querySelectorAll('.rh-contract-svc-price').forEach(function (inp) { overrides[inp.dataset.svc] = Number(inp.value) || 0; });
+        document.querySelectorAll('.rh-contract-svc-price').forEach(function (inp) { overrides[inp.dataset.svc] = RHMoney.parse(inp.value) || 0; });
 
         var data = {
             buildingId: buildingId,
             apartmentId: apartmentId,
             customerId: byId('cfCustomerSel').value,
+            customerIds: RHUI.contractTenants.getValues(),
+            handoverAssets:readContractAssets(), billingDay:Number(byId('cfBillingDay').value) || null, dueDays:Number(byId('cfDueDays').value),
+            paymentDueDate:byId('cfPaymentDue').value,
+            initialServiceAmount:byId('cfInitialServices').value === '' ? null : RHMoney.parse(byId('cfInitialServices').value),
+            additionalAmount:byId('cfAdditional').value === '' ? null : RHMoney.parse(byId('cfAdditional').value),
+            lessorName:byId('cfLessorName').value.trim(),lessorRepresentative:byId('cfLessorRepresentative').value.trim(),
+            paymentSnapshot:{bankName:byId('cfBank').value.trim(),bankAccountNumber:byId('cfBankNumber').value.trim(),bankAccountHolder:byId('cfBankHolder').value.trim()},
+            customTerms:byId('cfTerms').value.trim(),
             startDate: byId('cfStart').value,
             endDate: byId('cfEnd').value,
             signDate: byId('cfSignDate').value,
             contractTemplateId: byId('cfContractTpl').value,
             invoiceTemplateId: byId('cfInvoiceTpl').value,
-            rentPrice: Number(byId('cfRent').value) || 0,
-            depositPrice: Number(byId('cfDeposit').value) || 0,
+            rentPrice: RHMoney.parse(byId('cfRent').value) || 0,
+            depositPrice: RHMoney.parse(byId('cfDeposit').value) || 0,
             paymentCycle: byId('cfCycle').value,
             referrer: byId('cfReferrer').value.trim(),
             collaborator: byId('cfCollaborator').value.trim(),
@@ -1856,6 +1892,15 @@
             serviceOverrides: overrides,
             status: 'active'
         };
+        if (data.customerId && data.customerIds.indexOf(data.customerId) < 0) data.customerIds.unshift(data.customerId);
+        data.servicesSnapshot = (building.services || []).filter(function (s) { return serviceIds.indexOf(s.id) >= 0; }).map(function (s) { return Object.assign({}, s, { unitPrice:overrides[s.id] }); });
+        if (RHUI.previewingContract) {
+            data.code = RHUI.drawerId ? RHD.get('contracts', RHUI.drawerId).code : RHD.nextContractCode(building, apartment);
+            data.id = RHUI.drawerId || undefined;
+            // Preview/export is a draft operation; required signing checks remain in RHDocuments.prepare on save.
+            var existing = RHUI.drawerId && RHD.get('contracts', RHUI.drawerId);
+            showContractDocument(existing && existing.documentSnapshot ? existing : data, true); return;
+        }
         if (!data.customerId) { byId('cfError').textContent = 'Vui lòng chọn khách hàng.'; return; }
 
         var res;
@@ -1877,6 +1922,10 @@
         renderApartmentsTab();
         renderDashboardCounts();
     };
+
+    function showContractDocument(c) { RHDocuments.preview(RHDocuments.documentFor(c),{title:'Xem trước — '+(c.code||'Hợp đồng')}); }
+    RHUI.previewContract = function (id) { if (!guard('contracts.view')) return; var c = scoped('contracts').filter(function (c) { return c.id === id; })[0]; if (c) showContractDocument(c); };
+    RHUI.previewContractForm = function () { RHUI.previewingContract = true; try { RHUI.submitContractForm({preventDefault:function(){}}); } finally { RHUI.previewingContract = false; } };
 
     RHUI.deleteContract = function (id) {
         if (!guard('contracts.delete')) return;
@@ -1978,7 +2027,7 @@
             '<div class="rh-field"><label>Tòa nhà</label><select id="cashflowFormBuilding">' + selectOptions(buildings, 'id', 'name', initialBuildingId, 'Chọn tòa nhà (không bắt buộc)') + '</select></div>' +
             '<div class="rh-field"><label>Căn hộ / Phòng</label><select id="cashflowFormApartment">' + apartmentOptions + '</select></div>' +
             '<div class="rh-field"><label>Danh mục *</label><select id="cashflowFormCategory" required>' + categoryOptions + '</select></div>' +
-            '<div class="rh-field"><label>Số tiền (đ) *</label><input id="cashflowFormAmount" type="number" min="1" step="1" required value="' + (record ? Number(record.amount) || '' : '') + '"></div>' +
+            '<div class="rh-field"><label>Số tiền (đ) *</label><input id="cashflowFormAmount" data-money type="text" min="1" step="1" required value="' + (record ? Number(record.amount) || '' : '') + '"></div>' +
             '<div class="rh-field"><label>Hình thức thanh toán</label><select id="cashflowFormMethod">' + selectOptions([{ id: 'cash', label: 'Tiền mặt' }, { id: 'bank', label: 'Chuyển khoản' }, { id: 'other', label: 'Khác' }], 'id', 'label', record ? record.paymentMethodId : 'bank') + '</select></div>' +
             '<div class="rh-field"><label>Người nhận / trả</label><input id="cashflowFormPerson" value="' + escapeHtml(record ? record.personName : '') + '" placeholder="Tên người giao dịch"></div>' +
             '<div class="rh-field"><label>Tài khoản / sổ quỹ</label><input id="cashflowFormAccount" list="cashflowAccounts" value="' + escapeHtml(record ? record.accountName || record.paymentMethod : '') + '" placeholder="Tiền mặt, ngân hàng..." ><datalist id="cashflowAccounts"><option value="Tiền mặt"><option value="Vietcombank"><option value="Techcombank"><option value="MBBank"></datalist></div>' +
@@ -2004,7 +2053,7 @@
 
     RHUI.saveCashflow = function (ev) {
         ev.preventDefault();
-        var amount = Number(byId('cashflowFormAmount').value);
+        var amount = RHMoney.parse(byId('cashflowFormAmount').value);
         if (!isFinite(amount) || amount <= 0) { byId('cashflowFormError').textContent = 'Số tiền phải lớn hơn 0.'; return; }
         var methodId = byId('cashflowFormMethod').value;
         var methodLabels = { cash: 'Tiền mặt', bank: 'Chuyển khoản', other: 'Khác' };
@@ -2238,7 +2287,7 @@
 
     function invoiceLineRowHtml(l, idx) {
         var num = function (field, value, step) {
-            return '<input type="number" step="' + (step || 'any') + '" value="' + escapeHtml(value) + '" data-line="' + idx + '" data-field="' + field + '">';
+            return '<input ' + (['unitPrice', 'amount'].indexOf(field) !== -1 ? 'data-money type="text"' : 'type="number"') + ' step="' + (step || 'any') + '" value="' + escapeHtml(value) + '" data-line="' + idx + '" data-field="' + field + '">';
         };
         return '<tr class="' + (l.missing ? 'if-line-missing' : '') + '">' +
             '<td><input type="text" value="' + escapeHtml(l.label) + '" data-line="' + idx + '" data-field="label" aria-label="Khoản mục">' +
@@ -2384,7 +2433,7 @@
             var idx = Number(el.getAttribute('data-line'));
             var field = el.getAttribute('data-field');
             if (!field || !invoiceDraft.lines[idx]) return;
-            invoiceDraft.lines[idx][field] = field === 'label' ? el.value : el.value === '' ? 0 : Number(el.value);
+            invoiceDraft.lines[idx][field] = field === 'label' ? el.value : el.value === '' ? 0 : el.hasAttribute('data-money') ? RHMoney.parse(el.value) : Number(el.value);
             invoiceDraft.lines[idx].source = 'manual';
             invoiceDraft.lines[idx].manualOverride = true;
             refreshInvoiceTotals();

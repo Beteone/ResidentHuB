@@ -176,6 +176,11 @@
     }
 
     function create(entity, data) {
+        if (entity === 'contracts' && global.RHDocuments) {
+            var prepared = global.RHDocuments.prepare(data);
+            if (!prepared.ok) return prepared;
+            data = prepared.item;
+        }
         if (mode() === 'demo') {
             var info = limitInfo(entity);
             if (info.reached) {
@@ -197,6 +202,11 @@
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         var before = items[idx];
         items[idx] = Object.assign({}, items[idx], patch, { id: items[idx].id, createdAt: items[idx].createdAt });
+        if (entity === 'contracts' && global.RHDocuments) {
+            var prepared = global.RHDocuments.prepare(items[idx], before);
+            if (!prepared.ok) return prepared;
+            items[idx] = prepared.item;
+        }
         writeAll(entity, items);
         if (entity === 'meters' && global.RHB) { global.RHB.meterChanged(before); global.RHB.meterChanged(items[idx]); }
         return { ok: true, item: items[idx] };
@@ -276,7 +286,7 @@
     function residentPlacement(customerId) {
         var customer = customerId ? get('customers', customerId) : null;
         if (!customer) return null;
-        var contracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id; })
+        var contracts = readAll('contracts').filter(function (c) { return (c.customerIds || [c.customerId]).indexOf(customer.id) !== -1; })
             .sort(function (a, b) { return b.createdAt - a.createdAt; });
         var active = contracts.filter(function (c) { return c.status !== 'ended'; })[0] || null;
         var ref = active || contracts[0] || null;
@@ -318,7 +328,7 @@
         var customer = residentId ? get('customers', residentId) : null;
         var contract = null;
         if (customer) {
-            var customerContracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id && c.status !== 'ended'; });
+            var customerContracts = readAll('contracts').filter(function (c) { return (c.customerIds || [c.customerId]).indexOf(customer.id) !== -1 && c.status !== 'ended'; });
             customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
             contract = customerContracts[0] || null;
         }

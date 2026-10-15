@@ -47,7 +47,7 @@
         { id: 'reports', label: 'Báo cáo', actions: ['view'] },
         { id: 'roles', label: 'Loại tài khoản', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'users', label: 'Người dùng', actions: ['view', 'create', 'update', 'delete'],
-            extra: [{ id: 'approveResident', label: 'Duyệt tài khoản cư dân' }, { id: 'lock', label: 'Khóa / mở khóa tài khoản' }] },
+            extra: [{ id: 'createResident', label: 'Tạo tài khoản cư dân' }, { id: 'approveResident', label: 'Duyệt tài khoản cư dân' }, { id: 'lock', label: 'Khóa / mở khóa tài khoản' }] },
         { id: 'templates', label: 'Biểu mẫu', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'settings', label: 'Cài đặt hệ thống', actions: ['view', 'update'] }
     ];
@@ -288,7 +288,7 @@
         if (entity === 'customers') {
             var contracts = global.RHD ? global.RHD.list('contracts') : [];
             return items.filter(function (c) {
-                var own = contracts.filter(function (k) { return k.customerId === c.id; });
+                var own = contracts.filter(function (k) { return (k.customerIds || [k.customerId]).indexOf(c.id) !== -1; });
                 return !own.length || own.some(function (k) { return scope.indexOf(k.buildingId) !== -1; });
             });
         }
