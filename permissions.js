@@ -44,6 +44,7 @@
         { id: 'invoices', label: 'Hóa đơn', actions: ['view', 'create', 'update', 'delete'],
             extra: [{ id: 'approve', label: 'Duyệt hóa đơn nháp' }, { id: 'issue', label: 'Phát hành hóa đơn' }, { id: 'send', label: 'Gửi hóa đơn cho cư dân' }, { id: 'collect', label: 'Xác nhận đã thu tiền' }, { id: 'adjust', label: 'Điều chỉnh / hủy hóa đơn đã phát hành' }] },
         { id: 'support', label: 'Yêu cầu hỗ trợ', actions: ['view', 'update'] },
+        { id: 'notifications', label: 'Quản lý thông báo', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'reports', label: 'Báo cáo', actions: ['view'] },
         { id: 'roles', label: 'Loại tài khoản', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'users', label: 'Người dùng', actions: ['view', 'create', 'update', 'delete'],

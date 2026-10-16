@@ -149,6 +149,13 @@
         if (!title) {
             return { ok: false, error: 'Vui lòng nhập tiêu đề thông báo.' };
         }
+        var campaignId = payload && payload.campaignId;
+        if (campaignId) {
+            var existing = getNotificationsForUser(userId).find(function (item) {
+                return String(item.campaignId || '') === String(campaignId);
+            });
+            if (existing) return { ok: true, item: existing };
+        }
         return createRecordForUser(userId, 'notifications', {
             id: payload && payload.id ? payload.id : genInternalId('NT'),
             type: payload && payload.type ? payload.type : 'ANNOUNCEMENT',
@@ -158,6 +165,13 @@
             priority: payload && payload.priority ? payload.priority : 'NORMAL',
             refType: payload && payload.refType ? payload.refType : 'notifications',
             refId: payload && payload.refId ? payload.refId : '',
+            campaignId: payload && payload.campaignId ? payload.campaignId : '',
+            audience: payload && payload.audience ? payload.audience : 'all',
+            audienceName: payload && payload.audienceName ? payload.audienceName : '',
+            recipientCount: Number(payload && payload.recipientCount) || 0,
+            status: payload && payload.status ? payload.status : 'sent',
+            scheduledAt: payload && payload.scheduledAt ? payload.scheduledAt : '',
+            createdBy: payload && payload.createdBy ? payload.createdBy : '',
             actionUrl: payload && payload.actionUrl ? payload.actionUrl : 'notifications',
             actionLabel: payload && payload.actionLabel ? payload.actionLabel : 'Xem thông báo',
             isRead: !!(payload && payload.isRead),

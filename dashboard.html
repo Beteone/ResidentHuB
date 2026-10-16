@@ -11,6 +11,7 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="notification-manager.css">
     <script src="auth.js"></script>
     <script src="permissions.js"></script>
     <script src="templates.js"></script>
@@ -24,6 +25,7 @@
     <script src="contracts-module.js"></script>
     <script src="account-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
+    <script src="notification-manager.js"></script>
     <style>
         * {
             margin: 0;
@@ -2607,6 +2609,10 @@
                 <span>Yêu cầu hỗ trợ</span>
                 <span class="rh-nav-badge" id="rhNavSupportCount" style="display:none;">0</span>
             </div>
+            <div class="sidebar-menu-item" data-perm="notifications.view" onclick="switchTab('notifications', event)">
+                <i class="fas fa-bullhorn"></i>
+                <span>Quản lý thông báo</span>
+            </div>
             <div class="sidebar-menu-item rh-nav-parent" id="rhAccountsMenuItem" role="button" tabindex="0" aria-expanded="false" aria-controls="rhAccountsGroup" onclick="toggleNavGroup('rhAccountsGroup')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup('rhAccountsGroup');}">
                 <i class="fas fa-user-shield"></i>
                 <span>Tài khoản</span>
@@ -3500,6 +3506,7 @@
         <div id="cashflow-tab" style="display: none;"></div>
 
         <div id="support-tab" style="display: none;"></div>
+        <div id="notifications-tab" style="display: none;"></div>
 
         <div id="contracts-tab" style="display: none;"></div>
 
@@ -4226,6 +4233,7 @@
             invoices: (f) => RHUI.renderInvoicesTab(f),
             cashflow: () => RHUI.renderCashflowTab(),
             support: (f) => RHUI.renderSupportTab(f),
+            notifications: () => renderNotificationsManagerTab(),
             roles: () => RHAccounts.renderRolesTab(),
             accounts: (f) => { renderAccountRequestsTable(f); renderAccountsTable(); },
             settings: () => renderSettingsTab()
@@ -4245,11 +4253,12 @@
             invoices: 'invoices.view',
             cashflow: 'invoices.view',
             support: 'support.view',
+            notifications: 'notifications.view',
             reports: 'reports.view',
             roles: 'roles.view',
             accounts: ['users.view', 'users.approveResident']
         };
-        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
+        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'notifications', 'accounts', 'roles', 'reports'];
 
         function canOpenTab(tabName) {
             const permission = TAB_PERMS[tabName];
@@ -4335,6 +4344,7 @@
                 'invoices': 'Hóa đơn',
                 'cashflow': 'Thu chi',
                 'support': 'Yêu cầu hỗ trợ',
+                'notifications': 'Quản lý thông báo',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
                 'workflows': 'Quy trình làm việc',
@@ -5276,7 +5286,7 @@
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
             RHUI.refreshOpenSupportConversation();
             applyNavPermissions();
-            if (['support', 'accounts', 'roles', 'invoices', 'cashflow', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
+            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }
