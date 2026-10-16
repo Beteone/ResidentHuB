@@ -1,7 +1,7 @@
 (function (global) {
     'use strict';
 
-    var state = { creating: false, search: '', status: '', audience: '', type: '', period: '', detailId: '', editingId: '', saving: false, processing: false, refreshing: false, attachments: [], processingImages: false, imageError: '' };
+    var state = { creating: false, search: '', status: '', audience: '', type: '', period: '', detailId: '', editingId: '', saving: false, processing: false, refreshing: false, attachments: [], processingImages: false, imageBatchId: 0, imageError: '' };
     var rootId = 'notifications-tab';
     var campaignStorageKey = 'residenthub_notification_campaigns_v1';
     var maxCampaignImages = 4;
@@ -20,6 +20,16 @@
         return String(value == null ? '' : value).replace(/[&<>'"]/g, function (character) {
             return { '&': '&amp;', '<': '&lt;', '>': '&gt;', "'": '&#39;', '"': '&quot;' }[character];
         });
+    }
+
+    function can(permission) {
+        return !!(global.RHP && typeof global.RHP.can === 'function' && global.RHP.can(permission));
+    }
+
+    function guard(permission) {
+        if (global.RHP && typeof global.RHP.guard === 'function') return global.RHP.guard(permission);
+        global.alert('Không thể xác minh quyền thao tác. Vui lòng tải lại trang và thử lại.');
+        return false;
     }
 
     function residents() {
@@ -103,16 +113,19 @@
             return;
         }
         state.processingImages = true;
+        var batchId = ++state.imageBatchId;
         renderImagePicker(root);
         Promise.all(selected.map(compressNotificationImage)).then(function (images) {
+            if (batchId !== state.imageBatchId) return;
             var totalBytes = state.attachments.reduce(function (sum, image) { return sum + image.dataUrl.length * 0.75; }, 0) +
                 images.reduce(function (sum, image) { return sum + image.dataUrl.length * 0.75; }, 0);
             if (totalBytes > maxAttachmentBytes) throw new Error('Tổng dung lượng ảnh sau khi nén không được vượt quá 900 KB.');
             state.attachments = state.attachments.concat(images);
             state.imageError = '';
         }).catch(function (error) {
-            state.imageError = error.message || String(error);
+            if (batchId === state.imageBatchId) state.imageError = error.message || String(error);
         }).then(function () {
+            if (batchId !== state.imageBatchId) return;
             state.processingImages = false;
             renderImagePicker(root);
         });
@@ -338,8 +351,8 @@
             '<div class="notification-manager-detail-summary">' + (item.status === 'draft' ? 'Bản nháp chưa được gửi.' : item.status === 'scheduled' ? 'Thông báo sẽ tự động gửi đến ' + escapeHtml(item.recipientCount) + ' cư dân vào ' + escapeHtml(formatTime({ scheduledAt: item.scheduledAt })) + '.' : '<strong>' + escapeHtml(item.readCount) + '</strong> / <strong>' + escapeHtml(item.recipientCount) + '</strong> cư dân đã đọc') + '</div>' +
             (item.lastDeliveryError ? '<p class="notification-manager-delivery-error">Chưa gửi được đến một số cư dân; hệ thống sẽ thử lại. ' + escapeHtml(item.lastDeliveryError) + '</p>' : '') +
             (recipients ? '<ul class="notification-manager-recipient-list">' + recipients + '</ul>' : '<p class="notification-manager-muted">Danh sách cư dân nhận không còn khả dụng.</p>') +
-            (item.status === 'draft' ? '<footer class="notification-manager-actions"><button type="button" class="btn-secondary" data-notification-action="edit-draft" data-notification-id="' + escapeHtml(item.id) + '">Chỉnh sửa bản nháp</button></footer>' : '') +
-            (item.status === 'scheduled' ? '<footer class="notification-manager-actions"><button type="button" class="btn-secondary" data-notification-action="cancel-schedule" data-notification-id="' + escapeHtml(item.id) + '">Hủy lịch gửi</button></footer>' : '') +
+            (item.status === 'draft' && can('notifications.update') ? '<footer class="notification-manager-actions"><button type="button" class="btn-secondary" data-notification-action="edit-draft" data-notification-id="' + escapeHtml(item.id) + '">Chỉnh sửa bản nháp</button></footer>' : '') +
+            (item.status === 'scheduled' && can('notifications.update') ? '<footer class="notification-manager-actions"><button type="button" class="btn-secondary" data-notification-action="cancel-schedule" data-notification-id="' + escapeHtml(item.id) + '">Hủy lịch gửi</button></footer>' : '') +
             '</section></div>';
     }
 
@@ -405,7 +418,7 @@
             root.classList.add('notification-manager-page');
             root.innerHTML =
                 '<header class="notification-manager-header"><div class="notification-manager-heading"><span class="notification-manager-heading-icon"><i class="fas fa-bell"></i></span><div><h2>Quản lý thông báo</h2><p>Tạo, gửi và theo dõi thông báo đến cư dân trong hệ thống</p></div></div>' +
-                '<div class="notification-manager-header-actions"><button type="button" class="btn-primary" data-notification-action="open-create"><i class="fas fa-plus"></i> Tạo thông báo mới</button><button type="button" class="btn-secondary" data-notification-action="refresh"' + (state.refreshing ? ' disabled aria-busy="true"' : '') + '><i class="fas fa-rotate' + (state.refreshing ? ' fa-spin' : '') + '"></i> ' + (state.refreshing ? 'Đang làm mới' : 'Làm mới') + '</button></div></header>' +
+                '<div class="notification-manager-header-actions">' + (can('notifications.create') ? '<button type="button" class="btn-primary" data-notification-action="open-create"><i class="fas fa-plus"></i> Tạo thông báo mới</button>' : '') + '<button type="button" class="btn-secondary" data-notification-action="refresh"' + (state.refreshing ? ' disabled aria-busy="true"' : '') + '><i class="fas fa-rotate' + (state.refreshing ? ' fa-spin' : '') + '"></i> ' + (state.refreshing ? 'Đang làm mới' : 'Làm mới') + '</button></div></header>' +
                 '<div class="notification-manager-stats">' +
                 '<div class="notification-manager-card notification-manager-stat"><span class="stat-icon blue"><i class="fas fa-bullhorn"></i></span><div><small>Tổng thông báo</small><strong>' + all.length + '</strong></div></div>' +
                 '<div class="notification-manager-card notification-manager-stat"><span class="stat-icon green"><i class="fas fa-paper-plane"></i></span><div><small>Đã gửi</small><strong>' + sent.length + '</strong></div></div>' +
@@ -450,13 +463,18 @@
             var button = event.target.closest('[data-notification-action]');
             if (!button) return;
             if (button.dataset.notificationAction === 'open-create') {
+                if (!guard('notifications.create')) return;
                 state.creating = true;
                 state.editingId = '';
+                state.imageBatchId++;
+                state.processingImages = false;
                 state.attachments = [];
                 state.imageError = '';
             } else if (button.dataset.notificationAction === 'close-create') {
                 state.creating = false;
                 state.editingId = '';
+                state.imageBatchId++;
+                state.processingImages = false;
                 state.attachments = [];
                 state.imageError = '';
             } else if (button.dataset.notificationAction === 'remove-image') {
@@ -482,6 +500,7 @@
                 if (event.target.closest('[data-notification-detail]') && !event.target.closest('button')) return;
                 state.detailId = '';
             } else if (button.dataset.notificationAction === 'edit-draft') {
+                if (!guard('notifications.update')) return;
                 state.editingId = button.dataset.notificationId || '';
                 state.creating = true;
                 var draft = readCampaignStore().find(function (item) { return item.id === state.editingId; });
@@ -489,6 +508,7 @@
                 state.imageError = '';
                 state.detailId = '';
             } else if (button.dataset.notificationAction === 'cancel-schedule') {
+                if (!guard('notifications.update')) return;
                 try {
                     var items = readCampaignStore();
                     var scheduled = items.find(function (item) { return item.id === button.dataset.notificationId; });
@@ -565,6 +585,7 @@
 
     function sendNotification(form, action) {
         if (state.saving) return;
+        if (!guard(state.editingId ? 'notifications.update' : 'notifications.create')) return;
         if (state.processingImages) {
             global.alert('Vui lòng đợi ảnh được nén xong trước khi lưu thông báo.');
             return;
