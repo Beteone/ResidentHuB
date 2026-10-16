@@ -733,7 +733,7 @@
             '<div class="rh-contract-field-error" id="contractFormError" role="alert"></div><div style="display:flex;justify-content:flex-end;gap:.6rem;"><button type="button" class="btn-secondary" onclick="RHUI.closeDrawer()">Hủy</button><button type="submit" class="btn-primary">Lưu hợp đồng</button></div></form>';
         RHUI.drawerEntity = 'contracts'; RHUI.drawerId = existing && existing.id || null; RHUI.contractMeterAssignments = meterAssignments; RHUI.contractDepositId = deposit && deposit.id || '';
         RHUI.openDrawer(existing ? 'Sửa hợp đồng ' + existing.code : (deposit ? 'Tạo hợp đồng từ cọc ' + deposit.code : 'Thêm hợp đồng'), html, { width: 800 });
-        wireContractForm(existing, deposit, files, meterAssignments);
+        wireContractForm(existing, deposit, files, meterAssignments, customServices);
     }
 
     function selectField(id, label, items, valueKey, labelKey, selected, disabled) {
@@ -775,7 +775,7 @@
             var checked = selectedIds.indexOf(service.id) !== -1;
             var policy = RHD.utilityPolicy(service);
             var meterType = policy.metered ? (policy.meterType || (service.feeType === 'water' ? 'water' : 'electricity')) : '';
-            return '<div class="rh-contract-service-row"><label><input type="checkbox" data-contract-service="' + esc(service.id) + '"' + (checked ? ' checked' : '') + '> ' + esc(service.name) + '</label><input type="text" inputmode="numeric" data-service-price="' + esc(service.id) + '" value="' + esc((Number(overrides[service.id] == null ? service.unitPrice : overrides[service.id]) || 0).toLocaleString('vi-VN')) + '" aria-label="Đơn giá ' + esc(service.name) + '">' +
+            return '<div class="rh-contract-service-row"><label><input type="checkbox" data-contract-service="' + esc(service.id) + '" value="' + esc(service.id) + '"' + (checked ? ' checked' : '') + '> ' + esc(service.name) + '</label><input type="text" inputmode="numeric" data-service-price="' + esc(service.id) + '" value="' + esc((Number(overrides[service.id] == null ? service.unitPrice : overrides[service.id]) || 0).toLocaleString('vi-VN')) + '" aria-label="Đơn giá ' + esc(service.name) + '">' +
                 (meterType ? '<span class="rh-contract-meter-type">Công tơ ' + (meterType === 'water' ? 'nước' : 'điện') + '</span>' : '<span></span>') + '</div>';
         }).join('');
         var types = [];
@@ -800,7 +800,7 @@
         return '<div class="rh-contract-service-list">' + (rows || '<p>Tòa nhà chưa có dịch vụ áp dụng.</p>') + '</div>' + (types.length ? '<h5>Công tơ gắn với hợp đồng</h5>' + meterRows : '');
     }
 
-    function wireContractForm(existing, deposit, files, meterAssignments) {
+    function wireContractForm(existing, deposit, files, meterAssignments, customServices) {
         var form = document.getElementById('contractWorkflowForm');
         function syncDepositBalance() {
             if (existing || deposit) return;
@@ -976,13 +976,13 @@
                 document.getElementById('contractFileError').textContent = 'Đang tải tệp lên. Vui lòng đợi hoàn tất trước khi lưu.';
                 return;
             }
-            submitContract(event, existing, deposit, files, collectMeterAssignments());
+            submitContract(event, existing, deposit, files, collectMeterAssignments(), customServices);
         });
         renderServicesInitial();
         checkSchedule();
     }
 
-    function submitContract(event, existing, deposit, files, meterAssignments) {
+    function submitContract(event, existing, deposit, files, meterAssignments, customServices) {
         event.preventDefault();
         var form = document.getElementById('contractWorkflowForm');
         var tenantIds = Array.from(form.querySelector('#contractTenants').selectedOptions).map(function (option) { return option.value; });
