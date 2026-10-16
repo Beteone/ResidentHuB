@@ -386,12 +386,12 @@
         return '<div class="rh-empty"><i class="fas ' + icon + '"></i><p>' + escapeHtml(text) + '</p></div>';
     }
 
-    function confirmDelete(entity, id, afterDeleteFn, blockMsg) {
+    function confirmDelete(entity, id, afterDeleteFn, blockMsg, deleteFn) {
         if (blockMsg) { alert(blockMsg); return; }
         if (!confirm('Xoá bản ghi này? Hành động không thể hoàn tác.')) return;
-        var res = RHD.remove(entity, id);
+        var res = deleteFn ? deleteFn(id) : RHD.remove(entity, id);
         if (!res.ok) { alert(res.error); return; }
-        afterDeleteFn();
+        if (afterDeleteFn) afterDeleteFn();
     }
 
     // ============================================================ BUILDINGS
@@ -3591,6 +3591,7 @@
         openDrawer: openDrawer,
         closeDrawer: closeDrawer,
         refreshOpenDrawer: refreshOpenDrawer,
+        confirmDelete: confirmDelete,
         renderBuildingsTab: renderBuildingsTab,
         renderApartmentsTab: renderApartmentsTab,
         renderServiceFeesTab: renderServiceFeesTab,
