@@ -1483,10 +1483,19 @@
         // Hợp đồng module writes to. Falls back to a placeholder shape (not fake
         // financial data — just safe defaults) only when the account has not been
         // linked to an apartment/contract yet, so the page still renders.
-        const REAL_CONTRACT = RH_CTX && RH_CTX.contract;
-        const REAL_BUILDING = RH_CTX && RH_CTX.building;
-        const REAL_APARTMENT = RH_CTX && RH_CTX.apartment;
-        const REAL_CUSTOMER = RH_CTX && RH_CTX.customer;
+        const RH_SETTINGS = RHD.getSettings();
+        const todayIso = () => AppClock.dateKey(new Date());
+        let REAL_CONTRACT = RH_CTX && RH_CTX.contract;
+        let REAL_BUILDING = RH_CTX && RH_CTX.building;
+        let REAL_APARTMENT = RH_CTX && RH_CTX.apartment;
+        let REAL_CUSTOMER = RH_CTX && RH_CTX.customer;
+        function refreshResidentContext() {
+            RH_CTX = RHD.residentContext(RH.getSession() || RH_SESSION);
+            REAL_CONTRACT = RH_CTX && RH_CTX.contract;
+            REAL_BUILDING = RH_CTX && RH_CTX.building;
+            REAL_APARTMENT = RH_CTX && RH_CTX.apartment;
+            REAL_CUSTOMER = RH_CTX && RH_CTX.customer;
+        }
         const contractData = {
             ...(REAL_CONTRACT || {}),
             id: REAL_CONTRACT ? REAL_CONTRACT.id || REAL_CONTRACT.code : '',
@@ -1773,6 +1782,10 @@
             });
         }
         let requestData = loadResidentRequests();
+        function refreshRequestData() {
+            refreshResidentContext();
+            requestData = loadResidentRequests();
+        }
 
         // --- Resident "Cài đặt" (Settings) page, from origin/main — independent
         // feature (account/security/theme/language/privacy/devices), not related
