@@ -21,6 +21,7 @@ npm run dev        # build lại tự động khi sửa file trong src/
 - Thêm module mới: thêm 1 mục vào `PERMISSION_SCHEMA`, rồi dùng `RHP.can('module.action')` để ẩn nút và `RHP.guard('module.action')` ở đầu mỗi hàm ghi dữ liệu. Admin (`fullAccess`) tự có quyền mới.
 - Phạm vi dữ liệu: người dùng có `allBuildings` hoặc chỉ các `buildingIds` + tòa mà họ là `managerId`. Lọc danh sách bằng `RHP.scopeList(entity, items)`.
 - Trang (menu / tab) dùng `data-perm` và `TAB_PERMS` trong `dashboard.html`.
+- Dashboard có mục **Quản lý thông báo** để xem thống kê, lọc lịch sử, xem chi tiết, lưu bản nháp, hẹn giờ và gửi thông báo tới toàn bộ cư dân, theo tòa nhà hoặc theo căn hộ. Có thể đính kèm tối đa 4 ảnh JPG, PNG hoặc WebP; ảnh được nén tự động (tối đa 900 KB tổng dung lượng) và cư dân có thể bấm để xem ảnh lớn. Ảnh được lưu một lần theo chiến dịch để tránh nhân bản trong từng tài khoản cư dân. Lịch sử hiển thị một dòng cho mỗi chiến dịch; trạng thái đã đọc được đồng bộ. Do ứng dụng hiện dùng localStorage, lịch gửi được xử lý khi dashboard quản lý đang mở hoặc vào lần tiếp theo mở dashboard sau giờ hẹn.
 
 ## Hóa đơn tự động (billing.js)
 
