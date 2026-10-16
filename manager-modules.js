@@ -495,7 +495,7 @@
             '</div>' +
             '<div class="card">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Tòa nhà</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Thông tin tòa nhà, dịch vụ và ngày tính tiền được tái sử dụng khi lập hợp đồng và hóa đơn.</p></div>' +
+            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Tòa nhà</h2></div>' +
             addButton('Thêm tòa nhà', "RHUI.openBuildingForm()", 'buildings', 'buildings.create') +
             '</div>' +
             '<div class="bld-filters">' +
