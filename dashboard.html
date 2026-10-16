@@ -12,10 +12,17 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
+    <script src="permissions.js"></script>
     <script src="templates.js"></script>
     <script src="data.js"></script>
+    <script src="rental-domain.js"></script>
+    <script src="billing.js"></script>
     <script src="searchable-select.js"></script>
     <script src="manager-modules.js"></script>
+    <script src="deposits-module.js"></script>
+    <script src="dist/excel-tools.js"></script>
+    <script src="contracts-module.js"></script>
+    <script src="account-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
     <style>
         * {
@@ -2520,46 +2527,62 @@
         </div>
 
         <div class="sidebar-menu">
-            <div class="sidebar-menu-item active" onclick="switchTab('dashboard', this)">
+            <div class="sidebar-menu-item active" data-perm="dashboard.view" onclick="switchTab('dashboard', this)">
                 <i class="fas fa-chart-line"></i>
                 <span>Quản lý</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('buildings')">
+            <div class="sidebar-menu-item" data-perm="buildings.view" onclick="switchTab('buildings')">
                 <i class="fas fa-building"></i>
                 <span>Tòa nhà</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('apartments')">
+            <div class="sidebar-menu-item" data-perm="apartments.view" onclick="switchTab('apartments')">
                 <i class="fas fa-door-open"></i>
                 <span>Căn hộ</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('customers')">
+            <div class="sidebar-menu-item" data-perm="buildings.update" onclick="switchTab('service-fees', this)">
+                <i class="fas fa-coins"></i>
+                <span>Phí dịch vụ</span>
+            </div>
+            <div class="sidebar-menu-item" data-perm="customers.view" onclick="switchTab('customers')">
                 <i class="fas fa-users"></i>
                 <span>Khách hàng</span>
 
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').classList.add('is-visible');">
+            <div class="sidebar-menu-item" data-perm="customers.view" onclick="switchTab('deposits', this)">
+                <i class="fas fa-hand-holding-dollar"></i>
+                <span>Đặt cọc</span>
+            </div>
+            <div class="sidebar-menu-item" data-perm="meters.view" onclick="switchTab('meters'); document.getElementById('meters-tab').classList.add('is-visible');">
                 <i class="fas fa-gauge-high"></i>
                 <span>Ghi chỉ số</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('contracts')">
+            <div class="sidebar-menu-item" data-perm="contracts.view" onclick="switchTab('contracts')">
                 <i class="fas fa-file-contract"></i>
                 <span>Hợp đồng</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('invoices', this)">
+            <div class="sidebar-menu-item" data-perm="invoices.view" onclick="switchTab('invoices', this)">
                 <i class="fas fa-receipt"></i>
                 <span>Hóa đơn</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('support', this)">
+            <div class="sidebar-menu-item" data-perm="invoices.view" onclick="switchTab('cashflow', this)">
+                <i class="fas fa-wallet"></i>
+                <span>Thu chi</span>
+            </div>
+            <div class="sidebar-menu-item" data-perm="support.view" onclick="switchTab('support', this)">
                 <i class="fas fa-tools"></i>
                 <span>Yêu cầu hỗ trợ</span>
                 <span class="rh-nav-badge" id="rhNavSupportCount" style="display:none;">0</span>
             </div>
-            <div class="sidebar-menu-item" id="rhAccountsMenuItem" onclick="switchTab('accounts', this)">
+            <div class="sidebar-menu-item" data-perm="users.view,users.approveResident" id="rhAccountsMenuItem" onclick="switchTab('accounts', this)">
                 <i class="fas fa-user-shield"></i>
                 <span>Tài khoản</span>
                 <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
             </div>
-            <div class="sidebar-menu-item" onclick="switchTab('reports')">
+            <div class="sidebar-menu-item" data-perm="roles.view" onclick="switchTab('roles', this)">
+                <i class="fas fa-id-badge"></i>
+                <span>Loại tài khoản</span>
+            </div>
+            <div class="sidebar-menu-item" data-perm="reports.view" onclick="switchTab('reports')">
                 <i class="fas fa-chart-bar"></i>
                 <span>Báo cáo</span>
             </div>
@@ -2791,6 +2814,10 @@
         <!-- Buildings -->
         <div id="buildings-tab" style="display: none;"></div>
         <div id="apartments-tab" style="display: none;"></div>
+        <div id="service-fees-tab" style="display: none;"></div>
+        <div id="deposits-tab" style="display: none;"></div>
+        <div id="roles-tab" style="display: none;"></div>
+        <div id="noaccess-tab" style="display: none;"></div>
 
         <div id="residents-tab" style="display: none;">
             <div class="resident-shell">
@@ -3427,6 +3454,8 @@
                 <p style="color: #94a3b8; margin-top: 1rem;">Nội dung hóa đơn sẽ hiển thị ở đây</p>
             </div>
         </div>
+
+        <div id="cashflow-tab" style="display: none;"></div>
 
         <div id="support-tab" style="display: none;"></div>
 
@@ -4147,19 +4176,60 @@
         const TAB_RENDERERS = {
             buildings: (f) => RHUI.renderBuildingsTab(f),
             apartments: (f) => RHUI.renderApartmentsTab(f),
+            'service-fees': (f) => RHUI.renderServiceFeesTab(f),
             customers: (f) => RHUI.renderCustomersTab(f),
+            deposits: (f) => RHUI.renderDepositsTab(f),
             meters: (f) => RHUI.renderMetersTab(f),
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
+            cashflow: () => RHUI.renderCashflowTab(),
             support: (f) => RHUI.renderSupportTab(f),
+            roles: () => RHAccounts.renderRolesTab(),
             accounts: (f) => { renderAccountRequestsTable(f); renderAccountsTable(); },
             settings: () => renderSettingsTab()
         };
         let currentTab = 'dashboard';
         let currentTabFilter = null;
 
+        const TAB_PERMS = {
+            dashboard: 'dashboard.view',
+            buildings: 'buildings.view',
+            apartments: 'apartments.view',
+            'service-fees': 'buildings.update',
+            customers: 'customers.view',
+            deposits: 'customers.view',
+            meters: 'meters.view',
+            contracts: 'contracts.view',
+            invoices: 'invoices.view',
+            cashflow: 'invoices.view',
+            support: 'support.view',
+            reports: 'reports.view',
+            roles: 'roles.view',
+            accounts: ['users.view', 'users.approveResident']
+        };
+        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
+
+        function canOpenTab(tabName) {
+            const permission = TAB_PERMS[tabName];
+            return !permission || RHP.canAny(permission);
+        }
+
+        function renderNoAccess(tabName) {
+            const tab = ensureTab('noaccess');
+            tab.innerHTML = '<div class="card"><i class="fas fa-lock"></i><h2 style="font-size:1.25rem;font-weight:700;color:#10213c;">Bạn không có quyền truy cập trang này</h2>' +
+                '<p style="color:#61708a;margin-top:.5rem;">Loại tài khoản của bạn chưa được cấp quyền xem mục này. Liên hệ quản trị viên nếu bạn cần truy cập.</p></div>';
+            return tab;
+        }
+
+        function applyNavPermissions() {
+            document.querySelectorAll('[data-perm]').forEach(el => {
+                el.style.display = RHP.canAny(el.dataset.perm.split(',')) ? '' : 'none';
+            });
+            if (!canOpenTab(currentTab)) switchTab(TAB_ORDER.find(canOpenTab) || 'settings');
+        }
+
         function switchTab(tabName, evt, filter) {
-            if (tabName === 'accounts' && RH_IS_DEMO) {
+            if ((tabName === 'accounts' || tabName === 'roles') && RH_IS_DEMO) {
                 alert('Quản lý tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
                 return;
             }
@@ -4173,10 +4243,11 @@
             });
 
             // Show selected tab (auto-creates the container if a tab was never wired into the HTML)
-            const selectedTab = ensureTab(tabName);
+            const allowed = canOpenTab(tabName);
+            const selectedTab = allowed ? ensureTab(tabName) : renderNoAccess(tabName);
             selectedTab.style.display = 'block';
-            if (tabName === 'meters') selectedTab.classList.add('is-visible');
-            if (TAB_RENDERERS[tabName]) {
+            if (tabName === 'meters' && allowed) selectedTab.classList.add('is-visible');
+            if (allowed && TAB_RENDERERS[tabName]) {
                 try {
                     TAB_RENDERERS[tabName](filter || null);
                 } catch (error) {
@@ -4198,10 +4269,14 @@
                 'dashboard': 'Quản lý',
                 'buildings': 'Tòa nhà',
                 'apartments': 'Căn hộ',
+                'service-fees': 'Phí dịch vụ',
+                'roles': 'Loại tài khoản',
                 'customers': 'Khách hàng',
+                'deposits': 'Đặt cọc',
                 'residents': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
+                'cashflow': 'Thu chi',
                 'support': 'Yêu cầu hỗ trợ',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
@@ -5143,7 +5218,8 @@
             RHUI.renderDashboardCounts();
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
             RHUI.refreshOpenSupportConversation();
-            if (['support', 'accounts', 'invoices', 'contracts', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab]) {
+            applyNavPermissions();
+            if (['support', 'accounts', 'roles', 'invoices', 'cashflow', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }
@@ -5159,6 +5235,7 @@
             initCharts();
             renderWorkflows();
             renderCurrentUser();
+            applyNavPermissions();
             applyBrandLogo();
             if (!RH_IS_DEMO) { renderAccountsTable(); renderAccountRequestsTable(); }
             RHUI.renderDashboardCounts();

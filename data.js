@@ -12,7 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'supportRequests'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -23,6 +23,8 @@
         customers: 10,
         meters: 12,
         contracts: 6,
+        deposits: 12,
+        depositTransactions: 24,
         invoices: 10
     };
 
@@ -32,6 +34,8 @@
         customers: 'khách hàng',
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
+        deposits: 'đặt cọc',
+        depositTransactions: 'giao dịch cọc',
         invoices: 'hóa đơn'
     };
 
@@ -79,6 +83,11 @@
         { id: 'paid', label: 'Đã thanh toán', color: '#18a878', bg: '#e6f8ef' },
         { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
     ];
+    var ISSUED_INVOICE_STATUSES = ['unpaid', 'sent', 'paid', 'overdue'];
+
+    function isIssuedInvoice(invoice) {
+        return !!invoice && ISSUED_INVOICE_STATUSES.indexOf(invoice.status || 'unpaid') !== -1;
+    }
 
     // Canonical status vocabulary shared by manager and resident support screens.
     var SUPPORT_STATUSES = [
@@ -265,6 +274,53 @@
         return readings[0] || null;
     }
 
+    function assetsOf(field, id) {
+        return readAll('assets').filter(function (a) { return a[field] === id; });
+    }
+
+    // ---- relationship resolvers ---------------------------------------------
+    // Building.managerId -> staff login account (auth.js users). Only the id is
+    // stored on the building; name/email/phone are always resolved from here.
+    // Demo Mode never reads real accounts: its only "staff" is the demo session
+    // itself (RH_SESSION set by dashboard.html), so the picker still works there.
+    function managerAccounts() {
+        if (mode() === 'demo') {
+            var s = global.RH_SESSION;
+            return s && s.demo ? [{ id: s.id, name: s.name, email: s.email || '', phone: '', role: 'manager', status: 'active' }] : [];
+        }
+        if (!global.RH) return [];
+        return global.RH.getUsers().filter(function (u) { return u.role === 'manager'; });
+    }
+
+    // Accounts that may be picked as a building's manager: staff whose account
+    // type grants "buildings.assignable" (permissions.js). Resolution of an
+    // existing managerId still uses managerAccounts(), so a past assignment
+    // keeps showing even if that permission is later removed.
+    function eligibleManagers() {
+        if (mode() === 'demo' || !global.RHP) return managerAccounts();
+        return global.RHP.eligibleManagers();
+    }
+
+    function buildingManager(building) {
+        if (!building || !building.managerId) return null;
+        return managerAccounts().filter(function (u) { return u.id === building.managerId; })[0] || null;
+    }
+
+    // Resident Profile (customer) -> its contracts, and through the newest
+    // non-ended one the Apartment and Building. Customers carry no copy of
+    // apartment/building data, so this is the single place that walks the links.
+    function residentPlacement(customerId) {
+        var customer = customerId ? get('customers', customerId) : null;
+        if (!customer) return null;
+        var contracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id; })
+            .sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var active = contracts.filter(function (c) { return c.status !== 'ended'; })[0] || null;
+        var ref = active || contracts[0] || null;
+        var apartment = ref ? get('apartments', ref.apartmentId) : null;
+        var building = apartment ? get('buildings', apartment.buildingId) : (ref ? get('buildings', ref.buildingId) : null);
+        return { customer: customer, contracts: contracts, contract: active, lastContract: ref, apartment: apartment, building: building };
+    }
+
     function findApartmentByUnit(unitText, buildingText) {
         var norm = String(unitText || '').trim().toLowerCase();
         if (!norm) return null;
@@ -339,6 +395,221 @@
         return { apartment: apartment, building: building, contract: contract, customer: customer, invoices: invoices, supportRequests: supportRequests };
     }
 
+    // "30, 15,7,0,-1" -> [30,15,7,0,-1] (positive = before end, negative = after).
+    function parseReminderDays(value) {
+        var seen = {};
+        return String(value || '').split(',').map(function (s) { return parseInt(s, 10); })
+            .filter(function (n) { if (!isFinite(n) || seen[n]) return false; seen[n] = true; return true; })
+            .sort(function (a, b) { return b - a; });
+    }
+
+    function isoDate(d) {
+        return d.getFullYear() + '-' + pad(d.getMonth() + 1, 2) + '-' + pad(d.getDate(), 2);
+    }
+
+    // Default "Hạn thanh toán" for an invoice issued on issueDateStr (YYYY-MM-DD).
+    function defaultDueDate(issueDateStr) {
+        var s = getSettings();
+        var issue = issueDateStr ? new Date(issueDateStr + 'T00:00:00') : new Date();
+        if (s.invoiceDueMode === 'dayOfMonth') {
+            var due = new Date(issue.getFullYear(), issue.getMonth(), s.invoiceDueDayOfMonth);
+            if (due <= issue) due = new Date(issue.getFullYear(), issue.getMonth() + 1, s.invoiceDueDayOfMonth);
+            return isoDate(due);
+        }
+        issue.setDate(issue.getDate() + s.invoiceDueDays);
+        return isoDate(issue);
+    }
+
+    // "Tự động chuyển quá hạn": flips unpaid/sent invoices past their dueDate.
+    // Returns the invoices it changed so callers can notify / re-render.
+    function markOverdueInvoices() {
+        if (!getSettings().autoMarkOverdue) return [];
+        var todayStr = isoDate(new Date());
+        var items = readAll('invoices');
+        var changed = [];
+        items.forEach(function (inv) {
+            if ((inv.status === 'unpaid' || inv.status === 'sent') && inv.dueDate && inv.dueDate < todayStr) {
+                inv.status = 'overdue';
+                changed.push(inv);
+            }
+        });
+        if (changed.length) writeAll('invoices', items);
+        return changed;
+    }
+
+    function invoiceVisibleToResident(inv) {
+        if (!isIssuedInvoice(inv)) return false; // drafts / approved / cancelled stay internal
+        return !getSettings().invoiceRequireSend || inv.status !== 'unpaid';
+    }
+
+    // Groups an invoice line into the Dashboard's fee buckets, using the
+    // building service's feeType when the line references one.
+    function feeGroupOf(item, building) {
+        var svc = building && item.serviceId ? (building.services || []).filter(function (s) { return s.id === item.serviceId; })[0] : null;
+        var type = svc ? svc.feeType : '';
+        var label = String(item.label || '');
+        if (type === 'rent' || (!type && /thuê|tiền nhà/i.test(label))) return 'rent';
+        if (type === 'electricity' || (!type && /điện|kwh/i.test(label))) return 'electricity';
+        if (type === 'water' || (!type && /nước|m³/i.test(label))) return 'water';
+        return 'other';
+    }
+
+    function monthKey(value) {
+        if (!value) return '';
+        if (typeof value === 'string' && /^\d{4}-\d{2}/.test(value)) return value.slice(0, 7);
+        var d = new Date(value);
+        return isNaN(d) ? '' : d.getFullYear() + '-' + pad(d.getMonth() + 1, 2);
+    }
+
+    function topBy(list, keyFn) {
+        var counts = {};
+        list.forEach(function (x) { var k = keyFn(x); if (k) counts[k] = (counts[k] || 0) + 1; });
+        var best = null;
+        Object.keys(counts).forEach(function (k) { if (!best || counts[k] > best.count) best = { key: k, count: counts[k] }; });
+        return best;
+    }
+
+    // Everything the Dashboard shows, computed from the entity stores on every
+    // call (optionally scoped to one building). Nothing is cached or stored, so
+    // records added in any module show up automatically.
+    // buildingId: '' / null = all buildings, a single id, or an array of ids
+    // (the signed-in user's building scope, see permissions.js).
+    function dashboardStats(buildingId) {
+        var settings = getSettings();
+        var now = new Date();
+        var todayStr = isoDate(now);
+        var curMonth = monthKey(todayStr);
+        var prevMonth = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
+        var soon = new Date(); soon.setDate(soon.getDate() + settings.contractExpiringDays);
+        var soonStr = isoDate(soon);
+        var scopeIds = Array.isArray(buildingId) ? buildingId : (buildingId ? [buildingId] : null);
+        var inScope = function (r) { return !scopeIds || scopeIds.indexOf(r.buildingId) !== -1; };
+
+        var buildings = readAll('buildings').filter(function (b) { return !scopeIds || scopeIds.indexOf(b.id) !== -1; });
+        var apartments = readAll('apartments').filter(inScope);
+        var contracts = readAll('contracts').filter(inScope);
+        var invoices = readAll('invoices').filter(function (i) { return inScope(i) && isIssuedInvoice(i); });
+        var requests = readAll('supportRequests').filter(inScope);
+        var meters = readAll('meters').filter(inScope);
+        var allCustomers = readAll('customers');
+        var customerIdsInBuilding = {};
+        contracts.forEach(function (c) { customerIdsInBuilding[c.customerId] = true; });
+        var customers = scopeIds ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
+        var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
+
+        // Apartments by status
+        var aptStatus = {};
+        APARTMENT_STATUSES.forEach(function (st) { aptStatus[st.id] = apartments.filter(function (a) { return a.status === st.id; }).length; });
+
+        // Contracts
+        var isEnded = function (c) { return c.status === 'ended' || (c.endDate && c.endDate < todayStr); };
+        var activeContracts = contracts.filter(function (c) { return !isEnded(c); });
+        var expiringContracts = activeContracts.filter(function (c) { return c.endDate && c.endDate >= todayStr && c.endDate <= soonStr; });
+
+        // Invoices
+        var isOverdue = function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); };
+        var invoiceMonth = function (i) { return i.period || monthKey(i.issueDate) || monthKey(i.createdAt); };
+        var monthInvoices = invoices.filter(function (i) { return invoiceMonth(i) === curMonth; });
+        var prevMonthInvoices = invoices.filter(function (i) { return invoiceMonth(i) === prevMonth; });
+        var buildingById = {};
+        readAll('buildings').forEach(function (b) { buildingById[b.id] = b; });
+        var feeGroups = { rent: { total: 0, paid: 0 }, electricity: { total: 0, paid: 0 }, water: { total: 0, paid: 0 }, other: { total: 0, paid: 0 } };
+        monthInvoices.forEach(function (inv) {
+            (inv.items || []).forEach(function (it) {
+                var g = feeGroups[feeGroupOf(it, buildingById[inv.buildingId])];
+                var amount = (Number(it.amount) || 0) + (Number(it.tax) || 0);
+                g.total += amount;
+                if (inv.status === 'paid') g.paid += amount;
+            });
+        });
+        var revenue12 = [];
+        for (var m = 11; m >= 0; m--) {
+            var key12 = monthKey(new Date(now.getFullYear(), now.getMonth() - m, 1));
+            revenue12.push({
+                month: key12,
+                billed: sum(invoices.filter(function (i) { return invoiceMonth(i) === key12; })),
+                collected: sum(invoices.filter(function (i) { return i.status === 'paid' && monthKey(i.paidAt) === key12; }))
+            });
+        }
+
+        // Resident accounts (auth.js, global store) — never shown in Demo Mode.
+        var accountRequests = (mode() !== 'demo' && global.RH && global.RH.listAccountRequests)
+            ? global.RH.listAccountRequests().filter(inScope) : [];
+        var customerIds = {};
+        customers.forEach(function (c) { customerIds[c.id] = true; });
+        var linkedAccounts = (mode() !== 'demo' && global.RH)
+            ? global.RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && customerIds[u.residentId]; }) : [];
+        var activeCustomerIds = {};
+        activeContracts.forEach(function (c) { activeCustomerIds[c.customerId] = true; });
+
+        // Support requests
+        var openRequests = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; });
+        var ratings = [5, 4, 3, 2, 1].map(function (star) { return { star: star, count: requests.filter(function (r) { return Number(r.rating) === star; }).length }; });
+        var ratedCount = ratings.reduce(function (s, r) { return s + r.count; }, 0);
+        var topBuilding = topBy(requests, function (r) { return r.buildingId; });
+        var topApartment = topBy(requests, function (r) { return r.apartmentId; });
+        var topCategory = topBy(requests, function (r) { return r.category; });
+        var topAssignee = topBy(openRequests, function (r) { return r.assignee; });
+
+        return {
+            buildingId: Array.isArray(buildingId) ? '' : (buildingId || ''),
+            buildings: buildings.length,
+            apartments: apartments,
+            aptStatus: aptStatus,
+            occupancyRate: apartments.length ? Math.round(aptStatus.occupied * 1000 / apartments.length) / 10 : 0,
+            customers: customers.length,
+            customersNewThisMonth: customers.filter(function (c) { return monthKey(c.createdAt) === curMonth; }).length,
+            customersWithoutContract: customers.filter(function (c) { return !activeCustomerIds[c.id]; }).length,
+            linkedAccounts: linkedAccounts.length,
+            accountRequests: {
+                pending: accountRequests.filter(function (r) { return r.status === 'pending'; }).length,
+                approved: accountRequests.filter(function (r) { return r.status === 'approved'; }).length,
+                rejected: accountRequests.filter(function (r) { return r.status === 'rejected'; }).length,
+                thisMonth: accountRequests.filter(function (r) { return monthKey(r.submittedAt) === curMonth; }).length
+            },
+            contracts: contracts,
+            activeContracts: activeContracts,
+            expiringContracts: expiringContracts,
+            endedContracts: contracts.filter(isEnded),
+            contractsSignedThisMonth: contracts.filter(function (c) { return monthKey(c.signDate || c.startDate || c.createdAt) === curMonth; }).length,
+            contractsEndedThisMonth: contracts.filter(function (c) { return isEnded(c) && monthKey(c.endDate) === curMonth; }).length,
+            meters: meters.length,
+            invoices: invoices,
+            unpaidInvoices: invoices.filter(function (i) { return i.status !== 'paid'; }),
+            overdueInvoices: invoices.filter(isOverdue),
+            month: {
+                key: curMonth,
+                total: sum(monthInvoices),
+                paid: sum(monthInvoices.filter(function (i) { return i.status === 'paid'; })),
+                prevTotal: sum(prevMonthInvoices),
+                count: monthInvoices.length,
+                groups: feeGroups
+            },
+            revenue12: revenue12,
+            requests: requests,
+            openRequests: openRequests,
+            newRequests: requests.filter(function (r) { return r.status === 'new'; }),
+            requestsByStatus: {
+                new: requests.filter(function (r) { return r.status === 'new'; }).length,
+                in_progress: requests.filter(function (r) { return r.status === 'in_progress'; }).length,
+                resolved: requests.filter(function (r) { return r.status === 'resolved'; }).length
+            },
+            requestsThisMonth: requests.filter(function (r) { return monthKey(r.createdAt) === curMonth; }).length,
+            requestsDoneThisMonth: requests.filter(function (r) { return (r.status === 'resolved' || r.status === 'closed') && monthKey(r.updatedAt) === curMonth; }).length,
+            ratings: ratings,
+            ratedCount: ratedCount,
+            ratingAverage: ratedCount ? Math.round(ratings.reduce(function (s, r) { return s + r.star * r.count; }, 0) * 10 / ratedCount) / 10 : 0,
+            hotspots: {
+                building: topBuilding ? { label: (get('buildings', topBuilding.key) || {}).name || '—', count: topBuilding.count } : null,
+                apartment: topApartment ? { label: (get('apartments', topApartment.key) || {}).name || '—', count: topApartment.count } : null,
+                category: topCategory ? { label: topCategory.key, count: topCategory.count } : null,
+                assignee: topAssignee ? { label: topAssignee.key, count: topAssignee.count } : null
+            },
+            todayStr: todayStr,
+            expiringDays: settings.contractExpiringDays
+        };
+    }
+
     // ---- code generators ---------------------------------------------------
 
     function nextBuildingCode() {
@@ -371,6 +642,16 @@
     // when the service is billed 'meter'-style (electricity/water) and a
     // generic quantity for the other calc methods. This is a pitch-ready
     // approximation, not a full billing engine.
+    // Electricity/water entered with the default "fixed" method is ambiguous.
+    // Only an explicit package label/flag permits billing it without a meter.
+    function utilityPolicy(service) {
+        var label = String(service.name || '').toLowerCase();
+        var type = service.feeType === 'water' || service.feeType === 'electricity' ? service.feeType :
+            (/^(tiền\s+)?nước\b|m³|m3/i.test(label) ? 'water' : /^(tiền\s+)?điện\b|kwh/i.test(label) ? 'electricity' : null);
+        var packageFee = service.calcMethod === 'fixed' && (service.billingMode === 'flat' || service.flatRate === true || /trọn gói|tron goi/i.test(label));
+        return { meterType: type, metered: service.calcMethod === 'meter' || (!!type && !packageFee), packageFee: packageFee };
+    }
+
     function calcServiceAmount(service, ctx) {
         ctx = ctx || {};
         var unitPrice = Number(service.unitPrice) || 0;
@@ -509,6 +790,8 @@
         VEHICLE_TYPES: VEHICLE_TYPES,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,
+        ISSUED_INVOICE_STATUSES: ISSUED_INVOICE_STATUSES,
+        isIssuedInvoice: isIssuedInvoice,
         SUPPORT_STATUSES: SUPPORT_STATUSES,
         SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
         SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,
@@ -529,6 +812,16 @@
         contractsOf: contractsOf,
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
+        assetsOf: assetsOf,
+        managerAccounts: managerAccounts,
+        eligibleManagers: eligibleManagers,
+        buildingManager: buildingManager,
+        residentPlacement: residentPlacement,
+        parseReminderDays: parseReminderDays,
+        defaultDueDate: defaultDueDate,
+        markOverdueInvoices: markOverdueInvoices,
+        dashboardStats: dashboardStats,
+        utilityPolicy: utilityPolicy,
         findApartmentByUnit: findApartmentByUnit,
         residentContext: residentContext,
         nextBuildingCode: nextBuildingCode,
