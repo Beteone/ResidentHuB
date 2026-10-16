@@ -12,14 +12,10 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
-    <script src="permissions.js"></script>
     <script src="templates.js"></script>
     <script src="data.js"></script>
-    <script src="billing.js"></script>
     <script src="searchable-select.js"></script>
     <script src="manager-modules.js"></script>
-    <script src="asset-module.js"></script>
-    <script src="account-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
     <style>
         * {
@@ -2297,6 +2293,9 @@
         .rh-demo-banner.warn .rh-demo-tag{background:#a5680c}
         .rh-demo-banner.blocked .rh-demo-tag{background:#c0392b}
         .rh-empty{color:#94a3b8;padding:3rem 1rem;text-align:center}.rh-empty i{font-size:2rem;margin-bottom:.75rem;opacity:.6}
+        .support-status-filters{display:flex;flex-wrap:wrap;gap:8px;margin:0 0 10px}.support-status-filters button{align-items:center;background:#f8fafc;border:1px solid #dce6f0;border-radius:9px;color:#53657a;cursor:pointer;display:inline-flex;font:700 .75rem 'Be Vietnam Pro',sans-serif;gap:7px;padding:8px 11px}.support-status-filters button:hover{border-color:#9bc9f7}.support-status-filters button.active{background:#eaf3ff;border-color:#9bc9f7;color:#0d65d5}.support-status-filters button>span{background:#e8eef5;border-radius:999px;font-size:.67rem;min-width:20px;padding:2px 6px;text-align:center}.support-status-filters button.active>span{background:#d3e8ff;color:#0d65d5}.support-status-help{color:#718096;font-size:.73rem;line-height:1.55;margin:0 0 14px}.support-update-btn{color:#0d65d5!important;font-size:.72rem;font-weight:700;white-space:nowrap}.support-update-btn:hover{background:#eaf3ff!important}
+        .support-request-table-wrap{border:1px solid #e3ebf4;border-radius:13px;max-width:100%;overflow:auto}.table-container .support-request-table{border-collapse:collapse;min-width:1000px;table-layout:fixed;width:100%}.support-request-table th,.support-request-table td{border-bottom:1px solid #e8eef5;padding:13px 12px;text-align:left;vertical-align:middle}.support-request-table th{background:#f1f6fc;color:#526174;font:700 .72rem 'Be Vietnam Pro',sans-serif;letter-spacing:.01em}.support-request-table td{color:#344b68;font-size:.76rem;line-height:1.5;overflow-wrap:anywhere}.support-request-table tbody tr:last-child td{border-bottom:0}.support-request-table tbody tr:hover{background:#f8fbff}.support-request-table th:nth-child(1){width:18%}.support-request-table th:nth-child(2){width:15%}.support-request-table th:nth-child(3){width:10%}.support-request-table th:nth-child(4){width:13%}.support-request-table th:nth-child(5){width:18%}.support-request-table th:nth-child(6){width:14%}.support-request-table th:nth-child(7){width:140px}.support-request-cell .support-request-code{background:#edf4fc;border-radius:6px;color:#1769d2;display:inline-block;font-size:.68rem;margin-bottom:5px;padding:2px 6px}.support-request-cell .support-request-name,.support-resident-cell strong,.support-assignee-cell strong{color:#203750;display:block;font-size:.76rem;font-weight:700;overflow-wrap:anywhere}.support-request-cell small,.support-resident-cell small,.support-assignee-cell small{color:#8291a4;display:block;font-size:.68rem;line-height:1.45;margin-top:3px;overflow-wrap:anywhere}.support-date-cell{white-space:nowrap}.support-actions-cell{white-space:nowrap}.support-actions-cell .support-update-btn{padding:.35rem .45rem}
+        .support-workspace{color:#10213c}.support-page-head{align-items:center;background:linear-gradient(120deg,#0b2447 0%,#14548c 100%);border-radius:18px;box-shadow:0 16px 32px rgba(11,36,71,.14);color:#fff;display:flex;gap:16px;margin-bottom:16px;padding:22px 24px}.support-page-icon{align-items:center;background:rgba(255,255,255,.14);border:1px solid rgba(255,255,255,.16);border-radius:15px;color:#b9ddff;display:flex;flex:0 0 50px;font-size:21px;height:50px;justify-content:center}.support-page-head h2{color:#fff;font:800 1.25rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0}.support-page-head p{color:#c5d8eb;font-size:.83rem;margin:.35rem 0 0}.support-page-stats{display:flex;gap:10px;margin-left:auto}.support-page-stats span{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.12);border-radius:12px;color:#d4e6f8;display:flex;flex-direction:column;font-size:.69rem;min-width:94px;padding:9px 12px}.support-page-stats strong{color:#fff;font:800 1.1rem 'Plus Jakarta Sans',sans-serif;margin-bottom:2px}.support-view-tabs{align-items:center;border-bottom:1px solid #dce7f2;display:flex;gap:7px;margin-bottom:15px;padding:0 4px}.support-view-tabs button{align-items:center;background:transparent;border:0;border-bottom:3px solid transparent;color:#64748b;cursor:pointer;display:inline-flex;font:700 .86rem 'Be Vietnam Pro',sans-serif;gap:9px;margin-bottom:-1px;padding:13px 15px}.support-view-tabs button.active{border-bottom-color:#1683ff;color:#0d65d5}.support-view-tabs button>span{background:#edf3fa;border-radius:999px;color:#53657a;font-size:.7rem;min-width:23px;padding:3px 7px;text-align:center}.support-view-tabs button.active>span{background:#e1efff;color:#0d65d5}.support-view-panel{display:none}.support-view-panel.active{display:block}.support-request-card{padding:20px}.support-section-heading{align-items:center;display:flex;justify-content:space-between;margin-bottom:15px}.support-section-heading h3,.support-inbox-title h3{color:#10213c;font:800 1rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;margin:0}.support-section-heading p,.support-inbox-title p{color:#718096;font-size:.78rem;margin:5px 0 0}.support-total-pill{background:#fff4df;border:1px solid #f3e1bc;border-radius:999px;color:#9a650d;font-size:.73rem;font-weight:700;padding:7px 10px}.support-inbox{background:#fff;border:1px solid #dce6f0;border-radius:17px;box-shadow:0 14px 32px rgba(18,45,77,.07);display:grid;grid-template-columns:minmax(245px,310px) minmax(0,1fr);min-height:560px;overflow:hidden}.support-inbox-sidebar{background:#f7faff;border-right:1px solid #e2eaf3;min-width:0}.support-inbox-title{align-items:center;border-bottom:1px solid #e4ebf3;display:flex;justify-content:space-between;padding:19px 18px}.support-inbox-title>i{align-items:center;background:#e6f1ff;border-radius:11px;color:#1683ff;display:flex;height:38px;justify-content:center;width:38px}.support-inbox-list{max-height:650px;overflow-y:auto;padding:8px}.support-inbox-item{align-items:flex-start;background:transparent;border:1px solid transparent;border-radius:12px;color:inherit;cursor:pointer;display:flex;gap:11px;margin:3px 0;padding:12px;text-align:left;transition:background .15s,border-color .15s;width:100%}.support-inbox-item:hover{background:#fff;border-color:#dae7f5}.support-inbox-item.active{background:#eaf3ff;border-color:#bfdcff;box-shadow:0 4px 12px rgba(22,131,255,.08)}.support-inbox-avatar,.support-chat-avatar{align-items:center;background:linear-gradient(145deg,#dcecff,#bcdcff);border-radius:50%;color:#1769d2;display:flex;flex:0 0 40px;height:40px;justify-content:center}.support-inbox-copy{display:block;min-width:0;width:100%}.support-inbox-name{align-items:center;color:#1d3048;display:flex;font-size:.8rem;font-weight:800;justify-content:space-between;gap:5px}.support-inbox-name small{color:#0d65d5;font-size:.64rem;white-space:nowrap}.support-inbox-preview{color:#475569;display:block;font-size:.74rem;margin-top:6px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.support-inbox-meta{color:#8796a8;display:block;font-size:.66rem;margin-top:5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.support-inbox-main{background:#fff;min-width:0}.support-chat-thread{display:flex;flex-direction:column;height:100%;min-height:560px}.support-chat-head{align-items:center;border-bottom:1px solid #e6edf5;display:flex;gap:11px;min-height:76px;padding:14px 20px}.support-chat-person{display:flex;flex:1;flex-direction:column;gap:4px;min-width:110px}.support-chat-person strong{color:#1b2d44;font-size:.86rem}.support-chat-person span{color:#7b8b9d;font-size:.7rem}.support-chat-context{align-items:flex-end;display:flex;flex-direction:column;gap:5px;margin-left:auto;text-align:right}.support-chat-context>strong{color:#53657a;font-size:.73rem;max-width:230px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.support-chat-context .rh-link-btn{font-size:.69rem;padding:0}.support-chat-messages{background-color:#f8fbff;background-image:radial-gradient(#d9e5f2 .7px,transparent .7px);background-size:16px 16px;display:flex;flex:1;flex-direction:column;gap:10px;max-height:480px;min-height:300px;overflow-y:auto;padding:20px}.support-message{border:1px solid #e1e9f2;border-radius:14px 14px 14px 4px;box-shadow:0 3px 9px rgba(16,42,70,.045);max-width:min(78%,520px);padding:10px 13px}.support-message.is-resident{align-self:flex-start;background:#fff}.support-message.is-manager{align-self:flex-end;background:#e5f1ff;border-color:#c6def8;border-radius:14px 14px 4px 14px}.support-message-meta{align-items:center;display:flex;gap:9px;margin-bottom:5px}.support-message-meta strong{color:#47617d;font-size:.67rem}.support-message-meta time{color:#8493a4;font-size:.62rem}.support-message-text{color:#25384f;font-size:.82rem;line-height:1.55;overflow-wrap:anywhere;white-space:pre-wrap}.support-chat-compose{align-items:flex-end;background:#fff;border-top:1px solid #e5edf5;display:flex;gap:10px;padding:15px 18px}.support-chat-compose textarea,.support-drawer-compose textarea{background:#f8fafc;border:1px solid #d4e0ec;border-radius:12px;color:#20344c;flex:1;font:inherit;font-size:.82rem;line-height:1.45;min-height:48px;padding:12px 13px;resize:vertical}.support-chat-compose textarea:focus,.support-drawer-compose textarea:focus{background:#fff;border-color:#6bb2ff;box-shadow:0 0 0 3px rgba(22,131,255,.12);outline:0}.support-chat-compose .btn-primary{align-items:center;display:flex;gap:8px;justify-content:center;min-height:44px;padding:0 17px}.support-chat-empty,.support-inbox-empty{align-items:center;color:#72849a;display:flex;flex:1;flex-direction:column;justify-content:center;padding:30px;text-align:center}.support-chat-empty>span{align-items:center;background:#e8f2ff;border-radius:16px;color:#1683ff;display:flex;font-size:1.25rem;height:52px;justify-content:center;width:52px}.support-chat-empty h3{color:#30455e;font-size:.9rem;margin:12px 0 4px}.support-chat-empty p,.support-inbox-empty p{font-size:.75rem;line-height:1.5;margin:0;max-width:280px}        .support-inbox-empty i{color:#8bb9ec;font-size:1.6rem}.support-drawer-chat{background:#f5f9ff;border:1px solid #d7e5f3;border-radius:14px;grid-column:1/-1;overflow:hidden;padding:0}.support-drawer-chat-head{align-items:center;background:linear-gradient(110deg,#eaf3ff,#f8fbff);border-bottom:1px solid #dce8f5;display:flex;gap:10px;padding:12px 14px}.support-drawer-chat-icon{align-items:center;background:#d9eaff;border-radius:11px;color:#126ed0;display:flex;height:36px;justify-content:center;width:36px}.support-drawer-chat-head>span:last-child{display:flex;flex-direction:column;gap:3px}.support-drawer-chat-head strong{color:#1b3857;font-size:.8rem}.support-drawer-chat-head small{color:#71869d;font-size:.68rem}.support-drawer-messages{background:#f8fbff;display:flex;flex-direction:column;gap:8px;max-height:220px;min-height:86px;overflow-y:auto;padding:12px}.support-drawer-messages .support-message{max-width:88%;padding:8px 10px}.support-drawer-compose{align-items:flex-end;background:#fff;border-top:1px solid #e0e8f1;display:flex;gap:8px;padding:10px}.support-drawer-compose .btn-primary{align-items:center;display:flex;flex:0 0 44px;height:44px;justify-content:center;padding:0}.support-inbox-item:focus-visible,.support-view-tabs button:focus-visible{outline:3px solid rgba(22,131,255,.28);outline-offset:1px}@media(max-width:850px){.support-inbox{grid-template-columns:minmax(210px,260px) minmax(0,1fr)}.support-inbox-item{padding:10px 8px}.support-chat-head{align-items:flex-start;flex-wrap:wrap}.support-chat-context{align-items:flex-start;margin-left:51px;text-align:left;width:100%}}@media(max-width:650px){.support-page-head{align-items:flex-start;flex-wrap:wrap;padding:17px}.support-page-stats{margin-left:0;width:100%}.support-page-stats span{flex:1}.support-view-tabs button{font-size:.76rem;padding:12px 8px}.support-request-card{padding:12px}.support-section-heading{align-items:flex-start;gap:8px}.support-inbox{grid-template-columns:1fr}.support-inbox-sidebar{border-bottom:1px solid #e2eaf3;border-right:0}.support-inbox-list{display:flex;gap:7px;max-height:none;overflow-x:auto;padding:8px}.support-inbox-item{flex:0 0 235px}.support-chat-thread{min-height:460px}.support-chat-messages{min-height:250px;padding:13px}.support-chat-compose{padding:10px}.support-chat-compose .btn-primary{min-width:45px;padding:0 12px}.support-chat-compose .btn-primary span{display:none}.support-message{max-width:92%}}
         .rh-row-btn{background:none;border:1px solid var(--line);border-radius:6px;color:#475569;cursor:pointer;margin-right:.35rem;padding:.35rem .55rem}.rh-row-btn:hover{background:#f1f7fd}.rh-row-btn.danger{border-color:#fecaca;color:#ef4444}.rh-row-btn.danger:hover{background:#fee2e2}
         .rh-link-btn{background:none;border:0;color:#1683ff;cursor:pointer;font:inherit;font-weight:700;font-size:.82rem}.rh-link-btn:hover{color:#0d65d5}
         .rh-drawer-overlay{background:rgba(11,36,71,.45);bottom:0;display:none;justify-content:flex-end;left:0;position:fixed;right:0;top:0;z-index:300}
@@ -2370,122 +2369,6 @@
         .acc-field label{font-size:.8rem;font-weight:600;color:#475569}
         .acc-field input,.acc-field select,.acc-field textarea{width:100%;margin-top:.35rem;padding:.6rem .75rem;border:1px solid var(--line);border-radius:8px;font:inherit;background:#fff}
         .acc-field small{display:block;font-size:.72rem;color:#94a3b8;margin-top:.3rem}
-        /* Sidebar group (Tài khoản › Loại tài khoản / Người dùng) */
-        .rh-nav-caret{margin-left:auto;font-size:.7rem!important;width:auto!important;transition:transform .2s}
-        .rh-nav-parent .rh-nav-badge+.rh-nav-caret{margin-left:.5rem}
-        .rh-nav-parent.open .rh-nav-caret{transform:rotate(180deg)}
-        .rh-nav-parent.open .rh-nav-badge{display:none!important}
-        .rh-nav-children{display:none}
-        .rh-nav-children.open{display:block}
-        .sidebar-menu-item.rh-nav-child{padding-left:2.4rem;font-size:.92rem}
-        .sidebar-menu-item.rh-nav-child.active{padding-left:calc(2.4rem - 3px)}
-        .rh-fee-toolbar{display:grid;gap:.75rem;grid-template-columns:repeat(3,minmax(0,1fr));margin:.25rem 0 1.25rem}
-        .rh-fee-toolbar select,.rh-fee-toolbar input{background:#fff;border:1px solid #dce3eb;border-radius:8px;color:#526275;font:inherit;font-size:.85rem;min-width:0;padding:.65rem .75rem;width:100%}
-        .rh-fee-table-wrap{border:1px solid #e4eaf2;border-radius:10px;overflow:auto}
-        .rh-fee-table{border-collapse:collapse;min-width:760px;width:100%}
-        .rh-fee-table th,.rh-fee-table td{border-bottom:1px solid #e7ebf0;padding:.72rem .65rem;text-align:left;vertical-align:middle}
-        .rh-fee-table th{background:#f7f8fa;color:#556273;font-size:.75rem;font-weight:600;white-space:nowrap}
-        .rh-fee-table tbody tr:nth-child(odd){background:#f8f9fa}
-        .rh-fee-table tbody tr:hover{background:#eff6ff}
-        .rh-fee-table .fee-code{color:#438967;font-size:.76rem;font-weight:700;white-space:nowrap}
-        .rh-fee-actions{display:flex;gap:.35rem}
-        .rh-fee-icon-btn{align-items:center;background:#68737d;border:0;border-radius:5px;color:#fff;cursor:pointer;display:inline-flex;height:29px;justify-content:center;width:30px}
-        .rh-fee-icon-btn.delete{background:#e64e55}
-        .rh-fee-icon-btn:hover{filter:brightness(.92)}
-        .rh-fee-default{border-radius:4px;display:inline-block;font-size:.68rem;font-weight:700;padding:.2rem .45rem}
-        .rh-fee-default.yes{background:#e5f5ed;color:#178250}
-        .rh-fee-default.no{background:#fdebec;color:#c5474e}
-        .rh-fee-top-actions{display:flex;gap:.45rem}
-        .rh-fee-top-button{align-items:center;border-radius:7px;color:#fff;display:inline-flex;height:36px;justify-content:center;width:38px}
-        .rh-fee-top-button.add{background:#218c5a}
-        .rh-fee-top-button.delete{background:#df5559}
-        @media(max-width:700px){.rh-fee-toolbar{grid-template-columns:1fr}}
-        /* Shared 3-column form grid + list filters */
-        .rh-grid-3{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr))}
-        @media(max-width:760px){.rh-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}}
-        @media(max-width:560px){.rh-grid-3{grid-template-columns:1fr}}
-        .asset-filters{display:grid;gap:.6rem;grid-template-columns:minmax(220px,2fr) repeat(auto-fit,minmax(150px,1fr));margin-bottom:.5rem}
-        .asset-search{position:relative}
-        .asset-search i{color:#94a3b8;left:.8rem;position:absolute;top:50%;transform:translateY(-50%)}
-        .asset-search input{border:1px solid var(--line);border-radius:8px;font:inherit;padding:.6rem .75rem .6rem 2.2rem;width:100%}
-        .asset-filter{border:1px solid var(--line);border-radius:8px;font:inherit;min-width:0;padding:.6rem .75rem;background:#fff;color:#10213c}
-        .asset-filter:disabled{background:#f8fafc;color:#94a3b8}
-        @media(max-width:640px){.asset-filters{grid-template-columns:1fr}}
-        .rh-click-row{cursor:pointer}.rh-click-row:hover td{background:#f8fbff}
-        .asset-photo-grid{display:flex;flex-wrap:wrap;gap:.75rem}
-        .asset-photo-tile,.asset-photo-add{border-radius:12px;height:110px;position:relative;width:110px}
-        .asset-photo-tile img{border:1px solid var(--line);border-radius:12px;height:100%;object-fit:cover;width:100%}
-        .asset-photo-tile button{align-items:center;background:rgba(15,23,42,.7);border:0;border-radius:50%;color:#fff;cursor:pointer;display:flex;height:24px;justify-content:center;position:absolute;right:6px;top:6px;width:24px}
-        .asset-photo-add{align-items:center;border:1.5px dashed #c8d6e5;color:#94a3b8;cursor:pointer;display:flex;font-size:1.4rem;justify-content:center}
-        .asset-photo-add:hover{border-color:#1683ff;color:#1683ff;background:#f5f9ff}
-        .asset-photos{display:grid;gap:.6rem;grid-template-columns:repeat(auto-fill,minmax(120px,1fr))}
-        .asset-photos img{aspect-ratio:1;border:1px solid var(--line);border-radius:10px;object-fit:cover;width:100%}
-        /* Loại tài khoản: permission matrix */
-        .rh-field .rh-choice input{accent-color:#1683ff;flex:0 0 auto;padding:0;width:auto}
-        .pm-note{background:#f5f9ff;border:1px solid #d6e8ff;border-radius:10px;color:#0d65d5;font-size:.84rem;margin-bottom:1rem;padding:.65rem .9rem}
-        .pm-check{align-items:center;cursor:pointer;display:flex;gap:.5rem;font-size:.86rem;color:#334155;line-height:1.3}
-        .pm-check input{accent-color:#1683ff;flex:0 0 auto;height:17px;width:17px}
-        .pm-check.is-disabled{cursor:default;opacity:.6}
-        .pm-all{margin-bottom:.75rem;font-weight:600}
-        .pm-wrap{border:1px solid var(--line);border-radius:12px}
-        .pm-table{min-width:760px;width:100%}
-        .pm-table th{background:#f8fafc;font-size:.8rem;text-align:left}
-        .pm-table td,.pm-table th{border-bottom:1px solid var(--line);border-left:1px solid var(--line);padding:.6rem .75rem;vertical-align:middle}
-        .pm-table td:first-child,.pm-table th:first-child{border-left:0}
-        .pm-table tr:last-child td{border-bottom:0}
-        .pm-module span{font-weight:600;color:#10213c}
-        .pm-extra{display:grid;gap:.4rem}
-        /* Người dùng */
-        .acc-subtabs{border-bottom:1px solid var(--line);display:flex;gap:.25rem;margin-top:1.1rem;overflow-x:auto}
-        .acc-subtabs button{align-items:center;background:none;border:0;border-bottom:2px solid transparent;color:#61708a;cursor:pointer;display:inline-flex;font:inherit;font-size:.88rem;font-weight:600;gap:.45rem;padding:.6rem .9rem;white-space:nowrap}
-        .acc-subtabs button.active{border-bottom-color:#1683ff;color:#0d65d5}
-        .acc-subtabs button span:not(.rh-nav-badge){color:#94a3b8;font-weight:500}
-        .uf-card{border:1px solid var(--line);border-radius:12px;margin-bottom:1rem}
-        .uf-card-head{align-items:center;background:#f8fafc;border-bottom:1px solid var(--line);border-radius:12px 12px 0 0;color:#10213c;display:flex;font-weight:700;font-size:.9rem;justify-content:space-between;gap:1rem;padding:.75rem 1rem}
-        .uf-card-body{padding:1rem}
-        .uf-active{align-items:center;cursor:pointer;display:flex;font-weight:600;gap:.6rem}
-        .uf-hint{color:#94a3b8;font-size:.78rem;padding:0 1rem 1rem}
-        .uf-password{position:relative}
-        .uf-password input{padding-right:2.5rem!important}
-        .uf-password button{background:none;border:0;color:#94a3b8;cursor:pointer;position:absolute;right:.6rem;top:50%;transform:translateY(-50%)}
-        /* Tòa nhà: KPI + filters */
-        .bld-kpis{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr));margin-bottom:1.25rem}
-        .bld-kpi{align-items:center;background:#fff;border:1px solid var(--line);border-radius:16px;cursor:pointer;display:flex;font:inherit;gap:1rem;padding:1.1rem 1.25rem;text-align:left;transition:border-color .15s,box-shadow .15s}
-        .bld-kpi:hover{border-color:#b9d8ff}
-        .bld-kpi.active{border-color:#1683ff;box-shadow:0 0 0 3px rgba(22,131,255,.12)}
-        .bld-kpi strong{color:#10213c;display:block;font:800 1.75rem 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif;line-height:1.1}
-        .bld-kpi small{color:#61708a;font-size:.86rem}
-        .bld-filters{align-items:center;display:grid;gap:.6rem;grid-template-columns:minmax(200px,2fr) minmax(150px,1fr) minmax(170px,1.2fr) minmax(170px,1.2fr) auto;margin-bottom:1rem}
-        .bld-clear{background:none;border:0;color:#ef4444;cursor:pointer;font:inherit;font-size:.85rem;font-weight:600;white-space:nowrap}
-        @media(max-width:1000px){.bld-filters{grid-template-columns:1fr 1fr}}
-        @media(max-width:640px){.bld-kpis{grid-template-columns:1fr}.bld-filters{grid-template-columns:1fr}}
-        /* Hóa đơn: workflow */
-        .if-chips{display:flex;flex-wrap:wrap;gap:.3rem;margin-top:.25rem}
-        .if-chips span{background:#eaf3ff;border-radius:999px;color:#0d65d5;font-size:.68rem;font-weight:700;padding:.1rem .45rem;white-space:nowrap}
-        .if-chips span.auto{background:#f3e8ff;color:#7c3aed}
-        .if-chips span.warn{background:#fff4df;color:#a5680c}
-        .if-issues{background:#fff8eb;border:1px solid #f6d9a6;border-radius:10px;color:#8a5a00;font-size:.84rem;margin-top:.75rem;padding:.65rem .9rem}
-        .if-issues ul{margin:.35rem 0 0 1.1rem;list-style:disc}
-        .if-lines input{border:1px solid var(--line);border-radius:6px;font:inherit;font-size:.85rem;padding:.4rem .5rem;width:100%}
-        .if-lines table{min-width:640px}
-        .if-lines input[type=number]{-moz-appearance:textfield;text-align:right}
-        .if-lines input[type=number]::-webkit-inner-spin-button,.if-lines input[type=number]::-webkit-outer-spin-button{-webkit-appearance:none;margin:0}
-        .if-lines td{vertical-align:top}
-        .if-line-missing td{background:#fffaf0}
-        .if-line-warn{color:#a5680c;font-size:.72rem;margin-top:.25rem}
-        .if-line-amount{font-weight:600;text-align:right;white-space:nowrap;padding-top:.85rem!important}
-        .if-workflow{border:1px solid var(--line);border-radius:12px;margin-bottom:1rem;padding:.9rem 1rem}
-        .if-workflow-head{align-items:center;display:flex;flex-wrap:wrap;gap:.4rem}
-        .if-workflow-actions{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:.8rem}
-        .if-workflow-actions:empty{display:none}
-        .if-act{align-items:center;background:#fff;border:1px solid #cfe2fb;border-radius:8px;color:#0d65d5;cursor:pointer;display:inline-flex;font:inherit;font-size:.84rem;font-weight:600;gap:.4rem;padding:.45rem .8rem}
-        .if-act:hover{background:#f4f9ff}
-        .if-act.danger{border-color:#fecaca;color:#ef4444}
-        .if-history{margin-top:.8rem;font-size:.8rem;color:#61708a}
-        .if-history summary{cursor:pointer;font-weight:600;color:#10213c}
-        .if-history ul{margin:.4rem 0 0 1rem;list-style:disc;display:grid;gap:.2rem}
-        .rh-noaccess{text-align:center;padding:3.5rem 1rem}
-        .rh-noaccess i{color:#cbd5e1;font-size:2.6rem;margin-bottom:1rem}
         /* Shared hexagon icon (Bảng tin tiles + Cài đặt rows) */
         .hex-icon{width:46px;height:50px;flex:0 0 46px;display:inline-flex;align-items:center;justify-content:center;background:#eef4fb;color:#61708a;clip-path:polygon(50% 0,100% 25%,100% 75%,50% 100%,0 75%,0 25%);font-size:1.05rem}
         .tone-green{color:#18a878!important}.tone-amber{color:#d99a1e!important}.tone-red{color:#ef4444!important}.tone-blue{color:#1683ff!important}.tone-purple{color:#7c3aed!important}
@@ -2637,71 +2520,46 @@
         </div>
 
         <div class="sidebar-menu">
-            <div class="sidebar-menu-item active" data-perm="dashboard.view" onclick="switchTab('dashboard', this)">
+            <div class="sidebar-menu-item active" onclick="switchTab('dashboard', this)">
                 <i class="fas fa-chart-line"></i>
                 <span>Quản lý</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="buildings.view" onclick="switchTab('buildings')">
+            <div class="sidebar-menu-item" onclick="switchTab('buildings')">
                 <i class="fas fa-building"></i>
                 <span>Tòa nhà</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="apartments.view" onclick="switchTab('apartments')">
+            <div class="sidebar-menu-item" onclick="switchTab('apartments')">
                 <i class="fas fa-door-open"></i>
                 <span>Căn hộ</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="buildings.update" onclick="switchTab('service-fees', this)">
-                <i class="fas fa-coins"></i>
-                <span>Phí dịch vụ</span>
-            </div>
-            <div class="sidebar-menu-item" data-perm="assets.view" onclick="switchTab('assets')">
-                <i class="fas fa-couch"></i>
-                <span>Tài sản</span>
-            </div>
-            <div class="sidebar-menu-item" data-perm="customers.view" onclick="switchTab('customers')">
+            <div class="sidebar-menu-item" onclick="switchTab('customers')">
                 <i class="fas fa-users"></i>
                 <span>Khách hàng</span>
 
             </div>
-            <div class="sidebar-menu-item" data-perm="meters.view" onclick="switchTab('meters')">
+            <div class="sidebar-menu-item" onclick="switchTab('meters'); document.getElementById('meters-tab').classList.add('is-visible');">
                 <i class="fas fa-gauge-high"></i>
                 <span>Ghi chỉ số</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="contracts.view" onclick="switchTab('contracts')">
+            <div class="sidebar-menu-item" onclick="switchTab('contracts')">
                 <i class="fas fa-file-contract"></i>
                 <span>Hợp đồng</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="invoices.view" onclick="switchTab('invoices', this)">
+            <div class="sidebar-menu-item" onclick="switchTab('invoices', this)">
                 <i class="fas fa-receipt"></i>
                 <span>Hóa đơn</span>
-                <span class="rh-nav-badge" id="rhNavInvoiceReviewCount" style="display:none;" title="Hóa đơn nháp chờ duyệt">0</span>
             </div>
-            <div class="sidebar-menu-item" data-perm="invoices.view" onclick="switchTab('cashflow', this)">
-                <i class="fas fa-money-bill-transfer"></i>
-                <span>Thu chi</span>
-            </div>
-            <div class="sidebar-menu-item" data-perm="support.view" onclick="switchTab('support', this)">
+            <div class="sidebar-menu-item" onclick="switchTab('support', this)">
                 <i class="fas fa-tools"></i>
                 <span>Yêu cầu hỗ trợ</span>
                 <span class="rh-nav-badge" id="rhNavSupportCount" style="display:none;">0</span>
             </div>
-            <div class="sidebar-menu-item rh-nav-parent" id="rhAccountsMenuItem" role="button" aria-expanded="false" aria-controls="rhAccountsGroup" onclick="toggleNavGroup('rhAccountsGroup')">
+            <div class="sidebar-menu-item" id="rhAccountsMenuItem" onclick="switchTab('accounts', this)">
                 <i class="fas fa-user-shield"></i>
                 <span>Tài khoản</span>
-                <span class="rh-nav-badge" id="rhNavAccountsGroupCount" style="display:none;">0</span>
-                <i class="fas fa-chevron-down rh-nav-caret"></i>
+                <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
             </div>
-            <div class="rh-nav-children" id="rhAccountsGroup">
-                <div class="sidebar-menu-item rh-nav-child" data-perm="roles.view" onclick="switchTab('roles')">
-                    <i class="fas fa-id-badge"></i>
-                    <span>Loại tài khoản</span>
-                </div>
-                <div class="sidebar-menu-item rh-nav-child" data-perm="users.view,users.approveResident" onclick="switchTab('accounts')">
-                    <i class="fas fa-users-gear"></i>
-                    <span>Người dùng</span>
-                    <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
-                </div>
-            </div>
-            <div class="sidebar-menu-item" data-perm="reports.view" onclick="switchTab('reports')">
+            <div class="sidebar-menu-item" onclick="switchTab('reports')">
                 <i class="fas fa-chart-bar"></i>
                 <span>Báo cáo</span>
             </div>
@@ -2724,7 +2582,7 @@
 
             <div style="padding: 1.5rem 1rem 1rem; border-top: 1px solid var(--line); margin-top: 1rem;">
                 <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; font-weight: 700; letter-spacing: 0.08em; margin-bottom: 0.75rem;">Cài đặt</div>
-                <div class="sidebar-menu-item" data-perm="templates.view" onclick="openTemplatesPage()">
+                <div class="sidebar-menu-item" onclick="openTemplatesPage()">
                     <i class="fas fa-file-lines"></i>
                     <span>Biểu mẫu</span>
                 </div>
@@ -2793,7 +2651,7 @@
                 </div>
                 <div class="db-toolbar-actions">
                     <select id="dashBuildingFilter" aria-label="Chọn tòa nhà" onchange="RHUI.renderDashboardCounts()"><option value="">Tất cả tòa nhà</option></select>
-                    <button type="button" class="btn-primary db-add" data-perm="buildings.create" onclick="switchTab('buildings'); RHUI.openBuildingForm();"><i class="fas fa-plus"></i> Tòa nhà</button>
+                    <button type="button" class="btn-primary db-add" onclick="switchTab('buildings'); RHUI.openBuildingForm();"><i class="fas fa-plus"></i> Tòa nhà</button>
                 </div>
             </div>
 
@@ -2814,7 +2672,7 @@
 
             <div class="db-grid-3">
                 <div class="card db-card">
-                    <div class="db-card-head"><h3>Tài khoản cư dân</h3><a class="db-link" data-goto-link="accounts" data-filter="pending">Xem chi tiết</a></div>
+                    <div class="db-card-head"><h3>Tài khoản cư dân</h3><a class="db-link" data-goto-link="accounts">Xem chi tiết</a></div>
                     <div class="db-pair">
                         <div><div class="db-big tone-amber" id="dAccPending">0</div><div class="db-muted">Chờ phê duyệt</div><div class="db-bar"><span id="dAccPendingBar"></span></div></div>
                         <div><div class="db-big tone-green" id="dAccApproved">0</div><div class="db-muted">Đã phê duyệt</div><div class="db-bar green"><span id="dAccApprovedBar"></span></div></div>
@@ -2933,12 +2791,6 @@
         <!-- Buildings -->
         <div id="buildings-tab" style="display: none;"></div>
         <div id="apartments-tab" style="display: none;"></div>
-        <!-- Tài sản: asset-module.js -->
-        <div id="assets-tab" style="display: none;"></div>
-        <!-- Loại tài khoản: account-modules.js -->
-        <div id="roles-tab" style="display: none;"></div>
-        <!-- Shown instead of a page the signed-in user has no permission for -->
-        <div id="noaccess-tab" style="display: none;"></div>
 
         <div id="residents-tab" style="display: none;">
             <div class="resident-shell">
@@ -3587,8 +3439,95 @@
             </div>
         </div>
 
-        <!-- Người dùng: tài khoản đăng nhập + hàng chờ duyệt đăng ký Cư dân (account-modules.js) -->
-        <div id="accounts-tab" style="display: none;"></div>
+        <!-- Tài khoản: duyệt đăng ký Cư dân + quản lý tài khoản đăng nhập (tách khỏi Cài đặt) -->
+        <div id="accounts-tab" style="display: none;">
+            <div class="card" style="margin-bottom: 1.5rem;">
+                <div class="acc-head">
+                    <div>
+                        <h2>Yêu cầu đăng ký tài khoản cư dân</h2>
+                        <p>Cư dân đăng ký từ trang chủ sẽ ở trạng thái Chờ phê duyệt. Chỉ khi được phê duyệt, tài khoản mới được kích hoạt và liên kết với hồ sơ cư dân.</p>
+                    </div>
+                </div>
+                <div class="acc-filters" id="accountRequestFilters"></div>
+                <div class="table-container" style="margin-top: 1rem;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Người đăng ký</th>
+                                <th style="text-align: left;">Liên hệ</th>
+                                <th style="text-align: left;">Tòa nhà / Căn hộ</th>
+                                <th style="text-align: left;">Hồ sơ cư dân</th>
+                                <th style="text-align: left;">Trạng thái</th>
+                                <th style="text-align: left;">Ngày đăng ký</th>
+                                <th style="text-align: right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountRequestsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+
+            <div class="card">
+                <div class="acc-head">
+                    <div>
+                        <h2>Danh sách tài khoản</h2>
+                        <p>Tài khoản Cư dân chỉ được tạo qua phê duyệt đăng ký ở trên. Tại đây bạn có thể thêm tài khoản Quản lý, đổi liên kết hồ sơ cư dân, khoá hoặc mở khoá tài khoản.</p>
+                    </div>
+                    <button class="btn-icon" style="width: auto; padding: 0 1rem; background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border-radius: 10px;" onclick="openAccountForm()">
+                        <i class="fas fa-user-plus"></i>&nbsp; Thêm tài khoản Quản lý
+                    </button>
+                </div>
+
+                <form id="accountForm" onsubmit="handleAccountFormSubmit(event)" style="display: none; margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem;">
+                    <input type="hidden" id="accountId">
+                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+                        <div class="acc-field">
+                            <label for="accountName">Họ tên</label>
+                            <input id="accountName" type="text" required placeholder="Họ và tên">
+                        </div>
+                        <div class="acc-field">
+                            <label for="accountEmail">Email đăng nhập</label>
+                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn">
+                        </div>
+                        <div class="acc-field">
+                            <label for="accountPassword">Mật khẩu</label>
+                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự">
+                            <small id="accountPasswordHint"></small>
+                        </div>
+                        <div class="acc-field">
+                            <label for="accountRoleLabel">Vai trò</label>
+                            <input id="accountRoleLabel" type="text" readonly style="background:#f1f5f9;color:#475569;">
+                        </div>
+                        <div class="acc-field" id="accountResidentWrap" style="display:none;">
+                            <label for="accountResidentId">Hồ sơ cư dân liên kết</label>
+                            <select id="accountResidentId"></select>
+                            <small>Tòa nhà, căn hộ, hợp đồng và hóa đơn của cư dân được lấy tự động từ hồ sơ này.</small>
+                        </div>
+                    </div>
+                    <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
+                    <div style="display: flex; gap: 0.6rem; margin-top: 1rem;">
+                        <button type="submit" style="background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border: 0; border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Lưu tài khoản</button>
+                        <button type="button" onclick="closeAccountForm()" style="background: #fff; color: #475569; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Huỷ</button>
+                    </div>
+                </form>
+
+                <div class="table-container" style="margin-top: 1.25rem;">
+                    <table style="width: 100%; border-collapse: collapse;">
+                        <thead>
+                            <tr>
+                                <th style="text-align: left;">Họ tên</th>
+                                <th style="text-align: left;">Email</th>
+                                <th style="text-align: left;">Vai trò</th>
+                                <th style="text-align: left;">Hồ sơ cư dân / Căn hộ</th>
+                                <th style="text-align: left;">Trạng thái</th>
+                                <th style="text-align: right;">Hành động</th>
+                            </tr>
+                        </thead>
+                        <tbody id="accountsTableBody"></tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
 
         <!-- Cài đặt: chỉ cấu hình hệ thống (RHD.getSettings/saveSettings), không chứa duyệt tài khoản.
              Mỗi ô có data-setting = khóa trong SETTINGS_DEFAULTS (data.js) và đều được module thật đọc. -->
@@ -4208,67 +4147,19 @@
         const TAB_RENDERERS = {
             buildings: (f) => RHUI.renderBuildingsTab(f),
             apartments: (f) => RHUI.renderApartmentsTab(f),
-            'service-fees': (f) => RHUI.renderServiceFeesTab(f),
             customers: (f) => RHUI.renderCustomersTab(f),
             meters: (f) => RHUI.renderMetersTab(f),
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
-            cashflow: (f) => RHUI.renderCashflowTab(f),
             support: (f) => RHUI.renderSupportTab(f),
-            assets: () => RHAssets.renderTab(),
-            roles: () => RHAccounts.renderRolesTab(),
-            accounts: (f) => RHAccounts.renderUsersTab(f),
+            accounts: (f) => { renderAccountRequestsTable(f); renderAccountsTable(); },
             settings: () => renderSettingsTab()
         };
         let currentTab = 'dashboard';
         let currentTabFilter = null;
 
-        // Page access = the "view" permission of its module (permissions.js).
-        // Pages not listed here (Cài đặt, Quy trình...) are open to every staff account.
-        const TAB_PERMS = {
-            dashboard: 'dashboard.view', buildings: 'buildings.view', apartments: 'apartments.view', 'service-fees': 'buildings.update', assets: 'assets.view',
-            customers: 'customers.view', meters: 'meters.view', contracts: 'contracts.view', invoices: 'invoices.view',
-            cashflow: 'invoices.view',
-            support: 'support.view', reports: 'reports.view', roles: 'roles.view', accounts: ['users.view', 'users.approveResident']
-        };
-        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'assets', 'customers', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'accounts', 'roles', 'reports'];
-
-        function canOpenTab(tabName) {
-            const perm = TAB_PERMS[tabName];
-            return !perm || RHP.canAny(perm);
-        }
-
-        function renderNoAccess(tabName) {
-            const tab = ensureTab('noaccess');
-            tab.innerHTML = '<div class="card rh-noaccess"><i class="fas fa-lock"></i><h2 style="font-size:1.25rem;font-weight:700;color:#10213c;">Bạn không có quyền truy cập trang này</h2>' +
-                '<p style="color:#61708a;margin-top:.5rem;">Loại tài khoản của bạn chưa được cấp quyền xem mục này. Liên hệ quản trị viên nếu bạn cần truy cập.</p></div>';
-            return tab;
-        }
-
-        function toggleNavGroup(id, force) {
-            const group = document.getElementById(id);
-            const parent = document.querySelector('[aria-controls="' + id + '"]');
-            if (!group || !parent) return;
-            const open = force === undefined ? !group.classList.contains('open') : !!force;
-            group.classList.toggle('open', open);
-            parent.classList.toggle('open', open);
-            parent.setAttribute('aria-expanded', String(open));
-        }
-
-        // Shows only the menu entries (and buttons marked data-perm) the signed-in
-        // user may use, and moves them off a page they just lost access to.
-        function applyNavPermissions() {
-            document.querySelectorAll('[data-perm]').forEach(el => {
-                el.style.display = RHP.canAny(el.dataset.perm.split(',')) ? '' : 'none';
-            });
-            const group = document.getElementById('rhAccountsGroup');
-            const anyChild = Array.from(group.children).some(c => c.style.display !== 'none');
-            document.getElementById('rhAccountsMenuItem').style.display = anyChild ? '' : 'none';
-            if (!canOpenTab(currentTab)) switchTab(TAB_ORDER.find(canOpenTab) || 'settings');
-        }
-
         function switchTab(tabName, evt, filter) {
-            if ((tabName === 'accounts' || tabName === 'roles') && RH_IS_DEMO) {
+            if (tabName === 'accounts' && RH_IS_DEMO) {
                 alert('Quản lý tài khoản không khả dụng trong bản Demo. Vui lòng đăng ký để sử dụng đầy đủ.');
                 return;
             }
@@ -4282,11 +4173,10 @@
             });
 
             // Show selected tab (auto-creates the container if a tab was never wired into the HTML)
-            const allowed = canOpenTab(tabName);
-            const selectedTab = allowed ? ensureTab(tabName) : renderNoAccess(tabName);
+            const selectedTab = ensureTab(tabName);
             selectedTab.style.display = 'block';
-            if (tabName === 'meters' && allowed) selectedTab.classList.add('is-visible');
-            if (allowed && TAB_RENDERERS[tabName]) {
+            if (tabName === 'meters') selectedTab.classList.add('is-visible');
+            if (TAB_RENDERERS[tabName]) {
                 try {
                     TAB_RENDERERS[tabName](filter || null);
                 } catch (error) {
@@ -4308,32 +4198,26 @@
                 'dashboard': 'Quản lý',
                 'buildings': 'Tòa nhà',
                 'apartments': 'Căn hộ',
-                'service-fees': 'Phí dịch vụ',
-                'assets': 'Tài sản',
-                'roles': 'Loại tài khoản',
                 'customers': 'Khách hàng',
                 'residents': 'Khách hàng',
                 'meters': 'Ghi chỉ số',
                 'invoices': 'Hóa đơn',
-                'cashflow': 'Thu chi',
                 'support': 'Yêu cầu hỗ trợ',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
                 'workflows': 'Quy trình làm việc',
                 'features': 'Chi tiết tính năng',
                 'architecture': 'Kiến trúc hệ thống',
-                'accounts': 'Người dùng',
+                'accounts': 'Tài khoản',
                 'settings': 'Cài đặt'
             };
             // Keep the sidebar highlight in sync when a tab is opened from a KPI card / bell.
             if (!sidebarItem) {
                 document.querySelectorAll('.sidebar-menu-item').forEach(item => {
-                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-zA-Z]+)'/);
+                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-z]+)'/);
                     item.classList.toggle('active', !!match && match[1] === tabName);
                 });
             }
-            // Keep the Tài khoản group expanded while one of its pages is open.
-            if (tabName === 'accounts' || tabName === 'roles') toggleNavGroup('rhAccountsGroup', true);
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
             window.scrollTo(0, 0);
         }
@@ -4782,9 +4666,7 @@
                 ? 'Bản Demo — dữ liệu giới hạn, không ảnh hưởng hệ thống thật'
                 : 'Chào mừng quay lại, ' + RH_SESSION.name;
             document.getElementById('topbarAvatar').textContent = RH_SESSION.name.trim().charAt(0).toUpperCase();
-            const accountType = RH_IS_DEMO ? null : RHP.typeOfUser(RHP.currentUser());
-            const me = RH_IS_DEMO ? null : RHP.currentUser();
-            document.getElementById('topbarUserLabel').textContent = RH_IS_DEMO ? 'Khách demo' : ((me ? me.name : RH_SESSION.name) + ' (' + (accountType ? accountType.name : 'Quản lý') + ')');
+            document.getElementById('topbarUserLabel').textContent = RH_IS_DEMO ? 'Khách demo' : (RH_SESSION.name + ' (Quản lý)');
 
             if (RH_IS_DEMO) {
                 const accountsItem = document.getElementById('rhAccountsMenuItem');
@@ -4799,6 +4681,8 @@
             }
         }
 
+        const ROLE_LABELS = { manager: 'Quản lý', resident: 'Cư dân' };
+
         function pill(label, color, bg) {
             return '<span class="acc-pill" style="background:' + bg + ';color:' + color + ';">' + label + '</span>';
         }
@@ -4812,6 +4696,31 @@
             if (!customer) return '<span style="color:#ef4444;">Chưa liên kết hồ sơ</span>';
             const place = ctx.apartment ? (ctx.building ? (ctx.building.shortName || ctx.building.name) + ' / ' : '') + ctx.apartment.name : 'Chưa gán căn hộ';
             return escapeHtml(customer.fullName) + '<div style="font-size:0.75rem;color:#94a3b8;">' + escapeHtml(place) + '</div>';
+        }
+
+        function renderAccountsTable() {
+            const body = document.getElementById('accountsTableBody');
+            if (!body) return;
+            const users = RH.getUsers();
+            const selfId = RH_SESSION ? RH_SESSION.id : '';
+            body.innerHTML = users.map(function (u) {
+                const role = u.role === 'manager' ? pill(ROLE_LABELS.manager, '#0d65d5', '#eaf3ff') : pill(ROLE_LABELS.resident, '#18a878', '#e6f8ef');
+                const locked = u.status === 'locked';
+                const status = locked ? pill('Đã khoá', '#ef4444', '#fee2e2') : pill('Đang hoạt động', '#18a878', '#e6f8ef');
+                const lockBtn = u.id === selfId ? '' : '<button class="acc-btn" onclick="toggleAccountLock(\'' + u.id + '\')" title="' + (locked ? 'Mở khoá' : 'Khoá') + '"><i class="fas ' + (locked ? 'fa-lock-open' : 'fa-lock') + '"></i></button>';
+                return '<tr>' +
+                    '<td>' + escapeHtml(u.name) + (u.id === selfId ? ' <span style="color:#94a3b8;font-size:0.75rem;">(bạn)</span>' : '') + '</td>' +
+                    '<td>' + escapeHtml(u.email) + '</td>' +
+                    '<td>' + role + '</td>' +
+                    '<td>' + residentLinkLabel(u) + '</td>' +
+                    '<td>' + status + '</td>' +
+                    '<td style="text-align:right; white-space:nowrap;">' +
+                        '<button class="acc-btn" onclick="openAccountForm(\'' + u.id + '\')" title="Sửa"><i class="fas fa-pen"></i></button>' +
+                        lockBtn +
+                        '<button class="acc-btn danger" onclick="deleteAccount(\'' + u.id + '\')" title="Xoá"><i class="fas fa-trash"></i></button>' +
+                    '</td>' +
+                '</tr>';
+            }).join('') || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có tài khoản nào</td></tr>';
         }
 
         function escapeHtml(str) {
@@ -4829,9 +4738,7 @@
             const body = document.getElementById('accountRequestsTableBody');
             if (!body) return;
             if (filter && (filter === 'all' || REQUEST_STATUS_LABELS[filter])) accountRequestFilter = filter;
-            // Only registrations for buildings in the reviewer's scope.
-            const all = (RH.listAccountRequests ? RH.listAccountRequests() : []).filter(function (r) { return RHP.inScope(r.buildingId); });
-            const canReview = RHP.can('users.approveResident');
+            const all = RH.listAccountRequests ? RH.listAccountRequests() : [];
             const filters = document.getElementById('accountRequestFilters');
             if (filters) {
                 filters.innerHTML = [['pending', 'Chờ phê duyệt'], ['approved', 'Đã phê duyệt'], ['rejected', 'Đã từ chối'], ['all', 'Tất cả']].map(function (f) {
@@ -4845,7 +4752,7 @@
                 const apartment = RHD.get('apartments', r.apartmentId);
                 const customer = r.residentId ? RHD.get('customers', r.residentId) : null;
                 const submitted = new Date(r.submittedAt).toLocaleString('vi-VN');
-                const actions = r.status === 'pending' && canReview
+                const actions = r.status === 'pending'
                     ? '<button onclick="openAccountRequestDrawer(\'' + r.id + '\')" style="background:linear-gradient(135deg,#1683ff 0%,#0d65d5 100%);color:#fff;border:0;border-radius:6px;padding:0.35rem 0.75rem;cursor:pointer;" title="Xem & xử lý"><i class="fas fa-eye"></i> Xử lý</button>'
                     : '<span style="color:#94a3b8;font-size:0.78rem;">' + (r.reviewedAt ? new Date(r.reviewedAt).toLocaleString('vi-VN') : '—') + (r.rejectionReason ? '<br>Lý do: ' + escapeHtml(r.rejectionReason) : '') + '</span>';
                 return '<tr>' +
@@ -4924,7 +4831,6 @@
         }
 
         function openAccountRequestDrawer(id) {
-            if (!RHP.guard('users.approveResident')) return;
             const r = RH.getAccountRequest(id);
             if (!r) return;
             const building = RHD.get('buildings', r.buildingId);
@@ -4973,12 +4879,12 @@
         }
 
         function refreshAccountViews() {
-            if (currentTab === 'accounts') RHAccounts.renderUsersTab();
+            renderAccountRequestsTable();
+            renderAccountsTable();
             RHUI.renderDashboardCounts();
         }
 
         function submitApproveAccountRequest(id) {
-            if (!RHP.guard('users.approveResident')) return;
             const select = document.getElementById('reqResidentSelect');
             const residentId = select ? select.value : '';
             const opts = residentId ? { residentId: residentId } : { createNewProfile: true };
@@ -4993,13 +4899,113 @@
         }
 
         function promptRejectAccountRequest(id) {
-            if (!RHP.guard('users.approveResident')) return;
             const reason = prompt('Lý do từ chối (không bắt buộc):', '');
             if (reason === null) return;
             const result = RH.rejectAccountRequest(id, RH_SESSION ? RH_SESSION.id : null, reason);
             if (!result.ok) { alert(result.error); return; }
             RHUI.closeDrawer();
             refreshAccountViews();
+        }
+
+        function populateAccountResidentOptions(user) {
+            const select = document.getElementById('accountResidentId');
+            const linkedElsewhere = RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && u.id !== user.id; }).map(function (u) { return u.residentId; });
+            const customers = RHD.list('customers').filter(function (c) { return linkedElsewhere.indexOf(c.id) === -1; });
+            select.innerHTML = '<option value="">— Chưa liên kết —</option>' + customers.map(function (c) {
+                return '<option value="' + c.id + '"' + (c.id === user.residentId ? ' selected' : '') + '>' + escapeHtml(c.fullName) + (c.phone ? ' • ' + escapeHtml(c.phone) : '') + '</option>';
+            }).join('');
+        }
+
+        // New accounts created here are always Quản lý — Cư dân accounts only come
+        // from an approved registration request. Editing a Cư dân account can
+        // re-link its Resident Profile (residentId).
+        function openAccountForm(id) {
+            const form = document.getElementById('accountForm');
+            document.getElementById('accountFormError').textContent = '';
+            const residentWrap = document.getElementById('accountResidentWrap');
+            if (id) {
+                const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
+                if (!user) return;
+                document.getElementById('accountId').value = user.id;
+                document.getElementById('accountName').value = user.name;
+                document.getElementById('accountEmail').value = user.email;
+                document.getElementById('accountPassword').value = '';
+                document.getElementById('accountPasswordHint').textContent = 'Để trống nếu không đổi mật khẩu.';
+                document.getElementById('accountRoleLabel').value = ROLE_LABELS[user.role];
+                residentWrap.style.display = user.role === 'resident' ? '' : 'none';
+                if (user.role === 'resident') populateAccountResidentOptions(user);
+            } else {
+                form.reset();
+                document.getElementById('accountId').value = '';
+                document.getElementById('accountPasswordHint').textContent = 'Tài khoản mới bắt buộc có mật khẩu (tối thiểu 6 ký tự).';
+                document.getElementById('accountRoleLabel').value = ROLE_LABELS.manager;
+                residentWrap.style.display = 'none';
+            }
+            form.style.display = 'block';
+            form.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+        }
+
+        function closeAccountForm() {
+            document.getElementById('accountForm').style.display = 'none';
+        }
+
+        function handleAccountFormSubmit(event) {
+            event.preventDefault();
+            const id = document.getElementById('accountId').value;
+            const name = document.getElementById('accountName').value;
+            const email = document.getElementById('accountEmail').value;
+            const password = document.getElementById('accountPassword').value;
+            const errorEl = document.getElementById('accountFormError');
+
+            let result;
+            if (id) {
+                const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
+                const patch = { name: name, email: email, password: password };
+                if (user && user.role === 'resident') {
+                    const residentId = document.getElementById('accountResidentId').value;
+                    // Keep the display cache (unit/apartmentId) in step with the Resident Profile's contract.
+                    const ctx = RHD.residentContext({ id: user.id, email: user.email, residentId: residentId, apartmentId: residentId === user.residentId ? user.apartmentId : '' });
+                    patch.residentId = residentId;
+                    patch.apartmentId = ctx && ctx.apartment ? ctx.apartment.id : '';
+                    patch.unit = ctx && ctx.apartment ? ctx.apartment.name : '';
+                    patch.building = ctx && ctx.building ? (ctx.building.shortName || ctx.building.name) : '';
+                }
+                result = RH.updateUser(id, patch);
+            } else {
+                if (!password) {
+                    errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
+                    return;
+                }
+                result = RH.createUser({ name: name, email: email, password: password, role: 'manager' });
+            }
+
+            if (!result.ok) {
+                errorEl.textContent = result.error;
+                return;
+            }
+            closeAccountForm();
+            renderAccountsTable();
+            renderCurrentUser();
+        }
+
+        function toggleAccountLock(id) {
+            const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
+            if (!user) return;
+            const lock = user.status !== 'locked';
+            if (lock && !confirm('Khoá tài khoản ' + user.email + '? Tài khoản sẽ không đăng nhập được cho đến khi mở khoá.')) return;
+            const result = RH.updateUser(id, { status: lock ? 'locked' : 'active' });
+            if (!result.ok) { alert(result.error); return; }
+            renderAccountsTable();
+        }
+
+        function deleteAccount(id) {
+            if (!confirm('Xoá tài khoản này? Hành động không thể hoàn tác.')) return;
+            const result = RH.deleteUser(id);
+            if (!result.ok) {
+                alert(result.error);
+                return;
+            }
+            renderAccountsTable();
         }
 
         // ---- Cài đặt (system configuration only) -------------------------------
@@ -5014,8 +5020,7 @@
         function showSettingsPanel(name) {
             document.querySelectorAll('#settingsNav [data-set-panel]').forEach(b => b.classList.toggle('active', b.dataset.setPanel === name));
             document.querySelectorAll('#settingsForm .set-panel').forEach(p => p.classList.toggle('active', p.dataset.setPanel === name));
-            document.getElementById('settingsSaveBar').style.display = SETTINGS_PANELS_WITHOUT_SAVE.indexOf(name) === -1 && RHP.can('settings.update') ? '' : 'none';
-            document.querySelectorAll('#settingsForm .set-panel:not([data-set-panel="security"]):not([data-set-panel="demo"]) :is(input,select,textarea)').forEach(el => { el.disabled = !RHP.can('settings.update'); });
+            document.getElementById('settingsSaveBar').style.display = SETTINGS_PANELS_WITHOUT_SAVE.indexOf(name) === -1 ? '' : 'none';
             document.getElementById('settingsSaved').style.display = 'none';
         }
 
@@ -5075,19 +5080,13 @@
             syncDueModeFields();
             document.getElementById('settingsSecurityNav').style.display = RH_IS_DEMO ? 'none' : '';
             document.getElementById('settingsDemoNav').style.display = RH_IS_DEMO ? '' : 'none';
-            // Without settings.view only the personal "Bảo mật" (đổi mật khẩu) panel is shown.
-            const canSystem = RHP.can('settings.view');
-            document.querySelectorAll('#settingsNav [data-set-panel]').forEach(b => {
-                if (b.id !== 'settingsSecurityNav' && b.id !== 'settingsDemoNav') b.style.display = canSystem ? '' : 'none';
-            });
             document.getElementById('settingsError').textContent = '';
             const active = document.querySelector('#settingsNav button.active');
-            showSettingsPanel(active && active.style.display !== 'none' ? active.dataset.setPanel : (canSystem ? 'basic' : 'security'));
+            showSettingsPanel(active && active.style.display !== 'none' ? active.dataset.setPanel : 'basic');
         }
 
         function saveSystemSettings(event) {
             event.preventDefault();
-            if (!RHP.guard('settings.update')) return;
             const patch = {};
             settingControls().forEach(el => {
                 const k = el.dataset.setting;
@@ -5143,9 +5142,8 @@
         function refreshFromStorage() {
             RHUI.renderDashboardCounts();
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
-            applyNavPermissions(); // another tab may have changed this user's account type / permissions
-            renderCurrentUser();
-            if (['support', 'accounts', 'roles', 'assets', 'invoices', 'cashflow', 'service-fees', 'contracts', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
+            RHUI.refreshOpenSupportConversation();
+            if (['support', 'accounts', 'invoices', 'contracts', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab]) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }
@@ -5153,24 +5151,8 @@
         window.addEventListener('storage', function (event) {
             if (!event.key) return refreshFromStorage();
             const prefix = 'residenthub_' + RHD.mode() + '_';
-            if (event.key.indexOf(prefix) === 0 || event.key === 'residenthub_account_requests' || event.key === 'residenthub_users' || event.key === 'residenthub_account_types') refreshFromStorage();
+            if (event.key.indexOf(prefix) === 0 || event.key === 'residenthub_account_requests' || event.key === 'residenthub_users') refreshFromStorage();
         });
-
-        // ---- auto-billing scheduler ---------------------------------------------
-        // No backend exists, so the generator (billing.js) runs whenever a manager
-        // workspace is open: on load, every hour and when the tab comes back into
-        // view. It is idempotent and catches up every period whose billing day
-        // passed while nothing was running, so no period is missed or duplicated.
-        const AUTO_BILLING_INTERVAL = 60 * 60 * 1000;
-        function runScheduledBilling() {
-            try {
-                const res = RHB.run();
-                if (res.created.length) {
-                    RHUI.renderDashboardCounts();
-                    if (currentTab === 'invoices' && TAB_RENDERERS.invoices && !document.querySelector('#rhDrawerOverlay.show')) TAB_RENDERERS.invoices(currentTabFilter);
-                }
-            } catch (e) { console.error('Tự động lập hóa đơn thất bại', e); }
-        }
 
         // Initialize on load
         window.addEventListener('load', function() {
@@ -5178,17 +5160,11 @@
             renderWorkflows();
             renderCurrentUser();
             applyBrandLogo();
-            applyNavPermissions();
-            runScheduledBilling();
-            setInterval(runScheduledBilling, AUTO_BILLING_INTERVAL);
-            document.addEventListener('visibilitychange', function () {
-                const last = RHB.lastRun().lastRunAt || 0;
-                if (document.visibilityState === 'visible' && Date.now() - last > AUTO_BILLING_INTERVAL) runScheduledBilling();
-            });
+            if (!RH_IS_DEMO) { renderAccountsTable(); renderAccountRequestsTable(); }
             RHUI.renderDashboardCounts();
             document.addEventListener('click', function (ev) {
                 const link = ev.target.closest('[data-goto-link]');
-                if (link) { ev.preventDefault(); switchTab(link.dataset.gotoLink, ev, link.dataset.filter || null); return; }
+                if (link) { ev.preventDefault(); switchTab(link.dataset.gotoLink); return; }
                 const card = ev.target.closest('.kpi-card[data-goto]');
                 if (!card) return;
                 switchTab(card.dataset.goto, ev, card.dataset.filter || null);
@@ -5202,4 +5178,3 @@
     </script>
 </body>
 </html>
-

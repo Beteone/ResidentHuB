@@ -39,7 +39,7 @@
 
     function formatMoneyInput(n) {
         n = Number(n) || 0;
-        return n ? n.toLocaleString('en-US') : '';
+        return n ? n.toLocaleString('vi-VN') : '';
     }
 
     function parseMoney(s) { return Number(String(s || '').replace(/[^\d]/g, '')) || 0; }
@@ -300,7 +300,7 @@
             field('Màu sắc', '<input id="afColor" maxlength="40" value="' + v('color') + '" placeholder="Màu sắc">') +
             field('Model / Năm sản xuất', '<input id="afModel" maxlength="60" value="' + v('model') + '" placeholder="VD: 2026">') +
             field('Xuất xứ', '<input id="afOrigin" maxlength="60" value="' + v('origin') + '" placeholder="Xuất xứ">') +
-            field('Giá trị (đ)', '<input id="afValue" inputmode="numeric" value="' + formatMoneyInput(a && a.value) + '" placeholder="0">') +
+            field('Giá trị (đ)', '<input id="afValue" data-money inputmode="numeric" value="' + formatMoneyInput(a && a.value) + '" placeholder="0">') +
             field('Số lượng', '<input id="afQty" type="number" min="1" step="1" value="' + (a ? Number(a.quantity) || 1 : 1) + '">', { required: true }) +
             field('Tình trạng', '<select id="afCondition">' + U().selectOptions(RHD.ASSET_CONDITIONS, 'id', 'label', a ? a.condition : 'new') + '</select>') +
             field('Thời hạn bảo hành', '<input id="afWarranty" type="date" value="' + v('warrantyUntil') + '">') +
@@ -359,10 +359,7 @@
             disabled: !(a && a.buildingId),
             options: apartmentOptions
         });
-        byId('afValue').addEventListener('input', function () {
-            var n = parseMoney(this.value);
-            this.value = n ? n.toLocaleString('en-US') : '';
-        });
+        RHMoney.scan(byId('afValue'));
         renderPhotoTiles();
         byId('afName').focus();
     }

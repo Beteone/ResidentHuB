@@ -12,8 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    // billingRuns = ledger of automatically generated invoice periods (billing.js).
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'cashflows', 'supportRequests', 'assets', 'assetTypes', 'billingRuns'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'supportRequests'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -24,10 +23,7 @@
         customers: 10,
         meters: 12,
         contracts: 6,
-        invoices: 10,
-        cashflows: 30,
-        assets: 15,
-        assetTypes: 20
+        invoices: 10
     };
 
     var DEMO_LIMIT_LABELS = {
@@ -36,10 +32,7 @@
         customers: 'khách hàng',
         meters: 'bản ghi chỉ số',
         contracts: 'hợp đồng',
-        invoices: 'hóa đơn',
-        cashflows: 'phiếu thu chi',
-        assets: 'tài sản',
-        assetTypes: 'loại tài sản'
+        invoices: 'hóa đơn'
     };
 
     var FEE_TYPES = [
@@ -73,52 +66,56 @@
 
     var VEHICLE_TYPES = ['Ô tô', 'Ô tô điện', 'Xe máy', 'Xe máy điện', 'Xe đạp'];
 
-    // Tình trạng tài sản (Tài sản module).
-    var ASSET_CONDITIONS = [
-        { id: 'new', label: 'Mới', color: '#0d65d5', bg: '#eaf3ff' },
-        { id: 'in_use', label: 'Đang sử dụng', color: '#18a878', bg: '#e6f8ef' },
-        { id: 'repair', label: 'Cần sửa chữa', color: '#a5680c', bg: '#fff4df' },
-        { id: 'broken', label: 'Hỏng', color: '#ef4444', bg: '#fee2e2' },
-        { id: 'disposed', label: 'Đã thanh lý', color: '#61708a', bg: '#f1f5f9' }
-    ];
-
     var PAYMENT_CYCLES = [
         { id: 'monthly', label: 'Hàng tháng' },
         { id: 'quarterly', label: 'Hàng quý' },
         { id: 'yearly', label: 'Hàng năm' }
     ];
 
-    // draft/approved = not issued yet (manager only); cancelled = voided after issue.
-    // Only ISSUED_INVOICE_STATUSES are shown to residents and counted on the Dashboard.
     var INVOICE_STATUSES = [
-        { id: 'draft', label: 'Bản nháp', color: '#61708a', bg: '#f1f5f9' },
-        { id: 'approved', label: 'Đã duyệt', color: '#7c3aed', bg: '#f3e8ff' },
         { id: 'unpaid', label: 'Chưa thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'sent', label: 'Đã gửi', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'payment_pending', label: 'Chờ xác nhận thanh toán', color: '#a5680c', bg: '#fff4df' },
         { id: 'paid', label: 'Đã thanh toán', color: '#18a878', bg: '#e6f8ef' },
-        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' },
-        { id: 'cancelled', label: 'Đã hủy', color: '#94a3b8', bg: '#f1f5f9' }
+        { id: 'overdue', label: 'Quá hạn', color: '#ef4444', bg: '#fee2e2' }
     ];
-    var ISSUED_INVOICE_STATUSES = ['unpaid', 'sent', 'paid', 'overdue'];
 
-    // Invoices without a status predate the draft workflow and were issued on save.
-    function isIssuedInvoice(inv) {
-        return !!inv && ISSUED_INVOICE_STATUSES.indexOf(inv.status || 'unpaid') !== -1;
-    }
-
-    // Canonical status vocabulary shared by both roles: manager's Yêu cầu hỗ trợ tab
-    // uses these ids directly; resident-web.html maps its own legacy status words
-    // (processing/waiting/completed) to these at the point it reads/writes RHD.
+    // Canonical status vocabulary shared by manager and resident support screens.
     var SUPPORT_STATUSES = [
-        { id: 'new', label: 'Mới', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'new', label: 'Chưa xử lý', color: '#0d65d5', bg: '#eaf3ff' },
+        { id: 'accepted', label: 'Đã tiếp nhận', color: '#7c3aed', bg: '#f3e8ff' },
         { id: 'in_progress', label: 'Đang xử lý', color: '#a5680c', bg: '#fff4df' },
         { id: 'resolved', label: 'Đã xử lý', color: '#18a878', bg: '#e6f8ef' },
         { id: 'closed', label: 'Đã đóng', color: '#61708a', bg: '#f1f5f9' }
     ];
+    var SETTINGS_DEFAULTS = {
+        orgLogo: '',
+        orgName: '',
+        orgHotline: '',
+        orgEmail: '',
+        orgAddress: '',
+        autoOccupyOnContract: false,
+        contractExpiringDays: 30,
+        contractNoticeDays: 30,
+        contractReminderDays: '30,15,7,0',
+        invoiceDueMode: 'days',
+        invoiceDueDays: 5,
+        invoiceDueDayOfMonth: 10,
+        autoMarkOverdue: false,
+        invoiceRequireSend: false,
+        residentOnlinePayment: false,
+        invoiceReminderDays: '',
+        supportAutoAssignee: '',
+        supportAllowRating: true,
+        notifyInvoice: true,
+        notifyContract: true,
+        notifySupportStatus: true,
+        notifyAccountApproved: true
+    };
     var SUPPORT_PRIORITIES = [
-        { id: 'normal', label: 'Bình thường' },
-        { id: 'needed', label: 'Cần xử lý' },
-        { id: 'urgent', label: 'Khẩn cấp' }
+        { id: 'normal', label: 'Bình thường', color: '#526174', bg: '#f1f5f9' },
+        { id: 'needed', label: 'Cần xử lý', color: '#a16207', bg: '#fff7df' },
+        { id: 'urgent', label: 'Khẩn cấp', color: '#c24141', bg: '#fff0f0' }
     ];
     var SUPPORT_CATEGORIES = ['Sửa chữa căn hộ', 'Cơ sở vật chất chung', 'An ninh', 'Vệ sinh', 'Phí & thanh toán', 'Phản ánh / góp ý', 'Khác'];
 
@@ -136,6 +133,35 @@
     function prefix() { return 'residenthub_' + mode() + '_'; }
     function key(entity) { return prefix() + entity; }
 
+    function settingsKey() {
+        var session = global.RH && global.RH.getSession ? global.RH.getSession() : null;
+        return 'residenthub_settings_v1_' + encodeURIComponent(session && session.id || 'standalone');
+    }
+
+    function getSettings() {
+        var raw = localStorage.getItem(settingsKey());
+        if (!raw) return Object.assign({}, SETTINGS_DEFAULTS);
+        var settings = JSON.parse(raw);
+        if (!settings || typeof settings !== 'object' || Array.isArray(settings)) {
+            throw new Error('Cài đặt ResidentHub phải là một đối tượng hợp lệ.');
+        }
+        return Object.assign({}, SETTINGS_DEFAULTS, settings);
+    }
+
+    function saveSettings(patch) {
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) {
+            throw new TypeError('Dữ liệu cài đặt phải là một đối tượng.');
+        }
+        Object.keys(patch).forEach(function (setting) {
+            if (!Object.prototype.hasOwnProperty.call(SETTINGS_DEFAULTS, setting)) {
+                throw new Error('Không hỗ trợ khóa cài đặt: ' + setting);
+            }
+        });
+        var settings = Object.assign(getSettings(), patch);
+        localStorage.setItem(settingsKey(), JSON.stringify(settings));
+        return settings;
+    }
+
     function readAll(entity) {
         try {
             var raw = localStorage.getItem(key(entity));
@@ -145,6 +171,11 @@
 
     function writeAll(entity, list) {
         localStorage.setItem(key(entity), JSON.stringify(list));
+        try {
+            global.dispatchEvent(new CustomEvent('residenthub:business-data-changed', { detail: { entity: entity, mode: mode() } }));
+        } catch (e) {
+            /* Storage events remain available across tabs. */
+        }
     }
 
     function genId(prefixStr) {
@@ -186,7 +217,6 @@
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
         writeAll(entity, items);
-        if (entity === 'meters' && global.RHB) global.RHB.meterChanged(record);
         return { ok: true, item: record };
     }
 
@@ -195,10 +225,8 @@
         var idx = -1;
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
-        var before = items[idx];
         items[idx] = Object.assign({}, items[idx], patch, { id: items[idx].id, createdAt: items[idx].createdAt });
         writeAll(entity, items);
-        if (entity === 'meters' && global.RHB) { global.RHB.meterChanged(before); global.RHB.meterChanged(items[idx]); }
         return { ok: true, item: items[idx] };
     }
 
@@ -207,7 +235,6 @@
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
-        if (entity === 'meters' && global.RHB) global.RHB.meterChanged(items.filter(function (r) { return r.id === id; })[0]);
         return { ok: true };
     }
 
@@ -227,7 +254,7 @@
     }
 
     function activeContractFor(apartmentId) {
-        var contracts = contractsOf(apartmentId).filter(function (c) { return c.status !== 'ended'; });
+        var contracts = contractsOf(apartmentId).filter(function (c) { return c.status !== 'ended' && c.status !== 'terminated' && c.status !== 'expired'; });
         contracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
         return contracts[0] || null;
     }
@@ -238,61 +265,24 @@
         return readings[0] || null;
     }
 
-    function assetsOf(field, id) {
-        return readAll('assets').filter(function (a) { return a[field] === id; });
-    }
-
-    // ---- relationship resolvers ---------------------------------------------
-    // Building.managerId -> staff login account (auth.js users). Only the id is
-    // stored on the building; name/email/phone are always resolved from here.
-    // Demo Mode never reads real accounts: its only "staff" is the demo session
-    // itself (RH_SESSION set by dashboard.html), so the picker still works there.
-    function managerAccounts() {
-        if (mode() === 'demo') {
-            var s = global.RH_SESSION;
-            return s && s.demo ? [{ id: s.id, name: s.name, email: s.email || '', phone: '', role: 'manager', status: 'active' }] : [];
-        }
-        if (!global.RH) return [];
-        return global.RH.getUsers().filter(function (u) { return u.role === 'manager'; });
-    }
-
-    // Accounts that may be picked as a building's manager: staff whose account
-    // type grants "buildings.assignable" (permissions.js). Resolution of an
-    // existing managerId still uses managerAccounts(), so a past assignment
-    // keeps showing even if that permission is later removed.
-    function eligibleManagers() {
-        if (mode() === 'demo' || !global.RHP) return managerAccounts();
-        return global.RHP.eligibleManagers();
-    }
-
-    function buildingManager(building) {
-        if (!building || !building.managerId) return null;
-        return managerAccounts().filter(function (u) { return u.id === building.managerId; })[0] || null;
-    }
-
-    // Resident Profile (customer) -> its contracts, and through the newest
-    // non-ended one the Apartment and Building. Customers carry no copy of
-    // apartment/building data, so this is the single place that walks the links.
-    function residentPlacement(customerId) {
-        var customer = customerId ? get('customers', customerId) : null;
-        if (!customer) return null;
-        var contracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id; })
-            .sort(function (a, b) { return b.createdAt - a.createdAt; });
-        var active = contracts.filter(function (c) { return c.status !== 'ended'; })[0] || null;
-        var ref = active || contracts[0] || null;
-        var apartment = ref ? get('apartments', ref.apartmentId) : null;
-        var building = apartment ? get('buildings', apartment.buildingId) : (ref ? get('buildings', ref.buildingId) : null);
-        return { customer: customer, contracts: contracts, contract: active, lastContract: ref, apartment: apartment, building: building };
-    }
-
-    function findApartmentByUnit(unitText) {
+    function findApartmentByUnit(unitText, buildingText) {
         var norm = String(unitText || '').trim().toLowerCase();
         if (!norm) return null;
         var apartments = readAll('apartments');
-        for (var i = 0; i < apartments.length; i++) {
-            if (String(apartments[i].name || '').trim().toLowerCase() === norm) return apartments[i];
+        var matches = apartments.filter(function (apartment) {
+            return String(apartment.name || '').trim().toLowerCase() === norm;
+        });
+        if (matches.length === 1) return matches[0];
+        var buildingNorm = String(buildingText || '').trim().toLowerCase();
+        if (buildingNorm) {
+            matches = matches.filter(function (apartment) {
+                var building = get('buildings', apartment.buildingId);
+                return building && [building.id, building.code, building.shortName, building.name].some(function (value) {
+                    return String(value || '').trim().toLowerCase() === buildingNorm;
+                });
+            });
         }
-        return null;
+        return matches.length === 1 ? matches[0] : null;
     }
 
     // Resolves everything a logged-in resident session is allowed to see, purely
@@ -310,313 +300,43 @@
         var residentId = (liveUser && liveUser.residentId) || session.residentId || '';
         var apartmentId = (liveUser && liveUser.apartmentId) || session.apartmentId;
         var unit = (liveUser && liveUser.unit) || session.unit;
-
-        // Accounts approved through the ResidentAccountRequest flow (auth.js) carry
-        // residentId → this is the authoritative link to the Resident Profile
-        // (customer). Prefer it over the apartment-derived lookup below, which exists
-        // for backward compatibility with accounts only ever linked by apartmentId.
         var customer = residentId ? get('customers', residentId) : null;
-        var contract = null;
-        if (customer) {
-            var customerContracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id && c.status !== 'ended'; });
-            customerContracts.sort(function (a, b) { return b.createdAt - a.createdAt; });
-            contract = customerContracts[0] || null;
-        }
-
-        // The manager's Contract is the authoritative Building/Apartment link for a
-        // linked resident — it wins over the apartment picked at registration time.
-        var apartment = (contract && get('apartments', contract.apartmentId)) || (apartmentId && get('apartments', apartmentId)) || findApartmentByUnit(unit);
-        var building = apartment ? get('buildings', apartment.buildingId) : null;
-        if (!contract && apartment && !customer) contract = activeContractFor(apartment.id);
-        if (!customer && contract) customer = get('customers', contract.customerId);
-
-        // Invoices / requests are scoped by residentId (Invoice.customerId) so a
-        // resident never sees a previous tenant's bills for the same apartment.
-        // Apartment matching remains only for legacy accounts with no Resident Profile.
-        var byNewest = function (a, b) { return b.createdAt - a.createdAt; };
-        var invoices = readAll('invoices').filter(function (inv) {
-            if (!invoiceVisibleToResident(inv)) return false;
-            return customer ? inv.customerId === customer.id : (apartment && inv.apartmentId === apartment.id);
-        }).sort(byNewest);
-        var supportRequests = readAll('supportRequests').filter(function (r) {
-            if (customer && r.customerId === customer.id) return true;
-            if (session.email && r.residentEmail === session.email) return true;
-            return !customer && apartment && r.apartmentId === apartment.id;
-        }).sort(byNewest);
-        return { apartment: apartment, building: building, contract: contract, customer: customer, invoices: invoices, supportRequests: supportRequests };
-    }
-
-    // ---- system settings (Cài đặt) -------------------------------------------
-    // One settings object per dataset (live/demo), stored next to the entities.
-    // Every key here is read by a real module — the comment says where.
-
-    var SETTINGS_DEFAULTS = {
-        // Cài đặt cơ bản
-        orgName: '',                 // resident Hợp đồng page ("Bên cho thuê")
-        orgHotline: '',              // resident Hợp đồng page
-        orgEmail: '',
-        orgAddress: '',
-        orgLogo: '',                 // data URL — sidebar logo on manager + resident pages
-        // Hợp đồng
-        contractExpiringDays: 30,    // "sắp hết hạn" window (Dashboard + Hợp đồng filter)
-        contractReminderDays: '30,15,7,0', // resident Lịch: contract-end reminders at these offsets
-        contractNoticeDays: 30,      // resident renewal deadline = endDate - N days
-        autoOccupyOnContract: true,  // new contract moves a vacant/deposited apartment to "Đang ở"
-        // Hóa đơn
-        invoiceDueMode: 'days',      // 'days' = issue date + N days, 'dayOfMonth' = fixed day next month
-        invoiceDueDays: 10,
-        invoiceDueDayOfMonth: 5,
-        invoiceReminderDays: 3,      // resident Lịch highlights invoices due within N days
-        autoMarkOverdue: true,       // unpaid invoices past dueDate switch to "Quá hạn"
-        invoiceRequireSend: false,   // residents only see invoices once "Đã gửi" (or paid/overdue)
-        residentOnlinePayment: true, // resident app shows the "Thanh toán" buttons
-        // Yêu cầu hỗ trợ
-        supportAutoAssignee: '',     // pre-filled assignee when handling a request
-        supportAllowRating: true,    // resident can rate a completed request (Dashboard ratings)
-        // Thông báo (in-app, to the linked resident account)
-        notifyInvoice: true,
-        notifyContract: true,
-        notifySupportStatus: true,
-        notifyAccountApproved: true
-    };
-    var NUMERIC_SETTINGS = { contractExpiringDays: [1, 365], contractNoticeDays: [0, 365], invoiceDueDays: [0, 90], invoiceDueDayOfMonth: [1, 28], invoiceReminderDays: [0, 60] };
-
-    function getSettings() {
-        try {
-            var raw = localStorage.getItem(key('settings'));
-            return Object.assign({}, SETTINGS_DEFAULTS, raw ? JSON.parse(raw) : {});
-        } catch (e) { return Object.assign({}, SETTINGS_DEFAULTS); }
-    }
-
-    function saveSettings(patch) {
-        var next = Object.assign(getSettings(), patch || {});
-        Object.keys(NUMERIC_SETTINGS).forEach(function (k) {
-            var n = Math.round(Number(next[k]));
-            var range = NUMERIC_SETTINGS[k];
-            next[k] = isFinite(n) ? Math.min(range[1], Math.max(range[0], n)) : SETTINGS_DEFAULTS[k];
+        var apartment = (apartmentId && get('apartments', apartmentId)) || findApartmentByUnit(unit, liveUser && liveUser.building || session.building);
+        var allContracts = readAll('contracts');
+        var contracts = allContracts.filter(function (item) {
+            return item.status !== 'ended' && item.status !== 'terminated' && item.status !== 'expired';
         });
-        Object.keys(SETTINGS_DEFAULTS).forEach(function (k) {
-            if (typeof SETTINGS_DEFAULTS[k] === 'boolean') next[k] = !!next[k];
-        });
-        next.contractReminderDays = parseReminderDays(next.contractReminderDays).join(',');
-        next.invoiceDueMode = next.invoiceDueMode === 'dayOfMonth' ? 'dayOfMonth' : 'days';
-        localStorage.setItem(key('settings'), JSON.stringify(next));
-        return { ok: true, item: next };
-    }
-
-    // "30, 15,7,0,-1" -> [30,15,7,0,-1] (positive = before end, negative = after).
-    function parseReminderDays(value) {
-        var seen = {};
-        return String(value || '').split(',').map(function (s) { return parseInt(s, 10); })
-            .filter(function (n) { if (!isFinite(n) || seen[n]) return false; seen[n] = true; return true; })
-            .sort(function (a, b) { return b - a; });
-    }
-
-    function isoDate(d) {
-        return d.getFullYear() + '-' + pad(d.getMonth() + 1, 2) + '-' + pad(d.getDate(), 2);
-    }
-
-    // Default "Hạn thanh toán" for an invoice issued on issueDateStr (YYYY-MM-DD).
-    function defaultDueDate(issueDateStr) {
-        var s = getSettings();
-        var issue = issueDateStr ? new Date(issueDateStr + 'T00:00:00') : new Date();
-        if (s.invoiceDueMode === 'dayOfMonth') {
-            var due = new Date(issue.getFullYear(), issue.getMonth(), s.invoiceDueDayOfMonth);
-            if (due <= issue) due = new Date(issue.getFullYear(), issue.getMonth() + 1, s.invoiceDueDayOfMonth);
-            return isoDate(due);
-        }
-        issue.setDate(issue.getDate() + s.invoiceDueDays);
-        return isoDate(issue);
-    }
-
-    // "Tự động chuyển quá hạn": flips unpaid/sent invoices past their dueDate.
-    // Returns the invoices it changed so callers can notify / re-render.
-    function markOverdueInvoices() {
-        if (!getSettings().autoMarkOverdue) return [];
-        var todayStr = isoDate(new Date());
-        var items = readAll('invoices');
-        var changed = [];
-        items.forEach(function (inv) {
-            if ((inv.status === 'unpaid' || inv.status === 'sent') && inv.dueDate && inv.dueDate < todayStr) {
-                inv.status = 'overdue';
-                changed.push(inv);
+        var contractCandidates = apartment ? contracts.filter(function (item) { return item.apartmentId === apartment.id; }) : contracts.filter(function (item) { return customer && item.customerId === customer.id; });
+        contractCandidates.sort(function (a, b) {
+            if (customer && apartment) {
+                var aMatchesCustomer = a.customerId === customer.id ? 1 : 0;
+                var bMatchesCustomer = b.customerId === customer.id ? 1 : 0;
+                if (aMatchesCustomer !== bMatchesCustomer) return bMatchesCustomer - aMatchesCustomer;
             }
+            return (b.createdAt || 0) - (a.createdAt || 0);
         });
-        if (changed.length) writeAll('invoices', items);
-        return changed;
-    }
-
-    function invoiceVisibleToResident(inv) {
-        if (!isIssuedInvoice(inv)) return false; // drafts / approved / cancelled stay internal
-        return !getSettings().invoiceRequireSend || inv.status !== 'unpaid';
-    }
-
-    // Groups an invoice line into the Dashboard's fee buckets, using the
-    // building service's feeType when the line references one.
-    function feeGroupOf(item, building) {
-        var svc = building && item.serviceId ? (building.services || []).filter(function (s) { return s.id === item.serviceId; })[0] : null;
-        var type = svc ? svc.feeType : '';
-        var label = String(item.label || '');
-        if (type === 'rent' || (!type && /thuê|tiền nhà/i.test(label))) return 'rent';
-        if (type === 'electricity' || (!type && /điện|kwh/i.test(label))) return 'electricity';
-        if (type === 'water' || (!type && /nước|m³/i.test(label))) return 'water';
-        return 'other';
-    }
-
-    function monthKey(value) {
-        if (!value) return '';
-        if (typeof value === 'string' && /^\d{4}-\d{2}/.test(value)) return value.slice(0, 7);
-        var d = new Date(value);
-        return isNaN(d) ? '' : d.getFullYear() + '-' + pad(d.getMonth() + 1, 2);
-    }
-
-    function topBy(list, keyFn) {
-        var counts = {};
-        list.forEach(function (x) { var k = keyFn(x); if (k) counts[k] = (counts[k] || 0) + 1; });
-        var best = null;
-        Object.keys(counts).forEach(function (k) { if (!best || counts[k] > best.count) best = { key: k, count: counts[k] }; });
-        return best;
-    }
-
-    // Everything the Dashboard shows, computed from the entity stores on every
-    // call (optionally scoped to one building). Nothing is cached or stored, so
-    // records added in any module show up automatically.
-    // buildingId: '' / null = all buildings, a single id, or an array of ids
-    // (the signed-in user's building scope, see permissions.js).
-    function dashboardStats(buildingId) {
-        var settings = getSettings();
-        var now = new Date();
-        var todayStr = isoDate(now);
-        var curMonth = monthKey(todayStr);
-        var prevMonth = monthKey(new Date(now.getFullYear(), now.getMonth() - 1, 1));
-        var soon = new Date(); soon.setDate(soon.getDate() + settings.contractExpiringDays);
-        var soonStr = isoDate(soon);
-        var scopeIds = Array.isArray(buildingId) ? buildingId : (buildingId ? [buildingId] : null);
-        var inScope = function (r) { return !scopeIds || scopeIds.indexOf(r.buildingId) !== -1; };
-
-        var buildings = readAll('buildings').filter(function (b) { return !scopeIds || scopeIds.indexOf(b.id) !== -1; });
-        var apartments = readAll('apartments').filter(inScope);
-        var contracts = readAll('contracts').filter(inScope);
-        var invoices = readAll('invoices').filter(function (i) { return inScope(i) && isIssuedInvoice(i); });
-        var requests = readAll('supportRequests').filter(inScope);
-        var meters = readAll('meters').filter(inScope);
-        var allCustomers = readAll('customers');
-        var customerIdsInBuilding = {};
-        contracts.forEach(function (c) { customerIdsInBuilding[c.customerId] = true; });
-        var customers = scopeIds ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
-        var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
-
-        // Apartments by status
-        var aptStatus = {};
-        APARTMENT_STATUSES.forEach(function (st) { aptStatus[st.id] = apartments.filter(function (a) { return a.status === st.id; }).length; });
-
-        // Contracts
-        var isEnded = function (c) { return c.status === 'ended' || (c.endDate && c.endDate < todayStr); };
-        var activeContracts = contracts.filter(function (c) { return !isEnded(c); });
-        var expiringContracts = activeContracts.filter(function (c) { return c.endDate && c.endDate >= todayStr && c.endDate <= soonStr; });
-
-        // Invoices
-        var isOverdue = function (i) { return i.status === 'overdue' || (i.status !== 'paid' && i.dueDate && i.dueDate < todayStr); };
-        var invoiceMonth = function (i) { return i.period || monthKey(i.issueDate) || monthKey(i.createdAt); };
-        var monthInvoices = invoices.filter(function (i) { return invoiceMonth(i) === curMonth; });
-        var prevMonthInvoices = invoices.filter(function (i) { return invoiceMonth(i) === prevMonth; });
-        var buildingById = {};
-        readAll('buildings').forEach(function (b) { buildingById[b.id] = b; });
-        var feeGroups = { rent: { total: 0, paid: 0 }, electricity: { total: 0, paid: 0 }, water: { total: 0, paid: 0 }, other: { total: 0, paid: 0 } };
-        monthInvoices.forEach(function (inv) {
-            (inv.items || []).forEach(function (it) {
-                var g = feeGroups[feeGroupOf(it, buildingById[inv.buildingId])];
-                var amount = (Number(it.amount) || 0) + (Number(it.tax) || 0);
-                g.total += amount;
-                if (inv.status === 'paid') g.paid += amount;
-            });
-        });
-        var revenue12 = [];
-        for (var m = 11; m >= 0; m--) {
-            var key12 = monthKey(new Date(now.getFullYear(), now.getMonth() - m, 1));
-            revenue12.push({
-                month: key12,
-                billed: sum(invoices.filter(function (i) { return invoiceMonth(i) === key12; })),
-                collected: sum(invoices.filter(function (i) { return i.status === 'paid' && monthKey(i.paidAt) === key12; }))
-            });
-        }
-
-        // Resident accounts (auth.js, global store) — never shown in Demo Mode.
-        var accountRequests = (mode() !== 'demo' && global.RH && global.RH.listAccountRequests)
-            ? global.RH.listAccountRequests().filter(inScope) : [];
-        var customerIds = {};
-        customers.forEach(function (c) { customerIds[c.id] = true; });
-        var linkedAccounts = (mode() !== 'demo' && global.RH)
-            ? global.RH.getUsers().filter(function (u) { return u.role === 'resident' && u.residentId && customerIds[u.residentId]; }) : [];
-        var activeCustomerIds = {};
-        activeContracts.forEach(function (c) { activeCustomerIds[c.customerId] = true; });
-
-        // Support requests
-        var openRequests = requests.filter(function (r) { return r.status === 'new' || r.status === 'in_progress'; });
-        var ratings = [5, 4, 3, 2, 1].map(function (star) { return { star: star, count: requests.filter(function (r) { return Number(r.rating) === star; }).length }; });
-        var ratedCount = ratings.reduce(function (s, r) { return s + r.count; }, 0);
-        var topBuilding = topBy(requests, function (r) { return r.buildingId; });
-        var topApartment = topBy(requests, function (r) { return r.apartmentId; });
-        var topCategory = topBy(requests, function (r) { return r.category; });
-        var topAssignee = topBy(openRequests, function (r) { return r.assignee; });
-
-        return {
-            buildingId: Array.isArray(buildingId) ? '' : (buildingId || ''),
-            buildings: buildings.length,
-            apartments: apartments,
-            aptStatus: aptStatus,
-            occupancyRate: apartments.length ? Math.round(aptStatus.occupied * 1000 / apartments.length) / 10 : 0,
-            customers: customers.length,
-            customersNewThisMonth: customers.filter(function (c) { return monthKey(c.createdAt) === curMonth; }).length,
-            customersWithoutContract: customers.filter(function (c) { return !activeCustomerIds[c.id]; }).length,
-            linkedAccounts: linkedAccounts.length,
-            accountRequests: {
-                pending: accountRequests.filter(function (r) { return r.status === 'pending'; }).length,
-                approved: accountRequests.filter(function (r) { return r.status === 'approved'; }).length,
-                rejected: accountRequests.filter(function (r) { return r.status === 'rejected'; }).length,
-                thisMonth: accountRequests.filter(function (r) { return monthKey(r.submittedAt) === curMonth; }).length
-            },
-            contracts: contracts,
-            activeContracts: activeContracts,
-            expiringContracts: expiringContracts,
-            endedContracts: contracts.filter(isEnded),
-            contractsSignedThisMonth: contracts.filter(function (c) { return monthKey(c.signDate || c.startDate || c.createdAt) === curMonth; }).length,
-            contractsEndedThisMonth: contracts.filter(function (c) { return isEnded(c) && monthKey(c.endDate) === curMonth; }).length,
-            meters: meters.length,
-            invoices: invoices,
-            unpaidInvoices: invoices.filter(function (i) { return i.status !== 'paid'; }),
-            overdueInvoices: invoices.filter(isOverdue),
-            month: {
-                key: curMonth,
-                total: sum(monthInvoices),
-                paid: sum(monthInvoices.filter(function (i) { return i.status === 'paid'; })),
-                prevTotal: sum(prevMonthInvoices),
-                count: monthInvoices.length,
-                groups: feeGroups
-            },
-            revenue12: revenue12,
-            requests: requests,
-            openRequests: openRequests,
-            newRequests: requests.filter(function (r) { return r.status === 'new'; }),
-            requestsByStatus: {
-                new: requests.filter(function (r) { return r.status === 'new'; }).length,
-                in_progress: requests.filter(function (r) { return r.status === 'in_progress'; }).length,
-                resolved: requests.filter(function (r) { return r.status === 'resolved'; }).length
-            },
-            requestsThisMonth: requests.filter(function (r) { return monthKey(r.createdAt) === curMonth; }).length,
-            requestsDoneThisMonth: requests.filter(function (r) { return (r.status === 'resolved' || r.status === 'closed') && monthKey(r.updatedAt) === curMonth; }).length,
-            ratings: ratings,
-            ratedCount: ratedCount,
-            ratingAverage: ratedCount ? Math.round(ratings.reduce(function (s, r) { return s + r.star * r.count; }, 0) * 10 / ratedCount) / 10 : 0,
-            hotspots: {
-                building: topBuilding ? { label: (get('buildings', topBuilding.key) || {}).name || '—', count: topBuilding.count } : null,
-                apartment: topApartment ? { label: (get('apartments', topApartment.key) || {}).name || '—', count: topApartment.count } : null,
-                category: topCategory ? { label: topCategory.key, count: topCategory.count } : null,
-                assignee: topAssignee ? { label: topAssignee.key, count: topAssignee.count } : null
-            },
-            todayStr: todayStr,
-            expiringDays: settings.contractExpiringDays
-        };
+        var contract = contractCandidates[0] || null;
+        if (!apartment && contract) apartment = get('apartments', contract.apartmentId);
+        if (!apartment) return { apartment: null, building: null, contract: null, customer: customer, invoices: [], supportRequests: [] };
+        var building = get('buildings', apartment.buildingId);
+        if (contract) customer = get('customers', contract.customerId) || customer;
+        var residentContracts = contract ? allContracts.filter(function (item) {
+            return item.apartmentId === apartment.id && item.customerId === contract.customerId;
+        }) : [];
+        var residentContractIds = residentContracts.reduce(function (ids, item) { ids[item.id] = true; return ids; }, {});
+        var invoices = readAll('invoices').filter(function (inv) {
+            if (inv.apartmentId !== apartment.id) return false;
+            if (inv.contractId) {
+                var invoiceContract = allContracts.filter(function (item) { return item.id === inv.contractId; })[0];
+                return !!(invoiceContract && residentContractIds[invoiceContract.id]);
+            }
+            return !!(customer && inv.customerId === customer.id);
+        })
+            .sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var supportRequests = readAll('supportRequests').filter(function (r) {
+            return r.apartmentId === apartment.id || r.residentEmail === session.email;
+        }).sort(function (a, b) { return b.createdAt - a.createdAt; });
+        return { apartment: apartment, building: building, contract: contract, customer: customer, invoices: invoices, supportRequests: supportRequests };
     }
 
     // ---- code generators ---------------------------------------------------
@@ -634,28 +354,10 @@
         return buildingTag + '-' + aptTag + '-' + year + '-' + pad(seq, 3);
     }
 
-    // Max-based (not count-based) so deleting a draft never reissues an existing code.
     function nextInvoiceCode() {
         var year = new Date().getFullYear();
-        var prefix = 'HD' + year + '-';
-        var max = 0;
-        readAll('invoices').forEach(function (inv) {
-            var code = String(inv.code || '');
-            if (code.indexOf(prefix) === 0) {
-                var n = parseInt(code.slice(prefix.length), 10);
-                if (n > max) max = n;
-            }
-        });
-        return prefix + pad(max + 1, 4);
-    }
-
-    function nextAssetCode() {
-        var max = 0;
-        readAll('assets').forEach(function (a) {
-            var n = parseInt(String(a.code || '').replace(/\D/g, ''), 10);
-            if (n > max) max = n;
-        });
-        return 'TS' + pad(max + 1, 4);
+        var seq = readAll('invoices').length + 1;
+        return 'HD' + year + '-' + pad(seq, 4);
     }
 
     function nextSupportCode() {
@@ -669,26 +371,13 @@
     // when the service is billed 'meter'-style (electricity/water) and a
     // generic quantity for the other calc methods. This is a pitch-ready
     // approximation, not a full billing engine.
-    // Electricity/water entered with the default "fixed" method is ambiguous.
-    // Only an explicit package label/flag permits billing it without a meter.
-    function utilityPolicy(service) {
-        var label = String(service.name || '').toLowerCase();
-        var type = service.feeType === 'water' || service.feeType === 'electricity' ? service.feeType :
-            (/^(tiền\s+)?nước\b|m³|m3/i.test(label) ? 'water' : /^(tiền\s+)?điện\b|kwh/i.test(label) ? 'electricity' : null);
-        var packageFee = service.calcMethod === 'fixed' && (service.billingMode === 'flat' || service.flatRate === true || /trọn gói|tron goi/i.test(label));
-        return { meterType: type, metered: service.calcMethod === 'meter' || (!!type && !packageFee), packageFee: packageFee };
-    }
-
     function calcServiceAmount(service, ctx) {
         ctx = ctx || {};
         var unitPrice = Number(service.unitPrice) || 0;
         var qty = 1;
-        if (utilityPolicy(service).metered) {
+        if (service.calcMethod === 'meter') {
             var reading = ctx.meterReading;
-            var approved = reading && (reading.approvalStatus ? reading.approvalStatus === 'đã_duyệt' : reading.status === 'đã_chốt');
-            var valid = reading && reading.latestIndex !== '' && reading.latestIndex != null && reading.previousIndex !== '' && reading.previousIndex != null && isFinite(Number(reading.latestIndex)) && isFinite(Number(reading.previousIndex)) && Number(reading.latestIndex) >= Number(reading.previousIndex);
-            var matching = reading && (!ctx.readingPeriod || (reading.readingPeriod || reading.periodMonth) === ctx.readingPeriod);
-            qty = approved && valid && matching ? Number(reading.latestIndex) - Number(reading.previousIndex) : 0;
+            qty = reading ? Number(reading.consumption) || 0 : 0;
         } else if (service.calcMethod === 'quantity' || service.calcMethod === 'person') {
             qty = ctx.quantity != null ? Number(ctx.quantity) : 1;
         } else {
@@ -710,11 +399,6 @@
             var building = {
                 id: genId('building'), code: 'TN0001', name: 'Chung cư Riverside Residence', shortName: 'CT1',
                 province: 'Thái Nguyên', ward: 'Phường Tích Lương', addressDetail: 'Tổ 14',
-                // The demo dataset's only staff account is the demo session (see managerAccounts).
-                managerId: 'demo',
-                // Auto-billing on: the demo shows a generated draft flagged for review
-                // (the seeded September readings are closed but not approved yet).
-                active: true, billingDay: 5, autoInvoice: true, autoInvoiceFrom: isoDate(new Date()).slice(0, 7), meterPeriod: 'previous',
                 services: [
                     { id: genId('svc'), name: 'Tiền thuê nhà', feeType: 'rent', calcMethod: 'fixed', unitPrice: 0, taxRate: 0 },
                     { id: genId('svc'), name: 'Tiền điện', feeType: 'electricity', calcMethod: 'meter', unitPrice: 3800, taxRate: 8 },
@@ -752,8 +436,6 @@
                 startDate: '2026-01-01', endDate: '2026-12-31', signDate: '2025-12-28',
                 contractTemplateId: building.contractTemplateId, invoiceTemplateId: building.invoiceTemplateId,
                 rentPrice: apt1.rentPrice, depositPrice: apt1.depositPrice, paymentCycle: 'monthly',
-                // Services billed monthly with the rent (electricity/water from approved readings).
-                serviceIds: building.services.filter(function (s) { return s.feeType !== 'rent' && s.feeType !== 'deposit'; }).map(function (s) { return s.id; }), serviceOverrides: {},
                 referrer: '', collaborator: 'Trần Văn Bình', note: '', files: [], status: 'active', createdAt: Date.now()
             };
             writeAll('contracts', [contract1]);
@@ -768,8 +450,8 @@
             var rentLine = { qty: 1, unitPrice: apt1.rentPrice, amount: apt1.rentPrice, tax: 0, total: apt1.rentPrice };
             var items = [
                 { serviceId: building.services[0].id, label: 'Tiền thuê nhà', qty: 1, unitPrice: rentLine.unitPrice, amount: rentLine.amount, tax: rentLine.tax },
-                { serviceId: elecSvc.id, label: 'Tiền điện — chỉ số chưa duyệt', kind: 'meter', source: 'meter', missing: true, consumptionPeriod: '2026-09', qty: elecLine.qty, unitPrice: elecLine.unitPrice, amount: elecLine.amount, tax: elecLine.tax },
-                { serviceId: waterSvc.id, label: 'Tiền nước — chỉ số chưa duyệt', kind: 'meter', source: 'meter', missing: true, consumptionPeriod: '2026-09', qty: waterLine.qty, unitPrice: waterLine.unitPrice, amount: waterLine.amount, tax: waterLine.tax }
+                { serviceId: elecSvc.id, label: 'Tiền điện (' + elecLine.qty + ' kWh)', qty: elecLine.qty, unitPrice: elecLine.unitPrice, amount: elecLine.amount, tax: elecLine.tax },
+                { serviceId: waterSvc.id, label: 'Tiền nước (' + waterLine.qty + ' m³)', qty: waterLine.qty, unitPrice: waterLine.unitPrice, amount: waterLine.amount, tax: waterLine.tax }
             ];
             var subtotal = items.reduce(function (s, it) { return s + it.amount; }, 0);
             var taxTotal = items.reduce(function (s, it) { return s + it.tax; }, 0);
@@ -778,7 +460,7 @@
                 buildingId: building.id, apartmentId: apt1.id, customerId: cus1.id, invoiceTemplateId: contract1.invoiceTemplateId,
                 period: '2026-09', issueDate: '2026-09-30', dueDate: '2026-10-10',
                 items: items, subtotal: subtotal, tax: taxTotal, total: subtotal + taxTotal,
-                type: 'monthly', status: 'draft', issues: ['Chỉ số điện/nước kỳ 09/2026 chưa duyệt'], sentAt: null, paidAt: null, createdAt: Date.now()
+                status: 'unpaid', sentAt: null, paidAt: null, createdAt: Date.now()
             };
             writeAll('invoices', [invoice1]);
 
@@ -792,30 +474,9 @@
                 createdAt: Date.now() - 3 * 3600000, updatedAt: Date.now() - 1800000
             };
             writeAll('supportRequests', [request1]);
-
-            var assetTypes = ['Bàn ghế', 'Tủ lạnh', 'Điều hòa', 'Máy giặt', 'Giường', 'Tủ quần áo'].map(function (name) {
-                return { id: genId('assetType'), name: name, createdAt: Date.now() };
-            });
-            writeAll('assetTypes', assetTypes);
-            writeAll('assets', [
-                { id: genId('asset'), code: 'TS0001', name: 'Điều hòa phòng khách', typeId: assetTypes[2].id, brand: 'Daikin', color: 'Trắng', model: '2024', origin: 'Thái Lan', value: 8500000, quantity: 1, condition: 'repair', warrantyUntil: '2027-06-30', supplier: 'Điện máy Xanh', buildingId: building.id, apartmentId: apt1.id, location: 'Phòng khách', note: 'Đang chờ kỹ thuật kiểm tra (YC-0001).', photos: [], createdAt: Date.now() },
-                { id: genId('asset'), code: 'TS0002', name: 'Tủ lạnh', typeId: assetTypes[1].id, brand: 'Panasonic', color: 'Bạc', model: '2025', origin: 'Việt Nam', value: 6200000, quantity: 1, condition: 'in_use', warrantyUntil: '2027-01-15', supplier: 'Điện máy Xanh', buildingId: building.id, apartmentId: apt1.id, location: 'Bếp', note: '', photos: [], createdAt: Date.now() }
-            ]);
         } finally {
             global.RHD_MODE = prevMode;
         }
-    }
-
-    // Earlier builds seeded the live dataset too, including a support request
-    // owned by the since-removed mock resident account. Drop just that record;
-    // everything else in live data may have been edited by a real manager.
-    function purgeLegacyLiveMock() {
-        var liveKey = 'residenthub_live_supportRequests';
-        try {
-            var items = JSON.parse(localStorage.getItem(liveKey) || '[]');
-            var next = items.filter(function (r) { return r.residentEmail !== 'resident@residenthub.vn'; });
-            if (next.length !== items.length) localStorage.setItem(liveKey, JSON.stringify(next));
-        } catch (e) { /* ignore corrupt legacy data */ }
     }
 
     function setMode(m) {
@@ -823,11 +484,11 @@
         // Template library seeds first — building seed data below references
         // RHT.getDefault() to pick its default contract/invoice template.
         if (global.RHT) global.RHT.seed();
-        // Only the sandboxed Demo dataset gets sample data (seeded once, so a demo
-        // visitor sees a complete system and their own additions persist). Live data
-        // starts empty: every figure a real manager sees is something they entered.
-        if (global.RHD_MODE === 'demo') seedDataset('demo');
-        else purgeLegacyLiveMock();
+        // Seeds once (seedDataset no-ops once a dataset already has data), so a demo
+        // visitor always sees a complete sample system on first visit, and anything
+        // they add afterwards persists alongside it instead of being wiped.
+        // DEMO_LIMITS is sized with headroom above the seed so "Thêm" stays usable.
+        seedDataset(global.RHD_MODE);
     }
 
     function resetDemo() {
@@ -835,8 +496,6 @@
             localStorage.removeItem('residenthub_demo_' + entity);
         });
         localStorage.removeItem('residenthub_demo_templates');
-        localStorage.removeItem('residenthub_demo_settings');
-        localStorage.removeItem('residenthub_demo_billingMeta');
         if (global.RHT) global.RHT.seed();
         seedDataset('demo');
     }
@@ -848,18 +507,18 @@
         CALC_METHODS: CALC_METHODS,
         APARTMENT_STATUSES: APARTMENT_STATUSES,
         VEHICLE_TYPES: VEHICLE_TYPES,
-        ASSET_CONDITIONS: ASSET_CONDITIONS,
         PAYMENT_CYCLES: PAYMENT_CYCLES,
         INVOICE_STATUSES: INVOICE_STATUSES,
-        ISSUED_INVOICE_STATUSES: ISSUED_INVOICE_STATUSES,
-        isIssuedInvoice: isIssuedInvoice,
         SUPPORT_STATUSES: SUPPORT_STATUSES,
         SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
         SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,
+        SETTINGS_DEFAULTS: SETTINGS_DEFAULTS,
         PROVINCES: PROVINCES,
         WARD_SUGGESTIONS: WARD_SUGGESTIONS,
         setMode: setMode,
         mode: mode,
+        getSettings: getSettings,
+        saveSettings: saveSettings,
         list: list,
         get: get,
         create: create,
@@ -871,27 +530,13 @@
         activeContractFor: activeContractFor,
         latestMeter: latestMeter,
         findApartmentByUnit: findApartmentByUnit,
-        managerAccounts: managerAccounts,
-        eligibleManagers: eligibleManagers,
-        assetsOf: assetsOf,
-        nextAssetCode: nextAssetCode,
-        buildingManager: buildingManager,
-        residentPlacement: residentPlacement,
         residentContext: residentContext,
-        SETTINGS_DEFAULTS: SETTINGS_DEFAULTS,
-        getSettings: getSettings,
-        saveSettings: saveSettings,
-        dashboardStats: dashboardStats,
-        parseReminderDays: parseReminderDays,
-        defaultDueDate: defaultDueDate,
-        markOverdueInvoices: markOverdueInvoices,
         nextBuildingCode: nextBuildingCode,
         nextContractCode: nextContractCode,
         nextInvoiceCode: nextInvoiceCode,
         nextSupportCode: nextSupportCode,
         buildingFullAddress: buildingFullAddress,
         calcServiceAmount: calcServiceAmount,
-        utilityPolicy: utilityPolicy,
         resetDemo: resetDemo
     };
 })(window);
