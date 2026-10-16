@@ -3274,6 +3274,7 @@
     var supportListFilters = { search: '', status: 'all', category: 'all', priority: 'all' };
     var activeSupportView = 'requests';
     var selectedSupportChatId = null;
+    var selectedSupportResidentKey = null;
 
     function supportConversationHtml(messages) {
         if (!messages.length) return '<div style="color:#94a3b8;font-size:.85rem;">Chưa có trao đổi.</div>';
@@ -3288,26 +3289,40 @@
         return scoped('supportRequests').filter(function (request) { return request.id === id; })[0] || null;
     }
 
-    function supportConversationListItem(request, selected) {
+    function supportResidentKey(request) {
+        if (request.residentEmail) return 'email:' + String(request.residentEmail).trim().toLocaleLowerCase();
+        if (request.customerId) return 'customer:' + request.customerId;
+        return 'apartment:' + (request.apartmentId || request.buildingId || request.location || '') + ':' + String(request.residentName || 'Cư dân').trim().toLocaleLowerCase();
+    }
+
+    function supportConversationListItem(group, selected) {
+        var request = group.requests[0];
         var apt = RHD.get('apartments', request.apartmentId);
-        var messages = Array.isArray(request.messages) ? request.messages : [];
-        var lastMessage = messages.length ? messages[messages.length - 1] : null;
-        return '<button type="button" class="support-inbox-item' + (selected ? ' active' : '') + '" data-support-chat-id="' + escapeHtml(request.id) + '">' +
+        var lastMessageRequest = group.requests.filter(function (item) { return Array.isArray(item.messages) && item.messages.length; }).sort(function (a, b) {
+            return Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0);
+        })[0];
+        var lastMessage = lastMessageRequest && lastMessageRequest.messages[lastMessageRequest.messages.length - 1];
+        return '<button type="button" class="support-inbox-item' + (selected ? ' active' : '') + '" data-support-chat-resident="' + escapeHtml(group.key) + '" aria-pressed="' + (selected ? 'true' : 'false') + '">' +
             '<span class="support-inbox-avatar"><i class="fas fa-user"></i></span><span class="support-inbox-copy">' +
-            '<span class="support-inbox-name">' + escapeHtml(request.residentName || 'Cư dân') + '<small>' + escapeHtml(request.code || '') + '</small></span>' +
+            '<span class="support-inbox-name">' + escapeHtml(request.residentName || 'Cư dân') + '<small>' + group.requests.length + ' yêu cầu</small></span>' +
             '<span class="support-inbox-preview">' + escapeHtml(lastMessage ? lastMessage.text : request.title || 'Chưa có tin nhắn') + '</span>' +
-            '<span class="support-inbox-meta">' + escapeHtml(apt ? 'Căn hộ ' + apt.name : request.location || 'Chưa gán căn hộ') + (lastMessage ? ' · ' + escapeHtml(lastMessage.time || '') : '') + '</span>' +
+            '<span class="support-inbox-meta">' + escapeHtml(apt ? 'Căn hộ ' + apt.name : request.location || 'Chưa gán căn hộ') + (lastMessageRequest ? ' · ' + escapeHtml(lastMessageRequest.code || '') : '') + '</span>' +
             '</span></button>';
     }
 
-    function supportChatPane(request) {
+    function supportChatPane(request, residentRequests) {
         if (!request) return '<div class="support-chat-empty"><span><i class="fas fa-comments"></i></span><h3>Chọn một cuộc trò chuyện</h3><p>Chọn cư dân ở danh sách bên trái để xem và trả lời tin nhắn.</p></div>';
         var status = statusMeta(RHD.SUPPORT_STATUSES, request.status);
         var apt = RHD.get('apartments', request.apartmentId);
         return '<div class="support-chat-thread">' +
-            '<div class="support-chat-head"><div class="support-chat-avatar"><i class="fas fa-user"></i></div><div class="support-chat-person"><strong>' + escapeHtml(request.residentName || 'Cư dân') + '</strong><span>' + escapeHtml(request.code || '') + ' · ' + escapeHtml(apt ? 'Căn hộ ' + apt.name : request.location || 'Chưa gán căn hộ') + '</span></div>' +
-            '<div class="support-chat-context"><strong>' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</strong>' + badge(status.label, status.color, status.bg) +
-            (can('support.update') ? '<button type="button" class="rh-link-btn" data-open-support-request="' + escapeHtml(request.id) + '">Chi tiết yêu cầu <i class="fas fa-arrow-up-right-from-square"></i></button>' : '') + '</div></div>' +
+            '<div class="support-chat-head"><div class="support-chat-avatar"><i class="fas fa-user"></i></div><div class="support-chat-person"><strong>' + escapeHtml(request.residentName || 'Cư dân') + '</strong><span>' + escapeHtml(apt ? 'Căn hộ ' + apt.name : request.location || 'Chưa gán căn hộ') + '</span></div></div>' +
+            '<div class="support-ticket-list" aria-label="Yêu cầu của cư dân">' + residentRequests.map(function (item) {
+                var itemStatus = statusMeta(RHD.SUPPORT_STATUSES, item.status);
+                var selected = item.id === request.id;
+                return '<button type="button" class="support-ticket-item' + (selected ? ' active' : '') + '" data-support-chat-id="' + escapeHtml(item.id) + '" aria-pressed="' + (selected ? 'true' : 'false') + '"><span class="support-ticket-code">' + escapeHtml(item.code || '—') + '</span><span class="support-ticket-title">' + escapeHtml(item.title || 'Yêu cầu hỗ trợ') + '</span><span class="support-ticket-status">' + badge(itemStatus.label, itemStatus.color, itemStatus.bg) + '</span></button>';
+            }).join('') + '</div>' +
+            '<div class="support-chat-context"><strong>' + escapeHtml(request.code || 'Mã yêu cầu') + ' · ' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</strong>' + badge(status.label, status.color, status.bg) +
+            (can('support.update') ? '<button type="button" class="rh-link-btn" data-open-support-request="' + escapeHtml(request.id) + '">Chi tiết yêu cầu <i class="fas fa-arrow-up-right-from-square"></i></button>' : '') + '</div>' +
             '<div class="support-chat-messages" id="supportInboxMessages">' + supportConversationHtml(Array.isArray(request.messages) ? request.messages : []) + '</div>' +
             (can('support.update') ? '<div class="support-chat-compose"><textarea id="supportInboxReply" data-request-id="' + escapeHtml(request.id) + '" rows="2" placeholder="Nhập tin nhắn cho cư dân..."></textarea><button type="button" class="btn-primary" data-support-send="' + escapeHtml(request.id) + '" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i><span>Gửi</span></button></div>' : '') + '</div>';
     }
@@ -3324,8 +3339,28 @@
         var filterFocusId = focusedFilter && ['rhSupportSearch', 'rhSupportStatusFilter', 'rhSupportTypeFilter', 'rhSupportPriorityFilter'].indexOf(focusedFilter.id) !== -1 ? focusedFilter.id : null;
         var filterCaret = filterFocusId === 'rhSupportSearch' ? focusedFilter.selectionStart : null;
         var requests = scoped('supportRequests').slice().sort(function (a, b) { return b.createdAt - a.createdAt; });
+        var residentGroupsByKey = Object.create(null);
+        var residentGroups = [];
+        requests.forEach(function (request) {
+            var key = supportResidentKey(request);
+            if (!residentGroupsByKey[key]) {
+                residentGroupsByKey[key] = { key: key, requests: [] };
+                residentGroups.push(residentGroupsByKey[key]);
+            }
+            residentGroupsByKey[key].requests.push(request);
+        });
+        residentGroups.forEach(function (group) {
+            group.requests.sort(function (a, b) {
+                return Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0);
+            });
+        });
+        residentGroups.sort(function (a, b) {
+            return Number(b.requests[0].updatedAt || b.requests[0].createdAt || 0) - Number(a.requests[0].updatedAt || a.requests[0].createdAt || 0);
+        });
         if (!requests.some(function (request) { return request.id === selectedSupportChatId; })) selectedSupportChatId = requests.length ? requests[0].id : null;
         var selectedChat = requests.filter(function (request) { return request.id === selectedSupportChatId; })[0] || null;
+        selectedSupportResidentKey = selectedChat ? supportResidentKey(selectedChat) : null;
+        var selectedResident = residentGroupsByKey[selectedSupportResidentKey] || null;
         var categories = RHD.SUPPORT_CATEGORIES || [];
         var visibleRequests = requests.filter(function (r) {
             var apt = RHD.get('apartments', r.apartmentId);
@@ -3355,10 +3390,10 @@
 
         tab.innerHTML = '<section class="support-workspace"><nav class="support-view-tabs" aria-label="Khu vực yêu cầu hỗ trợ">' +
             '<button type="button" class="' + (activeSupportView === 'requests' ? 'active' : '') + '" data-support-view="requests"><i class="fas fa-clipboard-list"></i> Danh sách yêu cầu <span>' + requests.length + '</span></button>' +
-            '<button type="button" class="' + (activeSupportView === 'chat' ? 'active' : '') + '" data-support-view="chat"><i class="fas fa-comments"></i> Tin nhắn <span>' + requests.filter(function (request) { return Array.isArray(request.messages) && request.messages.length; }).length + '</span></button></nav>' +
+            '<button type="button" class="' + (activeSupportView === 'chat' ? 'active' : '') + '" data-support-view="chat"><i class="fas fa-comments"></i> Tin nhắn <span>' + residentGroups.filter(function (group) { return group.requests.some(function (request) { return Array.isArray(request.messages) && request.messages.length; }); }).length + '</span></button></nav>' +
             '<section class="support-view-panel' + (activeSupportView === 'requests' ? ' active' : '') + '" data-support-panel="requests"><div class="card support-request-card">' +
             '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Yêu cầu hỗ trợ</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Yêu cầu do cư dân gửi từ ứng dụng — cập nhật trạng thái tại đây sẽ phản ánh ngay bên cư dân.</p></div>' +
+            '<div><p style="color:#94a3b8;font-size:.875rem;margin:0;">Yêu cầu do cư dân gửi từ ứng dụng — cập nhật trạng thái tại đây sẽ phản ánh ngay bên cư dân.</p></div>' +
             '</div>' +
             '<div style="display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:1rem;">' +
             '<input id="rhSupportSearch" type="search" value="' + escapeHtml(supportListFilters.search) + '" placeholder="Tìm mã, cư dân, căn hộ, nội dung..." aria-label="Tìm yêu cầu hỗ trợ" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;">' +
@@ -3371,9 +3406,9 @@
             (requests.length ? '<div style="color:#70839d;font-size:.82rem;margin-bottom:.55rem;">Hiển thị ' + visibleRequests.length + ' / ' + requests.length + ' yêu cầu</div><div class="table-container support-request-table-wrap"><table class="support-request-table"><thead><tr><th>Yêu cầu</th><th>Cư dân / căn hộ</th><th>Mức độ</th><th>Trạng thái</th><th>Phụ trách / ghi chú</th><th>Thời gian gửi</th><th>Thao tác</th></tr></thead><tbody>' + (rows || '<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8;">Không có yêu cầu phù hợp với bộ lọc.</td></tr>') + '</tbody></table></div>'
                 : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.')) +
             '</div></section><section class="support-view-panel' + (activeSupportView === 'chat' ? ' active' : '') + '" data-support-panel="chat"><div class="support-inbox">' +
-            '<aside class="support-inbox-sidebar"><div class="support-inbox-title"><div><h3>Hộp thư cư dân</h3><p>' + requests.length + ' cuộc trò chuyện theo yêu cầu</p></div><i class="fas fa-inbox"></i></div>' +
-            '<div class="support-inbox-list">' + requests.map(function (request) { return supportConversationListItem(request, request.id === selectedSupportChatId); }).join('') + '</div></aside>' +
-            '<section class="support-inbox-main">' + supportChatPane(selectedChat) + '</section></div></section></section>';
+            '<aside class="support-inbox-sidebar"><div class="support-inbox-title"><div><h3>Hộp thư cư dân</h3><p>' + residentGroups.length + ' cư dân · ' + requests.length + ' yêu cầu riêng</p></div><i class="fas fa-inbox"></i></div>' +
+            '<div class="support-inbox-list">' + residentGroups.map(function (group) { return supportConversationListItem(group, group.key === selectedSupportResidentKey); }).join('') + '</div></aside>' +
+            '<section class="support-inbox-main">' + supportChatPane(selectedChat, selectedResident ? selectedResident.requests : []) + '</section></div></section></section>';
         tab.onclick = function (ev) {
             var button = ev.target.closest('button');
             if (!button || !tab.contains(button)) return;
@@ -3382,6 +3417,11 @@
                 renderSupportTab();
             } else if (button.hasAttribute('data-support-status-filter')) {
                 supportListFilters.status = button.getAttribute('data-support-status-filter');
+                renderSupportTab();
+            } else if (button.hasAttribute('data-support-chat-resident')) {
+                selectedSupportResidentKey = button.getAttribute('data-support-chat-resident');
+                var residentGroup = residentGroupsByKey[selectedSupportResidentKey];
+                selectedSupportChatId = residentGroup && residentGroup.requests.length ? residentGroup.requests[0].id : null;
                 renderSupportTab();
             } else if (button.hasAttribute('data-support-chat-id')) {
                 selectedSupportChatId = button.getAttribute('data-support-chat-id');
@@ -3425,11 +3465,18 @@
         RHUI.drawerId = id;
         var apt = RHD.get('apartments', r.apartmentId);
         var building = RHD.get('buildings', r.buildingId);
+        var attachmentFiles = Array.isArray(r.attachmentFiles) ? r.attachmentFiles.filter(function (file) { return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || ''); }) : [];
+        var attachmentMarkup = attachmentFiles.length
+            ? '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Ảnh đính kèm</label><div style="display:flex;flex-wrap:wrap;gap:.65rem;margin-top:.45rem;">' + attachmentFiles.map(function (file, index) {
+                return '<a href="' + escapeHtml(file.dataUrl) + '" target="_blank" rel="noopener" style="display:grid;gap:.3rem;width:120px;color:#61708a;font-size:.72rem;text-decoration:none;"><img src="' + escapeHtml(file.dataUrl) + '" alt="Ảnh đính kèm ' + (index + 1) + '" style="width:120px;height:90px;object-fit:cover;border:1px solid var(--line);border-radius:8px;"><span>' + escapeHtml(file.name || 'Ảnh ' + (index + 1)) + '</span></a>';
+            }).join('') + '</div></div>'
+            : (r.attachments ? '<div style="grid-column:1/-1;color:#94a3b8;font-size:.8rem;">Yêu cầu cũ có ' + escapeHtml(r.attachments) + ' tệp đính kèm nhưng nội dung chưa được lưu.</div>' : '');
         var html = '<form onsubmit="RHUI.submitSupportForm(event)">' +
             '<div class="rh-grid-2">' +
             '<div><label style="font-size:.8rem;color:#94a3b8;">Người gửi</label><div style="font-weight:600;">' + escapeHtml(r.residentName || '—') + '</div></div>' +
             '<div><label style="font-size:.8rem;color:#94a3b8;">Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</div></div>' +
             '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
+            attachmentMarkup +
             '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
             '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Phản hồi cho cư dân</label><textarea id="srResponse" rows="4" placeholder="Nhập nội dung phản hồi hoặc hướng dẫn xử lý">' + escapeHtml(r.response || '') + '</textarea></div>' +

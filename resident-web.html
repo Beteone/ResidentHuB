@@ -45,6 +45,16 @@
         body.resident-theme-dark input, body.resident-theme-dark select, body.resident-theme-dark textarea { background:#111b2b; color:#e8eef8; border-color:#3b4b64; }
         body.resident-theme-dark h1, body.resident-theme-dark h2, body.resident-theme-dark h3, body.resident-theme-dark h4, body.resident-theme-dark strong, body.resident-theme-dark label { color:#e8eef8 !important; }
         body.resident-theme-dark .notice-item, body.resident-theme-dark .support-card { background:#1d2b40; border-color:#304158; }
+        body.resident-theme-dark .request-view-tabs, body.resident-theme-dark .request-inbox { background:#172235; border-color:#304158; }
+        body.resident-theme-dark .request-view-tab.active, body.resident-theme-dark .request-inbox-list, body.resident-theme-dark .request-inbox-item:hover, body.resident-theme-dark .request-inbox-item.active { background:#1d2b40; }
+        body.resident-theme-dark .request-inbox-list, body.resident-theme-dark .request-inbox-list-head, body.resident-theme-dark .request-inbox-item, body.resident-theme-dark .request-inbox-head, body.resident-theme-dark .request-inbox-compose { border-color:#304158; }
+        body.resident-theme-dark .request-inbox-list-head strong, body.resident-theme-dark .request-inbox-head h4 { color:#e8eef8; }
+        body.resident-theme-dark .request-inbox-request-title, body.resident-theme-dark .request-inbox-preview, body.resident-theme-dark .request-inbox-head p { color:#aab8cb; }
+        body.resident-theme-dark .request-inbox-message { color:#e8eef8; background:#22324a; }
+        body.resident-theme-dark .request-inbox-message.resident { background:#1c3a60; }
+        body.resident-theme-dark .request-inbox-compose textarea { color:#e8eef8; background:#111b2b; border-color:#3b4b64; }
+        body.resident-theme-dark .request-attachment-gallery { border-color:#304158; background:#172235; }
+        body.resident-theme-dark .request-attachment-gallery > strong { color:#e8eef8; }
 
         .sidebar {
             position: fixed;
@@ -959,6 +969,44 @@
         .history-tabs { display: flex; gap: 0.5rem; border-bottom: 1px solid var(--line); }
         .history-tab { border: 0; background: transparent; padding: 0.7rem 0.9rem; color: var(--muted); font: inherit; font-weight: 700; cursor: pointer; border-bottom: 2px solid transparent; }
         .history-tab.active { color: var(--primary-strong); border-bottom-color: var(--primary); }
+        .request-view-tabs { display: flex; gap: .55rem; padding: .35rem; border: 1px solid #e5ebf3; border-radius: 13px; background: #f7f9fc; }
+        .request-view-tab { display: inline-flex; align-items: center; gap: .55rem; border: 0; border-radius: 10px; padding: .7rem 1rem; color: #64748b; background: transparent; font: inherit; font-weight: 700; cursor: pointer; }
+        .request-view-tab.active { color: #1769e8; background: #fff; box-shadow: 0 2px 8px rgba(15, 23, 42, .08); }
+        .request-view-count { min-width: 1.35rem; padding: .1rem .35rem; border-radius: 999px; background: #eaf3ff; color: #1769e8; font-size: .72rem; text-align: center; }
+        .request-inbox { display: grid; grid-template-columns: minmax(230px, .72fr) minmax(0, 1.6fr); min-height: 460px; overflow: hidden; border: 1px solid #e5ebf3; border-radius: 15px; background: #fff; }
+        .request-inbox-list { display: flex; flex-direction: column; border-right: 1px solid #e5ebf3; background: #fbfcfe; }
+        .request-inbox-list-head { padding: 1rem; border-bottom: 1px solid #e5ebf3; }
+        .request-inbox-list-head strong { display: block; color: #132238; }
+        .request-inbox-list-head small { display: block; margin-top: .25rem; color: #718096; }
+        .request-inbox-items { overflow: auto; }
+        .request-inbox-item { display: flex; width: 100%; gap: .7rem; padding: .9rem 1rem; border: 0; border-bottom: 1px solid #edf1f6; color: inherit; background: transparent; text-align: left; cursor: pointer; }
+        .request-inbox-item:hover, .request-inbox-item.active { background: #eef5ff; }
+        .request-inbox-avatar { display: grid; width: 36px; height: 36px; flex: none; place-items: center; border-radius: 50%; color: #1769e8; background: #e3efff; }
+        .request-inbox-copy { min-width: 0; flex: 1; }
+        .request-inbox-code { display: flex; align-items: center; justify-content: space-between; gap: .5rem; color: #1769e8; font-size: .78rem; font-weight: 800; }
+        .request-inbox-request-title, .request-inbox-preview { display: block; overflow: hidden; margin-top: .25rem; color: #475569; font-size: .79rem; text-overflow: ellipsis; white-space: nowrap; }
+        .request-inbox-preview { color: #718096; }
+        .request-inbox-main { display: flex; min-width: 0; flex-direction: column; }
+        .request-inbox-head { padding: 1rem 1.2rem; border-bottom: 1px solid #e5ebf3; }
+        .request-inbox-head-line { display: flex; align-items: flex-start; justify-content: space-between; gap: .8rem; }
+        .request-inbox-head h4 { margin: 0; color: #132238; font-size: 1rem; }
+        .request-inbox-head p { margin: .35rem 0 0; color: #718096; font-size: .82rem; }
+        .request-inbox-code-badge { display: inline-flex; align-items: center; gap: .35rem; border: 1px solid #d7e7ff; border-radius: 8px; padding: .35rem .55rem; color: #1769e8; background: #f1f7ff; font-size: .78rem; font-weight: 800; white-space: nowrap; }
+        .request-inbox-messages { display: flex; min-height: 240px; flex: 1; flex-direction: column; gap: .7rem; overflow: auto; padding: 1rem 1.2rem; }
+        .request-inbox-message { max-width: 85%; align-self: flex-start; padding: .7rem .8rem; border-radius: 12px 12px 12px 3px; color: #334155; background: #f1f5f9; white-space: pre-wrap; overflow-wrap: anywhere; }
+        .request-inbox-message.resident { align-self: flex-end; border-radius: 12px 12px 3px 12px; background: #e8f2ff; }
+        .request-inbox-message small { display: block; margin-bottom: .25rem; color: #64748b; font-size: .68rem; }
+        .request-inbox-compose { display: flex; align-items: flex-end; gap: .6rem; padding: .9rem 1.2rem; border-top: 1px solid #e5ebf3; }
+        .request-inbox-compose textarea { min-width: 0; min-height: 44px; max-height: 130px; flex: 1; resize: vertical; border: 1px solid #dbe5f1; border-radius: 10px; padding: .7rem .8rem; color: var(--ink); background: #fff; font: inherit; }
+        .request-inbox-empty { display: grid; min-height: 100%; place-content: center; padding: 2rem; color: #718096; text-align: center; }
+        .request-inbox-empty i { margin-bottom: .8rem; color: #91add2; font-size: 2rem; }
+        .request-attachment-gallery { display: grid; gap: .55rem; margin-bottom: 1rem; padding: .85rem; border: 1px solid #e5ebf3; border-radius: 12px; }
+        .request-attachment-gallery > strong { color: #475569; font-size: .82rem; }
+        .request-attachment-gallery > div { display: flex; flex-wrap: wrap; gap: .65rem; }
+        .request-attachment-gallery a { display: grid; width: 120px; gap: .3rem; color: #61708a; font-size: .72rem; text-decoration: none; }
+        .request-attachment-gallery img { width: 120px; height: 90px; object-fit: cover; border: 1px solid #e1e8f1; border-radius: 8px; }
+        .request-attachment-gallery span { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .request-attachment-legacy { margin: .5rem 0; color: #718096; font-size: .78rem; }
         .modal-backdrop { position: fixed; inset: 0; background: rgba(8, 25, 52, .5); display: none; align-items: center; justify-content: center; padding: 1rem; z-index: 50; }
         .modal-backdrop.open { display: flex; }
         .request-modal { width: min(780px, 100%); max-height: 92vh; overflow: auto; background: white; border-radius: 1.2rem; box-shadow: 0 30px 80px rgba(15, 23, 42, .25); }
@@ -1006,6 +1054,11 @@
             .category-grid { grid-template-columns: 1fr; }
             .request-toolbar select { flex: 1; }
             .detail-meta { grid-template-columns: 1fr; }
+            .request-inbox { grid-template-columns: 1fr; }
+            .request-inbox-list { max-height: 245px; border-right: 0; border-bottom: 1px solid #e5ebf3; }
+            .request-inbox-messages { min-height: 200px; }
+            .request-inbox-head-line { flex-direction: column; }
+            .request-inbox-compose { padding: .75rem; }
         }
 
         /* Resident request workspace */
@@ -1369,6 +1422,10 @@
                     <button class="btn-primary js-new-request"><i class="fas fa-plus"></i> Tạo yêu cầu mới</button>
                 </div>
 
+                <div class="request-view-tabs" role="tablist" aria-label="Yêu cầu hỗ trợ">
+                    <button type="button" class="request-view-tab active" data-request-view="list" role="tab" aria-selected="true"><i class="fas fa-clipboard-list"></i> Danh sách yêu cầu</button>
+                    <button type="button" class="request-view-tab" data-request-view="messages" role="tab" aria-selected="false"><i class="fas fa-comments"></i> Tin nhắn <span class="request-view-count" id="requestInboxCount">0</span></button>
+                </div>
                 <div class="request-dashboard request-workspace">
                     <div class="request-stat-grid" id="requestStats"></div>
                     <div class="history-tabs request-tabs"><button class="history-tab active" data-history="active">Danh sách yêu cầu</button><button class="history-tab" data-history="all">Lịch sử yêu cầu</button></div>
@@ -1381,6 +1438,7 @@
                     </div>
                     <div class="notice-list" id="requestList"></div>
                 </div>
+                <div class="request-inbox-view" id="requestInboxView" style="display:none;"></div>
             </div>
         </section>
 
@@ -1709,9 +1767,9 @@
             syncResidentDashboardData();
         });
         window.addEventListener('residenthub:business-data-changed', event => {
-            if (event.detail && ['invoices', 'contracts'].includes(event.detail.entity)) {
+            if (event.detail && ['invoices', 'contracts', 'supportRequests'].includes(event.detail.entity)) {
                 RH_CTX = RHD.residentContext(RH_SESSION);
-                if (typeof window.refreshResidentWorkspace === 'function') window.refreshResidentWorkspace(event.detail);
+                if (['invoices', 'contracts'].includes(event.detail.entity) && typeof window.refreshResidentWorkspace === 'function') window.refreshResidentWorkspace(event.detail);
                 syncResidentDashboardData();
                 return;
             }
@@ -1719,9 +1777,11 @@
         });
         window.addEventListener('storage', event => {
             if (event.key === 'residenthub_internal_data' || event.key === 'residenthub_users' || (event.key && (event.key.indexOf('rh_db_') === 0 || event.key.indexOf('residenthub_live_') === 0))) {
-                if (event.key === 'residenthub_live_invoices' || event.key === 'residenthub_live_contracts' || event.key === 'residenthub_demo_invoices') {
+                if (event.key === 'residenthub_live_invoices' || event.key === 'residenthub_live_contracts' || event.key === 'residenthub_live_supportRequests' || event.key === 'residenthub_demo_invoices') {
                     RH_CTX = RHD.residentContext(RH_SESSION);
-                    if (typeof window.refreshResidentWorkspace === 'function') window.refreshResidentWorkspace({ entity: event.key.indexOf('invoices') !== -1 ? 'invoices' : 'contracts' });
+                    if (event.key === 'residenthub_live_invoices' || event.key === 'residenthub_live_contracts' || event.key === 'residenthub_demo_invoices') {
+                        if (typeof window.refreshResidentWorkspace === 'function') window.refreshResidentWorkspace({ entity: event.key.indexOf('invoices') !== -1 ? 'invoices' : 'contracts' });
+                    }
                     syncResidentDashboardData();
                     return;
                 }
@@ -1777,7 +1837,8 @@
                     preferredTime: r.preferredTime || '',
                     scheduledAt: r.scheduledAt || '',
                     resolutionNote: r.resolutionNote || '',
-                    attachments: r.attachments || 0, messages: Array.isArray(r.messages) ? r.messages : [], rating: r.rating || 0
+                    attachments: r.attachments || 0, attachmentFiles: Array.isArray(r.attachmentFiles) ? r.attachmentFiles : [],
+                    messages: Array.isArray(r.messages) ? r.messages : [], rating: r.rating || 0
                 };
             });
         }
@@ -2474,6 +2535,8 @@
         let modalStep = 1;
         let selectedType = '';
         let activeHistory = 'active';
+        let activeRequestView = 'list';
+        let selectedRequestConversationId = null;
         let newRequestDraft = null;
 
         function openModal() { modal.classList.add('open'); document.body.style.overflow = 'hidden'; }
@@ -2492,18 +2555,80 @@
             }
             setModalHeader('Thông tin yêu cầu', selectedType);
             const lockedLocation = (REAL_BUILDING ? REAL_BUILDING.shortName || REAL_BUILDING.name : '') + (REAL_APARTMENT ? (REAL_BUILDING ? ' / ' : '') + 'Phòng ' + REAL_APARTMENT.name : '') || 'Chưa gán căn hộ';
-            modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span class="active"></span><span></span></div><div class="form-grid"><div class="form-field full"><label>Tiêu đề</label><input id="newTitle" placeholder="Ví dụ: Máy lạnh phòng khách không hoạt động"></div><div class="form-field"><label>Vị trí</label><input id="newLocation" value="' + escapeHtml(lockedLocation) + '" readonly style="background:#f1f5f9;color:#475569;cursor:not-allowed;"></div><div class="form-field"><label>Mức độ</label><select id="newPriority"><option value="normal">🟢 Bình thường</option><option value="needed">🟡 Cần xử lý</option><option value="urgent">🔴 Khẩn cấp</option></select></div><div class="form-field full"><label>Mô tả vấn đề</label><textarea id="newDescription" rows="4" placeholder="Vui lòng mô tả chi tiết vấn đề bạn đang gặp phải..."></textarea></div><div class="form-field full"><label>Đính kèm</label><div class="file-drop"><i class="fas fa-paperclip"></i> Chụp ảnh, tải ảnh, video hoặc file <input id="newFiles" type="file" multiple style="display:block; margin:.7rem auto 0; max-width:100%;"></div></div><div class="form-field full"><label>Thời gian thuận tiện để nhân viên đến</label><div class="time-options"><label class="choice-pill"><input type="radio" name="visitTime" value="Bất kỳ thời gian nào" checked> Bất kỳ thời gian nào</label><label class="choice-pill"><input type="radio" name="visitTime" value="Buổi sáng"> Buổi sáng <small>08:00 – 12:00</small></label><label class="choice-pill"><input type="radio" name="visitTime" value="Buổi chiều"> Buổi chiều <small>13:00 – 17:00</small></label><label class="choice-pill"><input type="radio" name="visitTime" value="Thời gian cụ thể"> Chọn thời gian cụ thể</label></div></div></div><div class="modal-actions"><button class="btn-secondary" id="backToType"><i class="fas fa-arrow-left"></i> Quay lại</button><button class="btn-primary" id="reviewRequest">Kiểm tra yêu cầu <i class="fas fa-arrow-right"></i></button></div>';
+            modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span class="active"></span><span></span></div><div class="form-grid"><div class="form-field full"><label>Tiêu đề</label><input id="newTitle" placeholder="Ví dụ: Máy lạnh phòng khách không hoạt động"></div><div class="form-field"><label>Vị trí</label><input id="newLocation" value="' + escapeHtml(lockedLocation) + '" readonly style="background:#f1f5f9;color:#475569;cursor:not-allowed;"></div><div class="form-field"><label>Mức độ</label><select id="newPriority"><option value="normal">🟢 Bình thường</option><option value="needed">🟡 Cần xử lý</option><option value="urgent">🔴 Khẩn cấp</option></select></div><div class="form-field full"><label>Mô tả vấn đề</label><textarea id="newDescription" rows="4" placeholder="Vui lòng mô tả chi tiết vấn đề bạn đang gặp phải..."></textarea></div><div class="form-field full"><label>Hình ảnh</label><div class="file-drop"><i class="fas fa-paperclip"></i> Chụp hoặc chọn tối đa 3 ảnh (ảnh được nén trước khi lưu) <input id="newFiles" type="file" accept="image/*" multiple style="display:block; margin:.7rem auto 0; max-width:100%;"></div></div><div class="form-field full"><label>Thời gian thuận tiện để nhân viên đến</label><div class="time-options"><label class="choice-pill"><input type="radio" name="visitTime" value="Bất kỳ thời gian nào" checked> Bất kỳ thời gian nào</label><label class="choice-pill"><input type="radio" name="visitTime" value="Buổi sáng"> Buổi sáng <small>08:00 – 12:00</small></label><label class="choice-pill"><input type="radio" name="visitTime" value="Buổi chiều"> Buổi chiều <small>13:00 – 17:00</small></label><label class="choice-pill"><input type="radio" name="visitTime" value="Thời gian cụ thể"> Chọn thời gian cụ thể</label></div></div></div><div class="modal-actions"><button class="btn-secondary" id="backToType"><i class="fas fa-arrow-left"></i> Quay lại</button><button class="btn-primary" id="reviewRequest">Kiểm tra yêu cầu <i class="fas fa-arrow-right"></i></button></div>';
             document.getElementById('backToType').addEventListener('click', () => { modalStep = 1; renderCreateStep(); });
             document.getElementById('reviewRequest').addEventListener('click', reviewNewRequest);
         }
 
-        function reviewNewRequest() {
+        function compressRequestImage(file) {
+            return new Promise((resolve, reject) => {
+                if (!file.type || !file.type.startsWith('image/')) {
+                    reject(new Error('Chỉ hỗ trợ tệp hình ảnh.'));
+                    return;
+                }
+                const reader = new FileReader();
+                reader.onerror = () => reject(new Error('Không đọc được ảnh ' + file.name + '.'));
+                reader.onload = () => {
+                    const image = new Image();
+                    image.onerror = () => reject(new Error('Không thể mở ảnh ' + file.name + '.'));
+                    image.onload = () => {
+                        try {
+                            if (!image.width || !image.height || image.width * image.height > 50 * 1024 * 1024) {
+                                reject(new Error('Ảnh ' + file.name + ' có kích thước pixel vượt quá giới hạn xử lý.'));
+                                return;
+                            }
+                            const maxDimension = 1280;
+                            const scale = Math.min(1, maxDimension / Math.max(image.width, image.height));
+                            const canvas = document.createElement('canvas');
+                            canvas.width = Math.max(1, Math.round(image.width * scale));
+                            canvas.height = Math.max(1, Math.round(image.height * scale));
+                            const context = canvas.getContext('2d');
+                            if (!context) {
+                                reject(new Error('Trình duyệt không thể xử lý ảnh ' + file.name + '.'));
+                                return;
+                            }
+                            context.fillStyle = '#fff';
+                            context.fillRect(0, 0, canvas.width, canvas.height);
+                            context.drawImage(image, 0, 0, canvas.width, canvas.height);
+                            const dataUrl = canvas.toDataURL('image/jpeg', 0.78);
+                            resolve({ name: file.name, type: 'image/jpeg', dataUrl: dataUrl });
+                        } catch (error) {
+                            reject(new Error('Không thể xử lý ảnh ' + file.name + '.'));
+                        }
+                    };
+                    image.src = reader.result;
+                };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        async function reviewNewRequest() {
             const title = document.getElementById('newTitle').value.trim();
             const description = document.getElementById('newDescription').value.trim();
             if (!title || !description) { alert('Vui lòng nhập tiêu đề và mô tả vấn đề.'); return; }
-            newRequestDraft = { title, location: document.getElementById('newLocation').value, priority: document.getElementById('newPriority').value, description, time: document.querySelector('input[name="visitTime"]:checked').value, files: document.getElementById('newFiles').files.length };
+            const selectedFiles = Array.from(document.getElementById('newFiles').files || []);
+            const reviewButton = document.getElementById('reviewRequest');
+            if (selectedFiles.length > 3) { alert('Bạn chỉ có thể đính kèm tối đa 3 ảnh.'); return; }
+            if (selectedFiles.some(file => file.size > 12 * 1024 * 1024)) { alert('Mỗi ảnh tải lên không được vượt quá 12 MB.'); return; }
+            const rawTotal = selectedFiles.reduce((total, file) => total + file.size, 0);
+            if (rawTotal > 20 * 1024 * 1024) { alert('Tổng dung lượng ảnh tải lên không được vượt quá 20 MB.'); return; }
+            reviewButton.disabled = true;
+            let attachmentFiles;
+            try {
+                attachmentFiles = await Promise.all(selectedFiles.map(compressRequestImage));
+                if (attachmentFiles.reduce((total, file) => total + Math.ceil(file.dataUrl.length * 0.75), 0) > 1024 * 1024) {
+                    alert('Tổng dung lượng ảnh sau khi nén vượt quá 1 MB. Vui lòng chọn ảnh nhỏ hơn.');
+                    return;
+                }
+            } catch (error) {
+                alert(error.message || 'Không thể xử lý ảnh đính kèm.');
+                return;
+            } finally {
+                reviewButton.disabled = false;
+            }
+            newRequestDraft = { title, location: document.getElementById('newLocation').value, priority: document.getElementById('newPriority').value, description, time: document.querySelector('input[name="visitTime"]:checked').value, files: attachmentFiles };
             setModalHeader('Kiểm tra yêu cầu', 'Xem lại thông tin trước khi gửi');
-            modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span class="active"></span><span class="active"></span></div><div class="support-card"><div><strong>Loại:</strong> ' + selectedType + '</div><div><strong>Vấn đề:</strong> ' + newRequestDraft.title + '</div><div><strong>Căn hộ:</strong> ' + newRequestDraft.location + '</div><div><strong>Mức độ:</strong> ' + priorityLabels[newRequestDraft.priority] + '</div><div><strong>Thời gian:</strong> ' + newRequestDraft.time + '</div><div><strong>Tệp đính kèm:</strong> ' + newRequestDraft.files + ' tệp</div><p style="margin-bottom:0; color:#475569;">' + newRequestDraft.description + '</p></div><div class="modal-actions"><button class="btn-secondary" id="editRequest"><i class="fas fa-arrow-left"></i> Chỉnh sửa</button><button class="btn-primary" id="sendRequest">Gửi yêu cầu <i class="fas fa-paper-plane"></i></button></div>';
+            modalBody.innerHTML = '<div class="step-indicator"><span class="active"></span><span class="active"></span><span class="active"></span></div><div class="support-card"><div><strong>Loại:</strong> ' + escapeHtml(selectedType) + '</div><div><strong>Vấn đề:</strong> ' + escapeHtml(newRequestDraft.title) + '</div><div><strong>Căn hộ:</strong> ' + escapeHtml(newRequestDraft.location) + '</div><div><strong>Mức độ:</strong> ' + escapeHtml(priorityLabels[newRequestDraft.priority]) + '</div><div><strong>Thời gian:</strong> ' + escapeHtml(newRequestDraft.time) + '</div><div><strong>Ảnh đính kèm:</strong> ' + newRequestDraft.files.length + ' ảnh</div><p style="margin-bottom:0; color:#475569;">' + escapeHtml(newRequestDraft.description) + '</p></div><div class="modal-actions"><button class="btn-secondary" id="editRequest"><i class="fas fa-arrow-left"></i> Chỉnh sửa</button><button class="btn-primary" id="sendRequest">Gửi yêu cầu <i class="fas fa-paper-plane"></i></button></div>';
             document.getElementById('editRequest').addEventListener('click', () => { modalStep = 2; renderCreateStep(); });
             document.getElementById('sendRequest').addEventListener('click', submitRequest);
         }
@@ -2513,29 +2638,112 @@
                 alert('Vui lòng đăng nhập để gửi yêu cầu.');
                 return;
             }
-            const result = RHD.create('supportRequests', {
-                code: RHD.nextSupportCode(),
-                buildingId: REAL_APARTMENT ? REAL_APARTMENT.buildingId : '',
-                apartmentId: REAL_APARTMENT ? REAL_APARTMENT.id : '',
-                customerId: REAL_CUSTOMER ? REAL_CUSTOMER.id : '',
-                residentEmail: RH_SESSION ? RH_SESSION.email : '',
-                residentName: RH_SESSION ? RH_SESSION.name : '',
-                category: selectedType, title: newRequestDraft.title, description: newRequestDraft.description,
-                location: newRequestDraft.location, priority: newRequestDraft.priority,
-                preferredTime: newRequestDraft.time,
-                status: 'new', assignee: '', attachments: newRequestDraft.files, messages: []
-            });
-            requestData = loadResidentRequests();
+            let result;
+            try {
+                result = RHD.create('supportRequests', {
+                    code: RHD.nextSupportCode(),
+                    buildingId: REAL_APARTMENT ? REAL_APARTMENT.buildingId : '',
+                    apartmentId: REAL_APARTMENT ? REAL_APARTMENT.id : '',
+                    customerId: REAL_CUSTOMER ? REAL_CUSTOMER.id : '',
+                    residentEmail: RH_SESSION ? RH_SESSION.email : '',
+                    residentName: RH_SESSION ? RH_SESSION.name : '',
+                    category: selectedType, title: newRequestDraft.title, description: newRequestDraft.description,
+                    location: newRequestDraft.location, priority: newRequestDraft.priority,
+                    preferredTime: newRequestDraft.time,
+                    status: 'new', assignee: '', attachments: newRequestDraft.files.length,
+                    attachmentFiles: newRequestDraft.files, messages: []
+                });
+            } catch (error) {
+                console.error('Không thể lưu yêu cầu hỗ trợ của cư dân.', error);
+                alert('Không thể lưu yêu cầu lúc này. Có thể bộ nhớ trình duyệt đã đầy; vui lòng thử ảnh nhỏ hơn hoặc xóa bớt dữ liệu.');
+                return;
+            }
+            if (!result || !result.ok) {
+                alert(result && result.error || 'Không thể gửi yêu cầu. Vui lòng thử lại.');
+                return;
+            }
+            refreshRequestData();
             renderRequests();
             if (typeof renderOverview === 'function') renderOverview();
             renderNotifications();
-            const nextId = result.ok ? result.item.code : '—';
             setModalHeader('Yêu cầu đã được gửi thành công!', 'Ban quản lý sẽ phản hồi ngay khi tiếp nhận');
-            modalBody.innerHTML = '<div class="success-state"><i class="fas fa-circle-check"></i><h3 style="margin:.3rem 0;">Yêu cầu của bạn đã được gửi</h3><p style="color:#64748b;">Mã yêu cầu</p><strong style="font-size:1.5rem; color:#0d65d5;">' + (result.item && result.item.id ? result.item.id : 'REQ') + '</strong><div class="modal-actions"><span></span><button class="btn-primary" data-close-modal>Đóng</button></div></div>';
+            modalBody.innerHTML = '<div class="success-state"><i class="fas fa-circle-check"></i><h3 style="margin:.3rem 0;">Yêu cầu của bạn đã được gửi</h3><p style="color:#64748b;">Mã yêu cầu</p><strong style="font-size:1.5rem; color:#0d65d5;">' + escapeHtml(result.item.code || '—') + '</strong><div class="modal-actions"><span></span><button class="btn-primary" data-close-modal>Đóng</button></div></div>';
             modalBody.querySelector('[data-close-modal]').addEventListener('click', closeModal);
         }
 
         function renderStats() { const counts = { new: requestData.filter(r => r.status === 'new').length, accepted: requestData.filter(r => r.status === 'accepted').length, in_progress: requestData.filter(r => r.status === 'in_progress').length, resolved: requestData.filter(r => r.status === 'resolved').length, all: requestData.length }; document.getElementById('requestStats').innerHTML = [['new', 'Chưa kiểm tra'], ['accepted', 'Đã tiếp nhận'], ['in_progress', 'Đang xử lý'], ['resolved', 'Đã xử lý'], ['all', 'Tổng yêu cầu']].map(item => '<div class="request-stat"><div style="font-size:.75rem; text-transform:uppercase; letter-spacing:.08em; color:#64748b; margin-bottom:.5rem;">' + item[1] + '</div><div style="font-size:2rem; font-weight:800; color:#0f172a;">' + counts[item[0]] + '</div></div>').join(''); }
+
+        function renderResidentRequestInbox() {
+            const inbox = document.getElementById('requestInboxView');
+            if (!inbox) return;
+            const requests = requestData.slice().sort((a, b) => Number(b.createdAt) - Number(a.createdAt));
+            const count = document.getElementById('requestInboxCount');
+            if (count) count.textContent = requests.filter(request => request.messages.length > 0).length;
+            if (!requests.some(request => request._rhId === selectedRequestConversationId)) {
+                selectedRequestConversationId = requests.length ? requests[0]._rhId : null;
+            }
+            const selected = requests.find(request => request._rhId === selectedRequestConversationId);
+            const statusClass = status => status === 'closed' ? 'badge-paid' : status === 'resolved' ? 'badge-pending' : 'badge-info';
+            const list = requests.map(request => {
+                const lastMessage = request.messages[request.messages.length - 1];
+                const preview = lastMessage ? (lastMessage.from === 'Cư dân' ? 'Bạn: ' : '') + lastMessage.text : 'Chưa có tin nhắn';
+                return '<button type="button" class="request-inbox-item' + (selected && selected._rhId === request._rhId ? ' active' : '') + '" data-request-conversation="' + escapeHtml(request._rhId) + '">' +
+                    '<span class="request-inbox-avatar"><i class="fas fa-user"></i></span><span class="request-inbox-copy">' +
+                    '<span class="request-inbox-code">' + escapeHtml(request.id || 'Mã chưa có') + '<span class="badge ' + statusClass(request.status) + '">' + escapeHtml(statusLabels[request.status] || 'Chưa kiểm tra') + '</span></span>' +
+                    '<span class="request-inbox-request-title">' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</span>' +
+                    '<span class="request-inbox-preview">' + escapeHtml(preview) + '</span></span></button>';
+            }).join('');
+            const thread = selected
+                ? selected.messages.map(message => '<div class="request-inbox-message' + (message.from === 'Cư dân' ? ' resident' : '') + '"><small>' + escapeHtml(message.from || 'Ban quản lý') + (message.time ? ' · ' + escapeHtml(message.time) : '') + '</small>' + escapeHtml(message.text || '') + '</div>').join('')
+                : '';
+            inbox.innerHTML = '<div class="request-inbox"><aside class="request-inbox-list"><div class="request-inbox-list-head"><strong>Trao đổi theo yêu cầu</strong><small>' + requests.length + ' yêu cầu · mỗi cuộc trò chuyện có mã riêng</small></div><div class="request-inbox-items">' +
+                (list || '<div class="request-inbox-empty"><i class="fas fa-inbox"></i><strong>Chưa có yêu cầu hỗ trợ</strong><span>Yêu cầu mới sẽ xuất hiện tại đây.</span></div>') +
+                '</div></aside><section class="request-inbox-main">' +
+                (selected
+                    ? '<header class="request-inbox-head"><div class="request-inbox-head-line"><div><h4>' + escapeHtml(selected.title || 'Yêu cầu hỗ trợ') + '</h4><p>' + escapeHtml(selected.type || 'Hỗ trợ cư dân') + ' · ' + escapeHtml(selected.location || 'Chưa có vị trí') + '</p></div><span class="request-inbox-code-badge"><i class="fas fa-hashtag"></i> ' + escapeHtml(selected.id || 'Mã chưa có') + '</span></div></header>' +
+                        '<div class="request-inbox-messages" id="requestInboxMessages">' + (thread || '<div class="request-inbox-empty"><i class="fas fa-comments"></i><strong>Chưa có tin nhắn</strong><span>Bạn có thể bắt đầu trao đổi về yêu cầu này bên dưới.</span></div>') + '</div>' +
+                        '<div class="request-inbox-compose"><textarea id="requestInboxReply" rows="2" placeholder="Nhắn tin về yêu cầu ' + escapeHtml(selected.id || '') + '..."></textarea><button type="button" class="btn-primary" data-request-inbox-send="' + escapeHtml(selected._rhId) + '" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div>'
+                    : '<div class="request-inbox-empty"><i class="fas fa-comments"></i><strong>Hộp thư yêu cầu hỗ trợ</strong><span>Tạo yêu cầu mới để bắt đầu trao đổi với Ban quản lý.</span></div>') +
+                '</section></div>';
+            const messages = document.getElementById('requestInboxMessages');
+            if (messages) messages.scrollTop = messages.scrollHeight;
+            const reply = document.getElementById('requestInboxReply');
+            if (reply) reply.addEventListener('keydown', event => {
+                if (event.key === 'Enter' && !event.shiftKey) {
+                    event.preventDefault();
+                    sendResidentRequestMessage(selectedRequestConversationId, reply.value);
+                }
+            });
+        }
+
+        function sendResidentRequestMessage(requestId, text) {
+            const messageText = String(text || '').trim();
+            if (!requestId || !messageText) return;
+            if (!requestData.some(request => request._rhId === requestId)) {
+                alert('Không tìm thấy yêu cầu này trong tài khoản của bạn.');
+                return;
+            }
+            const current = RHD.get('supportRequests', requestId);
+            if (!current) {
+                alert('Không tìm thấy yêu cầu này. Vui lòng tải lại trang.');
+                return;
+            }
+            const now = Date.now();
+            const result = RHD.update('supportRequests', requestId, {
+                messages: (Array.isArray(current.messages) ? current.messages : []).concat([{
+                    from: 'Cư dân',
+                    text: messageText,
+                    time: new Date(now).toLocaleString('vi-VN')
+                }]),
+                updatedAt: now
+            });
+            if (!result || !result.ok) {
+                alert(result && result.error || 'Không thể gửi tin nhắn. Vui lòng thử lại.');
+                return;
+            }
+            refreshRequestData();
+            renderRequests();
+        }
 
         function openRequestDetail(id) {
             refreshRequestData();
@@ -2558,8 +2766,13 @@
             const scheduled = request.scheduledAt ? new Date(request.scheduledAt).toLocaleString('vi-VN') : 'Chưa hẹn lịch';
             const visitTime = request.preferredTime ? '<div class="meta-box"><small>Thời gian thuận tiện</small><strong>' + escapeHtml(request.preferredTime) + '</strong></div>' : '';
             const resolutionSummary = request.resolutionNote && request.status !== 'resolved' ? '<div class="support-card" style="margin-top:1rem;"><strong>Kết quả xử lý</strong><p style="margin:.4rem 0;color:#475569;">' + escapeHtml(request.resolutionNote) + '</p></div>' : '';
+            const attachmentFiles = request.attachmentFiles.filter(file => file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || ''));
+            const attachmentGallery = attachmentFiles.length
+                ? '<div class="request-attachment-gallery"><strong>Ảnh đính kèm</strong><div>' + attachmentFiles.map((file, index) => '<a href="' + escapeHtml(file.dataUrl) + '" target="_blank" rel="noopener" aria-label="Mở ảnh đính kèm ' + (index + 1) + '"><img src="' + escapeHtml(file.dataUrl) + '" alt="Ảnh đính kèm ' + (index + 1) + '"><span>' + escapeHtml(file.name || 'Ảnh ' + (index + 1)) + '</span></a>').join('') + '</div></div>'
+                : (request.attachments ? '<p class="request-attachment-legacy">Yêu cầu này có ' + request.attachments + ' tệp đính kèm cũ; nội dung tệp không được lưu trong dữ liệu trước đây.</p>' : '');
             modalBody.innerHTML = '<div class="detail-grid"><div><div class="detail-meta"><div class="meta-box"><small>Loại yêu cầu</small><strong>' + escapeHtml(request.type) + '</strong></div><div class="meta-box"><small>Vị trí</small><strong>' + escapeHtml(request.location) + '</strong></div><div class="meta-box"><small>Mức độ</small><strong>' + escapeHtml(priorityLabels[request.priority] || 'Bình thường') + '</strong></div><div class="meta-box"><small>Người xử lý</small><strong>' + escapeHtml(request.assignee) + '</strong></div>' + visitTime + '<div class="meta-box"><small>Lịch hẹn xử lý / kiểm tra</small><strong>' + escapeHtml(scheduled) + '</strong></div></div><p style="color:#475569; margin:1rem 0;">' + escapeHtml(request.description) + '</p>' + resolutionSummary + '<h4 style="margin-bottom:.8rem;">Tiến trình xử lý</h4><div class="timeline">' + steps.map((step, index) => '<div class="timeline-item ' + (index < request.step ? 'done' : index === request.step ? 'current' : '') + '"><strong>' + step[0] + '</strong><br><small>' + escapeHtml(step[1]) + '</small></div>').join('') + '</div></div><div><div style="display:flex; justify-content:space-between; align-items:center;"><h4 style="margin:0;">💬 Trao đổi</h4><span class="badge badge-info">Thông báo bật</span></div><div class="chat-box">' + messages + '</div><div class="chat-compose" style="display:flex; gap:.5rem; margin-top:.8rem;"><input id="chatMessage" placeholder="Nhắn tin cho ban quản lý..."><button class="btn-primary" id="sendChat" title="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div>' + resolution + review + '</div></div>';
             openModal();
+            if (attachmentGallery) modalBody.insertAdjacentHTML('afterbegin', attachmentGallery);
             modalBody.insertAdjacentHTML('afterbegin', '<div class="detail-meta" style="margin-bottom:1.2rem;"><div class="meta-box"><small>Tệp đính kèm</small><strong><i class="fas fa-paperclip" style="color:#1769e8;"></i> ' + request.attachments + ' tệp</strong></div><div class="meta-box"><small>Chi phí dự kiến</small><strong>' + (request.cost || 'Chưa phát sinh') + '</strong></div></div>');
             document.getElementById('sendChat').addEventListener('click', () => {
                 const input = document.getElementById('chatMessage');
@@ -2602,6 +2815,7 @@
         let requestPage = 1;
         function renderRequests() {
             renderStats();
+            renderResidentRequestInbox();
             const query = document.getElementById('requestSearch').value.toLowerCase();
             const status = document.getElementById('requestStatus').value;
             const type = document.getElementById('requestType').value;
@@ -2628,6 +2842,30 @@
         document.querySelectorAll('.js-new-request').forEach(button => button.addEventListener('click', () => { activeRequestDetailId = null; modalStep = 1; selectedType = ''; renderCreateStep(); }));
         document.querySelector('[data-close-modal]').addEventListener('click', closeModal);
         modal.addEventListener('click', event => { if (event.target === modal) closeModal(); });
+        document.querySelectorAll('[data-request-view]').forEach(tab => tab.addEventListener('click', () => {
+            activeRequestView = tab.dataset.requestView;
+            document.querySelectorAll('[data-request-view]').forEach(item => {
+                const active = item === tab;
+                item.classList.toggle('active', active);
+                item.setAttribute('aria-selected', active ? 'true' : 'false');
+            });
+            document.querySelector('.request-dashboard').style.display = activeRequestView === 'list' ? '' : 'none';
+            document.getElementById('requestInboxView').style.display = activeRequestView === 'messages' ? '' : 'none';
+            if (activeRequestView === 'messages') renderResidentRequestInbox();
+        }));
+        document.getElementById('requestInboxView').addEventListener('click', event => {
+            const conversation = event.target.closest('[data-request-conversation]');
+            if (conversation) {
+                selectedRequestConversationId = conversation.dataset.requestConversation;
+                renderResidentRequestInbox();
+                return;
+            }
+            const sendButton = event.target.closest('[data-request-inbox-send]');
+            if (sendButton) {
+                const reply = document.getElementById('requestInboxReply');
+                sendResidentRequestMessage(sendButton.dataset.requestInboxSend, reply && reply.value);
+            }
+        });
         ['requestSearch', 'requestStatus', 'requestType', 'requestPriority', 'requestPeriod'].forEach(id => document.getElementById(id).addEventListener('input', () => { requestPage = 1; renderRequests(); }));
         document.querySelectorAll('[data-history]').forEach(tab => tab.addEventListener('click', () => { activeHistory = tab.dataset.history; document.querySelectorAll('[data-history]').forEach(item => item.classList.toggle('active', item === tab)); renderRequests(); }));
         renderNotifications();
