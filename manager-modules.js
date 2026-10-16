@@ -40,6 +40,16 @@
         return d;
     }
 
+    function customerCode(customer) {
+        var nameParts = String(customer.fullName || '').trim().split(/\s+/).filter(Boolean);
+        var shortNameParts = nameParts.slice(-2);
+        var initials = shortNameParts.map(function (part) {
+            return part.charAt(0).toLocaleUpperCase('vi-VN');
+        }).join('');
+        var idSuffix = String(customer.idNumber || '').replace(/\D/g, '').slice(-3);
+        return 'KH' + initials + idSuffix;
+    }
+
     function badge(label, color, bg) {
         return '<span style="background:' + bg + ';color:' + color + ';font-size:.72rem;font-weight:700;padding:.25rem .6rem;border-radius:999px;white-space:nowrap;">' + escapeHtml(label) + '</span>';
     }
@@ -1436,38 +1446,556 @@
     function renderCustomersTab() {
         var tab = byId('customers-tab');
         if (!tab) return;
+        var state = RHUI.customerBrowser || (RHUI.customerBrowser = {
+            status: 'current',
+            search: '',
+            area: '',
+            buildingId: '',
+            customerName: '',
+            customerIdNumber: '',
+            customerPhone: '',
+            apartmentId: '',
+            floor: '',
+            searchOpen: false,
+            filtersOpen: false
+        });
         var customers = scoped('customers');
-        var rows = customers.map(function (c) {
-            var residenceBuilding = RHD.get('buildings', c.residenceBuildingId);
-            var residenceApartment = RHD.get('apartments', c.residenceApartmentId);
+        var contracts = scoped('contracts');
+        var now = new Date();
+        var dateKey = function (date) {
+            return date.getFullYear() + '-' + ('0' + (date.getMonth() + 1)).slice(-2) + '-' + ('0' + date.getDate()).slice(-2);
+        };
+        var today = dateKey(now);
+        var soon = new Date();
+        soon.setDate(soon.getDate() + 30);
+        var recent = new Date();
+        recent.setDate(recent.getDate() - 30);
+        var soonDate = dateKey(soon);
+        var recentDate = dateKey(recent);
+        var buildings = scoped('buildings');
+        var apartments = scoped('apartments');
+        var areas = buildings.map(function (building) { return building.province || building.ward || ''; })
+            .filter(function (area, index, all) { return area && all.indexOf(area) === index; });
+        var floorApartments = apartments.filter(function (apartment) {
+            if (state.buildingId) return apartment.buildingId === state.buildingId;
+            if (state.area) {
+                var apartmentBuilding = RHD.get('buildings', apartment.buildingId);
+                return apartmentBuilding && (apartmentBuilding.province || apartmentBuilding.ward || '') === state.area;
+            }
+            return true;
+        });
+        var floors = floorApartments.map(function (apartment) { return apartment.floor || ''; })
+            .filter(function (floor, index, all) { return floor && all.indexOf(floor) === index; });
+        if (state.floor && floors.indexOf(state.floor) === -1) state.floor = '';
+        if (state.area && areas.indexOf(state.area) === -1) state.area = '';
+        if (state.buildingId && !buildings.some(function (building) { return building.id === state.buildingId; })) state.buildingId = '';
+        if (state.apartmentId && !apartments.some(function (apartment) { return apartment.id === state.apartmentId; })) state.apartmentId = '';
+        var customersWithContracts = customers.map(function (customer) {
+            var customerContracts = contracts.filter(function (contract) { return contract.customerId === customer.id; })
+                .sort(function (a, b) { return (b.createdAt || 0) - (a.createdAt || 0); });
+            var currentContract = customerContracts.filter(function (contract) {
+                return contract.status !== 'ended' && contract.status !== 'terminated' && !(contract.endDate && contract.endDate < today);
+            })[0] || null;
+            var latestContract = currentContract || customerContracts[0] || null;
+            var profileApartment = customer.residenceApartmentId ? RHD.get('apartments', customer.residenceApartmentId) : null;
+            var profileBuilding = profileApartment
+                ? RHD.get('buildings', profileApartment.buildingId)
+                : (customer.residenceBuildingId ? RHD.get('buildings', customer.residenceBuildingId) : null);
+            var apartment = profileApartment || (customer.residenceApartmentId
+                ? null
+                : (latestContract ? RHD.get('apartments', latestContract.apartmentId) : null));
+            var building = profileBuilding || (customer.residenceBuildingId
+                ? null
+                : (latestContract ? RHD.get('buildings', latestContract.buildingId) : null));
+            var guest = customer.customerType === 'Khách vãng lai';
+            var category = guest ? 'guest' : (currentContract ? 'current' : (customerContracts.length ? 'moved' : 'unassigned'));
+            return {
+                customer: customer,
+                contracts: customerContracts,
+                currentContract: currentContract,
+                building: building,
+                apartment: apartment,
+                category: category
+            };
+        });
+        var activeCustomers = customersWithContracts.filter(function (entry) {
+            return entry.category === 'current' && (!state.buildingId || entry.building && entry.building.id === state.buildingId);
+        });
+        var recentCount = activeCustomers.filter(function (entry) {
+            var moveInDate = entry.customer.moveInDate || entry.currentContract.startDate || '';
+            return moveInDate >= recentDate && moveInDate <= today;
+        }).length;
+        var expiringSoon = contracts.filter(function (contract) {
+            return contract.status !== 'ended' && contract.status !== 'terminated' &&
+                contract.endDate && contract.endDate >= today && contract.endDate <= soonDate &&
+                (!state.buildingId || contract.buildingId === state.buildingId);
+        }).length;
+        var scopedCustomers = customersWithContracts.filter(function (entry) {
+            var area = entry.building && (entry.building.province || entry.building.ward) || '';
+            return (!state.area || area === state.area) &&
+                (!state.buildingId || entry.building && entry.building.id === state.buildingId) &&
+                (!state.apartmentId || entry.apartment && entry.apartment.id === state.apartmentId);
+        });
+        var statusCounts = {
+            all: scopedCustomers.length,
+            current: scopedCustomers.filter(function (entry) { return entry.category === 'current'; }).length,
+            moved: scopedCustomers.filter(function (entry) { return entry.category === 'moved'; }).length,
+            guest: scopedCustomers.filter(function (entry) { return entry.category === 'guest'; }).length,
+            unassigned: scopedCustomers.filter(function (entry) { return entry.category === 'unassigned'; }).length
+        };
+        var visibleCustomers = customersWithContracts.filter(function (entry) {
+            if (state.status !== 'all' && entry.category !== state.status) return false;
+            var area = entry.building && (entry.building.province || entry.building.ward) || '';
+            if (state.area && area !== state.area) return false;
+            if (state.buildingId && (!entry.building || entry.building.id !== state.buildingId)) return false;
+            if (state.customerName && String(entry.customer.fullName || '').toLocaleLowerCase().indexOf(state.customerName.toLocaleLowerCase()) === -1) return false;
+            if (state.customerIdNumber && String(entry.customer.idNumber || '').toLocaleLowerCase().indexOf(state.customerIdNumber.toLocaleLowerCase()) === -1) return false;
+            if (state.customerPhone && String(entry.customer.phone || '').toLocaleLowerCase().indexOf(state.customerPhone.toLocaleLowerCase()) === -1) return false;
+            if (state.apartmentId && (!entry.apartment || entry.apartment.id !== state.apartmentId)) return false;
+            if (state.floor && (!entry.apartment || entry.apartment.floor !== state.floor)) return false;
+            if (state.search) {
+                var searchText = [
+                    entry.customer.fullName, entry.customer.phone, entry.customer.idNumber, entry.customer.passportNumber,
+                    entry.building && (entry.building.name || entry.building.shortName),
+                    entry.apartment && entry.apartment.name
+                ].join(' ').toLocaleLowerCase();
+                if (searchText.indexOf(state.search.toLocaleLowerCase()) === -1) return false;
+            }
+            return true;
+        });
+        var residentUsers = global.RH && typeof global.RH.getUsers === 'function'
+            ? global.RH.getUsers().filter(function (user) { return user.role === 'resident' && user.residentId; })
+            : [];
+        var detailCustomers = visibleCustomers.map(function (entry) { return entry.customer; });
+        var foreignCount = detailCustomers.filter(function (customer) {
+            return customer.isForeigner || customer.customerType === 'Khách nước ngoài';
+        }).length;
+        var companyCount = detailCustomers.filter(function (customer) {
+            return customer.customerType === 'Công ty' || customer.customerType === 'Tổ chức';
+        }).length;
+        var individualCount = detailCustomers.filter(function (customer) {
+            return customer.customerType === 'Cá nhân';
+        }).length;
+        var genderCounts = {
+            male: detailCustomers.filter(function (customer) { return customer.gender === 'Nam'; }).length,
+            female: detailCustomers.filter(function (customer) { return customer.gender === 'Nữ'; }).length,
+            other: detailCustomers.filter(function (customer) { return customer.gender !== 'Nam' && customer.gender !== 'Nữ'; }).length
+        };
+        var linkedCount = detailCustomers.filter(function (customer) {
+            return residentUsers.some(function (user) { return user.residentId === customer.id; });
+        }).length;
+        var residenceCounts = {
+            current: visibleCustomers.filter(function (entry) { return entry.category === 'current'; }).length,
+            moved: visibleCustomers.filter(function (entry) { return entry.category === 'moved'; }).length,
+            noContract: visibleCustomers.filter(function (entry) { return entry.category === 'unassigned'; }).length,
+            guest: visibleCustomers.filter(function (entry) { return entry.category === 'guest'; }).length
+        };
+        var customerRows = visibleCustomers.map(function (entry, index) {
+            var c = entry.customer;
+            var rentalDate = entry.currentContract ? entry.currentContract.startDate : c.moveInDate;
+            var nameParts = String(c.fullName || 'KH').trim().split(/\s+/).filter(Boolean);
+            var initials = nameParts.length > 1
+                ? nameParts[0].charAt(0) + nameParts[nameParts.length - 1].charAt(0)
+                : (nameParts[0] || 'KH').slice(0, 2);
+            var idLabel = c.isForeigner || c.customerType === 'Khách nước ngoài' ? c.passportNumber : c.idNumber;
+            var customerStatus = entry.category === 'current' || entry.category === 'moved'
+                ? '<select class="rh-customer-status-select ' + (entry.category === 'current' ? 'current' : 'moved') + '" data-customer-status="' + escapeHtml(c.id) + '" aria-label="Trạng thái của ' + escapeHtml(c.fullName || 'khách hàng') + '">' +
+                    '<option value="current"' + (entry.category === 'current' ? ' selected' : '') + '>Đang ở</option>' +
+                    '<option value="moved"' + (entry.category === 'moved' ? ' selected' : '') + '>Đã chuyển đi</option>' +
+                    '</select>'
+                : '<span class="rh-customer-status-label ' + (entry.category === 'guest' ? 'guest' : 'unassigned') + '">' +
+                    (entry.category === 'guest' ? 'Khách vãng lai' : 'Chưa có hợp đồng') + '</span>';
             return '<tr>' +
-                '<td><strong>' + escapeHtml(c.fullName) + '</strong>' + (c.isForeigner ? ' ' + badge('Nước ngoài', '#0d65d5', '#eaf3ff') : '') + '</td>' +
-                '<td>' + escapeHtml(c.phone) + '</td>' +
-                '<td>' + escapeHtml(c.idNumber || '—') + '</td>' +
-                '<td>' + escapeHtml(residenceBuilding ? residenceBuilding.name : '—') + '</td>' +
-                '<td>' + escapeHtml(residenceApartment ? residenceApartment.name : '—') + '</td>' +
-                '<td>' + escapeHtml(c.customerType || '—') + '</td>' +
-                '<td>' + (c.vehicles ? c.vehicles.length : 0) + ' xe</td>' +
-                '<td style="text-align:right;white-space:nowrap;">' +
-                rowButton('contracts.create', "RHUI.openContractForCustomer('" + c.id + "')", 'fa-file-circle-plus', 'Tạo hợp đồng') +
-                rowButton('customers.update', "RHUI.openCustomerForm('" + c.id + "')", 'fa-pen', 'Sửa') +
-                rowButton('customers.delete', "RHUI.deleteCustomer('" + c.id + "')", 'fa-trash', 'Xoá', true) +
-                '</td></tr>';
+                '<td class="rh-customer-code">' + escapeHtml(customerCode(c) || '—') + '</td>' +
+                '<td class="rh-customer-row-actions">' +
+                rowButton('customers.update', "RHUI.openCustomerForm('" + c.id + "')", 'fa-pen-to-square', 'Sửa') +
+                rowButton('contracts.create', "RHUI.openContractForCustomer('" + c.id + "')", 'fa-file-lines', 'Tạo hợp đồng') +
+                rowButton('customers.delete', "RHUI.deleteCustomer('" + c.id + "')", 'fa-trash', 'Xóa', true) +
+                '</td>' +
+                '<td><div class="rh-customer-table-person"><span class="rh-customer-table-avatar rh-customer-table-avatar-' + (index % 3) + '">' + escapeHtml(initials.toUpperCase()) + '</span><span><strong>' + escapeHtml(c.fullName || 'Chưa có tên') + '</strong><small>' + escapeHtml(c.phone || 'Chưa có số điện thoại') + '</small></span></div></td>' +
+                '<td><span class="rh-customer-address-label">Tòa nhà: ' + escapeHtml(entry.building ? entry.building.name || entry.building.shortName : '—') + '</span><span class="rh-customer-address-label">Căn hộ: ' + escapeHtml(entry.apartment ? entry.apartment.name : '—') + '</span></td>' +
+                '<td>' + escapeHtml(idLabel || '—') + '</td>' +
+                '<td>' + escapeHtml(rentalDate ? fmtDate(rentalDate) : '—') + '</td>' +
+                '<td>' + customerStatus + '</td>' +
+                '</tr>';
         }).join('');
 
-        tab.innerHTML = renderDemoBanner('customers') +
-            '<div class="card">' +
-            '<div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;margin-bottom:1rem;">' +
-            '<div><h2 style="font-size:1.4rem;font-weight:700;color:#10213c;">Khách hàng</h2><p style="color:#94a3b8;font-size:.875rem;margin-top:.25rem;">Hồ sơ khách hàng dùng để lập hợp đồng — không cần nhập lại thông tin.</p></div>' +
-            addButton('Thêm khách hàng', "RHUI.openCustomerForm()", 'customers', 'customers.create') +
-            '</div>' +
-            (customers.length ? '<div class="table-container"><table><thead><tr><th>Họ tên</th><th>SĐT</th><th>CCCD</th><th>Tòa nhà</th><th>Phòng ở</th><th>Loại KH</th><th>Phương tiện</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>'
-                : emptyState('fa-users', 'Chưa có khách hàng nào.')) +
+        var areaOptions = '<option value="">Chọn khu vực</option>' + areas.map(function (area) {
+            return '<option value="' + escapeHtml(area) + '"' + (state.area === area ? ' selected' : '') + '>' + escapeHtml(area) + '</option>';
+        }).join('');
+        var buildingOptions = '<option value="">Chọn tòa nhà</option>' + buildings.filter(function (building) {
+            return !state.area || (building.province || building.ward || '') === state.area;
+        }).map(function (building) {
+            return '<option value="' + escapeHtml(building.id) + '"' + (state.buildingId === building.id ? ' selected' : '') + '>' +
+                escapeHtml(building.shortName || building.name) + '</option>';
+        }).join('');
+        var apartmentOptions = '<option value="">Chọn căn hộ</option>' + apartments.filter(function (apartment) {
+            if (state.buildingId) return apartment.buildingId === state.buildingId;
+            if (state.area) {
+                var apartmentBuilding = RHD.get('buildings', apartment.buildingId);
+                return apartmentBuilding && (apartmentBuilding.province || apartmentBuilding.ward || '') === state.area;
+            }
+            return true;
+        }).map(function (apartment) {
+            return '<option value="' + escapeHtml(apartment.id) + '"' + (state.apartmentId === apartment.id ? ' selected' : '') + '>' +
+                escapeHtml(apartment.name || apartment.code || 'Căn hộ') + '</option>';
+        }).join('');
+        var floorOptions = '<option value="">Chọn tầng</option>' + floors.map(function (floor) {
+            return '<option value="' + escapeHtml(floor) + '"' + (state.floor === floor ? ' selected' : '') + '>' + escapeHtml(floor) + '</option>';
+        }).join('');
+        var emptyMessage = state.status === 'current' ? 'Chưa có khách đang ở.' :
+            (state.status === 'moved' ? 'Chưa có khách đã chuyển đi.' :
+                (state.status === 'guest' ? 'Chưa có khách vãng lai.' :
+                    (state.status === 'unassigned' ? 'Chưa có hồ sơ khách hàng chưa gắn hợp đồng.' : 'Chưa có khách hàng nào phù hợp.')));
+        var customerDetailHtml = '<style>' +
+            '.rh-customer-detail{color:#18212f;font-family:"Be Vietnam Pro","Segoe UI",sans-serif}' +
+            '@keyframes rhCustomerSheetIn{from{transform:translateY(28px);opacity:.8}to{transform:translateY(0);opacity:1}}' +
+            '@media(max-width:640px){.rh-drawer-overlay:has(.rh-customer-detail){align-items:flex-end;justify-content:center}.rh-drawer-overlay:has(.rh-customer-detail) .rh-drawer{animation:rhCustomerSheetIn .25s ease;border-radius:24px 24px 0 0;height:min(86vh,760px);width:100%!important;box-shadow:0 -18px 45px rgba(11,36,71,.2)}.rh-drawer-overlay:has(.rh-customer-detail) .rh-drawer-header{border:0;padding:.8rem 1rem .45rem}.rh-drawer-overlay:has(.rh-customer-detail) .rh-drawer-body{padding:.7rem 1rem 1rem}}' +
+            '.rh-customer-detail-intro{color:#6b7788;margin:-.35rem 0 1rem}' +
+            '.rh-customer-detail-total{display:inline-flex;align-items:center;gap:.45rem;border-radius:999px;background:#eaf2ff;color:#1769dc;font-weight:800;padding:.45rem .8rem}' +
+            '.rh-customer-detail-section{border:1px solid #e1e5ea;border-radius:14px;margin-top:.8rem;padding:.9rem}' +
+            '.rh-customer-detail-section h4{font-size:1rem;margin:0 0 .7rem}' +
+            '.rh-customer-detail-list{border:1px solid #e5e7eb;border-radius:10px;background:#fff;padding:.35rem .8rem}' +
+            '.rh-customer-detail-row{align-items:center;border-bottom:1px solid #edf0f3;display:flex;gap:.6rem;justify-content:space-between;padding:.65rem 0}' +
+            '.rh-customer-detail-row:last-child{border-bottom:0}' +
+            '.rh-customer-detail-label{align-items:center;color:#687385;display:inline-flex;gap:.55rem;min-width:0}' +
+            '.rh-customer-detail-row strong{font-weight:800}' +
+            '.rh-customer-detail-dot{border-radius:50%;height:10px;width:10px;flex:0 0 10px}' +
+            '.rh-customer-detail-note{color:#7b8492;font-size:.82rem;line-height:1.5;margin:.65rem 0 0}' +
+            '</style>' +
+            '<div class="rh-customer-detail">' +
+            '<div class="rh-customer-detail-intro">Theo đúng phạm vi và bộ lọc khách hàng đang xem.</div>' +
+            '<div class="rh-customer-detail-total"><i class="fas fa-users"></i>' + detailCustomers.length + ' khách hàng</div>' +
+            '<section class="rh-customer-detail-section"><h4>Cơ cấu khách hàng</h4><div class="rh-customer-detail-list">' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#2874e8"></i>Khách cá nhân</span><strong>' + individualCount + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#737c8b"></i>Khách doanh nghiệp</span><strong>' + companyCount + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#e58a18"></i>Khách nước ngoài</span><strong>' + foreignCount + '</strong></div>' +
+            '</div><p class="rh-customer-detail-note">Khách nước ngoài được thống kê riêng, không tính vào nhóm cá nhân.</p></section>' +
+            '<section class="rh-customer-detail-section"><h4>Giới tính</h4><div class="rh-customer-detail-list">' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#2874e8"></i>Nam</span><strong>' + genderCounts.male + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#e60068"></i>Nữ</span><strong>' + genderCounts.female + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#9aa3af"></i>Khác / Chưa khai báo</span><strong>' + genderCounts.other + '</strong></div>' +
+            '</div></section>' +
+            '<section class="rh-customer-detail-section"><h4>Trạng thái cư trú</h4><div class="rh-customer-detail-list">' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#087f5b"></i>Đang ở theo hợp đồng</span><strong>' + residenceCounts.current + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#e58a18"></i>Đã chuyển đi</span><strong>' + residenceCounts.moved + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#344256"></i>Chưa có hợp đồng</span><strong>' + residenceCounts.noContract + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#737c8b"></i>Khách vãng lai</span><strong>' + residenceCounts.guest + '</strong></div>' +
+            '</div><p class="rh-customer-detail-note">Ứng dụng hiện chưa lưu trạng thái hồ sơ đăng ký tạm trú theo các mốc chờ xử lý/hạn/đã hủy.</p></section>' +
+            '<section class="rh-customer-detail-section"><h4>Tài khoản cư dân</h4><div class="rh-customer-detail-list">' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#087f5b"></i>Đã liên kết tài khoản</span><strong>' + linkedCount + '</strong></div>' +
+            '<div class="rh-customer-detail-row"><span class="rh-customer-detail-label"><i class="rh-customer-detail-dot" style="background:#344256"></i>Chưa liên kết</span><strong>' + (detailCustomers.length - linkedCount) + '</strong></div>' +
+            '</div></section>' +
             '</div>';
+
+        tab.innerHTML = '<style>' +
+            '#customers-tab .rh-customer-overview{background:#fff;border:1px solid #e4eaf2;border-radius:16px;padding:1.1rem 1.25rem;margin-bottom:1rem;box-shadow:0 8px 18px rgba(15,23,42,.025)}' +
+            '#customers-tab .rh-customer-overview-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}' +
+            '#customers-tab .rh-customer-overview-actions{display:flex;align-items:center;gap:.5rem}' +
+            '#customers-tab .rh-customer-icon-btn{width:38px;height:38px;border:1px solid #dfe6ef;border-radius:50%;background:#fff;color:#526176;cursor:pointer}' +
+            '#customers-tab .rh-customer-icon-btn:hover{background:#f4f8fc;color:#1683ff}' +
+            '#customers-tab .rh-customer-overview-title{display:flex;align-items:center;gap:.75rem;color:#10213c;font-weight:700;font-size:1.05rem}' +
+            '#customers-tab .rh-customer-overview-icon{width:42px;height:42px;display:grid;place-items:center;border:1px solid #cce8dc;border-radius:12px;background:#f0faf5;color:#199369}' +
+            '#customers-tab .rh-customer-overview-subtitle{display:block;color:#8491a2;font-size:.84rem;font-weight:400;margin-top:.2rem}' +
+            '#customers-tab .rh-customer-detail-btn{border:1px solid #dce3eb;border-radius:999px;background:#fff;color:#526176;padding:.55rem .9rem;font:inherit;font-size:.84rem;cursor:pointer;white-space:nowrap}' +
+            '#customers-tab .rh-customer-detail-btn i{margin-right:.35rem}' +
+            '#customers-tab .rh-customer-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));border-radius:12px;background:#f8fafc;padding:.4rem}' +
+            '#customers-tab .rh-customer-stat{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:.22rem;padding:.65rem .8rem;text-align:center;border-right:1px solid #dfe5ec}' +
+            '#customers-tab .rh-customer-stat:last-child{border-right:0}' +
+            '#customers-tab .rh-customer-stat-value{display:flex;align-items:center;gap:.45rem;color:#1b2636;font-size:1.35rem;font-weight:800;line-height:1.2}' +
+            '#customers-tab .rh-customer-stat-value i{color:#2871db;font-size:.95rem}' +
+            '#customers-tab .rh-customer-stat:nth-child(2) .rh-customer-stat-value{color:#199369}' +
+            '#customers-tab .rh-customer-stat:nth-child(2) .rh-customer-stat-value i{color:#199369}' +
+            '#customers-tab .rh-customer-stat:nth-child(3) .rh-customer-stat-value{color:#d47b16}' +
+            '#customers-tab .rh-customer-stat:nth-child(3) .rh-customer-stat-value i{color:#d47b16}' +
+            '#customers-tab .rh-customer-stat-label{color:#7b8797;font-size:.82rem}' +
+            '#customers-tab .rh-customer-tabs{display:flex;gap:.65rem;overflow-x:auto;padding:.2rem 0 1rem;scrollbar-width:thin}' +
+            '#customers-tab .rh-customer-tab{display:inline-flex;align-items:center;gap:.55rem;flex:none;border:1px solid transparent;border-radius:999px;background:#f0f2f5;color:#677385;padding:.58rem .9rem;font:600 .86rem "Be Vietnam Pro","Segoe UI",sans-serif;white-space:nowrap;cursor:pointer}' +
+            '#customers-tab .rh-customer-tab-count{border-radius:999px;background:#e2e6ec;color:#4d5969;padding:.12rem .5rem;font-size:.75rem}' +
+            '#customers-tab .rh-customer-tab.active{background:#18212f;color:#fff;box-shadow:0 6px 14px rgba(24,33,47,.16)}' +
+            '#customers-tab .rh-customer-tab.active .rh-customer-tab-count{background:#46505e;color:#fff}' +
+            '#customers-tab .rh-customer-tools{display:grid;grid-template-columns:1fr;gap:.6rem;margin:-.15rem 0 1rem}' +
+            '#customers-tab .rh-customer-filter-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.65rem;grid-column:1/-1}' +
+            '#customers-tab .rh-customer-filter-field{display:flex;flex-direction:column;gap:.3rem;color:#53657d;font-size:.78rem;font-weight:600}' +
+            '#customers-tab .rh-customer-filter-field input,#customers-tab .rh-customer-filter-field select{width:100%;min-height:42px;border:1px solid #dfe6ef;border-radius:9px;background:#fff;color:#40526b;padding:.55rem .7rem;font:inherit;font-weight:400}' +
+            '#customers-tab .rh-customer-search-wrap{display:flex;align-items:center;gap:.55rem;border:1px solid #dfe6ef;border-radius:10px;background:#fff;padding:0 .8rem;min-height:42px;grid-column:1/-1}' +
+            '#customers-tab .rh-customer-search-wrap i{color:#8290a1}' +
+            '#customers-tab .rh-customer-search{width:100%;border:0;outline:0;font:inherit;color:#26364b;background:transparent}' +
+            '#customers-tab .rh-customer-building-filter{width:100%;min-height:42px;border:1px solid #dfe6ef;border-radius:10px;background:#fff;color:#40526b;padding:.5rem .75rem;font:inherit}' +
+            '#customers-tab .rh-customer-card{padding:1.25rem!important}' +
+            '#customers-tab .rh-customer-head{display:flex;align-items:center;justify-content:space-between;gap:1rem;margin-bottom:1rem}' +
+            '#customers-tab .rh-customer-head h2{font:800 1.35rem "Plus Jakarta Sans","Be Vietnam Pro",sans-serif;color:#10213c;margin:0}' +
+            '#customers-tab .rh-customer-head p{color:#8aa0bc;font-size:.88rem;margin:.3rem 0 0}' +
+            '#customers-tab .rh-customer-list{display:grid;gap:.75rem}' +
+            '#customers-tab .rh-customer-person-card{background:#fff;border:1px solid #e8ebef;border-radius:18px;padding:1rem 1.1rem;box-shadow:0 5px 16px rgba(25,38,55,.025)}' +
+            '#customers-tab .rh-customer-person-main{display:flex;align-items:center;gap:.85rem;min-width:0}' +
+            '#customers-tab .rh-customer-avatar{width:58px;height:58px;flex:0 0 58px;display:grid;place-items:center;border-radius:15px;background:#d8f1ed;color:#217e70;font-size:1.1rem;font-weight:800}' +
+            '#customers-tab .rh-customer-avatar-1{background:#f1e9d5;color:#806c32}' +
+            '#customers-tab .rh-customer-avatar-2{background:#efd9f1;color:#794083}' +
+            '#customers-tab .rh-customer-person-info{min-width:0;flex:1}' +
+            '#customers-tab .rh-customer-person-name{overflow:hidden;color:#18212f;font-size:1.05rem;font-weight:800;letter-spacing:.01em;text-overflow:ellipsis;white-space:nowrap}' +
+            '#customers-tab .rh-customer-person-phone{display:flex;align-items:center;gap:.5rem;margin-top:.18rem;color:#7c8795;font-size:.9rem}' +
+            '#customers-tab .rh-customer-person-phone i{font-size:.78rem}' +
+            '#customers-tab .rh-customer-person-actions{display:flex;align-items:center;justify-content:flex-end;gap:.35rem;flex-wrap:wrap}' +
+            '#customers-tab .rh-customer-type{margin-right:.35rem;border:1px solid #b7ccf4;border-radius:999px;padding:.35rem .75rem;color:#3573c8;background:#fff;font-size:.8rem;font-weight:600;white-space:nowrap}' +
+            '#customers-tab .rh-customer-person-actions .rh-row-btn{width:34px;height:34px;border:1px solid #e1e7ee;border-radius:9px;background:#fff;color:#526176;cursor:pointer}' +
+            '#customers-tab .rh-customer-person-actions .rh-row-btn.danger{border-color:#ffcaca;color:#e25555}' +
+            '#customers-tab .rh-customer-person-meta{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;margin-top:.8rem}' +
+            '#customers-tab .rh-customer-place{display:inline-flex;align-items:center;gap:.4rem;border-radius:999px;background:#f2f3f6;color:#6e7886;padding:.38rem .65rem;font-size:.82rem;max-width:100%}' +
+            '#customers-tab .rh-customer-place i{color:#929ba6;font-size:.75rem}' +
+            '#customers-tab .rh-customer-person-status{display:flex;align-items:center;gap:.55rem;flex-wrap:wrap;margin-top:.65rem;color:#77818f;font-size:.84rem}' +
+            '#customers-tab .rh-customer-residency{display:inline-flex;align-items:center;gap:.4rem}' +
+            '#customers-tab .rh-customer-residency i{color:#8993a1}' +
+            '#customers-tab .rh-customer-registration{border-radius:999px;background:#eff3f8;color:#334155;padding:.28rem .65rem;font-weight:600}' +
+            '#customers-tab .rh-customer-registration.registered{background:#e8f8ef;color:#258653}' +
+            '@media(max-width:700px){#customers-tab .rh-customer-overview{padding:.9rem}#customers-tab .rh-customer-overview-head{align-items:flex-start;flex-wrap:wrap}#customers-tab .rh-customer-overview-actions{margin-left:auto}#customers-tab .rh-customer-overview-title{font-size:.9rem}#customers-tab .rh-customer-overview-icon{width:36px;height:36px}#customers-tab .rh-customer-detail-btn{padding:.45rem .65rem;font-size:.78rem}#customers-tab .rh-customer-stat{padding:.6rem .25rem}#customers-tab .rh-customer-stat-value{font-size:1.08rem}#customers-tab .rh-customer-stat-label{font-size:.72rem}#customers-tab .rh-customer-tools{grid-template-columns:1fr}#customers-tab .rh-customer-filter-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#customers-tab .rh-customer-card{padding:1rem!important}#customers-tab .rh-customer-head{align-items:flex-start;flex-direction:column}#customers-tab .rh-customer-head h2{font-size:1.2rem}#customers-tab .rh-customer-person-card{padding:.85rem}#customers-tab .rh-customer-person-main{align-items:flex-start;flex-wrap:wrap}#customers-tab .rh-customer-avatar{width:50px;height:50px;flex-basis:50px}#customers-tab .rh-customer-person-info{padding-top:.1rem}#customers-tab .rh-customer-person-actions{width:100%;justify-content:flex-start;padding-left:calc(50px + .85rem)}#customers-tab .rh-customer-type{margin-right:auto}}' +
+            '#customers-tab .rh-customer-workspace{display:grid;gap:1rem}' +
+            '#customers-tab .rh-customer-tabs{align-items:center;gap:1.1rem;margin:0;padding:.15rem .25rem .75rem;border-bottom:1px solid #e4eaf2}' +
+            '#customers-tab .rh-customer-tab{background:transparent;border:0;border-radius:0;color:#718096;padding:.5rem .15rem;font-size:.84rem;font-weight:600}' +
+            '#customers-tab .rh-customer-tab.active{background:transparent;box-shadow:none;color:#1683ff;border-bottom:2px solid #1683ff}' +
+            '#customers-tab .rh-customer-tab.active .rh-customer-tab-count{background:#eaf3ff;color:#1683ff}' +
+            '#customers-tab .rh-customer-summary-grid{display:grid;gap:.8rem;grid-template-columns:repeat(4,minmax(0,1fr))}' +
+            '#customers-tab .rh-customer-summary-card{align-items:center;background:#fff;border:1px solid #edf0f4;border-radius:14px;display:flex;justify-content:space-between;min-height:86px;padding:1rem 1.1rem}' +
+            '#customers-tab .rh-customer-summary-icon{align-items:center;background:#eef5ff;border:1px solid #d5e5fb;border-radius:13px;color:#2874d8;display:flex;font-size:1.2rem;height:48px;justify-content:center;width:48px}' +
+            '#customers-tab .rh-customer-summary-card:nth-child(2) .rh-customer-summary-icon{background:#eefbf3;border-color:#d1f2df;color:#21a66a}' +
+            '#customers-tab .rh-customer-summary-card:nth-child(3) .rh-customer-summary-icon{background:#fff7e9;border-color:#f6e5c5;color:#d99120}' +
+            '#customers-tab .rh-customer-summary-card:nth-child(4) .rh-customer-summary-icon{background:#fff0f0;border-color:#f6dada;color:#d65b61}' +
+            '#customers-tab .rh-customer-summary-value{text-align:right}' +
+            '#customers-tab .rh-customer-summary-value strong{color:#26364b;display:block;font-size:1.25rem;line-height:1.2}' +
+            '#customers-tab .rh-customer-summary-value span{color:#8792a1;font-size:.78rem}' +
+            '#customers-tab .rh-customer-browser{background:#fff;border:1px solid #e7ebf0;border-radius:14px;padding:.75rem}' +
+            '#customers-tab .rh-customer-location-filters{display:grid;gap:.55rem;grid-template-columns:repeat(4,minmax(0,1fr));margin-bottom:.6rem}' +
+            '#customers-tab .rh-customer-location-filters select{background:#fff;border:1px solid #e3e8ef;border-radius:8px;color:#5b6879;font:inherit;min-height:38px;padding:.45rem .65rem;width:100%}' +
+            '#customers-tab .rh-customer-browser-toolbar{align-items:center;display:flex;gap:.55rem;justify-content:space-between;margin-bottom:.65rem}' +
+            '#customers-tab .rh-customer-search-wrap{flex:1;grid-column:auto;max-width:270px;min-height:38px}' +
+            '#customers-tab .rh-customer-toolbar-actions{align-items:center;display:flex;gap:.45rem}' +
+            '#customers-tab .rh-customer-toolbar-actions .rh-customer-icon-btn{border-radius:8px;height:38px;width:38px}' +
+            '#customers-tab .rh-customer-toolbar-actions .rh-customer-detail-btn{height:38px;padding:.45rem .7rem}' +
+            '#customers-tab .rh-customer-filter-grid{grid-template-columns:repeat(3,minmax(0,1fr));margin:.25rem 0 .75rem}' +
+            '#customers-tab .rh-customer-table-wrap{border:1px solid #edf0f3;border-radius:10px;overflow:auto}' +
+            '#customers-tab .rh-customer-data-table{border-collapse:collapse;min-width:950px;width:100%}' +
+            '#customers-tab .rh-customer-data-table{min-width:1100px}' +
+            '#customers-tab .rh-customer-data-table th,#customers-tab .rh-customer-data-table td{border-bottom:1px solid #edf0f3;padding:.7rem .8rem;text-align:left;vertical-align:middle}' +
+            '#customers-tab .rh-customer-data-table th{background:#f8fafc;color:#768294;font-size:.77rem;font-weight:600;white-space:nowrap}' +
+            '#customers-tab .rh-customer-data-table td{color:#697789;font-size:.82rem}' +
+            '#customers-tab .rh-customer-data-table tbody tr:last-child td{border-bottom:0}' +
+            '#customers-tab .rh-customer-data-table tbody tr:hover{background:#f8fbff}' +
+            '#customers-tab .rh-customer-code{color:#258a65!important;font-weight:700;white-space:nowrap}' +
+            '#customers-tab .rh-customer-row-actions{white-space:nowrap}' +
+            '#customers-tab .rh-customer-row-actions .rh-row-btn{align-items:center;background:#fff;border:1px solid #e1e7ee;border-radius:7px;color:#526176;display:inline-flex;height:30px;justify-content:center;margin:0 .18rem 0 0;padding:0;width:30px}' +
+            '#customers-tab .rh-customer-row-actions .rh-row-btn:first-child{background:#e8f8ef;border-color:#c5ecd6;color:#239461}' +
+            '#customers-tab .rh-customer-row-actions .rh-row-btn:nth-child(2){background:#eaf3ff;border-color:#ccdefa;color:#2874d8}' +
+            '#customers-tab .rh-customer-row-actions .rh-row-btn.danger{background:#fff0f0;border-color:#f6d1d1;color:#d94c4c}' +
+            '#customers-tab .rh-customer-table-person{align-items:center;display:flex;gap:.6rem;min-width:180px}' +
+            '#customers-tab .rh-customer-table-avatar{align-items:center;background:#edf1f4;border-radius:50%;color:#5d6e7e;display:flex;flex:0 0 38px;font-size:.68rem;font-weight:700;height:38px;justify-content:center;width:38px}' +
+            '#customers-tab .rh-customer-table-avatar-1{background:#e8f4f2;color:#42867b}#customers-tab .rh-customer-table-avatar-2{background:#f4edf7;color:#876396}' +
+            '#customers-tab .rh-customer-table-person strong,#customers-tab .rh-customer-table-person small{display:block}' +
+            '#customers-tab .rh-customer-table-person strong{color:#29384a;font-size:.82rem;font-weight:700}' +
+            '#customers-tab .rh-customer-table-person small{color:#8993a0;font-size:.76rem;margin-top:.15rem}' +
+            '#customers-tab .rh-customer-address-label{display:block;line-height:1.55;white-space:nowrap}' +
+            '#customers-tab .rh-customer-add-button{white-space:nowrap}' +
+            '#customers-tab .rh-customer-status-select{appearance:auto;border:1px solid #ccebd9;border-radius:999px;background:#effaf4;color:#238653;font:600 .78rem inherit;padding:.4rem .65rem;cursor:pointer}' +
+            '#customers-tab .rh-customer-status-select.moved{border-color:#e0e5ec;background:#f4f6f8;color:#637083}' +
+            '#customers-tab .rh-customer-status-label{display:inline-block;border-radius:999px;padding:.4rem .65rem;font-size:.76rem;font-weight:600;white-space:nowrap}' +
+            '#customers-tab .rh-customer-status-label.guest{background:#fff6e8;color:#a56a12}#customers-tab .rh-customer-status-label.unassigned{background:#f1f3f6;color:#697789}' +
+            '@media(max-width:900px){#customers-tab .rh-customer-summary-grid{grid-template-columns:repeat(2,minmax(0,1fr))}#customers-tab .rh-customer-location-filters{grid-template-columns:repeat(2,minmax(0,1fr))}}' +
+            '@media(max-width:600px){#customers-tab .rh-customer-summary-card{min-height:72px;padding:.7rem}#customers-tab .rh-customer-summary-icon{height:40px;width:40px}#customers-tab .rh-customer-summary-value strong{font-size:1.05rem}#customers-tab .rh-customer-browser-toolbar{align-items:stretch;flex-direction:column}#customers-tab .rh-customer-search-wrap{max-width:none}#customers-tab .rh-customer-toolbar-actions{justify-content:flex-end}#customers-tab .rh-customer-filter-grid{grid-template-columns:1fr}}' +
+            '</style>' +
+            renderDemoBanner('customers') +
+            '<div class="rh-customer-workspace">' +
+            '<div class="rh-customer-tabs" role="tablist" aria-label="Trạng thái khách hàng">' +
+            '<button type="button" class="rh-customer-tab' + (state.status === 'current' ? ' active' : '') + '" role="tab" aria-selected="' + (state.status === 'current') + '" onclick="RHUI.setCustomerStatus(\'current\')">Đang thuê <span class="rh-customer-tab-count">' + statusCounts.current + '</span></button>' +
+            '<button type="button" class="rh-customer-tab' + (state.status === 'moved' ? ' active' : '') + '" role="tab" aria-selected="' + (state.status === 'moved') + '" onclick="RHUI.setCustomerStatus(\'moved\')">Đã chuyển đi <span class="rh-customer-tab-count">' + statusCounts.moved + '</span></button>' +
+            '<button type="button" class="rh-customer-tab' + (state.status === 'guest' ? ' active' : '') + '" role="tab" aria-selected="' + (state.status === 'guest') + '" onclick="RHUI.setCustomerStatus(\'guest\')">Khách vãng lai <span class="rh-customer-tab-count">' + statusCounts.guest + '</span></button>' +
+            '<button type="button" class="rh-customer-tab' + (state.status === 'all' ? ' active' : '') + '" role="tab" aria-selected="' + (state.status === 'all') + '" onclick="RHUI.setCustomerStatus(\'all\')">Tất cả <span class="rh-customer-tab-count">' + statusCounts.all + '</span></button>' +
+            '</div>' +
+            '<div class="rh-customer-summary-grid">' +
+            '<div class="rh-customer-summary-card"><span class="rh-customer-summary-icon"><i class="fas fa-users"></i></span><span class="rh-customer-summary-value"><strong>' + detailCustomers.length + '</strong><span>Tất cả</span></span></div>' +
+            '<div class="rh-customer-summary-card"><span class="rh-customer-summary-icon"><i class="far fa-user"></i></span><span class="rh-customer-summary-value"><strong>' + individualCount + '</strong><span>Cá nhân</span></span></div>' +
+            '<div class="rh-customer-summary-card"><span class="rh-customer-summary-icon"><i class="far fa-building"></i></span><span class="rh-customer-summary-value"><strong>' + companyCount + '</strong><span>Tổ chức</span></span></div>' +
+            '<div class="rh-customer-summary-card"><span class="rh-customer-summary-icon"><i class="fas fa-globe"></i></span><span class="rh-customer-summary-value"><strong>' + foreignCount + '</strong><span>Khách nước ngoài</span></span></div>' +
+            '</div>' +
+            '<section class="rh-customer-browser">' +
+            '<div class="rh-customer-location-filters">' +
+            '<select id="rhCustomerArea" aria-label="Chọn khu vực">' + areaOptions + '</select>' +
+            '<select id="rhCustomerBuilding" aria-label="Chọn tòa nhà">' + buildingOptions + '</select>' +
+            '<select id="rhCustomerFloor" aria-label="Chọn tầng">' + floorOptions + '</select>' +
+            '<select id="rhCustomerApartment" aria-label="Chọn căn hộ">' + apartmentOptions + '</select>' +
+            '</div>' +
+            '<div class="rh-customer-browser-toolbar">' +
+            '<label class="rh-customer-search-wrap"><i class="fas fa-search"></i><input id="rhCustomerSearch" class="rh-customer-search" type="search" placeholder="Tìm kiếm..." value="' + escapeHtml(state.search) + '" aria-label="Tìm kiếm khách hàng"></label>' +
+            '<div class="rh-customer-toolbar-actions">' +
+            '<button type="button" class="rh-customer-icon-btn" aria-label="Chi tiết khách hàng" title="Chi tiết" onclick="RHUI.openCustomerDetails()"><i class="fas fa-circle-info"></i></button>' +
+            '<button type="button" class="rh-customer-icon-btn" aria-label="Bộ lọc nâng cao" title="Bộ lọc" onclick="RHUI.toggleCustomerFilters()"><i class="fas fa-filter"></i></button>' +
+            addButton('Thêm khách hàng', "RHUI.openCustomerForm()", 'customers', 'customers.create') +
+            '</div></div>' +
+                (state.filtersOpen ? '<div class="rh-customer-filter-grid">' +
+                    '<label class="rh-customer-filter-field">Họ và tên<input id="rhCustomerName" type="search" placeholder="Nhập họ và tên" value="' + escapeHtml(state.customerName) + '"></label>' +
+                    '<label class="rh-customer-filter-field">CCCD<input id="rhCustomerIdNumber" type="search" placeholder="Nhập số CCCD" value="' + escapeHtml(state.customerIdNumber) + '"></label>' +
+                    '<label class="rh-customer-filter-field">Số điện thoại<input id="rhCustomerPhone" type="search" placeholder="Nhập số điện thoại" value="' + escapeHtml(state.customerPhone) + '"></label>' +
+                    '</div>' : '') +
+            '<div id="rhCustomerTable" class="rh-customer-table-wrap"><table class="rh-customer-data-table"><thead><tr><th>Mã KH</th><th>Thao tác</th><th>Khách hàng</th><th>Căn hộ đang ở</th><th>CMND/CCCD/Hộ chiếu</th><th>Ngày thuê</th><th>Tình trạng</th></tr></thead><tbody>' +
+            (customerRows || '<tr><td colspan="7" style="color:#718096;padding:2rem;text-align:center;">' + escapeHtml(emptyMessage) + '</td></tr>') +
+            '</tbody></table></div>' +
+            '</section></div>';
+
+        RHUI.setCustomerStatus = function (status) {
+            state.status = status;
+            renderCustomersTab();
+        };
+        RHUI.toggleCustomerSearch = function () {
+            var search = byId('rhCustomerSearch');
+            if (search) search.focus();
+        };
+        RHUI.toggleCustomerFilters = function () {
+            state.filtersOpen = !state.filtersOpen;
+            renderCustomersTab();
+        };
+        RHUI.openCustomerDetails = function () {
+            openDrawer('Chi tiết khách hàng đang ở', customerDetailHtml);
+        };
+        RHUI.changeCustomerStatus = function (customerId, nextStatus) {
+            var customerEntry = customersWithContracts.filter(function (entry) { return entry.customer.id === customerId; })[0];
+            if (!customerEntry) {
+                alert('Không tìm thấy khách hàng.');
+                return;
+            }
+            if (nextStatus === 'current') {
+                if (customerEntry.category === 'current') return;
+                if (!guard('contracts.create')) {
+                    renderCustomersTab();
+                    return;
+                }
+                if (!confirm('Để chuyển khách hàng sang Đang ở, cần lập hợp đồng mới. Tiếp tục tạo hợp đồng?')) {
+                    renderCustomersTab();
+                    return;
+                }
+                state.status = 'current';
+                RHUI.openContractForCustomer(customerId);
+                return;
+            }
+            if (nextStatus !== 'moved' || customerEntry.category !== 'current') return;
+            if (!guard('contracts.update') || !guard('apartments.update')) {
+                renderCustomersTab();
+                return;
+            }
+            if (!confirm('Chuyển khách hàng sang Đã chuyển đi sẽ kết thúc hợp đồng đang hiệu lực và cập nhật căn hộ thành trống nếu không còn hợp đồng khác. Bạn có muốn tiếp tục?')) {
+                renderCustomersTab();
+                return;
+            }
+            var currentContracts = customerEntry.contracts.filter(function (contract) {
+                return contract.status !== 'ended' && contract.status !== 'terminated' &&
+                    !(contract.endDate && contract.endDate < today);
+            });
+            if (!currentContracts.length) {
+                alert('Không tìm thấy hợp đồng đang hiệu lực để chuyển khách hàng đi.');
+                renderCustomersTab();
+                return;
+            }
+            var moveOutDate = today;
+            for (var contractIndex = 0; contractIndex < currentContracts.length; contractIndex++) {
+                var ended = RHD.update('contracts', currentContracts[contractIndex].id, {
+                    status: 'ended',
+                    moveOutDate: moveOutDate
+                });
+                if (!ended.ok) {
+                    alert('Không thể kết thúc hợp đồng: ' + ended.error);
+                    renderCustomersTab();
+                    return;
+                }
+                if (global.RH && global.RH.syncManagerRecord) global.RH.syncManagerRecord(ended.item, 'contract');
+            }
+            var customerApartmentIds = currentContracts.map(function (contract) { return contract.apartmentId; }).filter(Boolean);
+            customerApartmentIds.filter(function (apartmentId, index, all) {
+                return all.indexOf(apartmentId) === index;
+            }).forEach(function (apartmentId) {
+                var apartment = RHD.get('apartments', apartmentId);
+                if (!apartment || apartment.status !== 'occupied') return;
+                var stillOccupied = RHD.list('contracts').some(function (contract) {
+                    return contract.apartmentId === apartmentId &&
+                        contract.status !== 'ended' && contract.status !== 'terminated' &&
+                        !(contract.endDate && contract.endDate < today);
+                });
+                if (!stillOccupied) {
+                    var updatedApartment = RHD.update('apartments', apartmentId, { status: 'vacant' });
+                    if (!updatedApartment.ok) alert('Hợp đồng đã kết thúc nhưng chưa thể cập nhật căn hộ thành trống: ' + updatedApartment.error);
+                }
+            });
+            renderCustomersTab();
+            renderContractsTab();
+            renderApartmentsTab();
+            renderDashboardCounts();
+        };
+        var searchInput = byId('rhCustomerSearch');
+        if (searchInput) searchInput.addEventListener('input', function () {
+            var selectionStart = this.selectionStart;
+            state.search = this.value;
+            renderCustomersTab();
+            var updatedInput = byId('rhCustomerSearch');
+            if (updatedInput) {
+                updatedInput.focus();
+                updatedInput.setSelectionRange(selectionStart, selectionStart);
+            }
+        });
+        tab.querySelectorAll('[data-customer-status]').forEach(function (select) {
+            select.addEventListener('change', function () {
+                RHUI.changeCustomerStatus(this.dataset.customerStatus, this.value);
+            });
+        });
+        var areaFilter = byId('rhCustomerArea');
+        if (areaFilter) areaFilter.addEventListener('change', function () {
+            state.area = this.value;
+            state.buildingId = '';
+            state.apartmentId = '';
+            state.floor = '';
+            renderCustomersTab();
+        });
+        var buildingFilter = byId('rhCustomerBuilding');
+        if (buildingFilter) buildingFilter.addEventListener('change', function () {
+            state.buildingId = this.value;
+            state.apartmentId = '';
+            state.floor = '';
+            renderCustomersTab();
+        });
+        [
+            ['rhCustomerName', 'customerName'],
+            ['rhCustomerIdNumber', 'customerIdNumber'],
+            ['rhCustomerPhone', 'customerPhone']
+        ].forEach(function (filter) {
+            var input = byId(filter[0]);
+            if (!input) return;
+            input.addEventListener('input', function () {
+                var selectionStart = this.selectionStart;
+                state[filter[1]] = this.value;
+                renderCustomersTab();
+                var updatedInput = byId(filter[0]);
+                if (updatedInput) {
+                    updatedInput.focus();
+                    updatedInput.setSelectionRange(selectionStart, selectionStart);
+                }
+            });
+        });
+        var apartmentFilter = byId('rhCustomerApartment');
+        if (apartmentFilter) apartmentFilter.addEventListener('change', function () {
+            state.apartmentId = this.value;
+            renderCustomersTab();
+        });
+        var floorFilter = byId('rhCustomerFloor');
+        if (floorFilter) floorFilter.addEventListener('change', function () {
+            state.floor = this.value;
+            renderCustomersTab();
+        });
     }
 
     RHUI.toggleForeigner = function (checked) {
         byId('rhForeignerFields').style.display = checked ? 'block' : 'none';
+    };
+
+    RHUI.selectCustomerType = function (value) {
+        if (value !== 'Khách nước ngoài') return;
+        var checkbox = byId('cfForeigner');
+        checkbox.checked = true;
+        RHUI.toggleForeigner(true);
     };
 
     RHUI.openCustomerForm = function (id) {
@@ -1481,7 +2009,8 @@
         var residenceApartments = residenceBuildingId ? RHD.apartmentsOf(residenceBuildingId) : [];
         var existingTypes = [];
         RHD.list('customers').forEach(function (cc) { if (cc.customerType && existingTypes.indexOf(cc.customerType) === -1) existingTypes.push(cc.customerType); });
-        ['Cá nhân', 'Công ty', 'Khách vãng lai'].forEach(function (t) { if (existingTypes.indexOf(t) === -1) existingTypes.push(t); });
+        ['Cá nhân', 'Công ty', 'Khách vãng lai', 'Khách nước ngoài'].forEach(function (t) { if (existingTypes.indexOf(t) === -1) existingTypes.push(t); });
+        var isForeigner = !!(c && (c.isForeigner || c.customerType === 'Khách nước ngoài'));
 
         var html = '<form onsubmit="RHUI.submitCustomerForm(event)">' +
             '<div class="rh-section-title">Thông tin cơ bản</div>' +
@@ -1510,8 +2039,11 @@
             '</div></div>' +
 
             '<div class="rh-section"><div class="rh-section-title">Thông tin bổ sung</div><div class="rh-grid-2">' +
-            '<div class="rh-field"><label>Loại khách hàng</label><input id="cfType" list="rhCustTypeList" value="' + escapeHtml(c ? c.customerType : 'Cá nhân') + '"></div>' +
-            '<datalist id="rhCustTypeList">' + existingTypes.map(function (t) { return '<option value="' + escapeHtml(t) + '">'; }).join('') + '</datalist>' +
+            '<div class="rh-field"><label>Loại khách hàng</label><select id="cfType" onchange="RHUI.selectCustomerType(this.value)">' +
+            existingTypes.map(function (type) {
+                return '<option value="' + escapeHtml(type) + '"' + (type === (c ? c.customerType : 'Cá nhân') ? ' selected' : '') + '>' + escapeHtml(type) + '</option>';
+            }).join('') +
+            '</select></div>' +
             '<div class="rh-field"><label>Mã vân tay cửa</label><input id="cfFingerprint" value="' + escapeHtml(c ? c.doorFingerprintCode : '') + '"></div>' +
             '<div class="rh-field"><label>Tư vấn viên</label><input id="cfConsultant" value="' + escapeHtml(c ? c.consultantName : '') + '"></div>' +
             '<div class="rh-field"><label>SĐT tư vấn viên</label><input id="cfConsultantPhone" value="' + escapeHtml(c ? c.consultantPhone : '') + '"></div>' +
@@ -1519,9 +2051,9 @@
             '</div></div>' +
 
             '<div class="rh-section"><label style="display:flex;align-items:center;gap:.6rem;font-weight:600;color:#10213c;cursor:pointer;">' +
-            '<input type="checkbox" id="cfForeigner" ' + (c && c.isForeigner ? 'checked' : '') + ' onchange="RHUI.toggleForeigner(this.checked)" style="width:18px;height:18px;"> Khách nước ngoài' +
+            '<input type="checkbox" id="cfForeigner" ' + (isForeigner ? 'checked' : '') + ' onchange="RHUI.toggleForeigner(this.checked)" style="width:18px;height:18px;"> Khách nước ngoài' +
             '</label>' +
-            '<div id="rhForeignerFields" style="display:' + (c && c.isForeigner ? 'block' : 'none') + ';margin-top:.9rem;"><div class="rh-grid-2">' +
+            '<div id="rhForeignerFields" style="display:' + (isForeigner ? 'block' : 'none') + ';margin-top:.9rem;"><div class="rh-grid-2">' +
             '<div class="rh-field"><label>Quốc tịch</label><input id="cfNationality" value="' + escapeHtml(c ? c.nationality : '') + '"></div>' +
             '<div class="rh-field"><label>Số hộ chiếu</label><input id="cfPassportNo" value="' + escapeHtml(c ? c.passportNumber : '') + '"></div>' +
             '<div class="rh-field"><label>Loại hộ chiếu</label><select id="cfPassportType">' + selectOptions([{ v: 'Phổ thông' }, { v: 'Công vụ' }, { v: 'Ngoại giao' }], 'v', 'v', c ? c.passportType : 'Phổ thông') + '</select></div>' +
@@ -1557,6 +2089,7 @@
     RHUI.submitCustomerForm = function (ev) {
         ev.preventDefault();
         if (!guard(RHUI.drawerId ? 'customers.update' : 'customers.create')) return;
+        var previousCustomer = RHUI.drawerId ? RHD.get('customers', RHUI.drawerId) : null;
         var isForeigner = byId('cfForeigner').checked;
         var data = {
             fullName: byId('cfName').value.trim(),
@@ -1587,9 +2120,22 @@
             passportPhoto: isForeigner ? byId('cfPassportPhotoData').value : '',
             vehicles: RHUI.customerVehicles
         };
+        data.code = customerCode(data);
         var res = RHUI.drawerId ? RHD.update('customers', RHUI.drawerId, data) : RHD.create('customers', data);
         if (!res.ok) { byId('cfError').textContent = res.error; return; }
         var createdCustomer = !RHUI.drawerId;
+        var customerBrowser = RHUI.customerBrowser;
+        if (previousCustomer && customerBrowser) {
+            if (customerBrowser.buildingId && previousCustomer.residenceBuildingId !== data.residenceBuildingId) {
+                customerBrowser.buildingId = data.residenceBuildingId || '';
+                customerBrowser.apartmentId = data.residenceApartmentId || '';
+                customerBrowser.floor = '';
+                var updatedBuilding = data.residenceBuildingId ? RHD.get('buildings', data.residenceBuildingId) : null;
+                if (customerBrowser.area && updatedBuilding) customerBrowser.area = updatedBuilding.province || updatedBuilding.ward || '';
+            } else if (customerBrowser.apartmentId && previousCustomer.residenceApartmentId !== data.residenceApartmentId) {
+                customerBrowser.apartmentId = data.residenceApartmentId || '';
+            }
+        }
         closeDrawer();
         renderCustomersTab();
         renderDashboardCounts();
