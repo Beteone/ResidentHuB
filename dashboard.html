@@ -24,6 +24,7 @@
     <script src="dist/excel-tools.js"></script>
     <script src="dist/financial-report-export.js"></script>
     <script src="financial-report.js"></script>
+    <script src="statistics-report.js"></script>
     <script src="contracts-module.js"></script>
     <script src="account-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
@@ -2632,9 +2633,20 @@
                     <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
                 </div>
             </div>
-            <div class="sidebar-menu-item" data-perm="reports.view" onclick="switchTab('reports')">
+            <div class="sidebar-menu-item rh-nav-parent" id="rhReportsMenuItem" data-perm="reports.view" role="button" tabindex="0" aria-expanded="false" aria-controls="rhReportsGroup" onclick="toggleNavGroup('rhReportsGroup')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup('rhReportsGroup');}">
                 <i class="fas fa-chart-bar"></i>
                 <span>Báo cáo</span>
+                <i class="fas fa-chevron-down rh-nav-caret"></i>
+            </div>
+            <div class="rh-nav-children" id="rhReportsGroup">
+                <div class="sidebar-menu-item rh-nav-child" data-perm="reports.view" onclick="switchTab('reports', event)">
+                    <i class="fas fa-coins"></i>
+                    <span>Báo cáo tài chính</span>
+                </div>
+                <div class="sidebar-menu-item rh-nav-child" data-perm="reports.view" onclick="switchTab('statistics', event)">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Thống kê</span>
+                </div>
             </div>
 
             <div style="padding: 1.5rem 1rem 0.5rem; border-top: 1px solid var(--line); margin-top: 1rem;">
@@ -3514,6 +3526,7 @@
 
         <div id="reports-tab" style="display: none;">
         </div>
+        <div id="statistics-tab" style="display: none;"></div>
 
         <!-- Tài khoản: duyệt đăng ký Cư dân + quản lý tài khoản đăng nhập (tách khỏi Cài đặt) -->
         <div id="accounts-tab" style="display: none;">
@@ -4231,6 +4244,7 @@
             invoices: (f) => RHUI.renderInvoicesTab(f),
             cashflow: () => RHUI.renderCashflowTab(),
             reports: () => RHFinancialReport.render(),
+            statistics: () => RHStatisticsReport.render(),
             support: (f) => RHUI.renderSupportTab(f),
             notifications: () => renderNotificationsManagerTab(),
             roles: () => RHAccounts.renderRolesTab(),
@@ -4254,10 +4268,11 @@
             support: 'support.view',
             notifications: 'notifications.view',
             reports: 'reports.view',
+            statistics: 'reports.view',
             roles: 'roles.view',
             accounts: ['users.view', 'users.approveResident']
         };
-        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'notifications', 'accounts', 'roles', 'reports'];
+        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'notifications', 'accounts', 'roles', 'reports', 'statistics'];
 
         function canOpenTab(tabName) {
             const permission = TAB_PERMS[tabName];
@@ -4289,6 +4304,10 @@
             const anyChild = Array.from(group.children).some(child => child.style.display !== 'none');
             document.getElementById('rhAccountsMenuItem').style.display = anyChild ? '' : 'none';
             if (!anyChild) toggleNavGroup('rhAccountsGroup', false);
+            const reportsGroup = document.getElementById('rhReportsGroup');
+            const anyReport = Array.from(reportsGroup.children).some(child => child.style.display !== 'none');
+            document.getElementById('rhReportsMenuItem').style.display = anyReport ? '' : 'none';
+            if (!anyReport) toggleNavGroup('rhReportsGroup', false);
             if (!canOpenTab(currentTab)) switchTab(TAB_ORDER.find(canOpenTab) || 'settings');
         }
 
@@ -4346,6 +4365,7 @@
                 'notifications': 'Quản lý thông báo',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
+                'statistics': 'Thống kê',
                 'workflows': 'Quy trình làm việc',
                 'features': 'Chi tiết tính năng',
                 'architecture': 'Kiến trúc hệ thống',
@@ -4355,7 +4375,7 @@
             // Keep the sidebar highlight in sync when a tab is opened from a KPI card / bell.
             if (!sidebarItem) {
                 document.querySelectorAll('.sidebar-menu-item').forEach(item => {
-                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-z]+)'/);
+                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-z-]+)'/);
                     item.classList.toggle('active', !!match && match[1] === tabName);
                 });
             }
@@ -5285,7 +5305,7 @@
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
             RHUI.refreshOpenSupportConversation();
             applyNavPermissions();
-            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'reports', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
+            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'reports', 'statistics', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }
