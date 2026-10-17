@@ -3538,12 +3538,21 @@
         if (!guard('support.update')) return;
         var before = supportRequestInScope(RHUI.drawerId);
         if (!before) return;
-        var res = RHD.update('supportRequests', RHUI.drawerId, {
-            status: byId('srStatus').value,
+        var status = byId('srStatus').value;
+        var response = byId('srResponse').value.trim();
+        var now = Date.now();
+        var changes = {
+            status: status,
             assignee: byId('srAssignee').value.trim(),
-            response: byId('srResponse').value.trim(),
-            updatedAt: Date.now()
-        });
+            response: response,
+            updatedAt: now
+        };
+        if (status === 'resolved') {
+            changes.resolutionNote = response;
+            if (before.status !== 'resolved') changes.resolvedAt = now;
+        }
+        if (status === 'closed' && before.status !== 'closed') changes.closedAt = now;
+        var res = RHD.update('supportRequests', RHUI.drawerId, changes);
         // Notify the resident account linked to this request (by residentId).
         if (res.ok && RHD.getSettings().notifySupportStatus && before && before.status !== res.item.status && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
             global.RH.syncManagerNotification({

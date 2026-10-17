@@ -501,7 +501,7 @@
             if (pw !== pw2) return fail('Mật khẩu xác nhận không khớp.');
         }
 
-        var payload = { name: name, phone: phone, email: email, accountTypeId: typeId };
+        var payload = { name: name, phone: phone, email: email, accountTypeId: typeId, role: type.portal === 'resident' ? 'resident' : 'manager' };
         if (!isSelf) payload.status = byId('ufActive').checked ? 'active' : 'inactive';
         if (isSelf && !isAdmin()) delete payload.accountTypeId;
 

@@ -1543,7 +1543,6 @@
         // Hợp đồng module writes to. Falls back to a placeholder shape (not fake
         // financial data — just safe defaults) only when the account has not been
         // linked to an apartment/contract yet, so the page still renders.
-        const RH_SETTINGS = RHD.getSettings();
         const todayIso = () => AppClock.dateKey(new Date());
         let REAL_CONTRACT = RH_CTX && RH_CTX.contract;
         let REAL_BUILDING = RH_CTX && RH_CTX.building;
@@ -1877,7 +1876,7 @@
                     step: Object.prototype.hasOwnProperty.call(REQUEST_STEP_BY_STATUS, r.status) ? REQUEST_STEP_BY_STATUS[r.status] : 1,
                     preferredTime: r.preferredTime || '',
                     scheduledAt: r.scheduledAt || '',
-                    resolutionNote: r.resolutionNote || '',
+                    resolutionNote: r.resolutionNote || (r.status === 'resolved' ? r.response || '' : ''),
                     attachments: r.attachments || 0, attachmentFiles: Array.isArray(r.attachmentFiles) ? r.attachmentFiles : [],
                     messages: Array.isArray(r.messages) ? r.messages : [], rating: r.rating || 0
                 };

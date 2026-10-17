@@ -497,6 +497,14 @@
         normalized.building = String(normalized.building || '').trim();
         normalized.floor = String(normalized.floor || '').trim();
         normalized.phone = String(normalized.phone || '').trim();
+        normalized.accountTypeId = String(normalized.accountTypeId || '').trim();
+        normalized.allBuildings = normalized.allBuildings === true;
+        normalized.buildingIds = Array.isArray(normalized.buildingIds)
+            ? normalized.buildingIds.map(function (id) { return String(id || '').trim(); }).filter(function (id, index, ids) { return id && ids.indexOf(id) === index; })
+            : [];
+        normalized.department = String(normalized.department || '').trim();
+        normalized.title = String(normalized.title || '').trim();
+        normalized.employeeCode = String(normalized.employeeCode || '').trim();
         // Links a resident login account to its Resident Profile (RHD customer,
         // see data.js). Set once, at account-request approval time, and never
         // re-derived — this is the account's identity link, not a display cache.
@@ -543,7 +551,7 @@
         });
     }
 
-    function createUser(data) {
+    function createUserRecord(data) {
         var name = String(data.name || '').trim();
         var email = normalizeEmail(data.email);
         var password = String(data.password || '');
@@ -558,6 +566,20 @@
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
         }
+        var residentId = String(data.residentId || '').trim();
+        var apartmentId = String(data.apartmentId || '').trim();
+        if (role === ROLES.RESIDENT) {
+            if (residentId && readUsers().some(function (user) { return user.role === ROLES.RESIDENT && user.residentId === residentId; })) {
+                return { ok: false, error: 'Hồ sơ cư dân này đã được liên kết với một tài khoản khác.' };
+            }
+            var apartment = global.RHD && apartmentId ? global.RHD.get('apartments', apartmentId) : null;
+            if (!residentId || !global.RHD || !global.RHD.get('customers', residentId) || !apartment) {
+                return { ok: false, error: 'Vui lòng liên kết hồ sơ cư dân và căn hộ hợp lệ.' };
+            }
+            if (global.RHP && !global.RHP.inScope(apartment.buildingId)) {
+                return { ok: false, error: 'Căn hộ nằm ngoài phạm vi tòa nhà bạn được quản lý.' };
+            }
+        }
 
         var user = {
             id: 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
@@ -565,7 +587,15 @@
             email: email,
             password: password,
             role: role,
-            status: 'active',
+            status: ['active', 'inactive', 'locked'].indexOf(data.status) !== -1 ? data.status : 'active',
+            accountTypeId: String(data.accountTypeId || (role === ROLES.RESIDENT && global.RHP ? global.RHP.RESIDENT_TYPE_ID : '') || '').trim(),
+            allBuildings: role === ROLES.MANAGER && data.allBuildings === true,
+            buildingIds: role === ROLES.MANAGER && Array.isArray(data.buildingIds)
+                ? data.buildingIds.map(function (id) { return String(id || '').trim(); }).filter(function (id, index, ids) { return id && ids.indexOf(id) === index; })
+                : [],
+            department: String(data.department || '').trim(),
+            title: String(data.title || '').trim(),
+            employeeCode: String(data.employeeCode || '').trim(),
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -584,6 +614,15 @@
         writeUsers(users);
         syncResidentApartmentRecords(user);
         return { ok: true, user: user };
+    }
+
+    function createUser(data) {
+        var role = data && data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        var permission = role === ROLES.RESIDENT ? 'users.createResident' : 'users.create';
+        if (global.RHP && !global.RHP.can(permission)) {
+            return { ok: false, error: 'Bạn không có quyền tạo loại tài khoản này.' };
+        }
+        return createUserRecord(data);
     }
 
     function updateUser(id, patch) {
@@ -615,6 +654,20 @@
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
         if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
+        if (patch.accountTypeId !== undefined) user.accountTypeId = String(patch.accountTypeId || '').trim();
+        if (patch.allBuildings !== undefined) user.allBuildings = patch.allBuildings === true;
+        if (patch.buildingIds !== undefined) {
+            if (!Array.isArray(patch.buildingIds)) return { ok: false, error: 'Phạm vi tòa nhà không hợp lệ.' };
+            user.buildingIds = patch.buildingIds.map(function (buildingId) { return String(buildingId || '').trim(); })
+                .filter(function (buildingId, index, ids) { return buildingId && ids.indexOf(buildingId) === index; });
+        }
+        if (patch.department !== undefined) user.department = String(patch.department || '').trim();
+        if (patch.title !== undefined) user.title = String(patch.title || '').trim();
+        if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode || '').trim();
+        if (patch.status !== undefined) {
+            if (['active', 'inactive', 'locked'].indexOf(patch.status) === -1) return { ok: false, error: 'Trạng thái tài khoản không hợp lệ.' };
+            user.status = patch.status;
+        }
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
@@ -883,7 +936,7 @@
         var apartment = global.RHD ? global.RHD.get('apartments', request.apartmentId) : null;
         var building = (apartment && global.RHD) ? global.RHD.get('buildings', apartment.buildingId) : null;
 
-        var userResult = createUser({
+        var userResult = createUserRecord({
             name: request.fullName,
             email: request.email,
             password: request.password,

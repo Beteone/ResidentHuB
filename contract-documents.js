@@ -7,7 +7,7 @@
     function esc(value) { return String(value == null ? '' : value).replace(/[&<>"']/g, function (c) { return { '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[c]; }); }
     function money(n) { return Number(n || 0).toLocaleString('vi-VN') + ' đ'; }
     function enumLabel(options,value){var found=(options||[]).filter(function(o){return o.id===value;})[0];return found?found.label:value||'';}
-    function tenantIds(c) { return c.customerIds || (c.customerId ? [c.customerId] : []); }
+    function tenantIds(c) { return c.tenantIds && c.tenantIds.length ? c.tenantIds : (c.customerIds && c.customerIds.length ? c.customerIds : (c.customerId ? [c.customerId] : [])); }
     function paymentDefaults(building) {
         var settings = global.RHD.getSettings(), actor = global.RH && global.RH.getSession();
         var financial = {};
@@ -26,8 +26,12 @@
         if (ids.length > Number(apt.maxGuests)) return 'Số khách thuê vượt sức chứa tối đa (' + apt.maxGuests + ').';
         if (!c.startDate || !c.endDate || c.endDate < c.startDate) return 'Ngày kết thúc phải từ ngày bắt đầu trở đi.';
         if ([c.rentPrice, c.depositPrice].some(function (n) { return !Number.isFinite(n) || n < 0; })) return 'Tiền thuê và tiền cọc phải là số không âm.';
+        var inactive = ['draft', 'ended', 'terminated', 'expired', 'liquidated', 'settled', 'closed', 'deposit', 'deposited', 'forfeited', 'deposit_forfeited'];
         var conflict = d.list('contracts').some(function (other) {
-            return other.id !== c.id && other.status !== 'ended' && c.status !== 'ended' && (!other.endDate || other.endDate >= c.startDate) && (!other.startDate || other.startDate <= c.endDate) && (other.apartmentId === c.apartmentId || tenantIds(other).some(function (id) { return ids.indexOf(id) >= 0; }));
+            return other.id !== c.id && inactive.indexOf(String(other.status || '').toLowerCase()) === -1 &&
+                inactive.indexOf(String(c.status || '').toLowerCase()) === -1 &&
+                (!other.endDate || other.endDate >= c.startDate) && (!other.startDate || other.startDate <= c.endDate) &&
+                (other.apartmentId === c.apartmentId || tenantIds(other).some(function (id) { return ids.indexOf(id) >= 0; }));
         });
         if (conflict) return 'Căn hộ hoặc khách thuê đã có hợp đồng đang hiệu lực trong thời gian này.';
         var assets = c.handoverAssets || [];

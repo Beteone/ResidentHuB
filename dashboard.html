@@ -22,6 +22,8 @@
     <script src="manager-modules.js"></script>
     <script src="deposits-module.js"></script>
     <script src="dist/excel-tools.js"></script>
+    <script src="dist/financial-report-export.js"></script>
+    <script src="financial-report.js"></script>
     <script src="contracts-module.js"></script>
     <script src="account-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
@@ -3511,10 +3513,6 @@
         <div id="contracts-tab" style="display: none;"></div>
 
         <div id="reports-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Báo cáo</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung báo cáo sẽ hiển thị ở đây</p>
-            </div>
         </div>
 
         <!-- Tài khoản: duyệt đăng ký Cư dân + quản lý tài khoản đăng nhập (tách khỏi Cài đặt) -->
@@ -4232,6 +4230,7 @@
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
             cashflow: () => RHUI.renderCashflowTab(),
+            reports: () => RHFinancialReport.render(),
             support: (f) => RHUI.renderSupportTab(f),
             notifications: () => renderNotificationsManagerTab(),
             roles: () => RHAccounts.renderRolesTab(),
@@ -5286,7 +5285,7 @@
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
             RHUI.refreshOpenSupportConversation();
             applyNavPermissions();
-            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
+            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'reports', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }

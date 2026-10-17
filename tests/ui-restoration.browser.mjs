@@ -70,10 +70,13 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width: 1364, height: 900, deviceScaleFactor: 1, mobile: false });
     await navigate('/dashboard.html#demo=1');
     console.log('Dashboard loaded', JSON.stringify({ errors, pageLogs }));
-    for (const tab of ['dashboard', 'buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'service-fees', 'deposits', 'cashflow', 'support']) {
+    const legacyManagerMenu = await evaluate(`(()=>{const manager=RH.getUsers().find(u=>u.role==="manager");delete manager.accountTypeId;localStorage.setItem("residenthub_users",JSON.stringify(RH.getUsers()));window.RH_SESSION={id:manager.id,role:"manager"};applyNavPermissions();const result={canViewBuildings:RHP.can("buildings.view"),isAdmin:RHP.isAdmin(),buildingsMenu:document.querySelector('[data-perm="buildings.view"]').style.display};window.RH_SESSION={id:"demo",demo:true};applyNavPermissions();return result})()`);
+    assert.deepEqual(legacyManagerMenu, { canViewBuildings: true, isAdmin: false, buildingsMenu: '' }, 'Legacy manager accounts show feature navigation without admin access');
+    for (const tab of ['dashboard', 'buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'service-fees', 'deposits', 'cashflow', 'support', 'reports']) {
         await evaluate(`switchTab(${JSON.stringify(tab)})`);
         assert.equal(await evaluate(`document.getElementById(${JSON.stringify(tab + '-tab')}).style.display`), 'block');
         console.log('Tab', tab, await evaluate(`document.getElementById(${JSON.stringify(tab + '-tab')}).innerText.slice(0,100)`));
+        if (tab === 'reports') assert.equal(await evaluate('document.getElementById("reports-tab").innerText.includes("PT-MH-001") && !document.querySelector("#reports-tab .fr-sample-notice")'), true, 'An empty report period shows illustrative data without the removed notice');
     }
     console.log('Smoke diagnostics', JSON.stringify({ errors, pageLogs }));
     await evaluate('switchTab("support");const search=document.getElementById("rhSupportSearch");search.focus();search.value="UI";search.setSelectionRange(2,2);search.dispatchEvent(new Event("input"))');
@@ -100,7 +103,7 @@ try {
     })()`);
     assert.equal(contractDraft.selected.includes(contractDraft.serviceId), true, 'Service checkbox keeps the actual ID after rerender');
     assert.equal(contractDraft.unchanged, true, 'Invalid draft still uses the existing business validation');
-    await evaluate(`RHD.create('supportRequests',{id:'ui-request',code:'UI-001',buildingId:'ui-building',apartmentId:'ui-apartment',residentName:'UI Resident',title:'UI Test',status:'new',priority:'normal',messages:[{from:'Cư dân',text:'Resident question',time:'Now'}],response:'Keep response',customField:'keep'});switchTab('support');document.querySelector('[data-support-view="chat"]').click();document.querySelector('[data-support-chat-id="ui-request"]').click();`);
+    await evaluate(`(()=>{const visible=RHD.list('supportRequests')[0];const apartment=RHD.list('apartments').find(item=>visible&&item.buildingId===visible.buildingId)||RHD.list('apartments')[0];const buildingId=visible?visible.buildingId:apartment.buildingId;const created=RHD.create('supportRequests',{id:'ui-request',code:'UI-001',buildingId,apartmentId:apartment.id,residentName:'UI Resident',title:'UI Test',status:'new',priority:'normal',messages:[{from:'Cư dân',text:'Resident question',time:'Now'}],response:'Keep response',customField:'keep'});if(!created.ok)throw Error(created.error);switchTab('support');document.querySelector('[data-support-view="chat"]').click();document.querySelector('[data-support-chat-resident$="ui resident"]').click();document.querySelector('[data-support-chat-id="ui-request"]').click();})()`);
     assert.equal(await evaluate('document.querySelector("[data-support-panel=chat]").classList.contains("active")'), true);
     assert.equal(await evaluate('document.getElementById("supportInboxMessages").textContent.includes("Resident question")'), true);
     await evaluate('document.getElementById("supportInboxReply").value="Inbox draft";window.dispatchEvent(new StorageEvent("storage",{key:"residenthub_demo_supportRequests"}))');
@@ -125,8 +128,6 @@ try {
     assert.equal(await evaluate('document.getElementById("support-tab").innerHTML'), '');
     // Reload removes test permission stubs, then use real manager/resident sessions.
     await navigate('/dashboard.html#demo=1');
-    // Typed fixture: auth.js currently lacks the account-type persistence used by
-    // permissions.js. That existing business conflict is reported, not repaired here.
     await evaluate('(()=>{const rows=RH.getUsers();rows.find(u=>u.role==="manager").accountTypeId=RHP.ADMIN_TYPE_ID;localStorage.setItem("residenthub_users",JSON.stringify(rows));RH.login(rows.find(u=>u.role==="manager"),false)})()');
     await navigate('/dashboard.html');
     await evaluate('switchTab("accounts")');
