@@ -278,8 +278,10 @@
             return selectedIds.indexOf(row.buildingId || (apartmentsById[row.apartmentId] || {}).buildingId) !== -1;
         });
         var invoices = (input.invoices || []).filter(function (invoice) {
+            var status = invoiceStatus(invoice);
             return selectedIds.indexOf(invoice.buildingId || (apartmentsById[invoice.apartmentId] || {}).buildingId) !== -1 &&
-                validInvoice(invoice) && (filters.invoiceStatus === 'all' || invoiceStatus(invoice) === filters.invoiceStatus);
+                validInvoice(invoice) && (filters.invoiceStatus === 'all' || status === filters.invoiceStatus ||
+                    (filters.invoiceStatus === 'partial' && status === 'partially_paid'));
         });
         function linkedAmounts(invoice) {
             var identifier = String(invoice.code || invoice.id || '');
@@ -543,7 +545,7 @@
         var buildings = data.buildings;
         var periodOptions = [['today', 'Hôm nay'], ['7days', '7 ngày gần nhất'], ['30days', '30 ngày gần nhất'], ['month', 'Tháng này'], ['quarter', 'Quý này'], ['year', 'Năm nay'], ['custom', 'Tùy chỉnh']];
         var contractStatuses = [['all', 'Tất cả trạng thái'], ['active', 'Còn hiệu lực'], ['expired', 'Đã hết hạn'], ['terminated', 'Đã chấm dứt / hủy'], ['other', 'Khác']];
-        var invoiceStatuses = [['all', 'Tất cả trạng thái'], ['paid', 'Đã thanh toán'], ['unpaid', 'Chưa thanh toán'], ['sent', 'Đã gửi'], ['overdue', 'Quá hạn'], ['partial', 'Thanh toán một phần'], ['partially_paid', 'Thanh toán một phần']];
+        var invoiceStatuses = [['all', 'Tất cả trạng thái'], ['paid', 'Đã thanh toán'], ['unpaid', 'Chưa thanh toán'], ['sent', 'Đã gửi'], ['overdue', 'Quá hạn'], ['partial', 'Thanh toán một phần']];
         var supportStatuses = [['all', 'Tất cả trạng thái'], ['new', 'Mới tiếp nhận'], ['accepted', 'Đã tiếp nhận'], ['in_progress', 'Đang xử lý'], ['resolved', 'Đã giải quyết'], ['closed', 'Đã đóng']];
         var lastUpdated = data.lastUpdated ? new Date(data.lastUpdated).toLocaleString('vi-VN') : 'Chưa có dấu thời gian cập nhật từ dữ liệu';
         root.innerHTML = '<div class="sr-page">' +
@@ -554,14 +556,14 @@
             '<label>Trạng thái hợp đồng<select id="srContractStatus">' + selectOptions(contractStatuses, draft.contractStatus) + '</select></label><label>Trạng thái hóa đơn<select id="srInvoiceStatus">' + selectOptions(invoiceStatuses, draft.invoiceStatus) + '</select></label><label>Trạng thái hỗ trợ<select id="srSupportStatus">' + selectOptions(supportStatuses, draft.supportStatus) + '</select></label>' +
             '<div class="sr-filter-actions"><button class="sr-btn" type="button" data-reset-statistics>Đặt lại</button><button class="sr-btn primary" type="button" data-apply-statistics>Áp dụng bộ lọc</button></div></div></section>' +
             (data.empty ? '<section class="sr-card">' + empty('Không có dữ liệu phù hợp với điều kiện thống kê đã chọn') + '<div style="text-align:center"><button type="button" class="sr-btn" data-reset-statistics>Đặt lại bộ lọc</button></div></section>' : '') +
-            '<section><div class="sr-group-title"><h2>Tòa nhà và căn hộ</h2></div><div class="sr-kpis">' +
+            '<section><div class="sr-group-title"><h2>Tòa nhà và căn hộ</h2></div><div class="sr-apartment-overview"><div class="sr-kpis">' +
             kpi('Tổng số tòa nhà', data.totalBuildings, 'Theo phạm vi được cấp quyền và bộ lọc tòa nhà', 'fa-building') +
             kpi('Tổng số căn hộ', data.totalApartments, 'Các căn hộ thuộc lựa chọn tòa nhà', 'fa-door-closed') +
             kpi('Đang có người ở', data.occupiedApartments, 'Đếm theo căn hộ duy nhất có cư trú hiện hành', 'fa-house-user') +
             kpi('Còn trống', data.vacantApartments, 'Căn hộ đủ điều kiện và đang sẵn sàng', 'fa-door-open') +
             kpi('Bảo trì / không khai thác', data.maintenanceApartments, 'Không tính vào mẫu số lấp đầy', 'fa-screwdriver-wrench') +
             kpi('Tỷ lệ lấp đầy', apartmentRate, data.eligibleApartments + ' căn hộ đủ điều kiện khai thác', 'fa-chart-pie') +
-            '</div><div class="sr-card sr-apartment-chart-card" style="margin-top:.75rem"><div class="sr-group-title"><h2>Phân loại căn hộ</h2></div><div class="sr-apartment-chart-content">' + chartCanvas('sr-apartment-chart', 'Trạng thái căn hộ', ['Đang ở', 'Còn trống', 'Bảo trì / không khai thác'], [apartmentStatusCounts.occupied, apartmentStatusCounts.vacant, apartmentStatusCounts.maintenance], '#1683ff', 'doughnut') + '</div></div></section>' +
+            '</div><div class="sr-card sr-apartment-chart-card"><div class="sr-group-title"><h2>Phân loại căn hộ</h2></div><div class="sr-apartment-chart-content">' + chartCanvas('sr-apartment-chart', 'Trạng thái căn hộ', ['Đang ở', 'Còn trống', 'Bảo trì / không khai thác'], [apartmentStatusCounts.occupied, apartmentStatusCounts.vacant, apartmentStatusCounts.maintenance], '#1683ff', 'doughnut') + '</div></div></div></section>' +
             '<section><div class="sr-group-title"><h2>Cư dân</h2></div><div class="sr-kpis">' +
             kpi('Tổng hồ sơ khách hàng', data.residents.totalProfiles, 'Số hồ sơ duy nhất trong phạm vi đã chọn', 'fa-users') +
             kpi('Người đang cư trú', data.residents.current, 'Người duy nhất có hợp đồng hiệu lực hoặc căn hộ đang ở', 'fa-user-check') +

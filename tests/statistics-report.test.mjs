@@ -116,6 +116,11 @@ const unpaid = RHStatisticsReport.calculate(fixture, { now: today, filters: { bu
 assert.equal(unpaid.invoiceRows.length, 1);
 assert.equal(unpaid.invoiceSummary.debt, 1000);
 assert.equal(unpaid.invoiceSummary.overdueDebt, 0);
+const partialPayments = RHStatisticsReport.calculate({
+    ...fixture,
+    invoices: [...fixture.invoices, { ...fixture.invoices.find((invoice) => invoice.id === 'i-partial'), id: 'i-partially-paid', status: 'partially_paid' }]
+}, { now: today, filters: { building: 'b1', period: 'month', contractStatus: 'all', invoiceStatus: 'partial', supportStatus: 'all' } });
+assert.deepEqual(partialPayments.invoiceRows.map((invoice) => invoice.id).sort(), ['i-partial', 'i-partially-paid']);
 const activeContracts = RHStatisticsReport.calculate(fixture, { now: today, filters: { building: 'b1', period: 'month', contractStatus: 'active', invoiceStatus: 'all', supportStatus: 'all' } });
 assert.equal(activeContracts.contractRows.length, 2);
 assert.equal(activeContracts.contractRows.every((row) => row.category === 'active'), true);
