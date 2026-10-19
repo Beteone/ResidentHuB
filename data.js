@@ -119,7 +119,8 @@
         notifyInvoice: true,
         notifyContract: true,
         notifySupportStatus: true,
-        notifyAccountApproved: true
+        notifyAccountApproved: true,
+        notificationTemplates: {}
     };
     var SUPPORT_PRIORITIES = [
         { id: 'normal', label: 'Bình thường', color: '#526174', bg: '#f1f5f9' },
@@ -166,9 +167,20 @@
                 throw new Error('Không hỗ trợ khóa cài đặt: ' + setting);
             }
         });
-        var settings = Object.assign(getSettings(), patch);
+        var before = getSettings();
+        var settings = Object.assign({}, before, patch);
         localStorage.setItem(settingsKey(), JSON.stringify(settings));
+        auditChange('settings', 'update', before, settings);
         return settings;
+    }
+
+    // Optional settings audit bridge. Audit failures never change a business result.
+    function auditChange(entity, action, before, after) {
+        try {
+            if (global.RHGeneralSettings) global.RHGeneralSettings.record(entity, action, before, after);
+        } catch (error) {
+            if (global.console) console.error('Không ghi được nhật ký Cài đặt chung.', error);
+        }
     }
 
     function readAll(entity) {
@@ -226,6 +238,7 @@
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
         writeAll(entity, items);
+        auditChange(entity, 'create', null, record);
         return { ok: true, item: record };
     }
 
@@ -234,8 +247,10 @@
         var idx = -1;
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
+        var before = items[idx];
         items[idx] = Object.assign({}, items[idx], patch, { id: items[idx].id, createdAt: items[idx].createdAt });
         writeAll(entity, items);
+        auditChange(entity, 'update', before, items[idx]);
         return { ok: true, item: items[idx] };
     }
 
@@ -244,6 +259,7 @@
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
+        auditChange(entity, 'delete', items.filter(function (r) { return r.id === id; })[0], null);
         return { ok: true };
     }
 

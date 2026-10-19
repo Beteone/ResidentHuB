@@ -1,0 +1,17 @@
+#rh-general-settings{background:#fff;border:1px solid #e2e8f0;border-radius:12px;padding:20px;min-width:0;color:#24364b}
+#rh-general-settings h3{margin:0 0 16px}#rh-general-settings h4{margin:0 0 12px}
+#rh-general-settings p{font-size:13px;line-height:1.7;margin:12px 0;color:#52647a}
+#rh-general-settings button{border:1px solid #cbd5e1;background:#fff;border-radius:6px;padding:8px 12px;color:#245586;cursor:pointer}
+#rh-general-settings button[aria-pressed=true]{background:#eaf3ff;border-color:#1683ff}
+#rh-general-settings .rhgs-tabs,#rh-general-settings .rhgs-variables{display:flex;gap:8px;flex-wrap:wrap}
+#rh-general-settings fieldset{border:0;padding:0;margin:16px 0;min-width:0}
+#rh-general-settings label{display:block;font-size:13px;margin:10px 0}
+#rh-general-settings input:not([type=checkbox]),#rh-general-settings select,#rh-general-settings textarea{box-sizing:border-box;width:100%;border:1px solid #cbd5e1;border-radius:6px;padding:9px;margin-top:6px;font:inherit;background:#fff}
+#rh-general-settings textarea{min-height:90px;resize:vertical}#rh-general-settings article{border-top:1px solid #e2e8f0;margin-top:18px;padding-top:18px}
+#rh-general-settings .rhgs-variables button{font-size:11px;padding:5px}#rh-general-settings .rhgs-warning{background:#fff7df;padding:12px;border-radius:8px}
+#rh-general-settings .rhgs-table{overflow:auto}#rh-general-settings table{border-collapse:collapse;width:100%;font-size:13px;text-align:left}
+#rh-general-settings th,#rh-general-settings td{padding:10px;border-bottom:1px solid #e2e8f0;white-space:nowrap}
+#rh-general-settings .rhgs-filters{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px}
+#rh-general-settings #rhgs-error{color:#b91c1c}#rh-general-settings #rhgs-notice{color:#047857}
+#rh-general-settings aside{position:fixed;right:0;top:0;bottom:0;width:min(520px,100%);box-sizing:border-box;background:white;box-shadow:0 0 0 100vmax #0005;z-index:9999;padding:24px;overflow:auto}
+#rh-general-settings pre{white-space:pre-wrap;overflow-wrap:anywhere;font-size:12px;line-height:1.6}

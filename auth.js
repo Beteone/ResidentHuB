@@ -1056,6 +1056,7 @@
         syncManagerRecord: syncManagerRecord,
         removeManagerRecord: removeManagerRecord,
         syncManagerNotification: syncManagerNotification,
+        resolveNotificationRecipients: usersForManagerRecord,
         updateNotificationForUser: updateNotificationForUser,
         updateRequestForUser: updateRequestForUser,
         deleteRequestForUser: deleteRequestForUser,
