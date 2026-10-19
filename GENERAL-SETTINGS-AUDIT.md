@@ -1,5 +1,7 @@
 # Cài đặt chung — audit và phạm vi triển khai
 
+> Báo cáo của lần triển khai trước. Trạng thái cập nhật theo yêu cầu mới nằm trong [GENERAL-SETTINGS-UPDATE.md](GENERAL-SETTINGS-UPDATE.md); phương án cần xác nhận nằm trong [FINANCIAL-CASHFLOW-PLAN.md](FINANCIAL-CASHFLOW-PLAN.md).
+
 ## Kiến trúc đã kiểm tra
 
 - `dashboard.html` là giao diện quản lý tĩnh. `src/settings` là bản preview React độc lập, không phải màn hình cấu hình nghiệp vụ đang dùng. Không tích hợp preview hoặc dữ liệu mẫu vào màn hình thật.

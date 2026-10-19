@@ -120,7 +120,10 @@
         notifyContract: true,
         notifySupportStatus: true,
         notifyAccountApproved: true,
-        notificationTemplates: {}
+        notificationTemplates: {},
+        notificationDelivery: {},
+        notifyBuildingActivity: true,
+        financialAlerts: { enabled: false, actions: ['update', 'lock', 'delete'], recipientIds: [] }
     };
     var SUPPORT_PRIORITIES = [
         { id: 'normal', label: 'Bình thường', color: '#526174', bg: '#f1f5f9' },
@@ -177,7 +180,8 @@
     // Optional settings audit bridge. Audit failures never change a business result.
     function auditChange(entity, action, before, after) {
         try {
-            if (global.RHGeneralSettings) global.RHGeneralSettings.record(entity, action, before, after);
+            if (global.RHActivity) global.RHActivity.record(entity, action, before, after);
+            else if (global.RHGeneralSettings) global.RHGeneralSettings.record(entity, action, before, after);
         } catch (error) {
             if (global.console) console.error('Không ghi được nhật ký Cài đặt chung.', error);
         }
