@@ -122,9 +122,9 @@ function handleLogin(event){
     const result=RH.authenticateDetailed(email,password);
     if(!result.ok){
         if(button){button.disabled=false;button.innerHTML='Đăng nhập <i class="fa-solid fa-arrow-right"></i>'}
-        const message=result.reason==='locked'?'Tài khoản của bạn hiện đang bị khóa. Vui lòng liên hệ ban quản lý để được hỗ trợ.'
-            :result.reason==='inactive'?'Tài khoản của bạn đang ngừng hoạt động. Vui lòng liên hệ quản trị viên.'
-            :result.reason==='rate_limited'?'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau.'
+        const retryMinutes=result.retryAfter?Math.max(1,Math.ceil((result.retryAfter-Date.now())/60000)):5;
+        const message=result.reason==='locked'||result.reason==='inactive'?'Tài khoản của bạn hiện đang bị khóa. Vui lòng liên hệ ban quản lý để được hỗ trợ.'
+            :result.reason==='rate_limited'?'Bạn đã thử đăng nhập quá nhiều lần. Vui lòng thử lại sau '+retryMinutes+' phút.'
             :result.reason==='account_pending'?'Yêu cầu đăng ký của bạn đang chờ Quản lý phê duyệt. Vui lòng quay lại sau.'
             :result.reason==='account_rejected'?('Yêu cầu đăng ký tài khoản của bạn đã bị từ chối.'+(result.rejectionReason?' Lý do: '+result.rejectionReason:' Vui lòng liên hệ ban quản lý để biết thêm chi tiết.'))
             :'Thông tin đăng nhập hoặc mật khẩu không chính xác.';
@@ -133,7 +133,7 @@ function handleLogin(event){
     const user=result.user;
     RH.login(user,remember);
     showMessage('loginMessage','<div class="success-message">Đăng nhập thành công. Đang chuyển đến không gian của bạn...</div>');
-    setTimeout(()=>{closeLoginModal();window.location.href=user.role==='manager'?'dashboard.html':'resident-web.html'},700)
+    setTimeout(()=>{closeLoginModal();window.location.href=user.role==='manager'?'dashboard.html':user.role==='staff'?'staff.html':'resident-web.html'},700)
 }
 RHD.setMode('live');
 function toggleSignupRoleFields(){
@@ -247,7 +247,7 @@ if(new URLSearchParams(window.location.search).get('authRequired')){
 }
 const restoredSession=RH.getSession();
 if(restoredSession){
-    window.location.replace(restoredSession.role==='manager'?'dashboard.html':'resident-web.html');
+    window.location.replace(restoredSession.role==='manager'?'dashboard.html':restoredSession.role==='staff'?'staff.html':'resident-web.html');
 }
 window.addEventListener('click',event=>{})
 document.querySelectorAll('.nav-links a').forEach(link=>link.addEventListener('click',()=>document.querySelector('.site-header').classList.remove('mobile-open')))

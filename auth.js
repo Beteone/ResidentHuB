@@ -16,7 +16,7 @@
     var ACCOUNT_REQUESTS_KEY = 'residenthub_account_requests';
     var MAX_LOGIN_ATTEMPTS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000;
-    var ROLES = { MANAGER: 'manager', RESIDENT: 'resident' };
+    var ROLES = { MANAGER: 'manager', RESIDENT: 'resident', STAFF: 'staff' };
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
 
     function readDataStore() {
@@ -485,6 +485,10 @@
         return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
     }
 
+    function normalizeRole(value) {
+        return [ROLES.MANAGER, ROLES.RESIDENT, ROLES.STAFF].indexOf(value) !== -1 ? value : ROLES.MANAGER;
+    }
+
     function normalizeUserRecord(user) {
         if (!user || typeof user !== 'object') return null;
         var normalized = Object.assign({}, user);
@@ -492,7 +496,7 @@
         normalized.name = String(normalized.name || '').trim();
         normalized.email = normalizeEmail(normalized.email || normalized.username || normalized.userEmail);
         if (!normalized.password && normalized.pass) normalized.password = normalized.pass;
-        normalized.role = normalized.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        normalized.role = normalizeRole(normalized.role);
         normalized.unit = String(normalized.unit || '').trim();
         normalized.building = String(normalized.building || '').trim();
         normalized.floor = String(normalized.floor || '').trim();
@@ -534,6 +538,47 @@
         writeUsers(users);
     }
 
+    function seedDemoStaffAccount() {
+        var email = 'staff.demo@residenthub.test';
+        var users = readUsers();
+        var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
+        var user = index === -1 ? {
+            id: 'u-staff-demo',
+            createdAt: Date.now()
+        } : users[index];
+        var before = JSON.stringify(user);
+        user.name = 'Nguyễn Minh Anh';
+        user.email = email;
+        user.password = 'StaffDemo@2026';
+        user.role = ROLES.STAFF;
+        user.status = 'active';
+        if (index === -1) users.push(user);
+        else users[index] = user;
+        if (index === -1 || JSON.stringify(user) !== before) writeUsers(users);
+    }
+
+    function seedDemoResidentAccount() {
+        var email = 'resident.demo@residenthub.test';
+        var users = readUsers();
+        var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
+        var user = index === -1 ? {
+            id: 'u-resident-demo',
+            createdAt: Date.now()
+        } : users[index];
+        var before = JSON.stringify(user);
+        user.name = 'Cư dân Demo';
+        user.email = email;
+        user.password = 'ResidentDemo@2026';
+        user.role = ROLES.RESIDENT;
+        user.status = 'active';
+        user.unit = user.unit || '';
+        user.apartmentId = user.apartmentId || '';
+        user.residentId = user.residentId || '';
+        if (index === -1) users.push(user);
+        else users[index] = user;
+        if (index === -1 || JSON.stringify(user) !== before) writeUsers(users);
+    }
+
     function findUserByEmail(email) {
         var normalized = normalizeEmail(email);
         var users = readUsers();
@@ -555,7 +600,7 @@
         var name = String(data.name || '').trim();
         var email = normalizeEmail(data.email);
         var password = String(data.password || '');
-        var role = data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        var role = normalizeRole(data.role);
 
         if (!name || !email || !password) {
             return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, email và mật khẩu.' };
@@ -646,7 +691,7 @@
         var user = users[index];
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
-        if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        if (patch.role !== undefined) user.role = normalizeRole(patch.role);
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
         if (patch.apartmentId !== undefined) user.apartmentId = patch.apartmentId;
         if (patch.residentId !== undefined) user.residentId = patch.residentId;
@@ -719,13 +764,13 @@
         var guard = readLoginGuard();
         var guardKey = normalizeEmail(identifier);
         var lockedUntil = Number(guard[guardKey] && guard[guardKey].lockedUntil || 0);
-        if (lockedUntil > Date.now()) return { ok: false, reason: 'rate_limited', retryAfter: lockedUntil };
-        if (lockedUntil) delete guard[guardKey];
         var user = null;
         for (var i = 0; i < candidates.length; i++) {
             if (String(candidates[i].password) === String(password || '')) { user = candidates[i]; break; }
         }
         if (!user) {
+            if (lockedUntil > Date.now()) return { ok: false, reason: 'rate_limited', retryAfter: lockedUntil };
+            if (lockedUntil) delete guard[guardKey];
             // No active account matches this identifier at all (not just a wrong
             // password) — check whether it belongs to a pending/rejected resident
             // registration, so the message is accurate instead of "wrong password".
@@ -748,7 +793,7 @@
             }
             guard[guardKey] = attempt;
             writeLoginGuard(guard);
-            return { ok: false, reason: attempt.lockedUntil ? 'rate_limited' : 'invalid' };
+            return { ok: false, reason: attempt.lockedUntil ? 'rate_limited' : 'invalid', retryAfter: attempt.lockedUntil || 0 };
         }
         delete guard[guardKey];
         writeLoginGuard(guard);
@@ -1071,7 +1116,7 @@
             return null;
         }
         if (session.role !== role) {
-            var target = session.role === ROLES.MANAGER ? 'dashboard.html' : 'resident-web.html';
+            var target = session.role === ROLES.MANAGER ? 'dashboard.html' : session.role === ROLES.STAFF ? 'staff.html' : 'resident-web.html';
             global.location.replace(target + '?denied=1');
             return null;
         }
@@ -1079,6 +1124,8 @@
     }
 
     seedIfEmpty();
+    seedDemoStaffAccount();
+    seedDemoResidentAccount();
 
     global.RH = {
         ROLES: ROLES,

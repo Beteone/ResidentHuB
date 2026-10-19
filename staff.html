@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nhân viên - ResidentHub</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="auth.js"></script>
+    <style>
+        :root {
+            --bg: #f5f8fc;
+            --surface: #fff;
+            --ink: #10213c;
+            --muted: #61708a;
+            --line: #e4eaf2;
+            --primary: #1683ff;
+            --primary-strong: #0d65d5;
+        }
+        * { box-sizing: border-box; }
+        body { margin: 0; background: linear-gradient(180deg, #f7f9fc 0%, #edf3fb 100%); color: var(--ink); font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; }
+        .sidebar { position: fixed; inset: 0 auto 0 0; z-index: 5; width: 260px; overflow-y: auto; background: linear-gradient(180deg, #0c2545 0%, #15395f 100%); border-right: 1px solid rgba(255,255,255,.1); }
+        .sidebar-header { display: flex; align-items: center; gap: 12px; padding: 22px 20px; border-bottom: 1px solid rgba(255,255,255,.1); }
+        .brand-mark { display: grid; flex: 0 0 38px; width: 38px; height: 38px; place-items: center; border-radius: 11px; background: linear-gradient(135deg, #2563eb, #1d4ed8); color: #fff; }
+        .brand-name { color: #fff; font-weight: 800; }
+        .brand-role { margin-top: 2px; color: #a8bfd9; font-size: 11px; }
+        .menu-group { padding: 17px 0 7px; }
+        .menu-heading { padding: 0 20px 7px; color: #8da9c7; font-size: 10px; font-weight: 700; letter-spacing: .08em; }
+        .menu-item { display: flex; width: calc(100% - 20px); min-height: 42px; align-items: center; gap: 11px; margin: 2px 10px; padding: 9px 12px; border: 0; border-radius: 9px; background: transparent; color: #b9cbe0; cursor: pointer; font: 500 13px 'Be Vietnam Pro', sans-serif; text-align: left; }
+        .menu-item:hover { background: rgba(104, 166, 230, .12); color: #fff; }
+        .menu-item.active { padding-left: 9px; border-left: 3px solid #1683ff; background: #154273; color: #fff; font-weight: 700; }
+        .menu-item i { width: 18px; text-align: center; }
+        .menu-item.logout { color: #f2a6a6; }
+        .main-content { min-height: 100vh; margin-left: 260px; padding: 26px; }
+        .topbar { display: flex; min-height: 76px; align-items: center; justify-content: space-between; gap: 16px; margin-bottom: 26px; padding: 16px 22px; border: 1px solid var(--line); border-radius: 12px; background: rgba(255,255,255,.92); }
+        .topbar-title { margin: 0; font: 700 20px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; }
+        .topbar-caption { margin-top: 4px; color: var(--muted); font-size: 12px; }
+        .user-label { color: var(--muted); font-size: 12px; }
+        .content { padding: 8px 2px; }
+        .content h1 { margin: 0; font: 700 26px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; }
+        .content p { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+        .menu-toggle { display: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink); }
+        @media (max-width: 760px) {
+            .sidebar { box-shadow: 12px 0 30px rgba(15, 35, 64, .12); transform: translateX(-105%); transition: transform .2s ease; }
+            .sidebar.open { transform: translateX(0); }
+            .main-content { margin-left: 0; padding: 16px; }
+            .topbar { align-items: flex-start; padding: 14px; }
+            .menu-toggle { display: inline-grid; flex: 0 0 40px; place-items: center; }
+            .topbar-heading { flex: 1; }
+            .user-label { display: none; }
+            .content h1 { font-size: 22px; }
+        }
+    </style>
+</head>
+<body>
+    <script>
+        var RH_SESSION = RH.requireRole('staff');
+    </script>
+    <aside class="sidebar" id="staffSidebar">
+        <div class="sidebar-header">
+            <div class="brand-mark"><i class="fas fa-house"></i></div>
+            <div>
+                <div class="brand-name">ResidentHub</div>
+                <div class="brand-role">Giao diện Nhân viên</div>
+            </div>
+        </div>
+        <nav aria-label="Menu Nhân viên">
+            <div class="menu-group">
+                <div class="menu-heading">TỔNG QUAN</div>
+                <button class="menu-item active" data-title="Tổng quan"><i class="fas fa-chart-line"></i><span>Tổng quan</span></button>
+            </div>
+            <div class="menu-group">
+                <div class="menu-heading">CÔNG VIỆC</div>
+                <button class="menu-item" data-title="Danh sách nhiệm vụ"><i class="fas fa-list-check"></i><span>Danh sách nhiệm vụ</span></button>
+                <button class="menu-item" data-title="Chi tiết nhiệm vụ"><i class="fas fa-clipboard-list"></i><span>Chi tiết nhiệm vụ</span></button>
+                <button class="menu-item" data-title="Cập nhật tiến độ"><i class="fas fa-arrows-rotate"></i><span>Cập nhật tiến độ</span></button>
+                <button class="menu-item" data-title="Báo cáo kết quả"><i class="fas fa-file-circle-check"></i><span>Báo cáo kết quả</span></button>
+            </div>
+            <div class="menu-group">
+                <div class="menu-heading">THU NHẬP &amp; CHI PHÍ</div>
+                <button class="menu-item" data-title="Tổng hợp tiền công và chi phí"><i class="fas fa-coins"></i><span>Tổng hợp tiền công và chi phí</span></button>
+                <button class="menu-item" data-title="Theo dõi trạng thái tiền công"><i class="fas fa-money-check-dollar"></i><span>Theo dõi trạng thái tiền công</span></button>
+                <button class="menu-item" data-title="Lịch sử tiền công"><i class="fas fa-clock-rotate-left"></i><span>Lịch sử tiền công</span></button>
+            </div>
+            <div class="menu-group">
+                <div class="menu-heading">CÀI ĐẶT</div>
+                <button class="menu-item" data-title="Hồ sơ cá nhân"><i class="fas fa-user"></i><span>Hồ sơ cá nhân</span></button>
+                <button class="menu-item" data-title="Cài đặt giao diện"><i class="fas fa-palette"></i><span>Cài đặt giao diện</span></button>
+                <button class="menu-item" data-title="Cài đặt thông báo"><i class="fas fa-bell"></i><span>Cài đặt thông báo</span></button>
+                <button class="menu-item" data-title="Bảo mật tài khoản"><i class="fas fa-shield-halved"></i><span>Bảo mật tài khoản</span></button>
+                <button class="menu-item" data-title="Quyền truy cập"><i class="fas fa-key"></i><span>Quyền truy cập</span></button>
+                <button class="menu-item" data-title="Hỗ trợ và thông tin hệ thống"><i class="fas fa-circle-info"></i><span>Hỗ trợ và thông tin hệ thống</span></button>
+                <button class="menu-item logout" id="staffLogout"><i class="fas fa-right-from-bracket"></i><span>Đăng xuất</span></button>
+            </div>
+        </nav>
+    </aside>
+    <main class="main-content">
+        <header class="topbar">
+            <button class="menu-toggle" id="staffMenuToggle" aria-label="Mở menu"><i class="fas fa-bars"></i></button>
+            <div class="topbar-heading">
+                <h2 class="topbar-title" id="staffPageTitle">Tổng quan</h2>
+                <div class="topbar-caption">ResidentHub · Không gian Nhân viên</div>
+            </div>
+            <div class="user-label" id="staffUserName"></div>
+        </header>
+        <section class="content" aria-live="polite">
+            <h1 id="staffContentTitle">Tổng quan</h1>
+            <p id="staffPlaceholder">Nội dung sẽ hiển thị tại đây.</p>
+        </section>
+    </main>
+    <script>
+        var menuItems = document.querySelectorAll('.menu-item[data-title]');
+        menuItems.forEach(function (item) {
+            item.addEventListener('click', function () {
+                menuItems.forEach(function (menuItem) { menuItem.classList.remove('active'); });
+                item.classList.add('active');
+                document.getElementById('staffPageTitle').textContent = item.dataset.title;
+                document.getElementById('staffContentTitle').textContent = item.dataset.title;
+                document.getElementById('staffPlaceholder').textContent = item.dataset.title === 'Cập nhật tiến độ'
+                    ? 'Chờ tiếp nhận → Đang xử lý → Hoàn thành (Chờ Quản lý duyệt).'
+                    : 'Nội dung sẽ hiển thị tại đây.';
+                document.getElementById('staffSidebar').classList.remove('open');
+            });
+        });
+        document.getElementById('staffUserName').textContent = RH_SESSION.name || '';
+        document.getElementById('staffMenuToggle').addEventListener('click', function () {
+            document.getElementById('staffSidebar').classList.toggle('open');
+        });
+        document.getElementById('staffLogout').addEventListener('click', function () {
+            RH.logout();
+            window.location.replace('index.html');
+        });
+    </script>
+</body>
+</html>
