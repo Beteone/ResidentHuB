@@ -198,6 +198,7 @@
         if (existing) list = list.map(function (t) { return t.id === id ? record : t; });
         else list.push(record);
         writeTypes(list);
+        if (global.RHActivity) global.RHActivity.record('roles', existing ? 'update' : 'create', existing, record, { actor: me });
         return { ok: true, item: record };
     }
 
@@ -208,6 +209,7 @@
         var used = usersOfType(id).length;
         if (used) return { ok: false, error: 'Không thể xoá: còn ' + used + ' người dùng thuộc loại tài khoản này.' };
         writeTypes(listTypes().filter(function (x) { return x.id !== id; }));
+        if (global.RHActivity) global.RHActivity.record('roles', 'delete', t, null);
         return { ok: true };
     }
 

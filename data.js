@@ -119,7 +119,11 @@
         notifyInvoice: true,
         notifyContract: true,
         notifySupportStatus: true,
-        notifyAccountApproved: true
+        notifyAccountApproved: true,
+        notificationTemplates: {},
+        notificationDelivery: {},
+        notifyBuildingActivity: true,
+        financialAlerts: { enabled: false, actions: ['update', 'lock', 'delete'], recipientIds: [] }
     };
     var SUPPORT_PRIORITIES = [
         { id: 'normal', label: 'Bình thường', color: '#526174', bg: '#f1f5f9' },
@@ -171,9 +175,21 @@
                 throw new Error('Không hỗ trợ khóa cài đặt: ' + setting);
             }
         });
-        var settings = Object.assign(getSettings(), patch);
+        var before = getSettings();
+        var settings = Object.assign({}, before, patch);
         localStorage.setItem(settingsKey(), JSON.stringify(settings));
+        auditChange('settings', 'update', before, settings);
         return settings;
+    }
+
+    // Optional settings audit bridge. Audit failures never change a business result.
+    function auditChange(entity, action, before, after) {
+        try {
+            if (global.RHActivity) global.RHActivity.record(entity, action, before, after);
+            else if (global.RHGeneralSettings) global.RHGeneralSettings.record(entity, action, before, after);
+        } catch (error) {
+            if (global.console) console.error('Không ghi được nhật ký Cài đặt chung.', error);
+        }
     }
 
     function readAll(entity) {
@@ -281,6 +297,7 @@
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
         writeAll(entity, items);
+        auditChange(entity, 'create', null, record);
         if (entity === 'meters') notifyMeterChanges([record]);
         return { ok: true, item: record };
     }
@@ -306,6 +323,7 @@
         }
         items[idx] = updated;
         writeAll(entity, items);
+        auditChange(entity, 'update', previous, items[idx]);
         if (entity === 'meters') notifyMeterChanges([previous, items[idx]]);
         return { ok: true, item: items[idx] };
     }
@@ -316,6 +334,7 @@
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
+        auditChange(entity, 'delete', items.filter(function (r) { return r.id === id; })[0], null);
         if (entity === 'meters') notifyMeterChanges(removed);
         return { ok: true };
     }
