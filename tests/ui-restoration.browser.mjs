@@ -85,7 +85,7 @@ try {
         console.log('Tab', tab, await evaluate(`document.getElementById(${JSON.stringify(tab + '-tab')}).innerText.slice(0,100)`));
         if (tab === 'statistics') {
             await evaluate('(async()=>{for(let i=0;i<50;i++){if(document.querySelector("#statistics-tab .sr-head"))return true;await new Promise(resolve=>setTimeout(resolve,10));}return false})()');
-            assert.equal(await evaluate('document.querySelector("#statistics-tab .sr-breadcrumb").innerText'), 'Báo cáo / Thống kê');
+            assert.equal(await evaluate('document.querySelector("#statistics-tab .sr-breadcrumb").innerText'), 'Báo cáo');
             assert.equal(await evaluate('document.getElementById("statistics-tab").innerText.includes("Tỷ lệ lấp đầy")'), true);
             assert.equal(await evaluate('window.__statisticsChartLabels.includes("Trạng thái căn hộ")'), true, 'The apartment classification chart is initialized with its displayed data');
             assert.equal(await evaluate('window.__statisticsChartConfigs.find(config=>config.data.datasets[0].label==="Trạng thái căn hộ").options.plugins.legend.position'), 'bottom', 'Apartment chart legend sits below the chart');

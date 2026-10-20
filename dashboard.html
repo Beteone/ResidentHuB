@@ -4454,6 +4454,8 @@
                 });
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
+            const pageTitle = document.getElementById('pageTitle');
+            pageTitle.style.display = tabName === 'reports' || tabName === 'statistics' ? 'none' : '';
             window.scrollTo(0, 0);
         }
 
