@@ -1241,12 +1241,16 @@
             var residentDemoApartment = residentDemoContract && RHD.get('apartments', residentDemoContract.apartmentId);
             if (residentDemoContract && residentDemoCustomer && residentDemoApartment) {
                 var residentDemoBuilding = RHD.get('buildings', residentDemoApartment.buildingId) || {};
-                var residentDemoAddress = residentDemoApartment.address || RHD.buildingFullAddress(residentDemoBuilding);
-                RHD.update('customers', residentDemoCustomer.id, { fullName: 'Cư dân Demo', email: 'resident.demo@residenthub.test', phone: '0901234567', code: 'CD-2026-00125' });
+                var residentDemoAddress = 'Chung cư Riverside, Xuân Đỉnh, Cầu Giấy, Hà Nội';
+                RHD.update('customers', residentDemoCustomer.id, { fullName: 'Nguyễn Minh Anh', email: 'resident.demo@residenthub.test', phone: '0901234567', code: 'CD00128' });
+                RHD.update('buildings', residentDemoBuilding.id, { name: 'Chung cư Riverside', shortName: 'Riverside', province: 'Hà Nội', ward: 'Xuân Đỉnh, Cầu Giấy', addressDetail: 'Chung cư Riverside' });
+                RHD.update('apartments', residentDemoApartment.id, { name: '501', floor: 'Tầng 5', rentPrice: 4200000, address: residentDemoAddress });
+                residentDemoBuilding = RHD.get('buildings', residentDemoBuilding.id) || residentDemoBuilding;
+                residentDemoApartment = RHD.get('apartments', residentDemoApartment.id) || residentDemoApartment;
                 RHD.update('contracts', residentDemoContract.id, {
-                    code: 'HD-2026-00125', status: 'active', signDate: '2025-10-25', startDate: '2025-11-01', endDate: '2026-10-31',
+                    code: 'HD-2026-015', status: 'active', signDate: '2026-06-25', startDate: '2026-07-01', endDate: '2027-06-30',
                     updatedAt: '2026-10-19', landlordName: 'Ban quản lý ResidentHub', address: residentDemoAddress,
-                    rentPrice: 5000000, depositPrice: 10000000, paymentCycle: 'monthly', noticeDays: 30,
+                    rentPrice: 4200000, depositPrice: 10000000, paymentCycle: 'monthly', noticeDays: 30,
                     renewalTerms: 'Trao đổi với Ban quản lý trước ít nhất 30 ngày. Gia hạn chỉ có hiệu lực khi hai bên xác nhận bằng phụ lục hoặc hợp đồng mới.',
                     version: 'Phiên bản 1.0',
                     files: [
@@ -1263,7 +1267,26 @@
                     ],
                     renewalHistory: []
                 });
+                residentDemoContract = RHD.get('contracts', residentDemoContract.id) || residentDemoContract;
                 RH.updateUser(RH_SESSION.id, { residentId: residentDemoCustomer.id, apartmentId: residentDemoApartment.id, unit: residentDemoApartment.name, building: (RHD.get('buildings', residentDemoApartment.buildingId) || {}).name || '' });
+                var residentDemoOldContract = RHD.list('contracts').find(function (item) { return item.code === 'HD-2025-008'; });
+                if (!residentDemoOldContract) {
+                    var residentDemoOldContractResult = RHD.create('contracts', { code: 'HD-2025-008', buildingId: residentDemoBuilding.id, apartmentId: residentDemoApartment.id, customerId: residentDemoCustomer.id, signDate: '2025-01-01', startDate: '2025-01-01', endDate: '2026-06-30', rentPrice: 4000000, depositPrice: 8000000, paymentCycle: 'monthly', status: 'ended', createdAt: '2025-01-01' });
+                    residentDemoOldContract = residentDemoOldContractResult && residentDemoOldContractResult.item;
+                }
+                var billingSeedKey = 'residenthub_demo_billing_seed_v1';
+                if (residentDemoOldContract && !localStorage.getItem(billingSeedKey)) {
+                    RHD.list('invoices').filter(function (item) { return item.customerId === residentDemoCustomer.id || item.contractId === residentDemoContract.id || item.contractId === residentDemoOldContract.id; }).forEach(function (item) { RHD.remove('invoices', item.id); });
+                    var demoInvoiceItems = [
+                        { code: 'INV-2026-010', contract: residentDemoContract, period: '2026-10', issueDate: '2026-10-01', dueDate: '2026-10-05', total: 5280000, status: 'unpaid', paidAmount: 0, items: [{ label: 'Tiền thuê căn hộ', qty: 1, unitPrice: 4200000, amount: 4200000, total: 4200000 }, { label: 'Tiền điện · 70 kWh', qty: 70, unitPrice: 4000, amount: 280000, total: 280000 }, { label: 'Tiền nước · 7 m³', qty: 7, unitPrice: 20000, amount: 140000, total: 140000 }, { label: 'Phí dịch vụ, vệ sinh', qty: 1, unitPrice: 360000, amount: 360000, total: 360000 }, { label: 'Phí gửi xe', qty: 1, unitPrice: 300000, amount: 300000, total: 300000 }] },
+                        { code: 'INV-2026-009', contract: residentDemoContract, period: '2026-09', issueDate: '2026-09-01', dueDate: '2026-09-05', total: 5150000, status: 'paid', paidAmount: 5150000, paidAt: '2026-09-04T10:35:00+07:00', items: [{ label: 'Tiền thuê căn hộ', qty: 1, unitPrice: 4200000, amount: 4200000, total: 4200000 }, { label: 'Tiền điện · 65 kWh', qty: 65, unitPrice: 4000, amount: 260000, total: 260000 }, { label: 'Tiền nước · 7 m³', qty: 7, unitPrice: 20000, amount: 140000, total: 140000 }, { label: 'Phí dịch vụ, vệ sinh', qty: 1, unitPrice: 350000, amount: 350000, total: 350000 }, { label: 'Phí gửi xe', qty: 1, unitPrice: 200000, amount: 200000, total: 200000 }] },
+                        { code: 'INV-2026-008', contract: residentDemoContract, period: '2026-08', issueDate: '2026-08-01', dueDate: '2026-08-05', total: 5060000, status: 'paid', paidAmount: 5060000, paidAt: '2026-08-04T09:10:00+07:00', items: [{ label: 'Tiền thuê căn hộ', qty: 1, unitPrice: 4200000, amount: 4200000, total: 4200000 }, { label: 'Tiền điện · 60 kWh', qty: 60, unitPrice: 4000, amount: 240000, total: 240000 }, { label: 'Tiền nước · 6 m³', qty: 6, unitPrice: 20000, amount: 120000, total: 120000 }, { label: 'Phí dịch vụ, vệ sinh', qty: 1, unitPrice: 350000, amount: 350000, total: 350000 }, { label: 'Phí gửi xe', qty: 1, unitPrice: 150000, amount: 150000, total: 150000 }] },
+                        { code: 'INV-2026-007', contract: residentDemoContract, period: '2026-07', issueDate: '2026-07-01', dueDate: '2026-07-05', total: 4980000, status: 'paid', paidAmount: 4980000, paidAt: '2026-07-04T11:20:00+07:00', items: [{ label: 'Tiền thuê căn hộ', qty: 1, unitPrice: 4200000, amount: 4200000, total: 4200000 }, { label: 'Tiền điện · 55 kWh', qty: 55, unitPrice: 4000, amount: 220000, total: 220000 }, { label: 'Tiền nước · 6 m³', qty: 6, unitPrice: 20000, amount: 120000, total: 120000 }, { label: 'Phí dịch vụ, vệ sinh', qty: 1, unitPrice: 340000, amount: 340000, total: 340000 }, { label: 'Phí gửi xe', qty: 1, unitPrice: 100000, amount: 100000, total: 100000 }] },
+                        { code: 'INV-2026-006', contract: residentDemoOldContract, period: '2026-06', issueDate: '2026-06-01', dueDate: '2026-06-05', total: 4800000, status: 'paid', paidAmount: 4800000, paidAt: '2026-06-04T14:00:00+07:00', items: [{ label: 'Tiền thuê căn hộ', qty: 1, unitPrice: 4000000, amount: 4000000, total: 4000000 }, { label: 'Tiền điện', qty: 1, unitPrice: 300000, amount: 300000, total: 300000 }, { label: 'Tiền nước', qty: 1, unitPrice: 150000, amount: 150000, total: 150000 }, { label: 'Phí dịch vụ', qty: 1, unitPrice: 350000, amount: 350000, total: 350000 }] }
+                    ];
+                    demoInvoiceItems.forEach(function (item) { RHD.create('invoices', { code: item.code, contractId: item.contract.id, buildingId: item.contract.buildingId, apartmentId: item.contract.apartmentId, customerId: residentDemoCustomer.id, period: item.period, issueDate: item.issueDate, dueDate: item.dueDate, total: item.total, status: item.status, paidAmount: item.paidAmount, paidAt: item.paidAt || null, items: item.items }); });
+                    localStorage.setItem(billingSeedKey, '1');
+                }
             }
         }
         var RH_SETTINGS = RHD.getSettings();
@@ -3094,13 +3117,8 @@
                 const bankName = String(paymentConfig.bankName || '').trim();
                 const accountNumber = String(paymentConfig.bankAccountNumber || '').trim();
                 const accountHolder = String(paymentConfig.bankAccountHolder || '').trim();
-                const normalizedBankName = bankName.toLowerCase().replace(/[^a-z0-9]/g, '');
-                const bankCodes = { vietcombank: 'VCB', bidv: 'BIDV', vietinbank: 'CTG', agribank: 'VBA', techcombank: 'TCB', mbbank: 'MBB', mb: 'MBB', acb: 'ACB', vpbank: 'VPB', sacombank: 'STB', tpbank: 'TPB', hdbank: 'HDB', shb: 'SHB', vib: 'VIB', msb: 'MSB', seabank: 'SSB', ocb: 'OCB', eximbank: 'EIB', lpbank: 'LPB', pvcombank: 'PVCB', vietabank: 'VAB', bacabank: 'BAB', bvbank: 'BVB' };
-                const bankCode = bankCodes[normalizedBankName] || (/^[A-Z]{3,6}$/.test(bankName) ? bankName.toUpperCase() : '');
                 const transferNote = 'Thanh toan ' + invoiceIds.join(' ');
-                const qrUrl = bankCode && accountNumber
-                    ? 'https://img.vietqr.io/image/' + bankCode + '-' + encodeURIComponent(accountNumber) + '-compact2.png?amount=' + total + '&addInfo=' + encodeURIComponent(transferNote) + (accountHolder ? '&accountName=' + encodeURIComponent(accountHolder) : '')
-                    : '';
+                const qrUrl = '';
                 const bankApps = 'Vietcombank, BIDV, VietinBank, Agribank, Techcombank, MB Bank, ACB, VPBank, Sacombank, TPBank, HDBank, SHB, VIB, MSB, OCB';
                 const paymentDetails = accountNumber
                     ? '<div class="payment-account"><div><small>Ngân hàng nhận</small><strong>' + escapeHtml(bankName || 'Chưa cập nhật') + '</strong></div><div><small>Số tài khoản</small><strong>' + escapeHtml(accountNumber) + '</strong></div><div><small>Chủ tài khoản</small><strong>' + escapeHtml(accountHolder || 'Chưa cập nhật') + '</strong></div><div><small>Nội dung chuyển khoản</small><strong>' + escapeHtml(transferNote) + '</strong></div></div>'
@@ -3504,7 +3522,7 @@
         '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
     }[character]));
     const amount = value => Number(value) || 0;
-    const moneyLabel = value => new Intl.NumberFormat('vi-VN').format(amount(value)) + ' đ';
+    const moneyLabel = value => new Intl.NumberFormat('vi-VN').format(amount(value)) + ' VNĐ';
     const normalize = value => String(value || '').toLocaleLowerCase('vi-VN').normalize('NFD')
         .replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
     const fmtDate = value => clock.formatDate(value);
@@ -3540,14 +3558,25 @@
     const apartmentFor = id => allApartments().find(apartment => apartment.id === id) || null;
     const buildingFor = id => allBuildings().find(building => building.id === id) || null;
     const contractForInvoice = invoice => window.RHD.get('contracts', invoice.contractId);
-    const statusFor = (invoice, now) => clock.invoiceStatus(invoice, now);
+    const invoiceIsInactive = invoice => ['cancelled', 'canceled', 'void', 'superseded', 'replaced'].includes(String(invoice.status || '').toLowerCase()) || !!(invoice.replacedById || invoice.replacedByCode || invoice.supersededBy || invoice.isSuperseded);
+    const statusFor = (invoice, now) => {
+        const raw = String(invoice.status || '').toLowerCase();
+        if (invoiceIsInactive(invoice)) return ['cancelled', 'canceled', 'void'].includes(raw) ? raw : 'superseded';
+        if (raw === 'partial') return invoice.dueDate && clock.daysRemaining(invoice.dueDate, now) < 0 ? 'overdue_partial' : 'partial';
+        if (invoice.paymentReview && ['rejected', 'needs_documents'].includes(invoice.paymentReview.status)) return invoice.dueDate && clock.daysRemaining(invoice.dueDate, now) < 0 ? 'overdue' : 'unpaid';
+        if (invoice.paymentReview && invoice.paymentReview.status === 'partial') return invoice.dueDate && clock.daysRemaining(invoice.dueDate, now) < 0 ? 'overdue_partial' : 'partial';
+        if (invoice.paymentReview && invoice.paymentReview.status === 'confirmed' && amount(invoice.paidAmount || invoice.amountPaid) >= amount(invoice.total)) return 'paid';
+        return clock.invoiceStatus(invoice, now);
+    };
     const displayStatus = status => ({
         unpaid: ['Chưa thanh toán', 'pending'], sent: ['Chưa thanh toán', 'pending'],
         payment_pending: ['Chờ xác nhận', 'waiting'], paid: ['Đã thanh toán', 'paid'],
-        overdue: ['Quá hạn', 'overdue'], partial: ['Thanh toán một phần', 'pending']
+        overdue: ['Quá hạn', 'overdue'], overdue_partial: ['Thanh toán thiếu', 'overdue'], partial: ['Thanh toán thiếu', 'pending'],
+        cancelled: ['Đã hủy', 'cancelled'], canceled: ['Đã hủy', 'cancelled'], void: ['Đã hủy', 'cancelled'],
+        superseded: ['Đã thay thế', 'cancelled'], replaced: ['Đã thay thế', 'cancelled']
     }[status] || ['Chưa thanh toán', 'pending']);
-    const invoiceDue = invoice => invoice.status === 'paid' ? 0 : Math.max(0, amount(invoice.total) - amount(invoice.paidAmount || invoice.amountPaid));
-    const isPayable = invoice => ['unpaid', 'sent', 'overdue', 'partial'].includes(statusFor(invoice));
+    const invoiceDue = invoice => String(invoice.status || '').toLowerCase() === 'paid' || invoiceIsInactive(invoice) ? 0 : Math.max(0, amount(invoice.total) - amount(invoice.paidAmount || invoice.amountPaid));
+    const isPayable = invoice => ['unpaid', 'sent', 'overdue', 'partial', 'overdue_partial'].includes(statusFor(invoice)) || (!!invoice.paymentReview && ['rejected', 'needs_documents'].includes(invoice.paymentReview.status));
 
     const stylesheet = document.createElement('style');
     stylesheet.textContent = `
@@ -3624,6 +3653,9 @@
         .contract-live-countdown{margin-top:.5rem;color:#08794f;font-size:.75rem;font-weight:800}.contract-live-countdown.warning{color:#a5680c}.contract-live-countdown.orange{color:#c2410c}.contract-live-countdown.expired{color:#b91c1c}
         .resident-contract-page{display:grid;gap:1rem}.resident-contract-ident{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1rem 1.15rem;border:1px solid #dce8f5;border-radius:14px;background:#fff}.resident-contract-ident-main{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}.resident-contract-ident small,.resident-contract-detail small{display:block;color:#74849a;font-size:.68rem;font-weight:700}.resident-contract-ident strong,.resident-contract-detail strong{display:block;margin-top:.2rem;color:#20334d;font-size:.82rem;overflow-wrap:anywhere}.resident-contract-ident .code{font-size:1rem;color:#0d65d5}.resident-contract-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:1rem;align-items:start}.resident-contract-main,.resident-contract-aside{display:grid;gap:1rem;min-width:0}.resident-contract-card{padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff)}.resident-contract-card h3{margin:0 0 .8rem;color:var(--ink,#10213c);font-size:.96rem}.resident-contract-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.resident-contract-detail{min-width:0;padding:.7rem .75rem;border:1px solid #edf1f6;border-radius:9px;background:#fbfcfe}.resident-contract-term{padding:1.1rem;border:1px solid #d7e8fa;border-radius:14px;background:linear-gradient(150deg,#f5faff,#fff)}.resident-contract-term-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.7rem}.resident-contract-term h3{margin:0}.resident-contract-days{margin:.6rem 0 .25rem;color:#147b58;font-size:1.8rem;font-weight:800;letter-spacing:-.03em}.resident-contract-days.warning{color:#a5680c}.resident-contract-days.critical{color:#b54708}.resident-contract-days.expired{color:#b42318}.resident-contract-term p{margin:.25rem 0;color:#64748b;font-size:.78rem;line-height:1.5}.resident-contract-progress{height:9px;margin:.8rem 0 .35rem;overflow:hidden;border-radius:99px;background:#e6edf5}.resident-contract-progress span{display:block;height:100%;border-radius:inherit;background:#1683ff;transition:width .25s}.resident-contract-progress-meta{display:flex;justify-content:space-between;gap:.5rem;color:#718096;font-size:.68rem}.resident-contract-reminder{margin-top:.7rem;padding:.7rem .8rem;border-radius:9px;background:#fff6e7;color:#89570a;font-size:.76rem;line-height:1.5}.resident-contract-reminder.critical{background:#fff0e7;color:#a33d05}.resident-contract-req{margin-top:.7rem;padding:.65rem .75rem;border-radius:9px;background:#eff6ff;color:#1d4ed8;font-size:.75rem;line-height:1.5}.resident-contract-doc-toolbar{display:flex;gap:.55rem;align-items:center;margin:-.1rem 0 .7rem}.resident-contract-doc-toolbar input,.resident-contract-doc-toolbar select{min-height:36px;padding:.45rem .6rem;border:1px solid var(--line);border-radius:8px;background:#fff;color:#334155;font:500 .73rem 'Be Vietnam Pro',sans-serif}.resident-contract-doc-toolbar input{flex:1;min-width:0}.resident-contract-doc-list{display:grid;gap:.55rem}.resident-contract-file{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.65rem;padding:.7rem .75rem;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}.resident-contract-file:hover{border-color:#93c5fd;background:#f8fbff}.resident-contract-file-icon{display:grid;place-items:center;width:34px;height:38px;border-radius:8px;background:#fff0f0;color:#d33d45;font-size:.95rem}.resident-contract-file-copy{min-width:0}.resident-contract-file-copy strong{display:block;color:#20334d;font-size:.78rem;overflow-wrap:anywhere}.resident-contract-file-copy small{display:block;margin-top:.18rem;color:#7a899b;font-size:.67rem;line-height:1.45}.resident-contract-file>i:last-child{color:#7f91a8;font-size:.75rem}.resident-contract-timeline{display:grid;gap:0}.resident-contract-event{position:relative;display:grid;grid-template-columns:90px 12px minmax(0,1fr);gap:.6rem;padding-bottom:.8rem;color:#64748b;font-size:.75rem;line-height:1.5}.resident-contract-event:last-child{padding-bottom:0}.resident-contract-event:before{content:'';position:absolute;top:10px;bottom:-2px;left:94px;width:1px;background:#dce7f2}.resident-contract-event:last-child:before{display:none}.resident-contract-event-dot{z-index:1;width:9px;height:9px;margin-top:4px;border:2px solid #1683ff;border-radius:50%;background:#fff}.resident-contract-event strong{display:block;color:#273b55;font-size:.77rem}.resident-contract-empty{padding:.8rem;border:1px dashed #d8e2ee;border-radius:9px;color:#7a899b;font-size:.74rem}
         #contractLiveList{grid-template-columns:minmax(0,1fr)}
+        .invoice-summary-primary{border-color:#bfdbfe;background:linear-gradient(145deg,#eff6ff,#fff)}.invoice-summary-primary>strong{color:#075fc2;font-size:1.8rem}.invoice-summary-subline{display:block;margin-top:.55rem;color:#64748b;font-size:.72rem}.invoice-summary-waiting{border-color:#f7dca5;background:#fffaf0}.invoice-summary-waiting>strong{color:#a5680c}.invoice-status.cancelled{background:#eef1f5;color:#667085}.invoice-pending-note,.invoice-replacement-note{display:block;margin-top:.18rem;color:#9a6700;font-size:.64rem;line-height:1.4}.invoice-replacement-note{color:#64748b}.invoice-row-action-text{width:auto;height:auto;min-height:32px;padding:.42rem .6rem;white-space:nowrap;font:700 .69rem 'Be Vietnam Pro',sans-serif}.invoice-section-head{display:flex;justify-content:space-between;align-items:flex-start;gap:1rem;margin-bottom:.8rem}.invoice-section-head h4{margin:0;color:#10213c;font-size:.98rem}.invoice-section-head p{margin:.25rem 0 0;color:#718096;font-size:.75rem}.invoice-contract-history-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.invoice-contract-history-card{display:grid;gap:.35rem;padding:.85rem;border:1px solid var(--line);border-radius:11px;background:var(--surface,#fff);text-align:left;color:#526176;cursor:pointer}.invoice-contract-history-card:hover{border-color:#8dbdff;background:#f8fbff}.invoice-contract-history-card strong{color:#20334d;font-size:.78rem}.invoice-contract-history-card small{color:#7a899b;font-size:.68rem}.invoice-contract-history-top{display:flex;justify-content:space-between;align-items:center;gap:.5rem}.invoice-history-debt{color:#b54708!important}.invoice-contract-history.card{padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff)}
+        .invoice-detail{display:grid;gap:.8rem}.invoice-detail h3{margin:.3rem 0 0;color:#20334d;font-size:.88rem}.invoice-detail-summary{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem}.invoice-detail-summary>div,.invoice-detail-totals>div{min-width:0;padding:.62rem .7rem;border:1px solid #edf1f6;border-radius:9px;background:#fbfcfe}.invoice-detail-summary small{display:block;color:#74849a;font-size:.65rem;font-weight:700}.invoice-detail-summary strong{display:block;margin-top:.2rem;color:#20334d;font-size:.76rem;overflow-wrap:anywhere}.invoice-detail-items{display:grid;gap:.4rem}.invoice-detail-line,.invoice-detail-totals>div{display:flex;justify-content:space-between;gap:1rem;padding:.62rem .7rem;border:1px solid #edf1f6;border-radius:8px;color:#536275;font-size:.75rem}.invoice-detail-line>span small{display:block;margin-top:.15rem;color:#8a99ac;font-size:.66rem}.invoice-detail-line>strong,.invoice-detail-totals strong{flex:none;color:#20334d}.invoice-detail-totals{display:grid;gap:.4rem}.invoice-detail-totals>div{background:#fff}.invoice-detail-totals .invoice-due-total{border-color:#bfdbfe;background:#eff6ff;color:#0d65d5;font-weight:800}.invoice-detail-totals .invoice-due-total strong{color:#0d65d5}.invoice-detail-actions{display:flex;justify-content:space-between;gap:.55rem;flex-wrap:wrap;margin-top:.3rem}.invoice-payment-timeline{display:grid;gap:.1rem}.invoice-timeline-step{display:grid;grid-template-columns:112px minmax(0,1fr);gap:.65rem;padding:.55rem 0;color:#718096;font-size:.72rem}.invoice-timeline-step time{font-size:.66rem}.invoice-timeline-step strong,.invoice-timeline-step span,.invoice-timeline-step small{display:block}.invoice-timeline-step strong{color:#334155}.invoice-timeline-step.current strong{color:#a5680c}.invoice-timeline-step.done strong{color:#08794f}.invoice-review-state{padding:.7rem .8rem;border-radius:9px;background:#fff7e8;color:#89570a;font-size:.74rem;line-height:1.5}.invoice-review-state.success{background:#eaf8ef;color:#08794f}.invoice-review-state.notice{background:#fff1f2;color:#9f2730}.invoice-payment-modal{display:grid;gap:.8rem}.invoice-demo-warning{display:grid;gap:.2rem;padding:.72rem .8rem;border:1px solid #f4b1a5;border-radius:10px;background:#fff3f0;color:#a33325;font-size:.72rem;line-height:1.45}.invoice-demo-warning strong{font-size:.76rem}.invoice-payment-grid{display:grid;grid-template-columns:minmax(0,1.2fr) minmax(190px,.8fr);gap:.8rem;align-items:center}.invoice-bank-card,.invoice-qr-card{padding:.8rem;border:1px solid var(--line);border-radius:11px;background:#fff}.invoice-bank-card h3{margin:0 0 .55rem;color:#20334d;font-size:.83rem}.invoice-bank-row{display:grid;gap:.13rem;padding:.45rem 0;border-bottom:1px solid #edf1f6}.invoice-bank-row:last-child{border:0}.invoice-bank-row>span{color:#74849a;font-size:.65rem}.invoice-bank-row>strong{display:flex;justify-content:space-between;align-items:center;gap:.45rem;color:#24364e;font-size:.7rem;overflow-wrap:anywhere}.invoice-copy{border:0;background:none;color:#1769e8;font:700 .65rem 'Be Vietnam Pro',sans-serif;cursor:pointer}.invoice-qr-card{display:grid;justify-items:center;gap:.45rem;text-align:center}.invoice-qr-card>strong{color:#9b3b2d;font-size:.67rem}.invoice-qr-demo{position:relative;display:grid;place-items:center;width:156px;height:156px;overflow:hidden;border:7px solid white;outline:1px solid #dce7f4;background:repeating-conic-gradient(#20334d 0 25%,#fff 0 50%) 0 0/16px 16px}.invoice-qr-demo:before{position:absolute;inset:0;background:repeating-linear-gradient(0deg,transparent 0 8px,rgba(255,255,255,.45) 8px 10px);content:''}.invoice-qr-demo>b{z-index:1;padding:.42rem .6rem;border:1px solid #0d65d5;border-radius:7px;background:white;color:#0d65d5;font-size:.85rem;line-height:1.2}.invoice-payment-steps{margin:0;padding-left:1.15rem;color:#536275;font-size:.68rem;line-height:1.55}.invoice-payment-steps li{padding:.08rem 0}.invoice-safe-note{margin:.2rem 0;color:#64748b;font-size:.67rem}.invoice-payment-modal form{display:grid;gap:.12rem}.invoice-payment-modal form label{margin:.45rem 0 .15rem}.invoice-amount-warning{padding:.55rem .65rem;border-radius:8px;background:#fff3e5;color:#a45b00;font-size:.69rem}.invoice-amount-warning[hidden]{display:none}
+        .live-dialog-backdrop.wide .live-dialog{width:min(780px,100%)}
         body.resident-theme-dark .resident-contract-ident,body.resident-theme-dark .resident-contract-card,body.resident-theme-dark .resident-contract-file{background:#172235;border-color:#304158}body.resident-theme-dark .resident-contract-detail{background:#1b2a3d;border-color:#304158}body.resident-theme-dark .resident-contract-ident strong,body.resident-theme-dark .resident-contract-detail strong,body.resident-theme-dark .resident-contract-file-copy strong,body.resident-theme-dark .resident-contract-event strong{color:#dbe7f5}
         .contract-live-card.expired{border-color:#fecaca;background:#fffafa}.contract-live-empty{grid-column:1/-1;padding:1.4rem;border:1px dashed var(--line);border-radius:12px;text-align:center;color:#64748b}.contract-live-empty strong{display:block;margin-bottom:.4rem;color:#334155}
         .contract-empty-state{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:1rem;padding:1.1rem;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff);text-align:left}.contract-empty-intro{display:flex;align-items:flex-start;gap:.9rem;padding:1rem;border-radius:12px;background:linear-gradient(135deg,#f5f9ff,#edf5ff)}.contract-empty-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:#e7f1ff;color:#1769e8}.contract-empty-intro h3{margin:0 0 .35rem;color:var(--ink,#10213c);font-size:1rem}.contract-empty-intro p{margin:0;color:#64748b;font-size:.82rem;line-height:1.55}.contract-empty-intro button{margin-top:.8rem}.contract-empty-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}.contract-empty-info article{padding:.75rem;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff)}.contract-empty-info small{display:block;color:#718096;font-size:.68rem;font-weight:700}.contract-empty-info strong{display:block;margin:.3rem 0 0;color:#334155;font-size:.8rem}.contract-empty-footer{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.contract-empty-footer article{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff)}.contract-empty-footer h4{margin:0 0 .35rem;color:#334155;font-size:.8rem}.contract-empty-footer p{margin:0;color:#718096;font-size:.74rem;line-height:1.5}
@@ -3632,6 +3664,7 @@
         @media(max-width:900px){.invoice-controls{grid-template-columns:1fr}.invoice-query-row{justify-content:flex-start}.contract-live-list,.resident-contract-layout{grid-template-columns:1fr}.resident-contract-ident-main{grid-template-columns:repeat(2,minmax(0,1fr))}.contract-empty-state{grid-template-columns:1fr}}
         @media(max-width:700px){.resident-live-clock{min-width:0;flex:1}.topbar-actions{flex-wrap:wrap}.invoice-summary{grid-template-columns:1fr}.contract-live-stats{grid-template-columns:1fr}.contract-empty-info,.contract-empty-footer{grid-template-columns:1fr}.invoice-query-row>*{max-width:none!important;flex:1 1 130px}.invoice-search{flex:1 1 100%}.invoice-search input{width:100%}.invoice-table-wrap{max-height:none;border:0;overflow:visible}.invoice-table,.invoice-table tbody{display:block;width:100%}.invoice-table thead{display:none}.invoice-table tr[data-invoice-id]{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:.2rem .6rem;margin-bottom:.7rem;padding:.75rem;border:1px solid var(--line);border-radius:11px;background:var(--surface,#fff)}.invoice-table td{display:block;padding:.22rem 0;border:0}.invoice-table td[data-label="Chọn"]{grid-row:1/5;align-self:center}.invoice-table td[data-label="Khoản thu"]{grid-column:2}.invoice-table td[data-label="Trạng thái"]{grid-column:3;grid-row:1}.invoice-table td[data-label="Mã hóa đơn"],.invoice-table td[data-label="Hạn thanh toán"],.invoice-table td[data-label="Còn lại"],.invoice-table td[data-label="Thời hạn"],.invoice-table td[data-label="Tổng tiền"]{grid-column:2/4}.invoice-table td[data-label="Thao tác"]{grid-column:3;grid-row:2;justify-self:end}.invoice-table td[data-label="Tòa nhà"],.invoice-table td[data-label="Phòng"]{display:none}.invoice-foot{bottom:.25rem}.invoice-foot-note{max-width:45%;line-height:1.4}.invoice-foot .btn-primary{font-size:.72rem}.live-drawer{padding:1rem}.live-drawer header{top:-1rem;margin:-1rem -1rem .8rem;padding:.8rem 1rem}}
         @media(max-width:560px){.resident-contract-ident{grid-template-columns:1fr}.resident-contract-ident-main,.resident-contract-details{grid-template-columns:1fr}.resident-contract-ident>.btn-primary{width:100%}.resident-contract-doc-toolbar{align-items:stretch;flex-direction:column}.resident-contract-doc-toolbar select{width:100%}.resident-contract-event{grid-template-columns:76px 12px minmax(0,1fr)}.resident-contract-event:before{left:80px}}
+        @media(max-width:700px){.invoice-contract-history-grid{grid-template-columns:1fr}.invoice-summary-primary>strong{font-size:1.55rem}.invoice-payment-grid{grid-template-columns:1fr}.invoice-qr-card{grid-template-columns:auto 1fr;justify-items:start;text-align:left}.invoice-qr-demo{grid-row:1/3;width:134px;height:134px}.invoice-table-wrap{overflow:visible}.invoice-table,.invoice-table tbody{display:block;width:100%}.invoice-table thead{display:none}.invoice-table tr[data-invoice-id]{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.15rem .7rem;margin:.65rem 0;padding:.7rem;border:1px solid var(--line);border-radius:11px;background:var(--surface,#fff)}.invoice-table td{display:grid;grid-template-columns:minmax(92px,.7fr) minmax(0,1.3fr);gap:.5rem;padding:.28rem 0;border:0;font-size:.68rem}.invoice-table td:before{content:attr(data-label);color:#8492a6;font-size:.63rem}.invoice-table td[data-label="Mã hóa đơn"]{grid-column:1/-1;grid-template-columns:1fr}.invoice-table td[data-label="Mã hóa đơn"]:before{display:none}.invoice-table td[data-label="Thao tác"]{grid-column:1/-1;display:flex;justify-content:flex-end;padding-top:.4rem;border-top:1px solid #edf1f6}.invoice-table td[data-label="Thao tác"]:before{display:none}.invoice-table td[data-label="Tổng tiền"] strong{justify-self:end}.invoice-row-action-text{font-size:.67rem}.invoice-foot{position:static}.invoice-detail-summary{grid-template-columns:1fr}.invoice-timeline-step{grid-template-columns:82px minmax(0,1fr)}}
         @media(prefers-reduced-motion:reduce){.invoice-skeleton span{animation:none}}
     `;
     document.head.appendChild(stylesheet);
@@ -3650,15 +3683,16 @@
 
     const feature = section.querySelector('.resident-feature');
     feature.innerHTML = `
-        <div class="resident-feature-hero"><div><div><h3>Hóa đơn &amp; thanh toán</h3><p>Hóa đơn, khoản phải trả và trạng thái xác nhận theo từng căn hộ.</p><div class="live-period-line"><span>Kỳ hiện tại: <strong id="invoicePeriodLabel"></strong></span><span id="invoicePeriodDates"></span></div></div><i class="fas fa-receipt resident-feature-icon"></i></div></div>
+        <div class="resident-feature-hero"><div><div><h3>Hóa đơn cần thanh toán</h3><p>Theo dõi các khoản phí, thanh toán hóa đơn và tra cứu lịch sử thanh toán của bạn</p><div class="live-period-line"><span>Kỳ hiện tại: <strong id="invoicePeriodLabel"></strong></span><span id="invoicePeriodDates"></span></div></div><i class="fas fa-receipt resident-feature-icon"></i></div></div>
         <div class="invoice-workspace">
             <div class="invoice-unassigned" id="invoiceUnassigned" hidden><i class="fas fa-circle-info"></i><span>Bạn chưa được gán phòng, vui lòng liên hệ ban quản lý để được hỗ trợ.</span><button type="button" data-invoice-action="contact">Liên hệ ban quản lý</button></div>
             <div class="invoice-overdue-alert" id="invoiceOverdueAlert" hidden></div>
             <div class="invoice-change-alert" id="invoiceChangeAlert" hidden><span>Dữ liệu vừa thay đổi.</span><button type="button" data-invoice-action="refresh">Bấm để làm mới</button></div>
             <div class="invoice-summary">
-                <div class="invoice-summary-card" id="invoiceDueCard"><small><i class="fas fa-wallet"></i> CẦN THANH TOÁN</small><strong id="billingDue">0 đ</strong><span id="billingDueNote"></span></div>
-                <div class="invoice-summary-card"><small><i class="fas fa-circle-check" style="color:#18a878"></i> ĐÃ THANH TOÁN</small><strong id="billingPaid">0 đ</strong><span>Tổng hóa đơn đã thanh toán</span></div>
-                <div class="invoice-summary-card"><small><i class="fas fa-calendar-days" style="color:#1683ff"></i> KỲ HIỆN TẠI</small><strong id="billingPeriodCard"></strong><span id="billingPeriodCardDates"></span></div>
+                <div class="invoice-summary-card invoice-summary-primary" id="invoiceDueCard"><small><i class="fas fa-wallet"></i> TỔNG CÔNG NỢ CẦN THANH TOÁN</small><strong id="billingDue">0 VNĐ</strong><span id="billingDueNote"></span><span class="invoice-summary-subline"><b id="billingUnpaidCount">0</b> hóa đơn · <span id="billingUnpaidTotal">0 VNĐ</span></span></div>
+                <div class="invoice-summary-card"><small><i class="fas fa-file-invoice-dollar"></i> HÓA ĐƠN CHƯA THANH TOÁN</small><strong id="billingUnpaidMetric">0</strong><span id="billingUnpaidMetricNote">0 VNĐ cần thanh toán</span></div>
+                <div class="invoice-summary-card invoice-summary-waiting"><small><i class="fas fa-hourglass-half"></i> CHỜ XÁC NHẬN</small><strong id="billingWaitingCount">0 hóa đơn</strong><span id="billingWaitingTotal">0 VNĐ đang chờ đối soát</span></div>
+                <strong id="billingPaid" hidden>0</strong><strong id="billingPeriodCard" hidden></strong><span id="billingPeriodCardDates" hidden></span>
             </div>
             <div class="card">
                 <div class="invoice-controls"><div class="invoice-filter-tabs" role="group" aria-label="Lọc hóa đơn">
@@ -3667,17 +3701,22 @@
                     <button class="invoice-filter-tab" data-invoice-filter="waiting" aria-pressed="false">Chờ xác nhận <span data-filter-count="waiting">0</span></button>
                     <button class="invoice-filter-tab" data-invoice-filter="paid" aria-pressed="false">Đã thanh toán <span data-filter-count="paid">0</span></button>
                     <button class="invoice-filter-tab" data-invoice-filter="overdue" aria-pressed="false">Quá hạn <span data-filter-count="overdue">0</span></button>
+                    <button class="invoice-filter-tab" data-invoice-filter="cancelled" aria-pressed="false">Đã hủy / thay thế <span data-filter-count="cancelled">0</span></button>
                 </div><div class="invoice-query-row">
-                    <label class="invoice-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hoặc khoản thu" aria-label="Tìm mã hoặc khoản thu"></label>
-                    <select id="invoiceBuildingFilter" aria-label="Lọc theo tòa nhà"><option value="all">Tất cả tòa nhà</option></select>
-                    <select id="invoiceRoomFilter" aria-label="Lọc theo phòng"><option value="all">Tất cả phòng</option></select>
-                    <input id="invoicePeriodFilter" type="month" aria-label="Lọc theo kỳ thu">
-                    <select id="invoiceSort" aria-label="Sắp xếp hóa đơn"><option value="due">Hạn thanh toán gần nhất</option><option value="amount-desc">Số tiền cao nhất</option><option value="amount-asc">Số tiền thấp nhất</option></select>
+                    <label class="invoice-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hóa đơn hoặc hợp đồng" aria-label="Tìm mã hóa đơn hoặc hợp đồng"></label>
+                    <select id="invoiceContractFilter" aria-label="Lọc theo hợp đồng"><option value="all">Tất cả hợp đồng</option></select>
+                    <input id="invoicePeriodFilter" type="month" aria-label="Lọc theo tháng">
+                    <select id="invoiceFeeFilter" aria-label="Lọc theo loại khoản phí"><option value="all">Tất cả khoản phí</option><option value="rent">Tiền thuê</option><option value="utility">Điện, nước</option><option value="service">Dịch vụ, vệ sinh</option><option value="parking">Gửi xe</option><option value="other">Khoản thu khác</option></select>
+                    <select id="invoiceBuildingFilter" aria-label="Lọc theo tòa nhà" hidden><option value="all">Tất cả tòa nhà</option></select>
+                    <select id="invoiceRoomFilter" aria-label="Lọc theo phòng" hidden><option value="all">Tất cả phòng</option></select>
+                    <select id="invoiceSort" aria-label="Sắp xếp hóa đơn"><option value="due">Kỳ mới nhất</option><option value="amount-desc">Số tiền cao nhất</option><option value="amount-asc">Số tiền thấp nhất</option></select>
+                    <button type="button" class="billing-filter" id="invoiceClearFilters">Xóa bộ lọc</button>
                 </div></div>
-                <div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th><input id="invoiceSelectVisible" class="invoice-select" type="checkbox" aria-label="Chọn hóa đơn có thể thanh toán"></th><th>Khoản thu</th><th>Tòa nhà</th><th>Phòng</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Còn lại</th><th>Thời hạn</th><th>Trạng thái</th><th></th></tr></thead><tbody id="billingRows"><tr><td colspan="10"><div class="invoice-skeleton"><span></span><span></span><span></span></div></td></tr></tbody></table></div>
-                <div class="invoice-foot"><span class="invoice-foot-note" id="billingCount">Đang tải hóa đơn</span><span class="invoice-foot-note">Đã chọn <strong id="invoiceSelectedCount">0</strong><strong class="invoice-foot-total" id="invoiceSelectedTotal">0 đ</strong></span><button type="button" class="btn-primary" id="invoicePaySelected" disabled><i class="fas fa-credit-card"></i> Thanh toán</button></div>
+                <div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th>Mã hóa đơn</th><th>Kỳ thanh toán</th><th>Hợp đồng</th><th>Tòa nhà</th><th>Phòng</th><th>Ngày phát hành</th><th>Hạn thanh toán</th><th>Tổng tiền</th><th>Trạng thái</th><th>Thao tác</th></tr></thead><tbody id="billingRows"><tr><td colspan="10"><div class="invoice-skeleton"><span></span><span></span><span></span></div></td></tr></tbody></table></div>
+                <div class="invoice-foot"><span class="invoice-foot-note" id="billingCount">Đang tải hóa đơn</span><span id="invoiceSelectedCount" hidden>0</span><span id="invoiceSelectedTotal" hidden>0 VNĐ</span><button type="button" class="btn-primary" id="invoicePaySelected" hidden disabled><i class="fas fa-credit-card"></i> Thanh toán</button></div>
                 <button type="button" class="invoice-load-more" id="invoiceLoadMore" hidden>Xem thêm hóa đơn</button>
             </div>
+            <section class="invoice-contract-history card"><div class="invoice-section-head"><div><h4>Lịch sử hóa đơn theo hợp đồng</h4><p>Tra cứu các kỳ đã thanh toán và hợp đồng thuê đã kết thúc.</p></div></div><div id="invoiceContractHistory" class="invoice-contract-history-grid"></div></section>
         </div>`;
 
     if (topbarActions && topbarClock && !topbarActions.contains(topbarClock)) topbarActions.prepend(topbarClock);
@@ -3739,6 +3778,8 @@
         const buildingId = document.getElementById('invoiceBuildingFilter').value;
         const apartmentId = document.getElementById('invoiceRoomFilter').value;
         const period = document.getElementById('invoicePeriodFilter').value;
+        const contractId = document.getElementById('invoiceContractFilter')?.value || 'all';
+        const feeType = document.getElementById('invoiceFeeFilter')?.value || 'all';
         return portfolioInvoices().map(invoice => {
             const contract = contractForInvoice(invoice);
             const apartment = apartmentFor(invoice.apartmentId || (contract && contract.apartmentId));
@@ -3747,6 +3788,15 @@
             return Object.assign({}, invoice, { contract, apartment, building, effectiveStatus: status, outstanding: invoiceDue(invoice) });
         }).filter(invoice => (buildingId === 'all' || (invoice.building && invoice.building.id === buildingId))
             && (apartmentId === 'all' || (invoice.apartment && invoice.apartment.id === apartmentId))
+            && (contractId === 'all' || invoice.contractId === contractId)
+            && (feeType === 'all' || (invoice.items || []).some(item => {
+                const label = normalize(item.label || '');
+                if (feeType === 'rent') return /thue|rent/.test(label);
+                if (feeType === 'utility') return /dien|nuoc/.test(label);
+                if (feeType === 'service') return /dich vu|ve sinh|quan ly/.test(label);
+                if (feeType === 'parking') return /gui xe|giu xe|parking/.test(label);
+                return !/thue|rent|dien|nuoc|dich vu|ve sinh|quan ly|gui xe|giu xe|parking/.test(label);
+            }))
             && (!period || String(invoice.period || '').slice(0, 7) === period));
     }
 
@@ -3768,6 +3818,7 @@
         });
         const buildingSelect = document.getElementById('invoiceBuildingFilter');
         const roomSelect = document.getElementById('invoiceRoomFilter');
+        const contractSelect = document.getElementById('invoiceContractFilter');
         const selectedBuilding = buildingSelect.value;
         const selectedRoom = roomSelect.value;
         buildingSelect.innerHTML = '<option value="all">Tất cả tòa nhà</option>' + Array.from(buildings.values()).map(building => '<option value="' + esc(building.id) + '">' + esc(building.shortName || building.name) + '</option>').join('');
@@ -3776,6 +3827,9 @@
         const visibleApartments = Array.from(apartments.values()).filter(apartment => buildingFilter === 'all' || apartment.buildingId === buildingFilter);
         roomSelect.innerHTML = '<option value="all">Tất cả phòng</option>' + visibleApartments.map(apartment => '<option value="' + esc(apartment.id) + '">' + esc(apartment.name) + '</option>').join('');
         if ([...roomSelect.options].some(option => option.value === selectedRoom)) roomSelect.value = selectedRoom;
+        const selectedContract = contractSelect.value;
+        contractSelect.innerHTML = '<option value="all">Tất cả hợp đồng</option>' + portfolioContracts().sort((a, b) => String(b.startDate || '').localeCompare(String(a.startDate || ''))).map(contract => '<option value="' + esc(contract.id) + '">' + esc(contract.code || contract.id) + ' · ' + (['liquidated', 'settled'].includes(String(contract.status || '').toLowerCase()) ? 'Đã thanh lý' : ['ended', 'expired', 'terminated', 'closed'].includes(String(contract.status || '').toLowerCase()) ? 'Đã kết thúc' : 'Đang hiệu lực') + '</option>').join('');
+        if ([...contractSelect.options].some(option => option.value === selectedContract)) contractSelect.value = selectedContract;
     }
 
     function animateMoney(element, value) {
@@ -3811,31 +3865,22 @@
     }
 
     function rowMarkup(invoice) {
-        const [statusLabel] = displayStatus(invoice.effectiveStatus);
-        const dueDate = invoice.dueDate || '';
-        const locked = invoice.effectiveStatus === 'payment_pending' || !isPayable(invoice);
-        const selected = selectedInvoices.has(invoice.id);
-        const details = invoice.items || [];
-        const name = details.slice(0, 2).map(item => item.label).join(', ') || ('Kỳ thu ' + (invoice.period || ''));
-        const bucket = displayStatus(invoice.effectiveStatus)[1];
+        const [statusLabel, bucket] = displayStatus(invoice.effectiveStatus);
         const code = invoice.code || invoice.id;
-        const buildingName = invoice.building && (invoice.building.shortName || invoice.building.name) || '—';
+        const buildingName = invoice.building && (invoice.building.name || invoice.building.shortName) || '—';
         const roomName = invoice.apartment && invoice.apartment.name || '—';
-        const dueLabel = dueDate ? fmtDate(dueDate) : 'Chưa cập nhật';
-        const days = dueDate ? clock.daysRemaining(dueDate) : null;
-        const paid = amount(invoice.paidAmount || invoice.amountPaid);
-        const remaining = invoice.outstanding;
-        const remainingLabel = paid > 0 && remaining > 0 ? moneyLabel(paid) + ' / ' + moneyLabel(invoice.total) : moneyLabel(remaining);
+        const action = invoice.effectiveStatus === 'payment_pending' ? ['Theo dõi giao dịch', 'detail'] : ['partial', 'overdue_partial'].includes(invoice.effectiveStatus) ? ['Xem số tiền còn thiếu', 'detail'] : isPayable(invoice) ? [invoice.effectiveStatus === 'overdue' ? 'Thanh toán ngay' : 'Thanh toán', 'pay-one'] : ['Xem hóa đơn', 'detail'];
+        const pending = (invoice.paymentTransactions || []).filter(item => item.status === 'submitted').slice(-1)[0];
         return '<tr data-invoice-id="' + esc(invoice.id) + '" class="' + (bucket === 'overdue' ? 'invoice-row-overdue' : '') + '" tabindex="0">' +
-            '<td data-label="Chọn"><input class="invoice-select" type="checkbox" data-invoice-select="' + esc(invoice.id) + '" aria-label="Chọn hóa đơn ' + esc(code) + '" ' + (selected ? 'checked' : '') + (locked ? 'disabled' : '') + '></td>' +
-            '<td data-label="Khoản thu"><span class="invoice-row-title">' + esc(name) + '</span></td>' +
+            '<td data-label="Mã hóa đơn"><span class="invoice-code">' + esc(code) + '</span>' + (invoice.replacesInvoiceCode ? '<small class="invoice-replacement-note">Thay thế ' + esc(invoice.replacesInvoiceCode) + '</small>' : '') + '</td>' +
+            '<td data-label="Kỳ thanh toán">' + esc(invoice.period || '—') + '</td>' +
+            '<td data-label="Hợp đồng"><span class="invoice-code">' + esc(invoice.contract && (invoice.contract.code || invoice.contract.id) || '—') + '</span></td>' +
             '<td data-label="Tòa nhà">' + esc(buildingName) + '</td><td data-label="Phòng">' + esc(roomName) + '</td>' +
-            '<td data-label="Mã hóa đơn"><span class="invoice-code">' + esc(code) + '</span></td>' +
-            '<td data-label="Hạn thanh toán">' + esc(dueLabel) + '</td>' +
-            '<td data-label="Còn lại"><strong>' + esc(remainingLabel) + '</strong></td>' +
-            '<td data-label="Thời hạn"><span class="invoice-countdown ' + (bucket === 'overdue' ? 'is-overdue' : '') + '" data-countdown="' + esc(dueDate) + '">' + (dueDate ? esc(clock.countdown(dueDate)) : 'Chưa có hạn') + '</span></td>' +
+            '<td data-label="Ngày phát hành">' + esc(fmtDate(invoice.issueDate || invoice.createdAt)) + '</td>' +
+            '<td data-label="Hạn thanh toán"><span class="invoice-countdown ' + (bucket === 'overdue' ? 'is-overdue' : '') + '" data-countdown="' + esc(invoice.dueDate || '') + '">' + esc(invoice.dueDate ? fmtDate(invoice.dueDate) : 'Chưa cập nhật') + '</span></td>' +
+            '<td data-label="Tổng tiền"><strong>' + esc(moneyLabel(invoice.total)) + '</strong>' + (pending ? '<small class="invoice-pending-note">Đã khai báo ' + esc(moneyLabel(pending.amount)) + ' · Chờ đối soát</small>' : amount(invoice.paidAmount) > 0 && invoiceDue(invoice) > 0 ? '<small class="invoice-pending-note">Còn thiếu ' + esc(moneyLabel(invoiceDue(invoice))) + '</small>' : '') + '</td>' +
             '<td data-label="Trạng thái"><span class="invoice-status ' + bucket + '" data-live-status="' + esc(invoice.id) + '">' + statusLabel + '</span></td>' +
-            '<td data-label="Thao tác"><button type="button" class="invoice-row-action" data-invoice-action="detail" data-invoice-id="' + esc(invoice.id) + '" aria-label="Xem hóa đơn ' + esc(code) + '" title="Xem chi tiết"><i class="fas fa-eye"></i></button></td></tr>';
+            '<td data-label="Thao tác"><button type="button" class="invoice-row-action invoice-row-action-text" data-invoice-action="' + action[1] + '" data-invoice-id="' + esc(invoice.id) + '" aria-label="' + esc(action[0] + ' ' + code) + '">' + action[0] + '</button></td></tr>';
     }
 
     function renderInvoiceRows() {
@@ -3904,6 +3949,89 @@
         notifyInvoiceEvents(invoices);
     }
 
+    function renderInvoiceRows() {
+        const now = new Date();
+        const invoices = invoicesForView();
+        const allInvoices = portfolioInvoices().map(invoice => Object.assign({}, invoice, {
+            contract: contractForInvoice(invoice), effectiveStatus: statusFor(invoice, now), outstanding: invoiceDue(invoice)
+        }));
+        const counts = { all: 0, pending: 0, waiting: 0, paid: 0, overdue: 0, cancelled: 0 };
+        invoices.forEach(invoice => { counts[displayStatus(invoice.effectiveStatus)[1]]++; counts.all++; });
+        Object.keys(counts).forEach(status => { const badge = document.querySelector('[data-filter-count="' + status + '"]'); if (badge) badge.textContent = counts[status]; });
+        const query = normalize(document.getElementById('billingSearch').value);
+        const sort = document.getElementById('invoiceSort').value;
+        const filtered = invoices.filter(invoice => {
+            const bucket = displayStatus(invoice.effectiveStatus)[1];
+            const queryText = [invoice.code, invoice.period, invoice.contract && invoice.contract.code,
+                ...(invoice.items || []).map(item => item.label), invoice.building && invoice.building.name,
+                invoice.apartment && invoice.apartment.name].join(' ');
+            return (activeInvoiceFilter === 'all' || bucket === activeInvoiceFilter) && (!query || normalize(queryText).includes(query));
+        }).sort((left, right) => {
+            const leftOverdue = ['overdue', 'overdue_partial'].includes(left.effectiveStatus) ? 0 : 1;
+            const rightOverdue = ['overdue', 'overdue_partial'].includes(right.effectiveStatus) ? 0 : 1;
+            if (leftOverdue !== rightOverdue) return leftOverdue - rightOverdue;
+            if (sort === 'amount-desc') return right.outstanding - left.outstanding;
+            if (sort === 'amount-asc') return left.outstanding - right.outstanding;
+            return String(right.period || right.issueDate || '').localeCompare(String(left.period || left.issueDate || ''));
+        });
+        const overdue = invoices.filter(invoice => ['overdue', 'overdue_partial'].includes(invoice.effectiveStatus));
+        const overdueAlert = document.getElementById('invoiceOverdueAlert');
+        overdueAlert.hidden = overdue.length === 0;
+        overdueAlert.innerHTML = overdue.length ? '<i class="fas fa-triangle-exclamation"></i> Có ' + overdue.length + ' hóa đơn quá hạn, tổng số tiền còn nợ ' + moneyLabel(overdue.reduce((sum, invoice) => sum + invoice.outstanding, 0)) + '.' : '';
+        const unassigned = !(window.RH_CTX && window.RH_CTX.apartment) && portfolioContracts().length === 0;
+        document.getElementById('invoiceUnassigned').hidden = !unassigned;
+        document.getElementById('invoiceDueCard').classList.toggle('is-overdue', overdue.length > 0);
+        const debt = allInvoices.filter(invoice => String(invoice.status || '').toLowerCase() !== 'paid' && !invoiceIsInactive(invoice));
+        const unpaid = allInvoices.filter(invoice => ['unpaid', 'sent', 'overdue', 'partial', 'overdue_partial'].includes(invoice.effectiveStatus));
+        const waiting = allInvoices.filter(invoice => invoice.effectiveStatus === 'payment_pending');
+        const paid = allInvoices.filter(invoice => invoice.effectiveStatus === 'paid');
+        const pendingAmount = waiting.reduce((sum, invoice) => {
+            const submitted = (invoice.paymentTransactions || []).filter(item => item.status === 'submitted').slice(-1)[0];
+            return sum + amount(submitted && submitted.amount || invoice.paymentAmount);
+        }, 0);
+        const totalDebt = debt.reduce((sum, invoice) => sum + invoice.outstanding, 0);
+        animateMoney(document.getElementById('billingDue'), totalDebt);
+        animateMoney(document.getElementById('billingPaid'), paid.reduce((sum, invoice) => sum + amount(invoice.paidAmount || invoice.amountPaid), 0));
+        document.getElementById('billingDueNote').textContent = waiting.length ? moneyLabel(pendingAmount) + ' đang chờ đối soát, chưa tính là đã thanh toán' : unpaid.length ? unpaid.length + ' hóa đơn chưa thanh toán hoặc quá hạn' : 'Bạn không có hóa đơn cần thanh toán';
+        document.getElementById('billingUnpaidCount').textContent = debt.length;
+        document.getElementById('billingUnpaidTotal').textContent = moneyLabel(totalDebt);
+        document.getElementById('billingUnpaidMetric').textContent = unpaid.length;
+        document.getElementById('billingUnpaidMetricNote').textContent = moneyLabel(unpaid.reduce((sum, invoice) => sum + invoice.outstanding, 0)) + ' cần thanh toán';
+        document.getElementById('billingWaitingCount').textContent = waiting.length + ' hóa đơn';
+        document.getElementById('billingWaitingTotal').textContent = moneyLabel(pendingAmount) + ' đang chờ đối soát';
+        const period = currentPeriod(now);
+        document.getElementById('invoicePeriodLabel').textContent = period.label;
+        document.getElementById('billingPeriodCard').textContent = period.label;
+        const periodDates = 'Thu từ ' + fmtDate(period.startDate) + ' đến ' + fmtDate(period.endDate);
+        document.getElementById('invoicePeriodDates').textContent = periodDates;
+        document.getElementById('billingPeriodCardDates').textContent = periodDates;
+        const page = filtered.slice(0, pageSize);
+        document.getElementById('billingRows').innerHTML = page.length ? page.map(rowMarkup).join('') : '<tr><td colspan="10">' + emptyMessage() + '</td></tr>';
+        document.getElementById('billingCount').textContent = 'Hiển thị ' + page.length + (filtered.length > page.length ? '/' + filtered.length : '') + ' hóa đơn';
+        const more = document.getElementById('invoiceLoadMore');
+        more.hidden = filtered.length <= page.length;
+        more.textContent = 'Xem thêm ' + Math.min(10, filtered.length - page.length) + ' hóa đơn';
+        updatePaymentBar(invoices);
+        renderInvoiceContractHistory(allInvoices);
+        updateCountdowns(now);
+        notifyInvoiceEvents(invoices);
+    }
+
+    function renderInvoiceContractHistory(invoices) {
+        const root = document.getElementById('invoiceContractHistory');
+        if (!root) return;
+        const contracts = portfolioContracts().slice().sort((a, b) => String(b.startDate || '').localeCompare(String(a.startDate || '')));
+        root.innerHTML = contracts.length ? contracts.map(contract => {
+            const apartment = apartmentFor(contract.apartmentId);
+            const building = buildingFor(contract.buildingId || (apartment && apartment.buildingId));
+            const related = invoices.filter(invoice => invoice.contractId === contract.id);
+            const openDebt = related.filter(invoice => String(invoice.status || '').toLowerCase() !== 'paid' && !invoiceIsInactive(invoice)).reduce((sum, invoice) => sum + invoice.outstanding, 0);
+            const contractState = ['liquidated', 'settled'].includes(String(contract.status || '').toLowerCase()) ? 'Đã thanh lý' : ['ended', 'expired', 'terminated', 'closed'].includes(String(contract.status || '').toLowerCase()) ? 'Đã kết thúc' : 'Đang hiệu lực';
+            const ended = contractState !== 'Đang hiệu lực';
+            return '<button type="button" class="invoice-contract-history-card" data-invoice-contract-select="' + esc(contract.id) + '"><span class="invoice-contract-history-top"><strong>' + esc(contract.code || contract.id) + '</strong><span class="badge ' + (ended ? 'badge-info' : 'badge-paid') + '">' + contractState + '</span></span><span>' + esc(building && building.name || 'Chung cư') + ' · Phòng ' + esc(apartment && apartment.name || '—') + '</span><small>' + esc(fmtDate(contract.startDate)) + ' – ' + esc(fmtDate(contract.endDate)) + ' · ' + related.length + ' hóa đơn</small>' + (openDebt ? '<strong class="invoice-history-debt">Còn nợ ' + esc(moneyLabel(openDebt)) + '</strong>' : '<small>Không còn công nợ</small>') + '</button>';
+        }).join('') : '<div class="invoice-empty"><strong>Chưa có hợp đồng để tra cứu</strong></div>';
+    }
+
     function updatePaymentBar(invoices) {
         const selected = invoices.filter(invoice => selectedInvoices.has(invoice.id) && isPayable(invoice));
         document.getElementById('invoiceSelectedCount').textContent = selected.length;
@@ -3914,8 +4042,7 @@
             return (activeInvoiceFilter === 'all' || bucket === activeInvoiceFilter) && isPayable(invoice);
         });
         const selectVisible = document.getElementById('invoiceSelectVisible');
-        selectVisible.checked = visible.length > 0 && visible.every(invoice => selectedInvoices.has(invoice.id));
-        selectVisible.disabled = visible.length === 0;
+        if (selectVisible) { selectVisible.checked = visible.length > 0 && visible.every(invoice => selectedInvoices.has(invoice.id)); selectVisible.disabled = visible.length === 0; }
     }
 
     function updateCountdowns(now) {
@@ -3926,7 +4053,7 @@
             if (!invoice) return;
             const status = statusFor(invoice, now);
             element.textContent = clock.countdown(dueDate, now);
-            element.classList.toggle('is-overdue', status === 'overdue');
+            element.classList.toggle('is-overdue', status === 'overdue' || status === 'overdue_partial');
             const badge = document.querySelector('[data-live-status="' + CSS.escape(invoice.id) + '"]');
             if (badge) {
                 const [label, bucket] = displayStatus(status);
@@ -3970,6 +4097,31 @@
         return '<div class="live-detail-list"><div class="live-detail-row"><span>Tòa nhà</span><strong>' + esc(building && (building.name || building.shortName) || '—') + '</strong></div><div class="live-detail-row"><span>Phòng</span><strong>' + esc(apartment && apartment.name || '—') + '</strong></div><div class="live-detail-row"><span>Kỳ thu</span><strong>' + esc(invoice.period || '—') + '</strong></div><div class="live-detail-row"><span>Hạn thanh toán</span><strong>' + esc(fmtDate(invoice.dueDate)) + '</strong></div><div class="live-detail-row"><span>Trạng thái</span><strong>' + statusMarkup(statusFor(invoice)) + '</strong></div><h3 style="margin:.6rem 0 0;font-size:.9rem">Chi tiết khoản thu</h3>' + rows + '<div class="live-detail-row"><span>Đã trả / Tổng</span><strong>' + moneyLabel(paid) + ' / ' + moneyLabel(invoice.total) + '</strong></div><div class="live-detail-row"><span>Còn phải trả</span><strong>' + moneyLabel(invoiceDue(invoice)) + '</strong></div></div>' + actions + payment;
     }
 
+    function invoiceDetail(invoice) {
+        const apartment = apartmentFor(invoice.apartmentId) || invoice.apartment || {};
+        const building = buildingFor(invoice.buildingId || apartment.buildingId) || invoice.building || {};
+        const contract = contractForInvoice(invoice) || {};
+        const customer = window.RH_CTX && window.RH_CTX.customer || {};
+        const items = Array.isArray(invoice.items) ? invoice.items : [];
+        const subtotal = items.reduce((sum, item) => sum + amount(item.total || item.amount), 0);
+        const adjustment = amount(invoice.adjustmentAmount || invoice.adjustment);
+        const paid = amount(invoice.paidAmount || invoice.amountPaid);
+        const latest = (invoice.paymentTransactions || []).slice(-1)[0];
+        const review = invoice.paymentReview || {};
+        const pending = invoice.status === 'payment_pending' && latest && latest.status === 'submitted' && (!review.status || review.status === 'submitted');
+        const rows = items.map(item => '<div class="invoice-detail-line"><span>' + esc(item.label || 'Khoản thu') + (item.qty && item.unitPrice ? '<small>' + esc(item.qty) + ' × ' + esc(moneyLabel(item.unitPrice)) + '</small>' : '') + '</span><strong>' + esc(moneyLabel(item.total || item.amount)) + '</strong></div>').join('');
+        const transactionRows = (invoice.paymentTransactions || []).map((transaction, index) => '<div class="invoice-timeline-step ' + (transaction.status === 'confirmed' ? 'done' : transaction.status === 'submitted' ? 'current' : '') + '"><time>' + esc(transaction.submittedAt ? new Date(transaction.submittedAt).toLocaleString('vi-VN') : '—') + '</time><div><strong>' + (transaction.status === 'confirmed' ? 'Đã xác nhận thanh toán' : transaction.status === 'rejected' ? 'Chưa xác nhận được giao dịch' : transaction.status === 'needs_documents' ? 'Yêu cầu bổ sung chứng từ' : 'Cư dân gửi thông tin chuyển khoản') + '</strong><span>Khai báo ' + esc(moneyLabel(transaction.amount)) + (transaction.transferredAt ? ' · Chuyển lúc ' + esc(new Date(transaction.transferredAt).toLocaleString('vi-VN')) : '') + (transaction.reference ? ' · Mã giao dịch ' + esc(transaction.reference) : '') + '</span>' + (transaction.receiptName ? (transaction.receiptDataUrl ? '<a class="invoice-receipt-link" href="' + esc(transaction.receiptDataUrl) + '" target="_blank" rel="noopener">Mở chứng từ: ' + esc(transaction.receiptName) + '</a>' : '<small>Chứng từ: ' + esc(transaction.receiptName) + '</small>') : '') + (transaction.note ? '<small>' + esc(transaction.note) + '</small>' : '') + '</div></div>').join('');
+        const status = statusFor(invoice);
+        const statusLabel = displayStatus(status)[0];
+        const reviewText = pending ? 'Đang chờ Ban quản lý đối soát. Hóa đơn chưa được ghi nhận là đã thanh toán.' : review.status === 'rejected' ? 'Chưa xác nhận được giao dịch: ' + (review.reason || 'Vui lòng kiểm tra lại thông tin và gửi bổ sung.') : review.status === 'needs_documents' ? 'Ban quản lý yêu cầu bổ sung chứng từ: ' + (review.reason || 'Vui lòng gửi lại thông tin giao dịch.') : status === 'paid' ? 'Ban quản lý đã xác nhận đã nhận đủ tiền.' : status === 'partial' || status === 'overdue_partial' ? 'Đã ghi nhận một phần tiền; số tiền còn thiếu vẫn cần thanh toán.' : '';
+        const resultText = pending ? 'Đang chờ xác nhận' : review.status === 'needs_documents' ? 'Yêu cầu bổ sung chứng từ' : review.status === 'rejected' ? 'Chưa xác nhận được giao dịch' : status === 'paid' || review.status === 'confirmed' ? 'Đã xác nhận thanh toán' : status === 'partial' || status === 'overdue_partial' || review.status === 'partial' ? 'Thanh toán một phần, còn thiếu ' + moneyLabel(invoiceDue(invoice)) : 'Chưa có kết quả đối soát';
+        const resultTime = review.reviewedAt || invoice.paidAt || '';
+        const timeline = '<div class="invoice-timeline-step done"><time>' + esc(fmtDate(invoice.issueDate || invoice.createdAt)) + '</time><div><strong>Hóa đơn được phát hành</strong><span>Số tiền phải thanh toán ' + esc(moneyLabel(invoice.total)) + '</span></div></div>' + (transactionRows || '<div class="invoice-timeline-step"><time>Chưa gửi</time><div><strong>Cư dân gửi thông tin chuyển khoản</strong><span>Chưa có thông tin giao dịch được gửi.</span></div></div>') + '<div class="invoice-timeline-step ' + (pending ? 'current' : status === 'paid' ? 'done' : '') + '"><time>' + (pending ? esc(new Date(latest.submittedAt).toLocaleString('vi-VN')) : '—') + '</time><div><strong>Ban quản lý kiểm tra giao dịch</strong><span>' + (pending ? 'Đang chờ xác nhận. Vui lòng chờ kết quả đối soát.' : status === 'paid' ? 'Đã hoàn tất đối soát.' : 'Đang chờ kết quả đối soát.') + '</span></div></div><div class="invoice-timeline-step ' + (status === 'paid' ? 'done' : pending ? 'current' : '') + '"><time>' + esc(resultTime ? new Date(resultTime).toLocaleString('vi-VN') : '—') + '</time><div><strong>Kết quả xác nhận</strong><span>' + esc(resultText) + '</span>' + (review.reason ? '<small>' + esc(review.reason) + '</small>' : '') + '</div></div>' + (reviewText ? '<div class="invoice-review-state ' + (pending ? 'waiting' : status === 'paid' ? 'success' : 'notice') + '">' + esc(reviewText) + '</div>' : '');
+        const payButton = isPayable(invoice) && status !== 'payment_pending' ? '<button type="button" class="btn-primary" data-invoice-action="pay-one" data-invoice-id="' + esc(invoice.id) + '">' + (status === 'overdue' || status === 'overdue_partial' ? 'Thanh toán ngay' : status === 'partial' ? 'Thanh toán số tiền còn thiếu' : 'Thanh toán') + '</button>' : '';
+        const actions = '<div class="invoice-detail-actions"><button type="button" class="billing-filter" data-invoice-action="print" data-invoice-id="' + esc(invoice.id) + '"><i class="fas fa-file-arrow-down"></i> Tải hóa đơn PDF / In</button>' + payButton + '</div>';
+        return '<div class="invoice-detail"><div class="invoice-detail-summary"><div><small>Mã hóa đơn</small><strong>' + esc(invoice.code || invoice.id) + '</strong></div><div><small>Trạng thái</small>' + statusMarkup(status) + '</div><div><small>Hợp đồng thuê</small><strong>' + esc(contract.code || '—') + '</strong></div><div><small>Tòa nhà · Phòng</small><strong>' + esc(building.name || '—') + ' · ' + esc(apartment.name || '—') + '</strong></div><div><small>Kỳ thanh toán</small><strong>' + esc(invoice.period || '—') + '</strong></div><div><small>Ngày phát hành · hạn thanh toán</small><strong>' + esc(fmtDate(invoice.issueDate || invoice.createdAt)) + ' · ' + esc(fmtDate(invoice.dueDate)) + '</strong></div><div><small>Người thuê</small><strong>' + esc(customer.fullName || window.RH_SESSION.name || '—') + '</strong></div></div><h3>Chi tiết khoản thu</h3><div class="invoice-detail-items">' + (rows || '<div class="invoice-empty">Chưa có khoản thu được ghi nhận.</div>') + '</div><div class="invoice-detail-totals"><div><span>Tổng tiền trước điều chỉnh</span><strong>' + esc(moneyLabel(subtotal)) + '</strong></div>' + (adjustment ? '<div><span>Điều chỉnh</span><strong>' + esc(moneyLabel(adjustment)) + '</strong></div>' : '') + '<div><span>Đã thanh toán được xác nhận</span><strong>' + esc(moneyLabel(paid)) + '</strong></div><div class="invoice-due-total"><span>Còn phải trả</span><strong>' + esc(moneyLabel(invoiceDue(invoice))) + '</strong></div>' + (pending ? '<div><span>Đang chờ đối soát (chưa tính là đã trả)</span><strong>' + esc(moneyLabel(latest.amount)) + '</strong></div>' : '') + '</div>' + (invoice.replacesInvoiceCode || invoice.replacedByCode ? '<div class="invoice-replacement-note">' + (invoice.replacesInvoiceCode ? 'Hóa đơn này thay thế ' + esc(invoice.replacesInvoiceCode) + '.' : 'Hóa đơn này được thay thế bởi ' + esc(invoice.replacedByCode) + '.') + ' Hóa đơn bị thay thế không được cộng vào công nợ.</div>' : '') + '<h3>Tiến trình thanh toán</h3><div class="invoice-payment-timeline">' + timeline + '</div>' + actions + '</div>';
+    }
+
     function showDialog(title, body) {
         const root = document.getElementById('liveDialogBackdrop');
         document.getElementById('liveDialogContent').innerHTML = '<h2 id="liveDialogTitle">' + esc(title) + '</h2>' + body;
@@ -3978,7 +4130,9 @@
     }
 
     function closeDialog() {
-        document.getElementById('liveDialogBackdrop').hidden = true;
+        const root = document.getElementById('liveDialogBackdrop');
+        root.hidden = true;
+        root.classList.remove('wide');
     }
 
     function toast(message) {
@@ -3993,77 +4147,103 @@
     }
 
     function openPayment(ids) {
-        const invoices = portfolioInvoices().filter(invoice => ids.includes(invoice.id) && isPayable(invoice));
-        if (!invoices.length) return toast('Không còn hóa đơn đủ điều kiện thanh toán. Hãy tải lại dữ liệu.');
-        activePaymentIds = invoices.map(invoice => invoice.id);
-        const total = invoices.reduce((sum, invoice) => sum + invoiceDue(invoice), 0);
-        const codes = invoices.map(invoice => invoice.code || invoice.id).join(', ');
-        showDialog('Chọn phương thức thanh toán', '<p>Tổng số tiền cần thanh toán: <strong>' + moneyLabel(total) + '</strong></p><label>Phương thức</label><select id="paymentMethod"><option value="bank_transfer">Chuyển khoản ngân hàng</option><option value="qr">Quét mã QR</option><option value="wallet">Ví điện tử</option></select><div class="invoice-payment-details" id="invoicePaymentDetails"><p>Nội dung chuyển khoản: <strong>' + esc(codes) + '</strong></p><p>Mã hóa đơn: ' + esc(codes) + '</p><div id="invoicePaymentQr"></div></div><div class="live-action-row"><button type="button" class="btn-secondary" data-invoice-action="close-dialog">Hủy</button><button type="button" class="btn-primary" data-invoice-action="payment-confirm" data-invoice-ids="' + esc(ids.join(',')) + '">Tôi đã chuyển khoản</button></div>');
-        document.getElementById('paymentMethod').addEventListener('change', updatePaymentMethod);
-        document.getElementById('paymentMethod').addEventListener('change', event => {
-            const button = document.querySelector('[data-invoice-action="payment-confirm"]');
-            if (button) button.textContent = event.target.value === 'wallet' ? 'Tôi đã thanh toán' : 'Tôi đã chuyển khoản';
-        });
-        updatePaymentMethod();
-    }
-
-    function updatePaymentMethod() {
-        const method = document.getElementById('paymentMethod').value;
-        const details = document.getElementById('invoicePaymentDetails');
-        const bankBuilding = window.RH_CTX && window.RH_CTX.building;
-        const bank = bankBuilding && bankBuilding.config || {};
-        const codes = activePaymentIds.map(id => portfolioInvoices().find(invoice => invoice.id === id)).filter(Boolean).map(invoice => invoice.code || invoice.id).join(', ');
-        details.innerHTML = '<p id="invoicePaymentMethodNote"></p><p>Mã hóa đơn: <strong>' + esc(codes) + '</strong></p><div id="invoicePaymentQr"></div>';
-        const qr = document.getElementById('invoicePaymentQr');
-        if (method === 'wallet') {
-            document.getElementById('invoicePaymentMethodNote').textContent = 'Thanh toán ví sẽ được ghi nhận chờ xác nhận. Hãy hoàn tất giao dịch trong ứng dụng ví của bạn trước khi xác nhận bên dưới.';
+        const invoice = portfolioInvoices().find(item => ids.includes(item.id));
+        if (!invoice) return toast('Không tìm thấy hóa đơn cần thanh toán.');
+        const status = statusFor(invoice);
+        const latest = (invoice.paymentTransactions || []).filter(item => item.status === 'submitted').slice(-1)[0];
+        if (status === 'payment_pending' && latest) {
+            showDialog('Theo dõi giao dịch · ' + (invoice.code || ''), '<div class="invoice-review-state waiting">Thông tin đã gửi lúc ' + esc(new Date(latest.submittedAt).toLocaleString('vi-VN')) + '. Đang chờ Ban quản lý đối soát; hóa đơn chưa được xác nhận thanh toán.</div><div class="invoice-detail-totals"><div><span>Số tiền khai báo</span><strong>' + esc(moneyLabel(latest.amount)) + '</strong></div><div><span>Số tiền còn phải trả nếu chưa đối soát</span><strong>' + esc(moneyLabel(invoiceDue(invoice))) + '</strong></div></div><p>Mã giao dịch: <strong>' + esc(latest.reference || 'Chưa cung cấp') + '</strong></p><p>' + esc(latest.note || '') + '</p><div class="live-action-row"><button type="button" class="btn-secondary" data-invoice-action="close-dialog">Đóng</button><button type="button" class="btn-primary" data-invoice-action="detail" data-invoice-id="' + esc(invoice.id) + '">Xem tiến trình</button></div>');
             return;
         }
-        if (method === 'qr' && bank.bankAccountNumber) {
-            const bins = { vietcombank: '970436', vietinbank: '970415', bidv: '970418', agribank: '970405', techcombank: '970407', mbbank: '970422', acb: '970416', vpbank: '970432', tpbank: '970423' };
-            const bin = bins[normalize(bank.bankName).replace(/[^a-z]/g, '')];
-            if (bin) qr.innerHTML = '<img src="https://img.vietqr.io/image/' + bin + '-' + encodeURIComponent(bank.bankAccountNumber) + '-compact2.png?amount=' + encodeURIComponent(portfolioInvoices().filter(invoice => activePaymentIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoiceDue(invoice), 0)) + '&addInfo=' + encodeURIComponent(portfolioInvoices().filter(invoice => activePaymentIds.includes(invoice.id)).map(invoice => invoice.code).join(' ')) + '" alt="Mã QR thanh toán" style="display:block;width:190px;height:190px;object-fit:contain;margin:.7rem auto">';
-        }
-        document.getElementById('invoicePaymentMethodNote').innerHTML = 'Ngân hàng: <strong>' + esc(bank.bankName || 'Chưa cấu hình') + '</strong> · Số tài khoản: <strong>' + esc(bank.bankAccountNumber || 'Chưa cấu hình') + '</strong>';
+        if (!isPayable(invoice)) return toast('Hóa đơn này hiện không thể thanh toán.');
+        const customer = window.RH_CTX && window.RH_CTX.customer || {};
+        const amountDue = invoiceDue(invoice);
+        const description = 'HD ' + (invoice.code || invoice.id) + ' ' + (customer.code || 'CD00128');
+        const dateValue = new Date(Date.now() - new Date().getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        const warning = invoice.paymentReview && ['rejected', 'needs_documents'].includes(invoice.paymentReview.status)
+            ? '<div class="invoice-review-state notice">' + esc(invoice.paymentReview.reason || 'Ban quản lý yêu cầu gửi lại thông tin giao dịch.') + '</div>' : '';
+        const body = '<div class="invoice-payment-modal"><div class="invoice-demo-warning"><strong>THÔNG TIN THANH TOÁN MẪU</strong><span>KHÔNG SỬ DỤNG ĐỂ CHUYỂN TIỀN THẬT. Đây là dữ liệu demo, chưa xác minh tài khoản ngân hàng.</span></div>' + warning + '<div class="invoice-payment-grid"><div class="invoice-bank-card"><h3>Chuyển khoản Vietcombank (VCB)</h3><div class="invoice-bank-row"><span>Chủ tài khoản</span><strong>CÔNG TY QUẢN LÝ NHÀ Ở RIVERSIDE</strong></div><div class="invoice-bank-row"><span>Số tài khoản</span><strong>0123456789 <button type="button" class="invoice-copy" data-invoice-action="copy-payment" data-copy-value="account">Sao chép</button></strong></div><div class="invoice-bank-row"><span>Chi nhánh</span><strong>Hà Nội</strong></div><div class="invoice-bank-row"><span>Số tiền</span><strong id="paymentDemoAmount">' + esc(moneyLabel(amountDue)) + ' <button type="button" class="invoice-copy" data-invoice-action="copy-payment" data-copy-value="amount">Sao chép</button></strong></div><div class="invoice-bank-row"><span>Nội dung chuyển khoản</span><strong id="paymentDemoDescription">' + esc(description) + ' <button type="button" class="invoice-copy" data-invoice-action="copy-payment" data-copy-value="description">Sao chép</button></strong></div></div><div class="invoice-qr-card"><div id="invoiceDemoQr" class="invoice-qr-demo" aria-label="QR DEMO, không thực hiện giao dịch thật"><span class="qr-demo-grid"></span><b>QR<br>DEMO</b></div><strong>QR DEMO · Không quét để chuyển tiền</strong><button type="button" class="billing-filter" data-invoice-action="download-qr" data-invoice-id="' + esc(invoice.id) + '">Tải mã QR mẫu</button></div></div><ol class="invoice-payment-steps"><li>Mở ứng dụng ngân hàng của bạn.</li><li>Quét mã QR hoặc nhập thông tin chuyển khoản.</li><li>Kiểm tra số tiền và nội dung chuyển khoản trước khi xác nhận.</li><li>Hoàn tất giao dịch trong ứng dụng ngân hàng.</li><li>Quay lại website và gửi thông tin để Ban quản lý đối soát.</li></ol><form id="invoicePaymentForm" data-invoice-id="' + esc(invoice.id) + '"><h3>Gửi thông tin giao dịch</h3><p class="invoice-safe-note">Website không yêu cầu mật khẩu, mã OTP hoặc thông tin đăng nhập ngân hàng.</p><label>Số tiền đã chuyển (VNĐ)<input name="amount" type="number" min="1" step="1" required value="' + amountDue + '"></label><div class="invoice-amount-warning" id="invoiceAmountWarning" hidden></div><label>Thời gian chuyển khoản<input name="transferredAt" type="datetime-local" required value="' + dateValue + '"></label><label>Mã giao dịch ngân hàng (nếu có)<input name="reference" type="text" maxlength="100" placeholder="Nhập mã tham chiếu"></label><label>Ảnh biên lai (không bắt buộc)<input name="receipt" type="file" accept="image/*,.pdf"></label><label>Ghi chú<textarea name="note" rows="2" maxlength="500" placeholder="Thông tin bổ sung nếu cần"></textarea></label><div class="live-action-row"><button type="button" class="btn-secondary" data-invoice-action="close-dialog">Đóng</button><button type="button" class="btn-primary" data-invoice-action="payment-confirm" data-invoice-ids="' + esc(invoice.id) + '">Tôi đã chuyển khoản</button></div></form></div>';
+        activePaymentIds = [invoice.id];
+        dialog.classList.add('wide');
+        showDialog('Thanh toán hóa đơn ' + (invoice.code || ''), body);
+        const amountInput = document.querySelector('#invoicePaymentForm [name="amount"]');
+        amountInput.addEventListener('input', () => {
+            const value = Number(amountInput.value);
+            const warningEl = document.getElementById('invoiceAmountWarning');
+            warningEl.hidden = value === amountDue;
+            warningEl.textContent = value > amountDue ? 'Số tiền khai báo cao hơn hóa đơn ' + moneyLabel(value - amountDue) + '.' : value < amountDue ? 'Số tiền khai báo thấp hơn tổng tiền hóa đơn ' + moneyLabel(amountDue - value) + '. Hóa đơn sẽ vẫn còn khoản thiếu cho đến khi được đối soát.' : '';
+        });
     }
 
-    function submitPayment(ids, button) {
+    function paymentDemoSvg(invoice) {
+        const code = invoice.code || invoice.id;
+        const amountValue = invoiceDue(invoice);
+        const seed = (code + amountValue).split('').reduce((sum, character) => sum + character.charCodeAt(0), 0);
+        let cells = '';
+        for (let row = 0; row < 21; row++) for (let column = 0; column < 21; column++) {
+            const finder = (row < 7 && column < 7) || (row < 7 && column > 13) || (row > 13 && column < 7);
+            const edge = finder && ((row % 14 < 2) || (column % 14 < 2) || (row % 14 > 4) || (column % 14 > 4));
+            const on = edge || (!finder && ((row * 17 + column * 31 + seed) % 5 < 2));
+            if (on) cells += '<rect x="' + (12 + column * 6) + '" y="' + (12 + row * 6) + '" width="5" height="5" fill="#10213c"/>';
+        }
+        return '<svg xmlns="http://www.w3.org/2000/svg" width="360" height="420" viewBox="0 0 360 420"><rect width="360" height="420" rx="22" fill="#fff"/><rect x="8" y="8" width="344" height="344" rx="12" fill="#f7faff" stroke="#dce7f4"/>' + cells + '<rect x="112" y="160" width="136" height="48" rx="10" fill="#fff" stroke="#0d65d5" stroke-width="2"/><text x="180" y="190" text-anchor="middle" font-family="Arial" font-size="22" font-weight="700" fill="#0d65d5">QR DEMO</text><text x="180" y="383" text-anchor="middle" font-family="Arial" font-size="14" fill="#b42318">KHÔNG DÙNG CHUYỂN TIỀN THẬT</text><text x="180" y="405" text-anchor="middle" font-family="Arial" font-size="11" fill="#64748b">' + esc(code) + ' · ' + amountValue + ' VND</text></svg>';
+    }
+
+    async function copyPaymentValue(kind) {
+        const invoice = portfolioInvoices().find(item => activePaymentIds.includes(item.id));
+        const customer = window.RH_CTX && window.RH_CTX.customer || {};
+        const values = { account: '0123456789', amount: String(invoice ? invoiceDue(invoice) : ''), description: invoice ? 'HD ' + (invoice.code || invoice.id) + ' ' + (customer.code || 'CD00128') : '' };
+        const value = values[kind];
+        try {
+            if (navigator.clipboard && window.isSecureContext) await navigator.clipboard.writeText(value);
+            else { const input = document.createElement('textarea'); input.value = value; input.style.position = 'fixed'; input.style.opacity = '0'; document.body.appendChild(input); input.select(); const copied = document.execCommand('copy'); input.remove(); if (!copied) throw new Error('copy'); }
+            toast(kind === 'description' ? 'Đã sao chép nội dung chuyển khoản.' : kind === 'account' ? 'Đã sao chép số tài khoản.' : 'Đã sao chép số tiền.');
+        } catch (error) { toast('Không sao chép được. Bạn có thể chọn và sao chép thông tin hiển thị.'); }
+    }
+
+    async function submitPayment(ids, button) {
         if (paymentInFlight || button.disabled) return;
+        const form = document.getElementById('invoicePaymentForm');
+        const invoiceId = ids[0];
+        const invoice = portfolioInvoices().find(item => item.id === invoiceId);
+        if (!form || !invoice || !isPayable(invoice) || statusFor(invoice) === 'payment_pending') return toast('Giao dịch đang chờ đối soát hoặc hóa đơn không còn đủ điều kiện gửi.');
+        const formData = new FormData(form);
+        const transferredAmount = Number(formData.get('amount'));
+        if (!Number.isSafeInteger(transferredAmount) || transferredAmount <= 0) return toast('Nhập số tiền chuyển khoản hợp lệ.');
+        if (!formData.get('transferredAt')) return toast('Chọn thời gian chuyển khoản.');
+        const receipt = formData.get('receipt');
+        if (receipt && receipt.size > 2 * 1024 * 1024) return toast('Ảnh biên lai phải nhỏ hơn 2 MB trong bản demo.');
         paymentInFlight = true;
         button.disabled = true;
-        const method = document.getElementById('paymentMethod').value;
         try {
-            internalInvoiceWrite = true;
-            ids.forEach(id => {
-                const invoice = window.RHD.get('invoices', id);
-                if (!invoice || !isPayable(invoice)) throw new Error('Hóa đơn ' + id + ' không còn ở trạng thái có thể thanh toán.');
-                const result = window.RHD.update('invoices', id, {
-                    status: 'payment_pending',
-                    paymentMethod: method,
-                    paymentRequestedAt: Date.now()
-                });
-                if (!result || !result.ok) throw new Error(result && result.error || 'Không thể gửi yêu cầu thanh toán.');
-            });
-            selectedInvoices.clear();
-            closeDialog();
-            renderAll();
-            toast('Đã gửi yêu cầu. Hóa đơn đang chờ ban quản lý xác nhận.');
+            const receiptDataUrl = receipt && receipt.size ? await new Promise((resolve, reject) => { const reader = new FileReader(); reader.onload = () => resolve(String(reader.result || '')); reader.onerror = reject; reader.readAsDataURL(receipt); }) : '';
+            const transaction = { id: 'TX-' + Date.now(), amount: transferredAmount, transferredAt: new Date(formData.get('transferredAt')).toISOString(), submittedAt: new Date().toISOString(), reference: String(formData.get('reference') || '').trim(), receiptName: receipt && receipt.size ? receipt.name : '', receiptDataUrl: receiptDataUrl, note: String(formData.get('note') || '').trim(), status: 'submitted' };
+            const result = window.RHD.update('invoices', invoice.id, { status: 'payment_pending', paymentMethod: 'bank_transfer_demo', paymentAmount: transferredAmount, paymentRequestedAt: Date.now(), paymentTransactions: (invoice.paymentTransactions || []).concat([transaction]), paymentReview: { status: 'submitted', submittedAt: transaction.submittedAt } });
+            if (!result || !result.ok) throw new Error(result && result.error || 'Không gửi được thông tin thanh toán. Vui lòng thử lại.');
         } catch (error) {
-            toast(error.message || 'Gửi thanh toán chưa thành công. Vui lòng thử lại.');
             button.disabled = false;
-        } finally {
-            internalInvoiceWrite = false;
             paymentInFlight = false;
-            renderAll();
+            return toast(error.message || 'Không đọc được tệp chứng từ. Vui lòng thử lại.');
         }
+        paymentInFlight = false;
+        closeDialog();
+        renderAll();
+        toast('Thông tin thanh toán đã được gửi. Vui lòng chờ ban quản lý xác nhận giao dịch.');
+        const updated = portfolioInvoices().find(item => item.id === invoice.id);
+        if (updated) openDrawer('Theo dõi giao dịch · ' + (updated.code || ''), invoiceDetail(updated));
     }
 
     function printInvoice(invoice) {
-        const rows = (invoice.items || []).map(item => '<tr><td>' + esc(item.label) + '</td><td>' + moneyLabel(item.amount) + '</td></tr>').join('');
+        const rows = (invoice.items || []).map(item => '<tr><td>' + esc(item.label) + '</td><td>' + moneyLabel(item.total || item.amount) + '</td></tr>').join('');
+        const contract = contractForInvoice(invoice) || {};
+        const apartment = apartmentFor(invoice.apartmentId || contract.apartmentId) || {};
+        const building = buildingFor(invoice.buildingId || contract.buildingId) || {};
+        const paid = amount(invoice.paidAmount || invoice.amountPaid);
+        const notice = window.RH_IS_DEMO_RESIDENT ? '<p style="color:#a33325;font-weight:bold">DỮ LIỆU MINH HỌA · THÔNG TIN THANH TOÁN MẪU</p>' : '';
         const printWindow = window.open('', '_blank');
         if (!printWindow) return toast('Trình duyệt đang chặn cửa sổ in. Hãy cho phép cửa sổ bật lên rồi thử lại.');
         printWindow.opener = null;
-        printWindow.document.write('<!doctype html><html lang="vi"><meta charset="utf-8"><title>Hóa đơn ' + esc(invoice.code) + '</title><style>body{font:15px/1.6 Arial,sans-serif;max-width:760px;margin:36px auto;color:#10213c}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:20px;margin-top:24px}@media print{button{display:none}}</style><h1>Hóa đơn ' + esc(invoice.code) + '</h1><p>Kỳ thu: ' + esc(invoice.period) + ' · Hạn thanh toán: ' + esc(fmtDate(invoice.dueDate)) + '</p><table><thead><tr><th>Khoản thu</th><th>Số tiền</th></tr></thead><tbody>' + rows + '</tbody></table><div class="total">Tổng cộng: ' + moneyLabel(invoice.total) + '</div><script>window.onload=()=>window.print()<\/script></html>');
+        printWindow.document.write('<!doctype html><html lang="vi"><meta charset="utf-8"><title>Hóa đơn ' + esc(invoice.code) + '</title><style>body{font:15px/1.6 Arial,sans-serif;max-width:760px;margin:36px auto;color:#10213c}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:18px;margin-top:18px}.meta{display:grid;grid-template-columns:1fr 1fr;gap:6px 24px}.meta p{margin:2px 0}@media print{button{display:none}}</style>' + notice + '<h1>Hóa đơn ' + esc(invoice.code) + '</h1><div class="meta"><p><b>Mã hợp đồng:</b> ' + esc(contract.code || '—') + '</p><p><b>Kỳ thanh toán:</b> ' + esc(invoice.period || '—') + '</p><p><b>Tòa nhà:</b> ' + esc(building.name || '—') + '</p><p><b>Phòng:</b> ' + esc(apartment.name || '—') + '</p><p><b>Ngày phát hành:</b> ' + esc(fmtDate(invoice.issueDate)) + '</p><p><b>Hạn thanh toán:</b> ' + esc(fmtDate(invoice.dueDate)) + '</p></div><table><thead><tr><th>Khoản thu</th><th>Số tiền</th></tr></thead><tbody>' + rows + '</tbody></table><div class="total"><p>Tổng tiền: ' + moneyLabel(invoice.total) + '</p><p>Đã thanh toán: ' + moneyLabel(paid) + '</p><p><b>Còn phải trả: ' + moneyLabel(invoiceDue(invoice)) + '</b></p></div><script>window.onload=()=>window.print()<\/script></html>');
         printWindow.document.close();
     }
 
@@ -4357,10 +4537,22 @@
     document.getElementById('invoiceBuildingFilter').addEventListener('change', () => { pageSize = 10; populateResidenceFilters(); renderInvoiceRows(); });
     document.getElementById('invoiceRoomFilter').addEventListener('change', () => { pageSize = 10; renderInvoiceRows(); });
     document.getElementById('invoicePeriodFilter').addEventListener('change', () => { pageSize = 10; renderInvoiceRows(); });
+    document.getElementById('invoiceContractFilter').addEventListener('change', () => { pageSize = 10; renderInvoiceRows(); });
+    document.getElementById('invoiceFeeFilter').addEventListener('change', () => { pageSize = 10; renderInvoiceRows(); });
     document.getElementById('invoiceSort').addEventListener('change', renderInvoiceRows);
     document.getElementById('billingSearch').addEventListener('input', () => {
         window.clearTimeout(searchTimer);
         searchTimer = window.setTimeout(() => { pageSize = 10; renderInvoiceRows(); }, 300);
+    });
+    document.getElementById('invoiceClearFilters').addEventListener('click', () => {
+        document.getElementById('billingSearch').value = '';
+        document.getElementById('invoiceContractFilter').value = 'all';
+        document.getElementById('invoicePeriodFilter').value = '';
+        document.getElementById('invoiceFeeFilter').value = 'all';
+        activeInvoiceFilter = 'all';
+        document.querySelectorAll('[data-invoice-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.invoiceFilter === 'all')));
+        pageSize = 10;
+        renderInvoiceRows();
     });
     document.getElementById('contractLiveSearch').addEventListener('input', renderContracts);
     document.addEventListener('input', event => {
@@ -4389,6 +4581,12 @@
         if (invoiceAction) {
             const action = invoiceAction.dataset.invoiceAction;
             const invoice = portfolioInvoices().find(item => item.id === invoiceAction.dataset.invoiceId);
+            if (action === 'copy-payment') { copyPaymentValue(invoiceAction.dataset.copyValue); return; }
+            if (action === 'download-qr') {
+                if (!invoice) return toast('Không tìm thấy hóa đơn.');
+                const blob = new Blob([paymentDemoSvg(invoice)], { type: 'image/svg+xml;charset=utf-8' });
+                const objectUrl = URL.createObjectURL(blob); const link = document.createElement('a'); link.href = objectUrl; link.download = 'QR-DEMO-' + (invoice.code || invoice.id) + '.svg'; document.body.appendChild(link); link.click(); link.remove(); window.setTimeout(() => URL.revokeObjectURL(objectUrl), 1000); return;
+            }
             if (action === 'contact') {
                 document.querySelector('.nav-item[data-target="requests"]')?.click();
                 return;
@@ -4408,6 +4606,16 @@
             if (action === 'copy') { navigator.clipboard?.writeText(invoice.code || invoice.id).then(() => toast('Đã sao chép mã hóa đơn.')).catch(() => toast('Không thể sao chép mã hóa đơn trên trình duyệt này.')); return; }
             if (action === 'print') { printInvoice(invoice); return; }
             if (action === 'complaint') { complainAbout(invoice); return; }
+        }
+        const historyContract = event.target.closest('[data-invoice-contract-select]');
+        if (historyContract) {
+            document.getElementById('invoiceContractFilter').value = historyContract.dataset.invoiceContractSelect;
+            activeInvoiceFilter = 'all';
+            document.querySelectorAll('[data-invoice-filter]').forEach(button => button.setAttribute('aria-pressed', String(button.dataset.invoiceFilter === 'all')));
+            pageSize = 10;
+            renderInvoiceRows();
+            document.querySelector('.invoice-controls')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            return;
         }
         const contractAction = event.target.closest('[data-contract-action]');
         if (contractAction) {
