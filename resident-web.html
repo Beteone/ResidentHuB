@@ -1143,6 +1143,7 @@
         .resident-feature-hero h3 { margin:0; font-family:'Plus Jakarta Sans','Be Vietnam Pro',sans-serif; font-size:1.45rem; font-weight:800; }
         .resident-feature-hero p { max-width:620px; margin:.45rem 0 0; color:#eaf5ff; line-height:1.55; font-size:.9rem; }
         .resident-feature-hero > div { display:flex; align-items:flex-start; justify-content:space-between; gap:1rem; }
+        .contract-hero-meta{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.85rem;margin-top:1.1rem;padding-top:1rem;border-top:1px solid rgba(255,255,255,.25)}.contract-hero-meta span{font-size:.82rem;line-height:1.45;overflow-wrap:anywhere}.contract-hero-meta b{display:block;margin-bottom:.2rem;color:#d7ecff;font-size:.68rem;text-transform:uppercase;letter-spacing:.04em}.contract-hero-open{grid-column:1/-1;justify-self:start;padding:.6rem .85rem;border:0;border-radius:8px;background:#fff;color:#0d65d5;font:700 .78rem 'Be Vietnam Pro',sans-serif;cursor:pointer}
         .resident-feature-icon { width:52px; height:52px; display:grid; place-items:center; flex:0 0 auto; border-radius:15px; background:rgba(255,255,255,.16); font-size:1.35rem; }
         .billing-summary { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:1rem; }
         .billing-summary-item { padding:1.1rem 1.2rem; border:1px solid var(--line); border-radius:14px; background:#fff; }
@@ -1179,6 +1180,7 @@
         #contractsSection .contract-document-info > span { min-width:0; overflow-wrap:anywhere; }
         #contractsSection .contract-resource-list { display:grid; gap:.65rem; }
         #contractsSection .contract-resource-note { margin:-.25rem 0 .8rem; color:#718096; font-size:.76rem; line-height:1.5; }
+        .contract-file-search{display:grid;gap:.3rem;margin:0 0 .65rem;color:#64748b;font-size:.72rem;font-weight:700}.contract-file-search input{width:100%;padding:.58rem .7rem;border:1px solid var(--line);border-radius:8px;font:500 .78rem 'Be Vietnam Pro',sans-serif}
         #contractsSection .contract-history-list { display:grid; gap:.5rem; }
         #contractsSection .contract-history-row { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr) auto; align-items:center; gap:.75rem; padding:.75rem; border:1px solid var(--line); border-radius:10px; color:#536275; font-size:.78rem; }
         #contractsSection .contract-history-row strong { color:#10213c; }
@@ -1186,6 +1188,7 @@
         .contract-renewal-card { min-height: 238px; display: flex; flex-direction: column; }
         .contract-renewal-card .contract-renew { margin-top: auto; }
         .contract-countdown { margin-top:.55rem; font-size:2.1rem; font-weight:800; color:#10213c; }
+        .contract-duration-track{height:9px;margin:.9rem 0 .45rem;overflow:hidden;border-radius:999px;background:#e7edf4}.contract-duration-fill{height:100%;width:0;border-radius:inherit;background:#1683ff;transition:width .25s ease}.contract-duration-meta{display:flex;justify-content:space-between;gap:.75rem;color:#718096;font-size:.72rem}.contract-countdown.is-warning{color:#c66a08}.contract-countdown.is-critical{color:#b54708}.contract-countdown.is-expired{color:#b42318}.contract-status.expiring{background:#fff7e8;color:#9a5b00}.contract-status.critical{background:#fff0e6;color:#a33c00}
         .contract-deadline { color:#718096; font-size:.79rem; line-height:1.55; margin:.45rem 0 1rem; }
         .contract-status { margin-top:.85rem; padding:.75rem; border-radius:10px; background:#f0fdf4; color:#166534; font-size:.78rem; line-height:1.45; }
         .contract-status.pending { background:#eff6ff; color:#1d4ed8; }
@@ -1197,6 +1200,7 @@
         .contract-detail-grid .meta-box { min-height:72px; }
         .contract-doc-actions { display:flex; gap:.5rem; align-items:center; }
         .contract-document button { flex:0 0 auto; }
+        #contractsSection .contract-doc-actions{display:none}#contractsSection .contract-document{cursor:pointer;transition:border-color .15s,background .15s}#contractsSection .contract-document:hover{border-color:#93c5fd;background:#f8fbff}
         .contract-preview { width:100%; min-height:240px; padding:1.1rem; border:1px solid #dbe5f1; border-radius:12px; background:#f8fafc; color:#526174; line-height:1.6; }
         .contract-preview strong { color:#10213c; }
         .contract-document .file-verified { color:#18a878; font-size:.7rem; }
@@ -1220,16 +1224,48 @@
         .payment-error { color:#b91c1c; font-size:.82rem; }
         .resident-feature-modal { display:none; position:fixed; inset:0; z-index:80; align-items:center; justify-content:center; padding:1rem; background:rgba(15,35,64,.48); }.resident-feature-modal.open { display:flex; }
         .resident-feature-dialog { width:min(500px,100%); max-height:90vh; overflow:auto; padding:1.4rem; border-radius:16px; background:#fff; box-shadow:0 30px 70px rgba(15,35,64,.24); }.resident-feature-dialog header { display:flex; align-items:center; justify-content:space-between; gap:1rem; }.resident-feature-dialog h4 { margin:0; color:#10213c; font-size:1.12rem; }.resident-feature-close { border:0; background:transparent; color:#64748b; font-size:1.2rem; cursor:pointer; }.payment-method { width:100%; margin-top:.7rem; padding:.85rem; border:1px solid var(--line); border-radius:10px; background:#fff; text-align:left; cursor:pointer; color:#334155; font:600 .82rem 'Be Vietnam Pro',sans-serif; }.payment-method:hover { border-color:#60a5fa; background:#f8fbff; }
-        @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}#contractsSection .contract-history-row{grid-template-columns:1fr auto}#contractsSection .contract-history-row small{grid-column:1/-1;text-align:left}}
+        @media(max-width:900px){.billing-summary,.contract-workspace{grid-template-columns:1fr}.contract-values{grid-template-columns:1fr 1fr}.contract-hero-meta{grid-template-columns:repeat(2,minmax(0,1fr))}}@media(max-width:640px){.billing-search,.billing-search input{width:100%}.contract-values{grid-template-columns:1fr}.contract-hero-meta{grid-template-columns:1fr 1fr}#contractsSection .contract-history-row{grid-template-columns:1fr auto}#contractsSection .contract-history-row small{grid-column:1/-1;text-align:left}}
     </style>
 </head>
 <body>
     <script>
         var RH_SESSION = RH.requireRole('resident');
-        // Resident accounts are always production data (Demo Mode has no login) —
-        // resolves the apartment/contract/customer/invoices/requests that belong to
-        // THIS account from the same data source the manager side writes to.
-        RHD.setMode('live');
+        // The shared resident demo account uses the same isolated demo dataset as
+        // the manager demo, so every browser gets the same seeded experience.
+        var RH_IS_DEMO_RESIDENT = !!(RH_SESSION && String(RH_SESSION.email || '').toLowerCase() === 'resident.demo@residenthub.test');
+        RHD.setMode(RH_IS_DEMO_RESIDENT ? 'demo' : 'live');
+        if (RH_IS_DEMO_RESIDENT && RH_SESSION && RH) {
+            var residentDemoContracts = RHD.list('contracts');
+            var residentDemoContract = residentDemoContracts.find(function (item) { return item.status === 'active' || item.status === 'signed'; }) || residentDemoContracts[0];
+            var residentDemoCustomer = residentDemoContract && RHD.get('customers', residentDemoContract.customerId);
+            var residentDemoApartment = residentDemoContract && RHD.get('apartments', residentDemoContract.apartmentId);
+            if (residentDemoContract && residentDemoCustomer && residentDemoApartment) {
+                var residentDemoBuilding = RHD.get('buildings', residentDemoApartment.buildingId) || {};
+                var residentDemoAddress = residentDemoApartment.address || RHD.buildingFullAddress(residentDemoBuilding);
+                RHD.update('customers', residentDemoCustomer.id, { fullName: 'Cư dân Demo', email: 'resident.demo@residenthub.test', phone: '0901234567', code: 'CD-2026-00125' });
+                RHD.update('contracts', residentDemoContract.id, {
+                    code: 'HD-2026-00125', status: 'active', signDate: '2025-10-25', startDate: '2025-11-01', endDate: '2026-10-31',
+                    updatedAt: '2026-10-19', landlordName: 'Ban quản lý ResidentHub', address: residentDemoAddress,
+                    rentPrice: 5000000, depositPrice: 10000000, paymentCycle: 'monthly', noticeDays: 30,
+                    renewalTerms: 'Trao đổi với Ban quản lý trước ít nhất 30 ngày. Gia hạn chỉ có hiệu lực khi hai bên xác nhận bằng phụ lục hoặc hợp đồng mới.',
+                    version: 'Phiên bản 1.0',
+                    files: [
+                        { id: 'demo-contract-file-1', name: 'Hợp đồng thuê nhà chính thức.pdf', docType: 'Hợp đồng thuê nhà', format: 'PDF', sizeBytes: 248832, uploadedAt: '2025-10-25', updatedAt: '2026-10-19', provider: 'Ban quản lý ResidentHub', status: 'Đã ký', version: '1.0' },
+                        { id: 'demo-contract-file-2', name: 'Phụ lục hợp đồng.pdf', docType: 'Phụ lục', format: 'PDF', sizeBytes: 126976, uploadedAt: '2025-10-25', updatedAt: '2025-10-25', provider: 'Ban quản lý ResidentHub', status: 'Đã ký', version: '1.0' },
+                        { id: 'demo-contract-file-3', name: 'Biên bản bàn giao căn hộ.pdf', docType: 'Biên bản bàn giao', format: 'PDF', sizeBytes: 188416, uploadedAt: '2025-11-01', updatedAt: '2025-11-01', provider: 'Ban quản lý ResidentHub', status: 'Đã xác nhận', version: '1.0' },
+                        { id: 'demo-contract-file-4', name: 'Biên bản xác nhận tiền đặt cọc.pdf', docType: 'Biên nhận đặt cọc', format: 'PDF', sizeBytes: 98304, uploadedAt: '2025-10-25', updatedAt: '2025-10-25', provider: 'Ban quản lý ResidentHub', status: 'Đã xác nhận', version: '1.0' }
+                    ],
+                    history: [
+                        { date: '2025-10-20', title: 'Tạo hợp đồng', description: 'Ban quản lý lập hồ sơ thuê cho căn ' + residentDemoApartment.name + '.' },
+                        { date: '2025-10-25', title: 'Ký hợp đồng', description: 'Hai bên hoàn tất ký hợp đồng thuê nhà.' },
+                        { date: '2025-11-01', title: 'Bắt đầu hiệu lực', description: 'Thời hạn thuê bắt đầu theo hợp đồng đã ký.' },
+                        { date: '2026-10-19', title: 'Cập nhật hồ sơ', description: 'Ban quản lý cập nhật bản lưu hồ sơ hợp đồng.' }
+                    ],
+                    renewalHistory: []
+                });
+                RH.updateUser(RH_SESSION.id, { residentId: residentDemoCustomer.id, apartmentId: residentDemoApartment.id, unit: residentDemoApartment.name, building: (RHD.get('buildings', residentDemoApartment.buildingId) || {}).name || '' });
+            }
+        }
         var RH_SETTINGS = RHD.getSettings();
         var RH_CTX = RHD.residentContext(RH_SESSION);
     </script>
@@ -1560,8 +1596,8 @@
             id: REAL_CONTRACT ? REAL_CONTRACT.id || REAL_CONTRACT.code : '',
             code: REAL_CONTRACT ? REAL_CONTRACT.code || REAL_CONTRACT.id : '',
             // Use the requested six-month reference period only when the record has no dates.
-            startDate: (REAL_CONTRACT && REAL_CONTRACT.startDate) || '2026-07-01',
-            endDate: (REAL_CONTRACT && REAL_CONTRACT.endDate) || '2026-12-31',
+            startDate: (REAL_CONTRACT && REAL_CONTRACT.startDate) || '',
+            endDate: (REAL_CONTRACT && REAL_CONTRACT.endDate) || '',
             signDate: (REAL_CONTRACT && REAL_CONTRACT.signDate) || '',
             rentPrice: Number(REAL_CONTRACT && REAL_CONTRACT.rentPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.rentPrice) || 0,
             depositPrice: Number(REAL_CONTRACT && REAL_CONTRACT.depositPrice) || Number(REAL_APARTMENT && REAL_APARTMENT.depositPrice) || 0,
@@ -3265,6 +3301,8 @@
                 uploadedFiles.push({ name: 'Ban-xem-truoc-hop-dong.html', dataUrl: 'data:text/html;charset=utf-8,' + encodeURIComponent(contractPreviewHtml), type: 'text/html', description: REAL_CONTRACT ? 'Bản xem trước từ thông tin hợp đồng' : 'Mẫu tham khảo · chưa phải hợp đồng đã ký', generated: true });
                 uploadedFiles.push({ name: 'Danh-muc-ban-giao-mau.html', dataUrl: 'data:text/html;charset=utf-8,' + encodeURIComponent(handoverHtml), type: 'text/html', description: 'Mẫu tham khảo · chưa phải biên bản đã ký', generated: true });
             }
+            // Only show files actually attached to the resident's contract record.
+            for (let index = uploadedFiles.length - 1; index >= 0; index--) if (uploadedFiles[index].generated) uploadedFiles.splice(index, 1);
             const appendices = Array.isArray(contractData.appendices) ? contractData.appendices : contractData.appendices ? [contractData.appendices] : [];
             const normalizedAppendices = appendices.map((item, index) => typeof item === 'string'
                 ? { name: item.split(/[\\/]/).pop() || 'Phụ lục ' + (index + 1), dataUrl: /^(data:|https?:\/\/|\/)/i.test(item) ? item : '', description: 'Phụ lục hợp đồng' }
@@ -3278,6 +3316,45 @@
 
             workspace.innerHTML = '<div class="card contract-main-card"><div class="contract-overview"><div class="contract-overview-head"><div><small>HỒ SƠ HỢP ĐỒNG</small><h4>' + escapeHtml(contractData.code ? 'Hợp đồng ' + contractData.code : 'Hợp đồng thuê nhà') + '</h4></div><span class="badge ' + statusClass + '" id="contractStatusBadge">' + escapeHtml(contractStatus) + '</span></div><div class="contract-values"><div>Căn hộ<strong>' + escapeHtml(roomName + ' · ' + buildingLabel) + '</strong></div><div>Thời hạn<strong>' + escapeHtml(dateLabel(contractData.startDate) + ' — ' + dateLabel(contractData.endDate)) + '</strong></div><div>Giá thuê<strong>' + escapeHtml(contractData.rentPrice ? money(contractData.rentPrice) + '/tháng' : 'Chưa cập nhật') + '</strong></div></div><div class="contract-detail-grid"><div class="meta-box"><small>Ngày ký</small><strong>' + escapeHtml(dateLabel(contractData.signDate)) + '</strong></div><div class="meta-box"><small>Bên cho thuê</small><strong>' + escapeHtml(landlordName) + '</strong></div><div class="meta-box"><small>Tiền đặt cọc</small><strong>' + escapeHtml(contractData.depositPrice ? money(contractData.depositPrice) : 'Chưa cập nhật') + '</strong></div><div class="meta-box"><small>Phiên bản</small><strong>' + escapeHtml(contractData.version) + '</strong></div><div class="meta-box"><small>Bên thuê</small><strong>' + escapeHtml(residentName) + '</strong></div><div class="meta-box"><small>Thời hạn báo trước</small><strong>' + escapeHtml(contractData.noticeDays + ' ngày') + '</strong></div></div></div><div class="contract-section-heading"><h4>Điều khoản cần lưu ý</h4><button type="button" class="billing-filter" data-contract-action="show-terms">Xem đầy đủ (' + clauses.length + ')</button></div><div class="notice-list">' + termsPreview + '</div><div class="contract-section-heading"><h4>Lịch sử hợp đồng</h4></div><div class="contract-history-list">' + historyRows + '</div></div><div class="contract-side-column"><div class="card contract-renewal-card"><small style="color:#64748b;font-weight:700">ĐẾN HẠN GIA HẠN</small><div class="contract-countdown" id="contractCountdown">Đang tính...</div><p class="contract-deadline" id="contractDeadline">Đang tính hạn chót theo điều khoản...</p><button type="button" class="btn-primary contract-renew" data-contract-action="renew" style="width:100%;padding:.7rem">Yêu cầu gia hạn</button><div class="contract-status" id="contractRenewalStatus"></div><div class="contract-progress" id="contractProgress" aria-label="Tiến trình gia hạn"></div></div><div class="card"><div class="contract-section-heading" style="margin:0 0 .85rem"><h4>Tài liệu hợp đồng</h4><button type="button" class="billing-filter" data-contract-action="download-all">Tải tất cả</button></div><p class="contract-resource-note">' + (uploadedFiles.some(file => file.generated) ? 'Chưa có file chính thức được tải lên; các tài liệu mẫu được đánh dấu rõ bên dưới.' : 'Tài liệu trong hồ sơ hợp đồng.') + '</p><div class="contract-resource-list">' + fileRows + '</div><div class="contract-section-heading"><h4>Phụ lục đã ký</h4><span class="badge badge-info">' + normalizedAppendices.length + ' phụ lục</span></div><div class="contract-resource-list">' + appendixContent + '</div></div></div></div>';
 
+            const titleDescription = root.querySelector('.resident-feature-hero p');
+            if (titleDescription) titleDescription.textContent = 'Quản lý thông tin hợp đồng, hồ sơ thuê nhà và thời hạn lưu trú của bạn.';
+            const hero = root.querySelector('.resident-feature-hero > div > div');
+            if (hero) {
+                const address = contractData.address || contractData.propertyAddress || (REAL_APARTMENT && (REAL_APARTMENT.address || REAL_APARTMENT.fullAddress)) || (REAL_BUILDING && (REAL_BUILDING.address || REAL_BUILDING.fullAddress)) || '';
+                const updated = contractData.updatedAt || contractData.modifiedAt || '';
+                hero.insertAdjacentHTML('beforeend', '<div class="contract-hero-meta"><span><b>Mã hợp đồng</b>' + escapeHtml(contractData.code || 'Chưa cập nhật') + '</span><span><b>Tòa nhà</b>' + escapeHtml(buildingName) + '</span><span><b>Địa chỉ thuê</b>' + escapeHtml(address || roomName + ' · ' + buildingName) + '</span><span><b>Cập nhật gần nhất</b>' + escapeHtml(updated ? dateLabel(updated) : 'Chưa cập nhật') + '</span>' + (uploadedFiles.length ? '<button type="button" class="contract-hero-open" data-contract-action="preview-file" data-file-index="0">Xem hợp đồng</button>' : '') + '</div>');
+            }
+            const countdownNode = workspace.querySelector('#contractCountdown');
+            if (countdownNode) countdownNode.insertAdjacentHTML('afterend', '<div class="contract-duration-track" role="progressbar" aria-label="Thời hạn hợp đồng"><div class="contract-duration-fill" id="contractDurationFill"></div></div><div class="contract-duration-meta" id="contractDurationMeta"></div>');
+            if (!REAL_CONTRACT) { const renewButton = workspace.querySelector('[data-contract-action="renew"]'); if (renewButton) renewButton.hidden = true; }
+            if (!uploadedFiles.length && !normalizedAppendices.length) { const downloadAll = workspace.querySelector('[data-contract-action="download-all"]'); if (downloadAll) downloadAll.hidden = true; }
+            if (!uploadedFiles.length) { const filesNote = workspace.querySelector('.contract-resource-note'); if (filesNote) filesNote.textContent = 'Chưa có hồ sơ được tải lên hợp đồng này.'; }
+            const detailGrid = workspace.querySelector('.contract-detail-grid');
+            if (detailGrid) {
+                const detailRows = [
+                    ['Mã cư dân', REAL_CUSTOMER && (REAL_CUSTOMER.code || REAL_CUSTOMER.customerCode || REAL_CUSTOMER.id)],
+                    ['Số điện thoại', contractData.phone || REAL_CUSTOMER && (REAL_CUSTOMER.phone || REAL_CUSTOMER.phoneNumber)],
+                    ['Địa chỉ thuê đầy đủ', contractData.address || contractData.propertyAddress || REAL_APARTMENT && (REAL_APARTMENT.address || REAL_APARTMENT.fullAddress)],
+                    ['Chu kỳ thanh toán', paymentCycleLabel],
+                    ['Thời hạn thuê', contractData.startDate && contractData.endDate ? Math.max(1, Math.ceil((contractDate(contractData.endDate) - contractDate(contractData.startDate)) / 86400000)) + ' ngày' : 'Chưa cập nhật'],
+                    ['Điều khoản gia hạn', contractData.renewalTerms || (contractData.noticeDays ? 'Thông báo trước ' + contractData.noticeDays + ' ngày' : 'Chưa cập nhật')]
+                ];
+                detailGrid.insertAdjacentHTML('beforeend', detailRows.map(row => '<div class="meta-box"><small>' + escapeHtml(row[0]) + '</small><strong>' + escapeHtml(row[1] || 'Chưa cập nhật') + '</strong></div>').join(''));
+            }
+            const actualHistory = Array.isArray(contractData.history) ? contractData.history : Array.isArray(contractData.versions) ? contractData.versions : [];
+            const timelineEvents = actualHistory.map(item => ({ date: item.date || item.createdAt || item.updatedAt, title: item.title || item.event || item.status || 'Cập nhật hợp đồng', description: item.description || item.note || item.version || item.revision || '' }));
+            [['createdAt', 'Tạo hợp đồng'], ['signDate', 'Ký hợp đồng'], ['startDate', 'Bắt đầu hiệu lực'], ['updatedAt', 'Cập nhật hồ sơ'], ['endDate', 'Kết thúc hợp đồng']].forEach(([field, title]) => {
+                if (contractData[field] && !timelineEvents.some(item => item.date && dateLabel(item.date) === dateLabel(contractData[field]) && item.title === title)) timelineEvents.push({ date: contractData[field], title, description: title === 'Cập nhật hồ sơ' ? 'Thông tin hợp đồng được cập nhật.' : '' });
+            });
+            timelineEvents.sort((a, b) => new Date(a.date || 0) - new Date(b.date || 0));
+            const historyList = workspace.querySelector('.contract-history-list');
+            if (historyList) historyList.innerHTML = timelineEvents.length ? timelineEvents.map(item => '<div class="contract-history-row"><strong>' + escapeHtml(item.title) + '</strong><span>' + escapeHtml(item.description || 'Thông tin ghi nhận trong hồ sơ hợp đồng.') + '</span><small>' + escapeHtml(item.date ? dateLabel(item.date) : 'Chưa cập nhật') + '</small></div>').join('') : '<div class="notice-item"><strong>Chưa có lịch sử hợp đồng</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem">Các mốc tạo, ký, cập nhật và gia hạn sẽ hiển thị khi được ghi nhận trong hồ sơ.</p></div>';
+            const resourceList = workspace.querySelector('.contract-resource-list');
+            if (resourceList) {
+                resourceList.insertAdjacentHTML('beforebegin', '<label class="contract-file-search"><span>Tìm hồ sơ</span><input type="search" placeholder="Tìm theo tên tệp..."></label>');
+                const search = resourceList.parentElement.querySelector('.contract-file-search input');
+                search.addEventListener('input', () => resourceList.querySelectorAll('.contract-document').forEach(row => { row.hidden = !row.textContent.toLowerCase().includes(search.value.trim().toLowerCase()); }));
+            }
             const overviewValues = workspace.querySelectorAll('.contract-values strong');
             if (overviewValues[1]) overviewValues[1].textContent = (contractData.startDate ? dateLabel(contractData.startDate) : 'Chưa cập nhật') + ' — ' + (contractData.endDate ? dateLabel(contractData.endDate) : 'Chưa cập nhật');
             if (overviewValues[2]) overviewValues[2].textContent = contractData.rentPrice ? money(contractData.rentPrice) + '/' + paymentCycleLabel : 'Chưa cập nhật';
@@ -3290,12 +3367,16 @@
                 const overview = workspace.querySelector('.contract-overview');
                 if (overview) overview.insertAdjacentHTML('afterend', '<p class="device-private-note" style="margin:.7rem .2rem 0">Thời hạn tham khảo 01/07/2026–31/12/2026 (6 tháng); ngày thực tế sẽ được ưu tiên khi có trong hồ sơ.</p>');
             }
+            const referencePeriodNote = workspace.querySelector('.device-private-note');
+            if (referencePeriodNote) referencePeriodNote.remove();
             if (!REAL_CONTRACT) {
                 const historyList = workspace.querySelector('.contract-history-list');
                 if (historyList) historyList.innerHTML = '<div class="notice-item"><strong>Chưa có lịch sử hợp đồng</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem">Lịch sử sẽ hiển thị sau khi Ban quản lý lập hợp đồng cho hồ sơ cư dân.</p></div>';
                 const historyHeading = Array.from(workspace.querySelectorAll('.contract-section-heading h4')).find(heading => heading.textContent.includes('Lịch sử hợp đồng'));
                 if (historyHeading) historyHeading.closest('.contract-section-heading').insertAdjacentHTML('afterend', '<div class="notice-item"><strong>Chưa có hợp đồng liên kết</strong><p style="margin:.35rem 0 0;color:#64748b;font-size:.82rem;line-height:1.5">Thông tin chính thức sẽ hiển thị sau khi Ban quản lý liên kết hợp đồng với hồ sơ cư dân.</p></div>');
             }
+            const historyHeadingEl = Array.from(workspace.querySelectorAll('.contract-section-heading h4')).find(heading => heading.textContent.toLowerCase().includes('lịch sử'));
+            if (historyHeadingEl && historyHeadingEl.closest('.contract-section-heading').nextElementSibling && historyHeadingEl.closest('.contract-section-heading').nextElementSibling.classList.contains('notice-item')) historyHeadingEl.closest('.contract-section-heading').nextElementSibling.remove();
             const openModal = (heading, html) => { modalTitle.textContent = heading; modalContent.innerHTML = html; modal.classList.add('open'); modal.setAttribute('aria-hidden', 'false'); };
             const closeModal = () => { modal.classList.remove('open'); modal.setAttribute('aria-hidden', 'true'); };
             const contractRenewalStatus = () => ({ draft: 'Chưa gửi yêu cầu. Ban quản lý sẽ xem xét và phản hồi.', submitted: 'Yêu cầu gia hạn đã được gửi đến Ban quản lý.', reviewing: 'Ban quản lý đang xem xét yêu cầu gia hạn.', signing: 'Yêu cầu đã được duyệt; đang chờ ký phụ lục.', completed: 'Phụ lục gia hạn đã hoàn tất.' }[contractData.renewalStatus] || 'Trạng thái yêu cầu: ' + contractData.renewalStatus);
@@ -3308,10 +3389,32 @@
                 const countdown = root.querySelector('#contractCountdown');
                 const deadlineLabel = root.querySelector('#contractDeadline');
                 const statusEl = root.querySelector('#contractRenewalStatus');
+                const badge = root.querySelector('#contractStatusBadge');
                 const progress = root.querySelector('#contractProgress');
-                if (countdown) countdown.textContent = days == null ? 'Chưa xác định' : days > 0 ? 'Còn ' + days + ' ngày' : days === 0 ? 'Đến hạn hôm nay' : 'Đã quá hạn ' + Math.abs(days) + ' ngày';
+                if (countdown) {
+                    countdown.textContent = days == null ? 'Chưa xác định' : days > 0 ? 'Còn ' + days + ' ngày' : days === 0 ? 'Hết hạn hôm nay' : 'Đã hết hạn';
+                    countdown.classList.toggle('is-warning', days != null && days >= 8 && days <= 30);
+                    countdown.classList.toggle('is-critical', days != null && days >= 1 && days <= 7);
+                    countdown.classList.toggle('is-expired', days != null && days <= 0);
+                }
+                const durationTrack = root.querySelector('#contractDurationFill');
+                const durationMeta = root.querySelector('#contractDurationMeta');
+                const start = contractData.startDate ? contractDate(contractData.startDate) : null;
+                const totalDays = start && contractEnd ? Math.max(0, Math.ceil((contractEnd - start) / 86400000)) : null;
+                if (durationTrack) durationTrack.style.width = totalDays ? Math.min(100, Math.max(0, ((totalDays - Math.max(days || 0, 0)) / totalDays) * 100)) + '%' : '0%';
+                if (durationMeta) durationMeta.textContent = totalDays == null ? 'Thời hạn chưa được cập nhật' : 'Đã sử dụng ' + Math.min(totalDays, Math.max(0, totalDays - Math.max(days, 0))) + '/' + totalDays + ' ngày';
+                if (badge && days != null) {
+                    const label = days < 0 ? 'Đã hết hạn' : days === 0 ? 'Hết hạn hôm nay' : days <= 30 ? 'Sắp hết hạn' : 'Đang hiệu lực';
+                    badge.textContent = label;
+                    badge.className = 'badge ' + (days <= 0 ? 'badge-overdue' : days <= 30 ? 'badge-pending' : 'badge-paid');
+                }
                 if (deadlineLabel) deadlineLabel.textContent = 'Hạn gửi yêu cầu: ' + (deadline ? contractFormatDate(deadline.toISOString().slice(0, 10)) : 'chưa xác định') + ' · Kết thúc hợp đồng ' + dateLabel(contractData.endDate) + ' (báo trước ' + contractData.noticeDays + ' ngày).';
-                if (statusEl) { statusEl.textContent = contractRenewalStatus(); statusEl.className = 'contract-status ' + (contractData.renewalStatus === 'submitted' || contractData.renewalStatus === 'reviewing' ? 'pending' : contractData.renewalStatus === 'signing' ? 'review' : ''); }
+                if (statusEl) {
+                    const renewalMessage = contractRenewalStatus();
+                    const expiryMessage = days == null ? 'Chưa có đủ ngày bắt đầu và ngày kết thúc để xác định thời hạn.' : days < 0 ? 'Hợp đồng đã hết hạn.' : days === 0 ? 'Hợp đồng của bạn hết hạn hôm nay.' : days <= 30 ? 'Hợp đồng của bạn sắp hết hạn. Vui lòng liên hệ ban quản lý/chủ nhà để trao đổi về việc gia hạn.' : '';
+                    statusEl.textContent = [expiryMessage, renewalMessage].filter(Boolean).join(' ');
+                    statusEl.className = 'contract-status ' + (days != null && days >= 1 && days <= 7 ? 'critical' : days != null && days >= 8 && days <= 30 ? 'expiring' : days != null && days <= 0 ? 'expired' : contractData.renewalStatus === 'submitted' || contractData.renewalStatus === 'reviewing' ? 'pending' : contractData.renewalStatus === 'signing' ? 'review' : '');
+                }
                 const step = { draft: -1, submitted: 0, reviewing: 1, signing: 2, completed: 3 }[contractData.renewalStatus];
                 if (progress) progress.innerHTML = renewalSteps.map((label, index) => '<div class="contract-progress-step ' + (index < step ? 'done' : index === step ? 'current' : '') + '">' + label + '</div>').join('');
             };
@@ -3351,6 +3454,11 @@
                 openModal('Yêu cầu gia hạn hợp đồng', '<form data-contract-action="renew-form"><label style="display:block;margin:.75rem 0 .35rem;font-weight:600">Thời hạn mong muốn</label><select name="duration" required style="width:100%;padding:.7rem;border:1px solid #dbe3ed;border-radius:8px;font:inherit"><option value="12 tháng">12 tháng</option><option value="24 tháng">24 tháng</option><option value="Khác">Khác / trao đổi thêm</option></select><label style="display:block;margin:.75rem 0 .35rem;font-weight:600">Ngày bắt đầu mong muốn (không bắt buộc)</label><input name="requestedStart" type="date" style="width:100%;padding:.7rem;border:1px solid #dbe3ed;border-radius:8px;font:inherit"><label style="display:block;margin:.75rem 0 .35rem;font-weight:600">Ghi chú gửi Ban quản lý</label><textarea name="note" rows="3" maxlength="1000" placeholder="Nội dung cần trao đổi" style="width:100%;padding:.7rem;border:1px solid #dbe3ed;border-radius:8px;font:inherit;resize:vertical"></textarea><p data-contract-error style="color:#b91c1c;font-size:.85rem"></p><div style="display:flex;gap:.65rem;margin-top:1rem"><button type="button" class="billing-filter resident-feature-close" style="flex:1">Hủy</button><button type="submit" class="btn-primary" style="flex:1">Gửi yêu cầu</button></div></form>');
             };
             root.addEventListener('click', async event => {
+                const documentRow = event.target.closest('.contract-document');
+                if (documentRow && !event.target.closest('[data-contract-action]')) {
+                    const previewAction = documentRow.querySelector('[data-contract-action^="preview-"]');
+                    if (previewAction) { previewAction.click(); return; }
+                }
                 const button = event.target.closest('[data-contract-action]'); if (!button) return;
                 const action = button.dataset.contractAction;
                 if (action === 'show-terms') openModal('Điều khoản hợp đồng · ' + clauses.length + ' điều khoản', '<div class="notice-list">' + clauses.map(clause => '<div class="notice-item"><strong>' + escapeHtml(clause[0]) + '</strong><p style="color:#475569;font-size:.84rem;line-height:1.6;margin:.4rem 0 0">' + escapeHtml(clause[1]) + '</p></div>').join('') + '</div><button type="button" class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đóng</button>');
@@ -3383,6 +3491,1072 @@
             renderRenewal();
         })();
     </script>
-    <script src="resident-live-workspaces.js"></script>
+    <script>
+(function () {
+    'use strict';
+
+    const clock = window.AppClock;
+    const section = document.getElementById('invoicesSection');
+    const contractSection = document.getElementById('contractsSection');
+    if (!clock || !section || !contractSection || !window.RHD) return;
+
+    const esc = value => String(value == null ? '' : value).replace(/[&<>"']/g, character => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
+    }[character]));
+    const amount = value => Number(value) || 0;
+    const moneyLabel = value => new Intl.NumberFormat('vi-VN').format(amount(value)) + ' đ';
+    const normalize = value => String(value || '').toLocaleLowerCase('vi-VN').normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '').replace(/đ/g, 'd');
+    const fmtDate = value => clock.formatDate(value);
+    const todayKey = () => clock.dateKey(new Date());
+    const userKey = () => (window.RH_SESSION && window.RH_SESSION.id) || 'guest';
+    const residentCustomerId = () => (window.RH_CTX && window.RH_CTX.customer && window.RH_CTX.customer.id)
+        || (window.RH_CTX && window.RH_CTX.contract && window.RH_CTX.contract.customerId) || '';
+    const allApartments = () => window.RHD.list('apartments');
+    const allBuildings = () => window.RHD.list('buildings');
+    const portfolioContracts = () => {
+        const customerId = residentCustomerId();
+        const apartmentId = window.RH_CTX && window.RH_CTX.apartment && window.RH_CTX.apartment.id;
+        return window.RHD.list('contracts').filter(contract => customerId
+            ? contract.customerId === customerId
+            : apartmentId && contract.apartmentId === apartmentId);
+    };
+    const portfolioInvoices = () => {
+        const contracts = portfolioContracts();
+        const contractIds = new Set(contracts.map(contract => contract.id));
+        const apartmentIds = new Set(contracts.map(contract => contract.apartmentId));
+        const customerId = residentCustomerId();
+        const items = window.RHD.list('invoices').filter(invoice => {
+            if (invoice.contractId) return contractIds.has(invoice.contractId);
+            return (customerId && invoice.customerId === customerId)
+                || (invoice.apartmentId && apartmentIds.has(invoice.apartmentId));
+        });
+        const knownIds = new Set(items.map(invoice => invoice.id));
+        ((window.RH_CTX && window.RH_CTX.invoices) || []).forEach(invoice => {
+            if (!knownIds.has(invoice.id) && (!invoice.customerId || invoice.customerId === customerId)) items.push(invoice);
+        });
+        return items;
+    };
+    const apartmentFor = id => allApartments().find(apartment => apartment.id === id) || null;
+    const buildingFor = id => allBuildings().find(building => building.id === id) || null;
+    const contractForInvoice = invoice => window.RHD.get('contracts', invoice.contractId);
+    const statusFor = (invoice, now) => clock.invoiceStatus(invoice, now);
+    const displayStatus = status => ({
+        unpaid: ['Chưa thanh toán', 'pending'], sent: ['Chưa thanh toán', 'pending'],
+        payment_pending: ['Chờ xác nhận', 'waiting'], paid: ['Đã thanh toán', 'paid'],
+        overdue: ['Quá hạn', 'overdue'], partial: ['Thanh toán một phần', 'pending']
+    }[status] || ['Chưa thanh toán', 'pending']);
+    const invoiceDue = invoice => invoice.status === 'paid' ? 0 : Math.max(0, amount(invoice.total) - amount(invoice.paidAmount || invoice.amountPaid));
+    const isPayable = invoice => ['unpaid', 'sent', 'overdue', 'partial'].includes(statusFor(invoice));
+
+    const stylesheet = document.createElement('style');
+    stylesheet.textContent = `
+        .resident-live-clock{display:grid;gap:.08rem;min-width:180px;padding:.45rem .7rem;border-left:1px solid #e4eaf2;color:#536275;font-size:.68rem;line-height:1.35}
+        .resident-live-clock strong{color:#10213c;font-size:.9rem;font-variant-numeric:tabular-nums}
+        .resident-feature-hero .live-period-line{display:flex;gap:.8rem;align-items:center;flex-wrap:wrap;margin-top:.7rem;color:#fff;font-size:.78rem;font-weight:600}
+        .live-period-line span+span{padding-left:.8rem;border-left:1px solid rgba(255,255,255,.35)}
+        .invoice-workspace{display:grid;gap:1rem;min-width:0}
+        .invoice-summary{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:1rem}
+        .invoice-summary-card{min-width:0;padding:1.05rem 1.2rem;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff)}
+        .invoice-summary-card small{display:block;color:#64748b;font-size:.75rem;font-weight:800}
+        .invoice-summary-card strong{display:block;margin:.5rem 0;color:var(--ink,#10213c);font-size:1.45rem;font-variant-numeric:tabular-nums;transition:color .2s ease}
+        .invoice-summary-card span{color:#718096;font-size:.76rem;line-height:1.45}
+        .invoice-summary-card.is-overdue{border-color:#fca5a5;background:#fff5f5}
+        .invoice-summary-card.is-overdue strong,.invoice-summary-card.is-overdue small{color:#b91c1c}
+        .invoice-unassigned,.invoice-overdue-alert,.invoice-change-alert{display:flex;align-items:center;gap:.75rem;padding:.9rem 1rem;border:1px solid #fed7aa;border-radius:12px;background:#fff7ed;color:#9a3412;font-size:.84rem;line-height:1.5}
+        .invoice-unassigned[hidden],.invoice-overdue-alert[hidden],.invoice-change-alert[hidden]{display:none}
+        .invoice-unassigned button,.invoice-change-alert button{margin-left:auto;flex:none;border:1px solid currentColor;border-radius:8px;padding:.45rem .7rem;background:transparent;color:inherit;font:inherit;font-weight:700;cursor:pointer}
+        .invoice-overdue-alert{border-color:#fecaca;background:#fff1f2;color:#991b1b;font-weight:700}
+        .invoice-change-alert{border-color:#bfdbfe;background:#eff6ff;color:#1d4ed8}
+        .invoice-controls{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:.8rem;align-items:center;margin-bottom:.9rem}
+        .invoice-filter-tabs{display:flex;gap:.4rem;overflow-x:auto;padding-bottom:.15rem}
+        .invoice-filter-tab{flex:none;border:1px solid var(--line);border-radius:9px;padding:.55rem .7rem;background:var(--surface,#fff);color:#536275;font:600 .75rem 'Be Vietnam Pro',sans-serif;cursor:pointer}
+        .invoice-filter-tab[aria-pressed="true"]{border-color:#93c5fd;background:#eff6ff;color:#0d65d5}
+        .invoice-filter-tab span{margin-left:.25rem;color:#8492a6;font-size:.68rem}
+        .invoice-query-row{display:flex;gap:.5rem;flex-wrap:wrap;align-items:center}
+        .invoice-query-row input,.invoice-query-row select{min-height:38px;max-width:180px;border:1px solid var(--line);border-radius:8px;padding:.45rem .6rem;background:var(--surface,#fff);color:var(--ink,#10213c);font:500 .75rem 'Be Vietnam Pro',sans-serif}
+        .invoice-search{position:relative;display:flex;align-items:center;gap:.5rem;border:1px solid var(--line);border-radius:8px;padding:0 .6rem;color:#8a99ac;background:var(--surface,#fff)}
+        .invoice-search input{width:190px;border:0;padding-left:0;outline:0}
+        .invoice-alert-strip{margin-bottom:.8rem}
+        .invoice-table-wrap{overflow:auto;max-height:min(62vh,680px);border:1px solid var(--line);border-radius:12px}
+        .invoice-table{width:100%;border-collapse:collapse;font-size:.76rem}
+        .invoice-table th{position:sticky;top:0;z-index:1;padding:.75rem .65rem;background:#f8fafc;color:#64748b;text-align:left;white-space:nowrap}
+        .invoice-table td{padding:.72rem .65rem;border-top:1px solid #edf1f6;color:#536275;vertical-align:middle}
+        .invoice-table tbody tr[data-invoice-id]{cursor:pointer}
+        .invoice-table tbody tr[data-invoice-id]:hover{background:#f8fbff}
+        .invoice-table .invoice-row-overdue{background:#fff9f9}
+        .invoice-code{color:#10213c;font-weight:800;white-space:nowrap}
+        .invoice-row-title{color:#10213c;font-weight:700}
+        .invoice-countdown{display:inline-block;white-space:nowrap;color:#64748b;font-size:.7rem}
+        .invoice-countdown.is-overdue{color:#b91c1c;font-weight:800}
+        .invoice-status{display:inline-flex;align-items:center;white-space:nowrap;border-radius:999px;padding:.28rem .52rem;font-size:.66rem;font-weight:800}
+        .invoice-status.pending{background:#fff4df;color:#a5680c}.invoice-status.waiting{background:#fef3c7;color:#92400e}
+        .invoice-status.paid{background:#e6f8ef;color:#08794f}.invoice-status.overdue{background:#fee2e2;color:#b91c1c}
+        .invoice-row-action{width:30px;height:30px;border:1px solid var(--line);border-radius:8px;background:#fff;color:#1769e8;cursor:pointer}
+        .invoice-select{width:16px;height:16px;accent-color:#1769e8}
+        .invoice-foot{position:sticky;bottom:0;z-index:2;display:flex;justify-content:space-between;align-items:center;gap:1rem;margin-top:.7rem;padding:.7rem .8rem;border:1px solid #dce8f6;border-radius:12px;background:rgba(255,255,255,.97);box-shadow:0 -8px 18px rgba(15,35,64,.06)}
+        .invoice-foot-note{color:#64748b;font-size:.76rem}.invoice-foot-total{margin-left:.4rem;color:#10213c;font-weight:800}
+        .invoice-foot .btn-primary{padding:.62rem .85rem;white-space:nowrap}.invoice-foot .btn-primary:disabled{opacity:.5;cursor:not-allowed}
+        .invoice-empty{padding:2rem 1rem;text-align:center;color:#64748b}.invoice-empty i{display:block;margin-bottom:.6rem;color:#8aa7ca;font-size:2rem}.invoice-empty strong{display:block;margin-bottom:.3rem;color:#334155}
+        .invoice-load-more{display:block;margin:.8rem auto 0;border:1px solid var(--line);border-radius:8px;padding:.55rem .8rem;background:#fff;color:#1769e8;font:700 .75rem 'Be Vietnam Pro',sans-serif;cursor:pointer}
+        .invoice-skeleton{display:grid;gap:.55rem;padding:.8rem}.invoice-skeleton span{height:38px;border-radius:7px;background:linear-gradient(90deg,#eef2f7,#f8fafc,#eef2f7);background-size:200% 100%;animation:invoice-shimmer 1.1s linear infinite}
+        @keyframes invoice-shimmer{to{background-position:-200% 0}}
+        .live-drawer-backdrop{position:fixed;inset:0;z-index:95;display:flex;justify-content:flex-end;background:rgba(15,35,64,.42)}
+        .live-drawer-backdrop[hidden]{display:none}
+        .live-drawer{width:min(500px,100%);height:100%;overflow:auto;padding:1.25rem;background:var(--surface,#fff);color:var(--ink,#10213c);box-shadow:-20px 0 50px rgba(15,35,64,.18)}
+        .live-drawer-backdrop.wide .live-drawer{width:min(850px,100%)}.resident-contract-pdf{display:block;width:100%;height:min(66vh,760px);border:1px solid var(--line);border-radius:9px;background:#f4f7fb}.resident-contract-preview-actions{display:flex;justify-content:flex-end;margin-top:.7rem}
+        .live-drawer header{position:sticky;top:-1.25rem;z-index:1;display:flex;justify-content:space-between;align-items:center;gap:1rem;margin:-1.25rem -1.25rem 1rem;padding:1rem 1.25rem;background:var(--surface,#fff);border-bottom:1px solid var(--line)}
+        .live-drawer h2{margin:0;font-size:1.08rem}.live-drawer-close{width:36px;height:36px;border:1px solid var(--line);border-radius:9px;background:var(--surface,#fff);color:inherit;cursor:pointer}
+        .live-detail-list{display:grid;gap:.6rem}.live-detail-row{display:flex;justify-content:space-between;gap:1rem;padding:.65rem 0;border-bottom:1px solid var(--line);font-size:.82rem}.live-detail-row strong{text-align:right}
+        .live-action-row{display:flex;gap:.5rem;flex-wrap:wrap;margin-top:1rem}.live-action-row button{flex:1 1 130px}
+        .live-dialog-backdrop{position:fixed;inset:0;z-index:100;display:grid;place-items:center;padding:1rem;background:rgba(15,35,64,.5)}.live-dialog-backdrop[hidden]{display:none}
+        .live-dialog{width:min(440px,100%);max-height:90vh;overflow:auto;border-radius:14px;padding:1.2rem;background:var(--surface,#fff);color:var(--ink,#10213c);box-shadow:0 25px 70px rgba(15,35,64,.22)}
+        .live-dialog h2{margin:0 0 .5rem;font-size:1.1rem}.live-dialog p{color:#64748b;font-size:.82rem;line-height:1.55}
+        .live-dialog label{display:block;margin:.65rem 0 .3rem;font-size:.78rem;font-weight:700}.live-dialog input,.live-dialog select,.live-dialog textarea{width:100%;padding:.65rem;border:1px solid var(--line);border-radius:8px;background:var(--surface,#fff);color:var(--ink,#10213c);font:inherit}
+        .live-toast{position:fixed;right:1rem;bottom:1rem;z-index:120;max-width:min(420px,calc(100vw - 2rem));padding:.75rem 1rem;border-radius:10px;background:#10213c;color:#fff;font-size:.8rem;box-shadow:0 12px 32px #10213c30}
+        .contract-live-panel{display:grid;gap:.9rem;margin-bottom:1rem}.contract-live-stats{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:.8rem}
+        .contract-live-stat{padding:.85rem 1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff)}.contract-live-stat small{color:#64748b;font-size:.68rem;font-weight:800}.contract-live-stat strong{display:block;margin-top:.35rem;color:var(--ink,#10213c);font-size:1.3rem}
+        .contract-live-toolbar{display:flex;gap:.55rem;align-items:center;flex-wrap:wrap}.contract-live-toolbar input,.contract-live-toolbar select{min-height:38px;border:1px solid var(--line);border-radius:8px;padding:.5rem .65rem;background:var(--surface,#fff);color:var(--ink,#10213c);font:500 .76rem 'Be Vietnam Pro',sans-serif}
+        .contract-live-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.8rem}.contract-live-card{min-width:0;padding:1rem;border:1px solid var(--line);border-radius:12px;background:var(--surface,#fff)}
+        .contract-live-card-head{display:flex;justify-content:space-between;gap:.6rem;align-items:flex-start}.contract-live-card h3{margin:0;color:var(--ink,#10213c);font-size:.9rem;overflow-wrap:anywhere}
+        .contract-live-meta{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.55rem;margin-top:.8rem;color:#64748b;font-size:.72rem}.contract-live-meta strong{display:block;margin-top:.16rem;color:var(--ink,#10213c);font-size:.76rem}
+        .contract-live-progress{height:7px;margin-top:.85rem;border-radius:99px;background:#e5edf6;overflow:hidden}.contract-live-progress span{display:block;height:100%;border-radius:inherit;background:#18a878}
+        .contract-live-countdown{margin-top:.5rem;color:#08794f;font-size:.75rem;font-weight:800}.contract-live-countdown.warning{color:#a5680c}.contract-live-countdown.orange{color:#c2410c}.contract-live-countdown.expired{color:#b91c1c}
+        .resident-contract-page{display:grid;gap:1rem}.resident-contract-ident{display:grid;grid-template-columns:minmax(0,1fr) auto;gap:1rem;align-items:center;padding:1rem 1.15rem;border:1px solid #dce8f5;border-radius:14px;background:#fff}.resident-contract-ident-main{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.8rem}.resident-contract-ident small,.resident-contract-detail small{display:block;color:#74849a;font-size:.68rem;font-weight:700}.resident-contract-ident strong,.resident-contract-detail strong{display:block;margin-top:.2rem;color:#20334d;font-size:.82rem;overflow-wrap:anywhere}.resident-contract-ident .code{font-size:1rem;color:#0d65d5}.resident-contract-layout{display:grid;grid-template-columns:minmax(0,1.35fr) minmax(280px,.65fr);gap:1rem;align-items:start}.resident-contract-main,.resident-contract-aside{display:grid;gap:1rem;min-width:0}.resident-contract-card{padding:1rem 1.1rem;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff)}.resident-contract-card h3{margin:0 0 .8rem;color:var(--ink,#10213c);font-size:.96rem}.resident-contract-details{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}.resident-contract-detail{min-width:0;padding:.7rem .75rem;border:1px solid #edf1f6;border-radius:9px;background:#fbfcfe}.resident-contract-term{padding:1.1rem;border:1px solid #d7e8fa;border-radius:14px;background:linear-gradient(150deg,#f5faff,#fff)}.resident-contract-term-head{display:flex;justify-content:space-between;align-items:flex-start;gap:.7rem}.resident-contract-term h3{margin:0}.resident-contract-days{margin:.6rem 0 .25rem;color:#147b58;font-size:1.8rem;font-weight:800;letter-spacing:-.03em}.resident-contract-days.warning{color:#a5680c}.resident-contract-days.critical{color:#b54708}.resident-contract-days.expired{color:#b42318}.resident-contract-term p{margin:.25rem 0;color:#64748b;font-size:.78rem;line-height:1.5}.resident-contract-progress{height:9px;margin:.8rem 0 .35rem;overflow:hidden;border-radius:99px;background:#e6edf5}.resident-contract-progress span{display:block;height:100%;border-radius:inherit;background:#1683ff;transition:width .25s}.resident-contract-progress-meta{display:flex;justify-content:space-between;gap:.5rem;color:#718096;font-size:.68rem}.resident-contract-reminder{margin-top:.7rem;padding:.7rem .8rem;border-radius:9px;background:#fff6e7;color:#89570a;font-size:.76rem;line-height:1.5}.resident-contract-reminder.critical{background:#fff0e7;color:#a33d05}.resident-contract-req{margin-top:.7rem;padding:.65rem .75rem;border-radius:9px;background:#eff6ff;color:#1d4ed8;font-size:.75rem;line-height:1.5}.resident-contract-doc-toolbar{display:flex;gap:.55rem;align-items:center;margin:-.1rem 0 .7rem}.resident-contract-doc-toolbar input,.resident-contract-doc-toolbar select{min-height:36px;padding:.45rem .6rem;border:1px solid var(--line);border-radius:8px;background:#fff;color:#334155;font:500 .73rem 'Be Vietnam Pro',sans-serif}.resident-contract-doc-toolbar input{flex:1;min-width:0}.resident-contract-doc-list{display:grid;gap:.55rem}.resident-contract-file{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:.65rem;padding:.7rem .75rem;border:1px solid var(--line);border-radius:10px;background:#fff;cursor:pointer}.resident-contract-file:hover{border-color:#93c5fd;background:#f8fbff}.resident-contract-file-icon{display:grid;place-items:center;width:34px;height:38px;border-radius:8px;background:#fff0f0;color:#d33d45;font-size:.95rem}.resident-contract-file-copy{min-width:0}.resident-contract-file-copy strong{display:block;color:#20334d;font-size:.78rem;overflow-wrap:anywhere}.resident-contract-file-copy small{display:block;margin-top:.18rem;color:#7a899b;font-size:.67rem;line-height:1.45}.resident-contract-file>i:last-child{color:#7f91a8;font-size:.75rem}.resident-contract-timeline{display:grid;gap:0}.resident-contract-event{position:relative;display:grid;grid-template-columns:90px 12px minmax(0,1fr);gap:.6rem;padding-bottom:.8rem;color:#64748b;font-size:.75rem;line-height:1.5}.resident-contract-event:last-child{padding-bottom:0}.resident-contract-event:before{content:'';position:absolute;top:10px;bottom:-2px;left:94px;width:1px;background:#dce7f2}.resident-contract-event:last-child:before{display:none}.resident-contract-event-dot{z-index:1;width:9px;height:9px;margin-top:4px;border:2px solid #1683ff;border-radius:50%;background:#fff}.resident-contract-event strong{display:block;color:#273b55;font-size:.77rem}.resident-contract-empty{padding:.8rem;border:1px dashed #d8e2ee;border-radius:9px;color:#7a899b;font-size:.74rem}
+        #contractLiveList{grid-template-columns:minmax(0,1fr)}
+        body.resident-theme-dark .resident-contract-ident,body.resident-theme-dark .resident-contract-card,body.resident-theme-dark .resident-contract-file{background:#172235;border-color:#304158}body.resident-theme-dark .resident-contract-detail{background:#1b2a3d;border-color:#304158}body.resident-theme-dark .resident-contract-ident strong,body.resident-theme-dark .resident-contract-detail strong,body.resident-theme-dark .resident-contract-file-copy strong,body.resident-theme-dark .resident-contract-event strong{color:#dbe7f5}
+        .contract-live-card.expired{border-color:#fecaca;background:#fffafa}.contract-live-empty{grid-column:1/-1;padding:1.4rem;border:1px dashed var(--line);border-radius:12px;text-align:center;color:#64748b}.contract-live-empty strong{display:block;margin-bottom:.4rem;color:#334155}
+        .contract-empty-state{display:grid;grid-template-columns:minmax(0,1.15fr) minmax(280px,.85fr);gap:1rem;padding:1.1rem;border:1px solid var(--line);border-radius:14px;background:var(--surface,#fff);text-align:left}.contract-empty-intro{display:flex;align-items:flex-start;gap:.9rem;padding:1rem;border-radius:12px;background:linear-gradient(135deg,#f5f9ff,#edf5ff)}.contract-empty-icon{display:grid;place-items:center;flex:0 0 42px;height:42px;border-radius:12px;background:#e7f1ff;color:#1769e8}.contract-empty-intro h3{margin:0 0 .35rem;color:var(--ink,#10213c);font-size:1rem}.contract-empty-intro p{margin:0;color:#64748b;font-size:.82rem;line-height:1.55}.contract-empty-intro button{margin-top:.8rem}.contract-empty-info{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.6rem}.contract-empty-info article{padding:.75rem;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff)}.contract-empty-info small{display:block;color:#718096;font-size:.68rem;font-weight:700}.contract-empty-info strong{display:block;margin:.3rem 0 0;color:#334155;font-size:.8rem}.contract-empty-footer{grid-column:1/-1;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:.7rem}.contract-empty-footer article{padding:.8rem;border:1px solid var(--line);border-radius:10px;background:var(--surface,#fff)}.contract-empty-footer h4{margin:0 0 .35rem;color:#334155;font-size:.8rem}.contract-empty-footer p{margin:0;color:#718096;font-size:.74rem;line-height:1.5}
+        body.resident-theme-dark .invoice-summary-card,body.resident-theme-dark .invoice-foot,body.resident-theme-dark .contract-live-stat,body.resident-theme-dark .contract-live-card{background:#172235;border-color:#304158}
+        body.resident-theme-dark .invoice-table th{background:#1d2b40;color:#c3d1e3}body.resident-theme-dark .invoice-status.pending{background:#4a3512;color:#fcd34d}body.resident-theme-dark .invoice-status.waiting{background:#4a3512;color:#fde68a}body.resident-theme-dark .invoice-status.paid{background:#123b31;color:#86efac}body.resident-theme-dark .invoice-status.overdue{background:#4b2028;color:#fca5a5}
+        @media(max-width:900px){.invoice-controls{grid-template-columns:1fr}.invoice-query-row{justify-content:flex-start}.contract-live-list,.resident-contract-layout{grid-template-columns:1fr}.resident-contract-ident-main{grid-template-columns:repeat(2,minmax(0,1fr))}.contract-empty-state{grid-template-columns:1fr}}
+        @media(max-width:700px){.resident-live-clock{min-width:0;flex:1}.topbar-actions{flex-wrap:wrap}.invoice-summary{grid-template-columns:1fr}.contract-live-stats{grid-template-columns:1fr}.contract-empty-info,.contract-empty-footer{grid-template-columns:1fr}.invoice-query-row>*{max-width:none!important;flex:1 1 130px}.invoice-search{flex:1 1 100%}.invoice-search input{width:100%}.invoice-table-wrap{max-height:none;border:0;overflow:visible}.invoice-table,.invoice-table tbody{display:block;width:100%}.invoice-table thead{display:none}.invoice-table tr[data-invoice-id]{display:grid;grid-template-columns:24px minmax(0,1fr) auto;gap:.2rem .6rem;margin-bottom:.7rem;padding:.75rem;border:1px solid var(--line);border-radius:11px;background:var(--surface,#fff)}.invoice-table td{display:block;padding:.22rem 0;border:0}.invoice-table td[data-label="Chọn"]{grid-row:1/5;align-self:center}.invoice-table td[data-label="Khoản thu"]{grid-column:2}.invoice-table td[data-label="Trạng thái"]{grid-column:3;grid-row:1}.invoice-table td[data-label="Mã hóa đơn"],.invoice-table td[data-label="Hạn thanh toán"],.invoice-table td[data-label="Còn lại"],.invoice-table td[data-label="Thời hạn"],.invoice-table td[data-label="Tổng tiền"]{grid-column:2/4}.invoice-table td[data-label="Thao tác"]{grid-column:3;grid-row:2;justify-self:end}.invoice-table td[data-label="Tòa nhà"],.invoice-table td[data-label="Phòng"]{display:none}.invoice-foot{bottom:.25rem}.invoice-foot-note{max-width:45%;line-height:1.4}.invoice-foot .btn-primary{font-size:.72rem}.live-drawer{padding:1rem}.live-drawer header{top:-1rem;margin:-1rem -1rem .8rem;padding:.8rem 1rem}}
+        @media(max-width:560px){.resident-contract-ident{grid-template-columns:1fr}.resident-contract-ident-main,.resident-contract-details{grid-template-columns:1fr}.resident-contract-ident>.btn-primary{width:100%}.resident-contract-doc-toolbar{align-items:stretch;flex-direction:column}.resident-contract-doc-toolbar select{width:100%}.resident-contract-event{grid-template-columns:76px 12px minmax(0,1fr)}.resident-contract-event:before{left:80px}}
+        @media(prefers-reduced-motion:reduce){.invoice-skeleton span{animation:none}}
+    `;
+    document.head.appendChild(stylesheet);
+
+    const topbarActions = document.querySelector('.topbar-actions');
+    const topbarClock = document.querySelector('.resident-live-clock');
+    const hero = section.querySelector('.resident-feature-hero');
+    const contractHero = contractSection.querySelector('.resident-feature-hero');
+    const legacyContractWorkspace = contractSection.querySelector('.contract-workspace');
+    if (legacyContractWorkspace) legacyContractWorkspace.hidden = true;
+
+    if (hero) {
+        hero.insertAdjacentHTML('beforeend', '<div class="live-period-line"><span>Kỳ hiện tại: <strong id="invoicePeriodLabel"></strong></span><span id="invoicePeriodDates"></span></div>');
+    }
+    if (contractHero) contractHero.querySelector('p').textContent = 'Quản lý thông tin hợp đồng, hồ sơ thuê nhà và thời hạn lưu trú của bạn.';
+
+    const feature = section.querySelector('.resident-feature');
+    feature.innerHTML = `
+        <div class="resident-feature-hero"><div><div><h3>Hóa đơn &amp; thanh toán</h3><p>Hóa đơn, khoản phải trả và trạng thái xác nhận theo từng căn hộ.</p><div class="live-period-line"><span>Kỳ hiện tại: <strong id="invoicePeriodLabel"></strong></span><span id="invoicePeriodDates"></span></div></div><i class="fas fa-receipt resident-feature-icon"></i></div></div>
+        <div class="invoice-workspace">
+            <div class="invoice-unassigned" id="invoiceUnassigned" hidden><i class="fas fa-circle-info"></i><span>Bạn chưa được gán phòng, vui lòng liên hệ ban quản lý để được hỗ trợ.</span><button type="button" data-invoice-action="contact">Liên hệ ban quản lý</button></div>
+            <div class="invoice-overdue-alert" id="invoiceOverdueAlert" hidden></div>
+            <div class="invoice-change-alert" id="invoiceChangeAlert" hidden><span>Dữ liệu vừa thay đổi.</span><button type="button" data-invoice-action="refresh">Bấm để làm mới</button></div>
+            <div class="invoice-summary">
+                <div class="invoice-summary-card" id="invoiceDueCard"><small><i class="fas fa-wallet"></i> CẦN THANH TOÁN</small><strong id="billingDue">0 đ</strong><span id="billingDueNote"></span></div>
+                <div class="invoice-summary-card"><small><i class="fas fa-circle-check" style="color:#18a878"></i> ĐÃ THANH TOÁN</small><strong id="billingPaid">0 đ</strong><span>Tổng hóa đơn đã thanh toán</span></div>
+                <div class="invoice-summary-card"><small><i class="fas fa-calendar-days" style="color:#1683ff"></i> KỲ HIỆN TẠI</small><strong id="billingPeriodCard"></strong><span id="billingPeriodCardDates"></span></div>
+            </div>
+            <div class="card">
+                <div class="invoice-controls"><div class="invoice-filter-tabs" role="group" aria-label="Lọc hóa đơn">
+                    <button class="invoice-filter-tab" data-invoice-filter="all" aria-pressed="true">Tất cả <span data-filter-count="all">0</span></button>
+                    <button class="invoice-filter-tab" data-invoice-filter="pending" aria-pressed="false">Chưa thanh toán <span data-filter-count="pending">0</span></button>
+                    <button class="invoice-filter-tab" data-invoice-filter="waiting" aria-pressed="false">Chờ xác nhận <span data-filter-count="waiting">0</span></button>
+                    <button class="invoice-filter-tab" data-invoice-filter="paid" aria-pressed="false">Đã thanh toán <span data-filter-count="paid">0</span></button>
+                    <button class="invoice-filter-tab" data-invoice-filter="overdue" aria-pressed="false">Quá hạn <span data-filter-count="overdue">0</span></button>
+                </div><div class="invoice-query-row">
+                    <label class="invoice-search"><i class="fas fa-search"></i><input id="billingSearch" type="search" placeholder="Tìm mã hoặc khoản thu" aria-label="Tìm mã hoặc khoản thu"></label>
+                    <select id="invoiceBuildingFilter" aria-label="Lọc theo tòa nhà"><option value="all">Tất cả tòa nhà</option></select>
+                    <select id="invoiceRoomFilter" aria-label="Lọc theo phòng"><option value="all">Tất cả phòng</option></select>
+                    <input id="invoicePeriodFilter" type="month" aria-label="Lọc theo kỳ thu">
+                    <select id="invoiceSort" aria-label="Sắp xếp hóa đơn"><option value="due">Hạn thanh toán gần nhất</option><option value="amount-desc">Số tiền cao nhất</option><option value="amount-asc">Số tiền thấp nhất</option></select>
+                </div></div>
+                <div class="invoice-table-wrap"><table class="invoice-table"><thead><tr><th><input id="invoiceSelectVisible" class="invoice-select" type="checkbox" aria-label="Chọn hóa đơn có thể thanh toán"></th><th>Khoản thu</th><th>Tòa nhà</th><th>Phòng</th><th>Mã hóa đơn</th><th>Hạn thanh toán</th><th>Còn lại</th><th>Thời hạn</th><th>Trạng thái</th><th></th></tr></thead><tbody id="billingRows"><tr><td colspan="10"><div class="invoice-skeleton"><span></span><span></span><span></span></div></td></tr></tbody></table></div>
+                <div class="invoice-foot"><span class="invoice-foot-note" id="billingCount">Đang tải hóa đơn</span><span class="invoice-foot-note">Đã chọn <strong id="invoiceSelectedCount">0</strong><strong class="invoice-foot-total" id="invoiceSelectedTotal">0 đ</strong></span><button type="button" class="btn-primary" id="invoicePaySelected" disabled><i class="fas fa-credit-card"></i> Thanh toán</button></div>
+                <button type="button" class="invoice-load-more" id="invoiceLoadMore" hidden>Xem thêm hóa đơn</button>
+            </div>
+        </div>`;
+
+    if (topbarActions && topbarClock && !topbarActions.contains(topbarClock)) topbarActions.prepend(topbarClock);
+    if (topbarClock && !document.getElementById('residentClockDate')) {
+        topbarClock.innerHTML = '<span id="residentClockDate"></span><strong id="residentClockTime"></strong>';
+    }
+
+    if (contractHero && !document.getElementById('contractLivePanel')) {
+        contractHero.insertAdjacentHTML('afterend', `
+            <div class="contract-live-panel" id="contractLivePanel">
+                <div class="contract-live-stats">
+                    <div class="contract-live-stat"><small>HỢP ĐỒNG ĐANG HIỆU LỰC</small><strong id="contractActiveCount">0</strong></div>
+                    <div class="contract-live-stat"><small>SẮP HẾT HẠN</small><strong id="contractExpiringCount">0</strong></div>
+                    <div class="contract-live-stat"><small>ĐÃ KẾT THÚC</small><strong id="contractEndedCount">0</strong></div>
+                </div>
+                <div class="contract-live-toolbar"><div class="invoice-filter-tabs" role="group" aria-label="Lọc trạng thái hợp đồng">
+                    <button class="invoice-filter-tab" data-contract-filter="all" aria-pressed="true">Tất cả</button><button class="invoice-filter-tab" data-contract-filter="active" aria-pressed="false">Hiệu lực</button><button class="invoice-filter-tab" data-contract-filter="expiring" aria-pressed="false">Sắp hết hạn</button><button class="invoice-filter-tab" data-contract-filter="waiting" aria-pressed="false">Chờ ký</button><button class="invoice-filter-tab" data-contract-filter="ended" aria-pressed="false">Đã kết thúc</button><button class="invoice-filter-tab" data-contract-filter="cancelled" aria-pressed="false">Đã hủy</button>
+                </div><input id="contractLiveSearch" type="search" placeholder="Tìm mã hợp đồng hoặc phòng" aria-label="Tìm mã hợp đồng hoặc phòng"></div>
+                <div class="contract-live-list" id="contractLiveList"></div>
+            </div>`);
+    }
+
+    const drawer = document.createElement('div');
+    drawer.className = 'live-drawer-backdrop';
+    drawer.id = 'liveDrawerBackdrop';
+    drawer.hidden = true;
+    drawer.innerHTML = '<aside class="live-drawer" role="dialog" aria-modal="true" aria-labelledby="liveDrawerTitle"><header><h2 id="liveDrawerTitle"></h2><button type="button" class="live-drawer-close" aria-label="Đóng chi tiết"><i class="fas fa-xmark"></i></button></header><div id="liveDrawerContent"></div></aside>';
+    document.body.appendChild(drawer);
+    const dialog = document.createElement('div');
+    dialog.className = 'live-dialog-backdrop';
+    dialog.id = 'liveDialogBackdrop';
+    dialog.hidden = true;
+    dialog.innerHTML = '<section class="live-dialog" role="dialog" aria-modal="true" aria-labelledby="liveDialogTitle"><div id="liveDialogContent"></div></section>';
+    document.body.appendChild(dialog);
+
+    let activeInvoiceFilter = 'all';
+    let activeContractFilter = 'all';
+    let selectedInvoices = new Set();
+    let pageSize = 10;
+    let searchTimer = null;
+    let paymentInFlight = false;
+    let internalInvoiceWrite = false;
+    let activePaymentIds = [];
+    let lastRenderedDay = '';
+    let lastPeriod = '';
+    let initialInvoiceIds = null;
+    let previouslyFocused = null;
+
+    function currentPeriod(now) {
+        const building = window.RH_CTX && window.RH_CTX.building;
+        const config = building && building.config || {};
+        return clock.getPeriod(now, {
+            startDay: Number(config.billingStartDay) || 28,
+            endDay: Number(config.billingEndDay) || 5
+        });
+    }
+
+    function invoicesForView() {
+        const buildingId = document.getElementById('invoiceBuildingFilter').value;
+        const apartmentId = document.getElementById('invoiceRoomFilter').value;
+        const period = document.getElementById('invoicePeriodFilter').value;
+        return portfolioInvoices().map(invoice => {
+            const contract = contractForInvoice(invoice);
+            const apartment = apartmentFor(invoice.apartmentId || (contract && contract.apartmentId));
+            const building = buildingFor(invoice.buildingId || (contract && contract.buildingId) || (apartment && apartment.buildingId));
+            const status = statusFor(invoice);
+            return Object.assign({}, invoice, { contract, apartment, building, effectiveStatus: status, outstanding: invoiceDue(invoice) });
+        }).filter(invoice => (buildingId === 'all' || (invoice.building && invoice.building.id === buildingId))
+            && (apartmentId === 'all' || (invoice.apartment && invoice.apartment.id === apartmentId))
+            && (!period || String(invoice.period || '').slice(0, 7) === period));
+    }
+
+    function populateResidenceFilters() {
+        const apartments = new Map();
+        const buildings = new Map();
+        portfolioInvoices().forEach(invoice => {
+            const contract = contractForInvoice(invoice);
+            const apartment = apartmentFor(invoice.apartmentId || (contract && contract.apartmentId));
+            const building = buildingFor(invoice.buildingId || (contract && contract.buildingId) || (apartment && apartment.buildingId));
+            if (apartment) apartments.set(apartment.id, apartment);
+            if (building) buildings.set(building.id, building);
+        });
+        portfolioContracts().forEach(contract => {
+            const apartment = apartmentFor(contract.apartmentId);
+            const building = buildingFor(contract.buildingId || (apartment && apartment.buildingId));
+            if (apartment) apartments.set(apartment.id, apartment);
+            if (building) buildings.set(building.id, building);
+        });
+        const buildingSelect = document.getElementById('invoiceBuildingFilter');
+        const roomSelect = document.getElementById('invoiceRoomFilter');
+        const selectedBuilding = buildingSelect.value;
+        const selectedRoom = roomSelect.value;
+        buildingSelect.innerHTML = '<option value="all">Tất cả tòa nhà</option>' + Array.from(buildings.values()).map(building => '<option value="' + esc(building.id) + '">' + esc(building.shortName || building.name) + '</option>').join('');
+        if ([...buildingSelect.options].some(option => option.value === selectedBuilding)) buildingSelect.value = selectedBuilding;
+        const buildingFilter = buildingSelect.value;
+        const visibleApartments = Array.from(apartments.values()).filter(apartment => buildingFilter === 'all' || apartment.buildingId === buildingFilter);
+        roomSelect.innerHTML = '<option value="all">Tất cả phòng</option>' + visibleApartments.map(apartment => '<option value="' + esc(apartment.id) + '">' + esc(apartment.name) + '</option>').join('');
+        if ([...roomSelect.options].some(option => option.value === selectedRoom)) roomSelect.value = selectedRoom;
+    }
+
+    function animateMoney(element, value) {
+        if (!element) return;
+        const target = Math.max(0, amount(value));
+        const start = Number(element.dataset.value) || 0;
+        element.dataset.value = String(target);
+        if (start === target || !window.requestAnimationFrame) {
+            element.textContent = moneyLabel(target);
+            return;
+        }
+        const started = performance.now();
+        const frame = time => {
+            const progress = Math.min(1, (time - started) / 360);
+            const eased = 1 - Math.pow(1 - progress, 3);
+            element.textContent = moneyLabel(start + (target - start) * eased);
+            if (progress < 1) requestAnimationFrame(frame);
+        };
+        requestAnimationFrame(frame);
+    }
+
+    function statusMarkup(status) {
+        const [label, bucket] = displayStatus(status);
+        return '<span class="invoice-status ' + bucket + '">' + label + '</span>';
+    }
+
+    function emptyMessage() {
+        if (!(window.RH_CTX && window.RH_CTX.apartment) && portfolioContracts().length === 0) {
+            return '<div class="invoice-empty"><i class="fas fa-house-circle-exclamation"></i><strong>Bạn chưa được gán phòng</strong><span>Vui lòng liên hệ ban quản lý để được gán phòng và nhận hóa đơn.</span></div>';
+        }
+        const labels = { waiting: 'Chưa có giao dịch nào đang chờ xác nhận', paid: 'Chưa có hóa đơn đã thanh toán', overdue: 'Không có hóa đơn quá hạn', pending: 'Không có hóa đơn cần thanh toán', all: 'Chưa có hóa đơn nào trong kỳ này' };
+        return '<div class="invoice-empty"><i class="fas fa-file-invoice"></i><strong>' + (labels[activeInvoiceFilter] || labels.all) + '</strong><span>Hóa đơn mới sẽ xuất hiện tại đây sau khi ban quản lý phát hành.</span></div>';
+    }
+
+    function rowMarkup(invoice) {
+        const [statusLabel] = displayStatus(invoice.effectiveStatus);
+        const dueDate = invoice.dueDate || '';
+        const locked = invoice.effectiveStatus === 'payment_pending' || !isPayable(invoice);
+        const selected = selectedInvoices.has(invoice.id);
+        const details = invoice.items || [];
+        const name = details.slice(0, 2).map(item => item.label).join(', ') || ('Kỳ thu ' + (invoice.period || ''));
+        const bucket = displayStatus(invoice.effectiveStatus)[1];
+        const code = invoice.code || invoice.id;
+        const buildingName = invoice.building && (invoice.building.shortName || invoice.building.name) || '—';
+        const roomName = invoice.apartment && invoice.apartment.name || '—';
+        const dueLabel = dueDate ? fmtDate(dueDate) : 'Chưa cập nhật';
+        const days = dueDate ? clock.daysRemaining(dueDate) : null;
+        const paid = amount(invoice.paidAmount || invoice.amountPaid);
+        const remaining = invoice.outstanding;
+        const remainingLabel = paid > 0 && remaining > 0 ? moneyLabel(paid) + ' / ' + moneyLabel(invoice.total) : moneyLabel(remaining);
+        return '<tr data-invoice-id="' + esc(invoice.id) + '" class="' + (bucket === 'overdue' ? 'invoice-row-overdue' : '') + '" tabindex="0">' +
+            '<td data-label="Chọn"><input class="invoice-select" type="checkbox" data-invoice-select="' + esc(invoice.id) + '" aria-label="Chọn hóa đơn ' + esc(code) + '" ' + (selected ? 'checked' : '') + (locked ? 'disabled' : '') + '></td>' +
+            '<td data-label="Khoản thu"><span class="invoice-row-title">' + esc(name) + '</span></td>' +
+            '<td data-label="Tòa nhà">' + esc(buildingName) + '</td><td data-label="Phòng">' + esc(roomName) + '</td>' +
+            '<td data-label="Mã hóa đơn"><span class="invoice-code">' + esc(code) + '</span></td>' +
+            '<td data-label="Hạn thanh toán">' + esc(dueLabel) + '</td>' +
+            '<td data-label="Còn lại"><strong>' + esc(remainingLabel) + '</strong></td>' +
+            '<td data-label="Thời hạn"><span class="invoice-countdown ' + (bucket === 'overdue' ? 'is-overdue' : '') + '" data-countdown="' + esc(dueDate) + '">' + (dueDate ? esc(clock.countdown(dueDate)) : 'Chưa có hạn') + '</span></td>' +
+            '<td data-label="Trạng thái"><span class="invoice-status ' + bucket + '" data-live-status="' + esc(invoice.id) + '">' + statusLabel + '</span></td>' +
+            '<td data-label="Thao tác"><button type="button" class="invoice-row-action" data-invoice-action="detail" data-invoice-id="' + esc(invoice.id) + '" aria-label="Xem hóa đơn ' + esc(code) + '" title="Xem chi tiết"><i class="fas fa-eye"></i></button></td></tr>';
+    }
+
+    function renderInvoiceRows() {
+        const now = new Date();
+        const invoices = invoicesForView();
+        const byStatus = invoices.reduce((counts, invoice) => {
+            const [, bucket] = displayStatus(invoice.effectiveStatus);
+            counts[bucket] = (counts[bucket] || 0) + 1;
+            return counts;
+        }, { all: invoices.length, pending: 0, waiting: 0, paid: 0, overdue: 0 });
+        Object.keys(byStatus).forEach(status => {
+            const badge = document.querySelector('[data-filter-count="' + status + '"]');
+            if (badge) badge.textContent = byStatus[status];
+        });
+        const query = normalize(document.getElementById('billingSearch').value);
+        const sort = document.getElementById('invoiceSort').value;
+        let filtered = invoices.filter(invoice => {
+            const bucket = displayStatus(invoice.effectiveStatus)[1];
+            const queryText = [invoice.code, invoice.period, ...(invoice.items || []).map(item => item.label), invoice.building && invoice.building.name, invoice.apartment && invoice.apartment.name].join(' ');
+            return (activeInvoiceFilter === 'all' || bucket === activeInvoiceFilter) && (!query || normalize(queryText).includes(query));
+        });
+        filtered.sort((left, right) => {
+            const leftOverdue = left.effectiveStatus === 'overdue' ? 0 : 1;
+            const rightOverdue = right.effectiveStatus === 'overdue' ? 0 : 1;
+            if (leftOverdue !== rightOverdue) return leftOverdue - rightOverdue;
+            if (sort === 'amount-desc') return right.outstanding - left.outstanding;
+            if (sort === 'amount-asc') return left.outstanding - right.outstanding;
+            return String(left.dueDate || '9999-12-31').localeCompare(String(right.dueDate || '9999-12-31'));
+        });
+        const overdue = invoices.filter(invoice => invoice.effectiveStatus === 'overdue');
+        const overdueAlert = document.getElementById('invoiceOverdueAlert');
+        overdueAlert.hidden = overdue.length === 0;
+        overdueAlert.innerHTML = overdue.length ? '<i class="fas fa-triangle-exclamation"></i> Bạn có ' + overdue.length + ' hóa đơn quá hạn với tổng số tiền còn nợ ' + moneyLabel(overdue.reduce((sum, invoice) => sum + invoice.outstanding, 0)) + '.' : '';
+        const unassigned = !(window.RH_CTX && window.RH_CTX.apartment) && portfolioContracts().length === 0;
+        document.getElementById('invoiceUnassigned').hidden = !unassigned;
+        document.getElementById('invoiceDueCard').classList.toggle('is-overdue', overdue.length > 0);
+        const unpaid = invoices.filter(invoice => invoice.effectiveStatus !== 'paid');
+        const payable = invoices.filter(invoice => isPayable(invoice));
+        const paid = invoices.filter(invoice => invoice.effectiveStatus === 'paid');
+        animateMoney(document.getElementById('billingDue'), unpaid.reduce((sum, invoice) => sum + invoice.outstanding, 0));
+        animateMoney(document.getElementById('billingPaid'), paid.reduce((sum, invoice) => sum + amount(invoice.total), 0));
+        document.getElementById('billingDueNote').textContent = unassigned
+            ? 'Bạn chưa được gán phòng, vui lòng liên hệ ban quản lý'
+            : overdue.length ? overdue.length + ' hóa đơn quá hạn' : invoices.some(invoice => invoice.effectiveStatus === 'payment_pending')
+                ? invoices.filter(invoice => invoice.effectiveStatus === 'payment_pending').length + ' hóa đơn chờ xác nhận'
+                : unpaid.length ? unpaid.length + ' hóa đơn cần thanh toán' : 'Bạn không có hóa đơn cần thanh toán';
+        const period = currentPeriod(now);
+        document.getElementById('invoicePeriodLabel').textContent = period.label;
+        document.getElementById('billingPeriodCard').textContent = period.label;
+        const periodDates = 'Thu từ ' + fmtDate(period.startDate) + ' đến ' + fmtDate(period.endDate);
+        document.getElementById('invoicePeriodDates').textContent = periodDates;
+        document.getElementById('billingPeriodCardDates').textContent = periodDates;
+        const page = filtered.slice(0, pageSize);
+        document.getElementById('billingRows').innerHTML = page.length ? page.map(rowMarkup).join('')
+            : '<tr><td colspan="10">' + emptyMessage() + '</td></tr>';
+        document.getElementById('billingCount').textContent = filtered.length > page.length
+            ? 'Hiển thị ' + page.length + '/' + filtered.length + ' hóa đơn'
+            : 'Hiển thị ' + filtered.length + ' hóa đơn';
+        const more = document.getElementById('invoiceLoadMore');
+        more.hidden = filtered.length <= page.length;
+        more.textContent = 'Xem thêm ' + Math.min(10, filtered.length - page.length) + ' hóa đơn';
+        const availableIds = new Set(invoices.filter(isPayable).map(invoice => invoice.id));
+        selectedInvoices = new Set([...selectedInvoices].filter(id => availableIds.has(id)));
+        updatePaymentBar(invoices);
+        updateCountdowns(now);
+        notifyInvoiceEvents(invoices);
+    }
+
+    function updatePaymentBar(invoices) {
+        const selected = invoices.filter(invoice => selectedInvoices.has(invoice.id) && isPayable(invoice));
+        document.getElementById('invoiceSelectedCount').textContent = selected.length;
+        document.getElementById('invoiceSelectedTotal').textContent = moneyLabel(selected.reduce((sum, invoice) => sum + invoice.outstanding, 0));
+        document.getElementById('invoicePaySelected').disabled = selected.length === 0 || paymentInFlight;
+        const visible = invoices.filter(invoice => {
+            const bucket = displayStatus(invoice.effectiveStatus)[1];
+            return (activeInvoiceFilter === 'all' || bucket === activeInvoiceFilter) && isPayable(invoice);
+        });
+        const selectVisible = document.getElementById('invoiceSelectVisible');
+        selectVisible.checked = visible.length > 0 && visible.every(invoice => selectedInvoices.has(invoice.id));
+        selectVisible.disabled = visible.length === 0;
+    }
+
+    function updateCountdowns(now) {
+        document.querySelectorAll('[data-countdown]').forEach(element => {
+            const dueDate = element.dataset.countdown;
+            if (!dueDate) return;
+            const invoice = window.RHD.get('invoices', element.closest('[data-invoice-id]')?.dataset.invoiceId);
+            if (!invoice) return;
+            const status = statusFor(invoice, now);
+            element.textContent = clock.countdown(dueDate, now);
+            element.classList.toggle('is-overdue', status === 'overdue');
+            const badge = document.querySelector('[data-live-status="' + CSS.escape(invoice.id) + '"]');
+            if (badge) {
+                const [label, bucket] = displayStatus(status);
+                badge.textContent = label;
+                badge.className = 'invoice-status ' + bucket;
+            }
+        });
+    }
+
+    function openDrawer(title, html, wide) {
+        previouslyFocused = document.activeElement;
+        document.getElementById('liveDrawerTitle').textContent = title;
+        document.getElementById('liveDrawerContent').innerHTML = html;
+        drawer.classList.toggle('wide', !!wide);
+        drawer.hidden = false;
+        drawer.querySelector('.live-drawer-close').focus();
+    }
+
+    function closeDrawer() {
+        drawer.hidden = true;
+        drawer.classList.remove('wide');
+        if (previouslyFocused && previouslyFocused.focus) previouslyFocused.focus();
+    }
+
+    function invoiceDetail(invoice) {
+        const apartment = apartmentFor(invoice.apartmentId) || invoice.apartment;
+        const building = buildingFor(invoice.buildingId) || invoice.building;
+        const items = invoice.items || [];
+        const rows = items.map(item => {
+            const label = String(item.label || 'Khoản thu');
+            const quantity = amount(item.qty || item.quantity);
+            const rate = amount(item.unitPrice || item.price);
+            const meterMatch = label.match(/(điện|nước).*?(\d+(?:[.,]\d+)?)/i);
+            const extra = /điện/i.test(label) || /nước/i.test(label)
+                ? '<small>Chỉ số/tiêu thụ: ' + esc(meterMatch && meterMatch[2] || quantity || '—') + ' · Đơn giá: ' + moneyLabel(rate) + '</small>' : '';
+            return '<div class="live-detail-row"><span>' + esc(label) + extra + '</span><strong>' + moneyLabel(item.total || item.amount) + '</strong></div>';
+        }).join('') || '<p>Hóa đơn chưa có chi tiết khoản thu.</p>';
+        const paid = amount(invoice.paidAmount || invoice.amountPaid);
+        const actions = '<div class="live-action-row"><button class="billing-filter" data-invoice-action="copy" data-invoice-id="' + esc(invoice.id) + '"><i class="fas fa-copy"></i> Sao chép mã</button><button class="billing-filter" data-invoice-action="print" data-invoice-id="' + esc(invoice.id) + '"><i class="fas fa-print"></i> In / PDF</button><button class="billing-filter" data-invoice-action="complaint" data-invoice-id="' + esc(invoice.id) + '"><i class="fas fa-comment-dots"></i> Khiếu nại khoản thu</button></div>';
+        const payment = isPayable(invoice) ? '<button type="button" class="btn-primary" data-invoice-action="pay-one" data-invoice-id="' + esc(invoice.id) + '" style="width:100%;margin-top:.6rem">Thanh toán hóa đơn</button>' : '';
+        return '<div class="live-detail-list"><div class="live-detail-row"><span>Tòa nhà</span><strong>' + esc(building && (building.name || building.shortName) || '—') + '</strong></div><div class="live-detail-row"><span>Phòng</span><strong>' + esc(apartment && apartment.name || '—') + '</strong></div><div class="live-detail-row"><span>Kỳ thu</span><strong>' + esc(invoice.period || '—') + '</strong></div><div class="live-detail-row"><span>Hạn thanh toán</span><strong>' + esc(fmtDate(invoice.dueDate)) + '</strong></div><div class="live-detail-row"><span>Trạng thái</span><strong>' + statusMarkup(statusFor(invoice)) + '</strong></div><h3 style="margin:.6rem 0 0;font-size:.9rem">Chi tiết khoản thu</h3>' + rows + '<div class="live-detail-row"><span>Đã trả / Tổng</span><strong>' + moneyLabel(paid) + ' / ' + moneyLabel(invoice.total) + '</strong></div><div class="live-detail-row"><span>Còn phải trả</span><strong>' + moneyLabel(invoiceDue(invoice)) + '</strong></div></div>' + actions + payment;
+    }
+
+    function showDialog(title, body) {
+        const root = document.getElementById('liveDialogBackdrop');
+        document.getElementById('liveDialogContent').innerHTML = '<h2 id="liveDialogTitle">' + esc(title) + '</h2>' + body;
+        root.hidden = false;
+        root.querySelector('button, input, select, textarea')?.focus();
+    }
+
+    function closeDialog() {
+        document.getElementById('liveDialogBackdrop').hidden = true;
+    }
+
+    function toast(message) {
+        const previous = document.querySelector('.live-toast');
+        if (previous) previous.remove();
+        const element = document.createElement('div');
+        element.className = 'live-toast';
+        element.setAttribute('role', 'status');
+        element.textContent = message;
+        document.body.appendChild(element);
+        window.setTimeout(() => element.remove(), 4000);
+    }
+
+    function openPayment(ids) {
+        const invoices = portfolioInvoices().filter(invoice => ids.includes(invoice.id) && isPayable(invoice));
+        if (!invoices.length) return toast('Không còn hóa đơn đủ điều kiện thanh toán. Hãy tải lại dữ liệu.');
+        activePaymentIds = invoices.map(invoice => invoice.id);
+        const total = invoices.reduce((sum, invoice) => sum + invoiceDue(invoice), 0);
+        const codes = invoices.map(invoice => invoice.code || invoice.id).join(', ');
+        showDialog('Chọn phương thức thanh toán', '<p>Tổng số tiền cần thanh toán: <strong>' + moneyLabel(total) + '</strong></p><label>Phương thức</label><select id="paymentMethod"><option value="bank_transfer">Chuyển khoản ngân hàng</option><option value="qr">Quét mã QR</option><option value="wallet">Ví điện tử</option></select><div class="invoice-payment-details" id="invoicePaymentDetails"><p>Nội dung chuyển khoản: <strong>' + esc(codes) + '</strong></p><p>Mã hóa đơn: ' + esc(codes) + '</p><div id="invoicePaymentQr"></div></div><div class="live-action-row"><button type="button" class="btn-secondary" data-invoice-action="close-dialog">Hủy</button><button type="button" class="btn-primary" data-invoice-action="payment-confirm" data-invoice-ids="' + esc(ids.join(',')) + '">Tôi đã chuyển khoản</button></div>');
+        document.getElementById('paymentMethod').addEventListener('change', updatePaymentMethod);
+        document.getElementById('paymentMethod').addEventListener('change', event => {
+            const button = document.querySelector('[data-invoice-action="payment-confirm"]');
+            if (button) button.textContent = event.target.value === 'wallet' ? 'Tôi đã thanh toán' : 'Tôi đã chuyển khoản';
+        });
+        updatePaymentMethod();
+    }
+
+    function updatePaymentMethod() {
+        const method = document.getElementById('paymentMethod').value;
+        const details = document.getElementById('invoicePaymentDetails');
+        const bankBuilding = window.RH_CTX && window.RH_CTX.building;
+        const bank = bankBuilding && bankBuilding.config || {};
+        const codes = activePaymentIds.map(id => portfolioInvoices().find(invoice => invoice.id === id)).filter(Boolean).map(invoice => invoice.code || invoice.id).join(', ');
+        details.innerHTML = '<p id="invoicePaymentMethodNote"></p><p>Mã hóa đơn: <strong>' + esc(codes) + '</strong></p><div id="invoicePaymentQr"></div>';
+        const qr = document.getElementById('invoicePaymentQr');
+        if (method === 'wallet') {
+            document.getElementById('invoicePaymentMethodNote').textContent = 'Thanh toán ví sẽ được ghi nhận chờ xác nhận. Hãy hoàn tất giao dịch trong ứng dụng ví của bạn trước khi xác nhận bên dưới.';
+            return;
+        }
+        if (method === 'qr' && bank.bankAccountNumber) {
+            const bins = { vietcombank: '970436', vietinbank: '970415', bidv: '970418', agribank: '970405', techcombank: '970407', mbbank: '970422', acb: '970416', vpbank: '970432', tpbank: '970423' };
+            const bin = bins[normalize(bank.bankName).replace(/[^a-z]/g, '')];
+            if (bin) qr.innerHTML = '<img src="https://img.vietqr.io/image/' + bin + '-' + encodeURIComponent(bank.bankAccountNumber) + '-compact2.png?amount=' + encodeURIComponent(portfolioInvoices().filter(invoice => activePaymentIds.includes(invoice.id)).reduce((sum, invoice) => sum + invoiceDue(invoice), 0)) + '&addInfo=' + encodeURIComponent(portfolioInvoices().filter(invoice => activePaymentIds.includes(invoice.id)).map(invoice => invoice.code).join(' ')) + '" alt="Mã QR thanh toán" style="display:block;width:190px;height:190px;object-fit:contain;margin:.7rem auto">';
+        }
+        document.getElementById('invoicePaymentMethodNote').innerHTML = 'Ngân hàng: <strong>' + esc(bank.bankName || 'Chưa cấu hình') + '</strong> · Số tài khoản: <strong>' + esc(bank.bankAccountNumber || 'Chưa cấu hình') + '</strong>';
+    }
+
+    function submitPayment(ids, button) {
+        if (paymentInFlight || button.disabled) return;
+        paymentInFlight = true;
+        button.disabled = true;
+        const method = document.getElementById('paymentMethod').value;
+        try {
+            internalInvoiceWrite = true;
+            ids.forEach(id => {
+                const invoice = window.RHD.get('invoices', id);
+                if (!invoice || !isPayable(invoice)) throw new Error('Hóa đơn ' + id + ' không còn ở trạng thái có thể thanh toán.');
+                const result = window.RHD.update('invoices', id, {
+                    status: 'payment_pending',
+                    paymentMethod: method,
+                    paymentRequestedAt: Date.now()
+                });
+                if (!result || !result.ok) throw new Error(result && result.error || 'Không thể gửi yêu cầu thanh toán.');
+            });
+            selectedInvoices.clear();
+            closeDialog();
+            renderAll();
+            toast('Đã gửi yêu cầu. Hóa đơn đang chờ ban quản lý xác nhận.');
+        } catch (error) {
+            toast(error.message || 'Gửi thanh toán chưa thành công. Vui lòng thử lại.');
+            button.disabled = false;
+        } finally {
+            internalInvoiceWrite = false;
+            paymentInFlight = false;
+            renderAll();
+        }
+    }
+
+    function printInvoice(invoice) {
+        const rows = (invoice.items || []).map(item => '<tr><td>' + esc(item.label) + '</td><td>' + moneyLabel(item.amount) + '</td></tr>').join('');
+        const printWindow = window.open('', '_blank');
+        if (!printWindow) return toast('Trình duyệt đang chặn cửa sổ in. Hãy cho phép cửa sổ bật lên rồi thử lại.');
+        printWindow.opener = null;
+        printWindow.document.write('<!doctype html><html lang="vi"><meta charset="utf-8"><title>Hóa đơn ' + esc(invoice.code) + '</title><style>body{font:15px/1.6 Arial,sans-serif;max-width:760px;margin:36px auto;color:#10213c}table{width:100%;border-collapse:collapse}td,th{padding:10px;border-bottom:1px solid #ddd;text-align:left}.total{text-align:right;font-size:20px;margin-top:24px}@media print{button{display:none}}</style><h1>Hóa đơn ' + esc(invoice.code) + '</h1><p>Kỳ thu: ' + esc(invoice.period) + ' · Hạn thanh toán: ' + esc(fmtDate(invoice.dueDate)) + '</p><table><thead><tr><th>Khoản thu</th><th>Số tiền</th></tr></thead><tbody>' + rows + '</tbody></table><div class="total">Tổng cộng: ' + moneyLabel(invoice.total) + '</div><script>window.onload=()=>window.print()<\/script></html>');
+        printWindow.document.close();
+    }
+
+    function complainAbout(invoice) {
+        const note = window.prompt('Mô tả khoản thu cần Ban quản lý kiểm tra:');
+        if (!note || !note.trim()) return;
+        const apartment = apartmentFor(invoice.apartmentId);
+        const building = buildingFor(invoice.buildingId);
+        const result = window.RHD.create('supportRequests', {
+            code: window.RHD.nextSupportCode(), buildingId: invoice.buildingId || '', apartmentId: invoice.apartmentId || '',
+            customerId: residentCustomerId(), residentEmail: window.RH_SESSION && window.RH_SESSION.email || '',
+            residentName: window.RH_SESSION && window.RH_SESSION.name || '', category: 'Phí & thanh toán',
+            title: 'Đề nghị kiểm tra hóa đơn ' + (invoice.code || ''), description: note.trim(),
+            location: (building && building.name || '') + ' / Phòng ' + (apartment && apartment.name || ''), priority: 'normal', status: 'new', assignee: '', attachments: 0, messages: []
+        });
+        if (!result.ok) return toast(result.error || 'Không thể gửi khiếu nại. Vui lòng thử lại.');
+        toast('Đã gửi yêu cầu kiểm tra hóa đơn đến Ban quản lý.');
+        closeDrawer();
+    }
+
+    function notifyInvoiceEvents(invoices) {
+        const storageKey = 'residenthub_invoice_notices_' + userKey();
+        let seen = {};
+        try { seen = JSON.parse(localStorage.getItem(storageKey) || '{}'); } catch (error) { seen = {}; }
+        const ids = invoices.map(invoice => invoice.id);
+        if (initialInvoiceIds === null) initialInvoiceIds = new Set(ids);
+        else invoices.filter(invoice => !initialInvoiceIds.has(invoice.id)).forEach(invoice => {
+            initialInvoiceIds.add(invoice.id);
+            sendNotification('Hóa đơn mới ' + (invoice.code || ''), 'Đã phát hành hóa đơn kỳ ' + (invoice.period || '') + ' với số tiền ' + moneyLabel(invoice.total) + '.', 'invoice');
+        });
+        invoices.forEach(invoice => {
+            if (invoice.effectiveStatus === 'paid' || !invoice.dueDate) return;
+            const days = clock.daysRemaining(invoice.dueDate);
+            if (![3, 1, 0].includes(days)) return;
+            const key = invoice.id + ':' + days + ':' + todayKey();
+            if (seen[key]) return;
+            seen[key] = true;
+            const dueText = days === 0 ? 'đến hạn hôm nay' : 'còn ' + days + ' ngày đến hạn';
+            sendNotification('Nhắc hạn hóa đơn ' + (invoice.code || ''), 'Hóa đơn ' + dueText + ', số tiền còn lại ' + moneyLabel(invoiceDue(invoice)) + '.', 'invoice');
+        });
+        try { localStorage.setItem(storageKey, JSON.stringify(seen)); } catch (error) { /* Không chặn giao diện nếu bộ nhớ đầy. */ }
+    }
+
+    function sendNotification(title, body, type) {
+        window.dispatchEvent(new CustomEvent('residenthub:notification', { detail: {
+            id: 'resident-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7),
+            type: 'BILLING', subType: type, title: title, body: body, actionUrl: 'invoices', refType: 'invoice'
+        } }));
+    }
+
+    function contractStatus(contract, now) {
+        const status = String(contract.status || '').toLowerCase();
+        if (['cancelled', 'canceled', 'terminated'].includes(status)) return 'cancelled';
+        if (['pending_signature', 'waiting_signature', 'pending_sign', 'waiting'].includes(status)) return 'waiting';
+        if (['ended', 'expired', 'closed'].includes(status)) return 'ended';
+        const remaining = contract.endDate ? clock.daysRemaining(contract.endDate, now) : null;
+        if (remaining !== null && remaining < 0) return 'ended';
+        if (remaining !== null && remaining <= 30) return 'expiring';
+        return 'active';
+    }
+
+    function statusText(status) {
+        return ({ active: 'Đang hiệu lực', expiring: 'Sắp hết hạn', waiting: 'Chờ ký', ended: 'Đã kết thúc', cancelled: 'Đã hủy' })[status] || status;
+    }
+
+    function contractProgress(contract) {
+        const total = clock.compareDays(contract.endDate, contract.startDate);
+        const passed = clock.compareDays(todayKey(), contract.startDate);
+        if (total === null || total <= 0 || passed === null) return 0;
+        return Math.max(0, Math.min(100, Math.round(passed / total * 100)));
+    }
+
+    function contractPdfDataUrl(contract, file) {
+        if (file && (file.dataUrl || file.url || file.href)) return file.dataUrl || file.url || file.href;
+        if (file && String(file.format || String(file.name || '').split('.').pop()).toUpperCase() !== 'PDF') return '';
+        const customer = window.RH_CTX && window.RH_CTX.customer || {};
+        const apartment = apartmentFor(contract.apartmentId) || {};
+        const building = buildingFor(contract.buildingId || apartment.buildingId) || {};
+        const ascii = value => String(value == null ? '' : value).replace(/[đĐ]/g, character => character === 'đ' ? 'd' : 'D').normalize('NFD').replace(/[\u0300-\u036f]/g, '').replace(/[^\x20-\x7E]/g, '');
+        const escapePdf = value => ascii(value).replace(/\\/g, '\\\\').replace(/\(/g, '\\(').replace(/\)/g, '\\)');
+        const lines = [
+            file && file.name || 'Hop dong thue nha',
+            'Ma hop dong: ' + contract.code,
+            'Nguoi dung ten: ' + (customer.fullName || window.RH_SESSION.name),
+            'Ma cu dan: ' + (customer.code || customer.id || ''),
+            'Toa nha: ' + building.name,
+            'Can ho: ' + apartment.name,
+            'Dia chi: ' + (contract.address || apartment.address || window.RHD.buildingFullAddress(building)),
+            'Ngay ky: ' + fmtDate(contract.signDate),
+            'Thoi han: ' + fmtDate(contract.startDate) + ' - ' + fmtDate(contract.endDate),
+            'Gia thue: ' + moneyLabel(contract.rentPrice) + ' / ' + (contract.paymentCycle || 'monthly'),
+            'Tien dat coc: ' + moneyLabel(contract.depositPrice),
+            'Dieu khoan gia han: ' + (contract.renewalTerms || contract.note || 'Lien he Ban quan ly de trao doi.')
+        ];
+        const stream = lines.map((line, index) => 'BT /F1 ' + (index === 0 ? '16' : '10') + ' Tf 48 ' + (780 - index * 38) + ' Td (' + escapePdf(line) + ') Tj ET').join('\n');
+        const objects = [
+            '<< /Type /Catalog /Pages 2 0 R >>',
+            '<< /Type /Pages /Kids [3 0 R] /Count 1 >>',
+            '<< /Type /Page /Parent 2 0 R /MediaBox [0 0 612 842] /Resources << /Font << /F1 4 0 R >> >> /Contents 5 0 R >>',
+            '<< /Type /Font /Subtype /Type1 /BaseFont /Helvetica >>',
+            '<< /Length ' + stream.length + ' >>\nstream\n' + stream + '\nendstream'
+        ];
+        let pdf = '%PDF-1.4\n';
+        const offsets = [0];
+        objects.forEach((object, index) => { offsets.push(pdf.length); pdf += (index + 1) + ' 0 obj\n' + object + '\nendobj\n'; });
+        const xrefOffset = pdf.length;
+        pdf += 'xref\n0 ' + (objects.length + 1) + '\n0000000000 65535 f \n';
+        offsets.slice(1).forEach(offset => { pdf += String(offset).padStart(10, '0') + ' 00000 n \n'; });
+        pdf += 'trailer\n<< /Size ' + (objects.length + 1) + ' /Root 1 0 R >>\nstartxref\n' + xrefOffset + '\n%%EOF';
+        return 'data:application/pdf;base64,' + btoa(pdf);
+    }
+
+    function contractPage(contract) {
+        const apartment = contract.apartment || apartmentFor(contract.apartmentId) || {};
+        const building = contract.building || buildingFor(contract.buildingId || apartment.buildingId) || {};
+        const customer = window.RH_CTX && window.RH_CTX.customer || {};
+        const address = contract.address || apartment.address || window.RHD.buildingFullAddress(building) || 'Chưa cập nhật';
+        const days = contract.endDate ? clock.daysRemaining(contract.endDate, new Date()) : null;
+        const totalDiff = contract.startDate && contract.endDate ? clock.compareDays(contract.endDate, contract.startDate) : null;
+        const totalDays = totalDiff == null ? null : Math.max(1, totalDiff + 1);
+        const usedDays = days == null || totalDays == null ? null : Math.min(totalDays, Math.max(0, totalDays - Math.max(days, 0)));
+        const percent = totalDays ? Math.min(100, Math.max(0, Math.round((usedDays / totalDays) * 100))) : 0;
+        const timeClass = days == null ? '' : days < 0 || days === 0 ? 'expired' : days <= 7 ? 'critical' : days <= 30 ? 'warning' : '';
+        const endMessage = days == null ? 'Chưa có ngày kết thúc' : days < 0 ? 'Đã hết hạn' : days === 0 ? 'Hết hạn hôm nay' : 'Còn ' + days + ' ngày';
+        const statusLabel = days == null ? statusText(contract.liveStatus) : days < 0 ? 'Đã hết hạn' : days <= 30 ? 'Sắp hết hạn' : 'Đang hiệu lực';
+        const statusBadge = days != null && days <= 0 ? 'badge-overdue' : days != null && days <= 30 ? 'badge-pending' : 'badge-paid';
+        const files = Array.isArray(contract.files) ? contract.files : [];
+        const history = Array.isArray(contract.history) ? contract.history.slice() : [];
+        (Array.isArray(contract.renewalHistory) ? contract.renewalHistory : []).forEach(item => history.push(Object.assign({ title: 'Gia hạn hợp đồng' }, item)));
+        history.sort((a, b) => String(a.date || a.createdAt || '').localeCompare(String(b.date || b.createdAt || '')));
+        const fileMarkup = files.map(file => {
+            const format = file.format || (String(file.name || '').split('.').pop() || 'Tệp').toUpperCase();
+            const size = file.sizeBytes ? (file.sizeBytes >= 1048576 ? (file.sizeBytes / 1048576).toFixed(1) + ' MB' : Math.max(1, Math.round(file.sizeBytes / 1024)) + ' KB') : file.size || 'Chưa rõ dung lượng';
+            const secondary = [file.docType || 'Hồ sơ hợp đồng', format, size, file.uploadedAt ? 'Tải lên ' + fmtDate(file.uploadedAt) : '', file.updatedAt ? 'Cập nhật ' + fmtDate(file.updatedAt) : '', file.provider || '', file.status || '', file.version ? 'Phiên bản ' + file.version : ''].filter(Boolean).join(' · ');
+            return '<button type="button" class="resident-contract-file" data-contract-action="preview-file" data-contract-id="' + esc(contract.id) + '" data-file-id="' + esc(file.id || file.name) + '" aria-label="Mở ' + esc(file.name) + '"><span class="resident-contract-file-icon"><i class="fas ' + (format === 'PDF' ? 'fa-file-pdf' : /^JPE?G|PNG$/.test(format) ? 'fa-file-image' : 'fa-file-lines') + '"></i></span><span class="resident-contract-file-copy"><strong>' + esc(file.name || 'Tài liệu hợp đồng') + '</strong><small>' + esc(secondary) + '</small></span><i class="fas fa-chevron-right" aria-hidden="true"></i></button>';
+        }).join('');
+        const timeline = history.map(item => '<div class="resident-contract-event"><time>' + esc(fmtDate(item.date || item.createdAt)) + '</time><span class="resident-contract-event-dot"></span><div><strong>' + esc(item.title || item.event || 'Cập nhật hợp đồng') + '</strong>' + esc(item.description || item.note || '') + '</div></div>').join('');
+        const renewalHistory = Array.isArray(contract.renewalHistory) && contract.renewalHistory.length
+            ? contract.renewalHistory.slice().sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')))[0]
+            : null;
+        const renewalRequest = contract.renewalRequest || null;
+        const requestStatus = renewalRequest ? ({ submitted: 'Chờ xác nhận', pending: 'Chờ xác nhận', approved: 'Đã chấp thuận', rejected: 'Không được chấp thuận', declined: 'Không được chấp thuận', completed: 'Đã ký phụ lục' }[renewalRequest.status] || 'Đang xử lý') : '';
+        const phone = customer.phone || contract.phone || 'Chưa cập nhật';
+        const cycleLabels = { monthly: 'Hàng tháng', quarterly: 'Hàng quý', yearly: 'Hàng năm' };
+        const termLabel = totalDays == null ? 'Chưa cập nhật' : totalDays + ' ngày';
+        const details = [
+            ['Người đứng tên hợp đồng', customer.fullName || window.RH_SESSION.name || 'Chưa cập nhật'],
+            ['Mã cư dân', customer.code || customer.id || 'Chưa cập nhật'],
+            ['Điện thoại liên hệ', phone],
+            ['Chủ nhà / đơn vị cho thuê', contract.landlordName || contract.lessorName || 'Ban quản lý'],
+            ['Tòa nhà / khu nhà', building.name || 'Chưa cập nhật'],
+            ['Phòng / căn hộ', apartment.name || 'Chưa cập nhật'],
+            ['Địa chỉ đầy đủ', address],
+            ['Ngày ký hợp đồng', fmtDate(contract.signDate)],
+            ['Ngày bắt đầu thuê', fmtDate(contract.startDate)],
+            ['Ngày kết thúc hợp đồng', fmtDate(contract.endDate)],
+            ['Giá thuê hàng tháng', moneyLabel(contract.rentPrice) + '/tháng'],
+            ['Tiền đặt cọc', moneyLabel(contract.depositPrice)],
+            ['Chu kỳ thanh toán', cycleLabels[contract.paymentCycle] || contract.paymentCycle || 'Chưa cập nhật'],
+            ['Tổng thời hạn thuê', termLabel],
+            ['Điều khoản gia hạn', contract.renewalTerms || (contract.noticeDays ? 'Báo trước ' + contract.noticeDays + ' ngày' : 'Chưa cập nhật')]
+        ].map(([label, value]) => '<div class="resident-contract-detail"><small>' + esc(label) + '</small><strong>' + esc(value) + '</strong></div>').join('');
+        const renewalButton = days != null && days >= 0 && !['cancelled', 'ended'].includes(contract.liveStatus)
+            ? '<button type="button" class="btn-primary" data-contract-action="renew" data-contract-id="' + esc(contract.id) + '">Yêu cầu gia hạn</button>' : '';
+        const reminder = days != null && days >= 1 && days <= 30
+            ? '<div class="resident-contract-reminder ' + (days <= 7 ? 'critical' : '') + '">Hợp đồng của bạn sắp hết hạn. Vui lòng liên hệ ban quản lý/chủ nhà để trao đổi về việc gia hạn.</div>' : '';
+        return '<div class="resident-contract-page"><section class="resident-contract-ident"><div class="resident-contract-ident-main"><div><small>Mã hợp đồng</small><strong class="code">' + esc(contract.code || contract.id) + '</strong></div><div><small>Trạng thái</small><strong><span class="badge ' + statusBadge + '">' + esc(statusLabel) + '</span></strong></div><div><small>Cập nhật gần nhất</small><strong>' + esc(fmtDate(contract.updatedAt || contract.modifiedAt || contract.createdAt)) + '</strong></div><div><small>Tòa nhà · Phòng</small><strong>' + esc((building.name || 'Chưa cập nhật') + ' · ' + (apartment.name || 'Chưa cập nhật')) + '</strong></div></div><button type="button" class="btn-primary" data-contract-action="preview-contract" data-contract-id="' + esc(contract.id) + '">Xem hợp đồng</button></section><div class="resident-contract-layout"><div class="resident-contract-main"><section class="resident-contract-card"><h3>Thông tin hợp đồng</h3><div class="resident-contract-details">' + details + '</div></section><section class="resident-contract-card"><h3>Hồ sơ hợp đồng</h3><div class="resident-contract-doc-toolbar"><select data-contract-file-type aria-label="Lọc loại hồ sơ"><option value="">Tất cả loại hồ sơ</option>' + Array.from(new Set(files.map(file => file.docType).filter(Boolean))).map(type => '<option value="' + esc(type) + '">' + esc(type) + '</option>').join('') + '</select><input type="search" data-contract-file-search placeholder="Tìm theo tên tệp..." aria-label="Tìm hồ sơ theo tên tệp"></div><div class="resident-contract-doc-list">' + (fileMarkup || '<div class="resident-contract-empty">Chưa có tệp được liên kết với hợp đồng.</div>') + '</div></section><section class="resident-contract-card"><h3>Lịch sử hợp đồng</h3><div class="resident-contract-timeline">' + (timeline || '<div class="resident-contract-empty">Chưa có sự kiện lịch sử được ghi nhận.</div>') + '</div></section></div><aside class="resident-contract-aside"><section class="resident-contract-term"><div class="resident-contract-term-head"><h3>Thời hạn hợp đồng</h3><span class="badge ' + statusBadge + '">' + esc(statusLabel) + '</span></div><div class="resident-contract-days ' + timeClass + '">' + esc(endMessage) + '</div><p>Ngày bắt đầu: <strong>' + esc(fmtDate(contract.startDate)) + '</strong></p><p>Ngày hết hạn: <strong>' + esc(fmtDate(contract.endDate)) + '</strong></p><p>Tổng thời hạn: <strong>' + esc(termLabel) + '</strong></p><div class="resident-contract-progress" role="progressbar" aria-label="Đã sử dụng ' + percent + '% thời hạn" aria-valuenow="' + percent + '" aria-valuemin="0" aria-valuemax="100"><span style="width:' + percent + '%"></span></div><div class="resident-contract-progress-meta"><span>Đã sử dụng ' + (usedDays == null ? '—' : usedDays + ' ngày') + '</span><span>Còn lại ' + (days == null ? '—' : Math.max(0, days) + ' ngày') + '</span></div><p style="margin-top:.7rem">' + (renewalHistory ? 'Gia hạn gần nhất: ' + esc(fmtDate(renewalHistory.date)) + ' · ' + esc(renewalHistory.description || renewalHistory.title || 'Đã ghi nhận') : 'Chưa ghi nhận lần gia hạn nào.') + '</p>' + reminder + (requestStatus ? '<div class="resident-contract-req"><strong>Yêu cầu gia hạn:</strong> ' + esc(requestStatus) + '</div>' : '') + (renewalButton ? '<div style="margin-top:.8rem">' + renewalButton + '</div>' : '') + '<button type="button" class="billing-filter" data-contract-action="contact" style="width:100%;margin-top:.6rem">Liên hệ Ban quản lý</button></section></aside></div></div>';
+    }
+
+    function filterContractDocuments(scope) {
+        if (!scope) return;
+        const query = normalize(scope.querySelector('[data-contract-file-search]')?.value || '');
+        const type = scope.querySelector('[data-contract-file-type]')?.value || '';
+        scope.querySelectorAll('.resident-contract-file').forEach(file => {
+            const matchesText = !query || normalize(file.textContent).includes(query);
+            const matchesType = !type || file.textContent.includes(type);
+            file.hidden = !(matchesText && matchesType);
+        });
+    }
+
+    function renderContracts() {
+        const list = document.getElementById('contractLiveList');
+        if (!list) return;
+        const now = new Date();
+        const contracts = portfolioContracts().map(contract => {
+            const apartment = apartmentFor(contract.apartmentId);
+            const building = buildingFor(contract.buildingId || (apartment && apartment.buildingId));
+            return Object.assign({}, contract, { apartment, building, liveStatus: contractStatus(contract, now) });
+        });
+        const contractPanel = document.getElementById('contractLivePanel');
+        if (contractPanel) {
+            const stats = contractPanel.querySelector('.contract-live-stats');
+            const toolbar = contractPanel.querySelector('.contract-live-toolbar');
+            if (stats) stats.hidden = true;
+            if (toolbar) toolbar.hidden = true;
+        }
+        const counts = { active: 0, expiring: 0, waiting: 0, ended: 0, cancelled: 0 };
+        contracts.forEach(contract => counts[contract.liveStatus]++);
+        document.getElementById('contractActiveCount').textContent = counts.active;
+        document.getElementById('contractExpiringCount').textContent = counts.expiring;
+        document.getElementById('contractEndedCount').textContent = counts.ended;
+        const query = normalize(document.getElementById('contractLiveSearch').value);
+        const filtered = contracts.filter(contract => {
+            const text = normalize([contract.code, contract.apartment && contract.apartment.name, contract.building && contract.building.name].join(' '));
+            return (activeContractFilter === 'all' || contract.liveStatus === activeContractFilter) && (!query || text.includes(query));
+        }).sort((left, right) => {
+            const rank = { waiting: 0, expiring: 1, active: 2, ended: 3, cancelled: 4 };
+            return rank[left.liveStatus] - rank[right.liveStatus] || String(left.endDate || '').localeCompare(String(right.endDate || ''));
+        });
+        if (!contracts.length) {
+            const assigned = !!(window.RH_CTX && window.RH_CTX.apartment);
+            list.innerHTML = '<section class="contract-empty-state"><div class="contract-empty-intro"><span class="contract-empty-icon"><i class="fas fa-file-signature"></i></span><div><h3>' + (assigned ? 'Chưa có hợp đồng được ghi nhận' : 'Bạn chưa được gán phòng') + '</h3><p>' + (assigned ? 'Hồ sơ thuê chưa được cập nhật lên tài khoản. Liên hệ Ban quản lý để được hỗ trợ tra cứu.' : 'Khi được gán phòng và liên kết hồ sơ thuê, thông tin hợp đồng sẽ hiển thị tại đây.') + '</p><button type="button" class="btn-primary" data-contract-action="contact">Liên hệ Ban quản lý</button></div></div><div class="contract-empty-info"><article><small>Trạng thái hợp đồng</small><strong>Chưa có dữ liệu</strong></article><article><small>Tòa nhà / khu nhà</small><strong>' + esc(window.RH_CTX && window.RH_CTX.building && window.RH_CTX.building.name || 'Chưa cập nhật') + '</strong></article><article><small>Phòng / căn hộ</small><strong>' + esc(window.RH_CTX && window.RH_CTX.apartment && window.RH_CTX.apartment.name || 'Chưa được gán') + '</strong></article><article><small>Thời hạn lưu trú</small><strong>Chưa cập nhật</strong></article></div><div class="contract-empty-footer"><article><h4>Hồ sơ hợp đồng</h4><p>Chưa có tệp hợp đồng hoặc phụ lục được liên kết với tài khoản.</p></article><article><h4>Lịch sử hợp đồng</h4><p>Các mốc ký, cập nhật và gia hạn sẽ xuất hiện khi được ghi nhận.</p></article></div></section>';
+            return;
+        }
+        if (!filtered.length) {
+            list.innerHTML = '<div class="contract-live-empty"><strong>Không tìm thấy hợp đồng phù hợp</strong><span>Thử đổi trạng thái hoặc nội dung tìm kiếm.</span></div>';
+            return;
+        }
+        list.innerHTML = filtered.map(contract => contractPage(contract)).join('');
+        notifyContractDeadlines(contracts, now);
+        return;
+        list.innerHTML = filtered.map(contract => {
+            const days = contract.endDate ? clock.daysRemaining(contract.endDate, now) : null;
+            const countdownClass = days !== null && days < 0 ? 'expired' : days !== null && days < 30 ? 'orange' : days !== null && days <= 60 ? 'warning' : '';
+            const countdown = days === null ? 'Chưa có ngày kết thúc' : days < 0 ? 'Đã hết hạn ' + Math.abs(days) + ' ngày' : 'Còn ' + days + ' ngày hết hạn';
+            const status = contract.liveStatus;
+            const badge = status === 'ended' || status === 'cancelled' ? 'badge-overdue' : status === 'waiting' ? 'badge-pending' : status === 'expiring' ? 'badge-pending' : 'badge-paid';
+            const apartmentLabel = contract.apartment && contract.apartment.name || '—';
+            const buildingLabel = contract.building && (contract.building.shortName || contract.building.name) || '—';
+            return '<article class="contract-live-card ' + (status === 'ended' ? 'expired' : '') + '"><div class="contract-live-card-head"><h3>' + esc(contract.code || contract.id) + '</h3><span class="badge ' + badge + '">' + statusText(status) + '</span></div><div class="contract-live-meta"><div>Tòa nhà<strong>' + esc(buildingLabel) + '</strong></div><div>Số phòng<strong>' + esc(apartmentLabel) + '</strong></div><div>Ngày bắt đầu<strong>' + esc(fmtDate(contract.startDate)) + '</strong></div><div>Ngày kết thúc<strong>' + esc(fmtDate(contract.endDate)) + '</strong></div><div>Tiền thuê<strong>' + moneyLabel(contract.rentPrice) + '</strong></div><div>Tiền cọc<strong>' + moneyLabel(contract.depositPrice) + '</strong></div></div><div class="contract-live-progress" aria-label="Đã qua ' + contractProgress(contract) + '% thời hạn"><span style="width:' + contractProgress(contract) + '%"></span></div><div class="contract-live-countdown ' + countdownClass + '" data-contract-countdown="' + esc(contract.id) + '">' + countdown + '</div><div class="live-action-row"><button class="billing-filter" data-contract-action="detail" data-contract-id="' + esc(contract.id) + '">Chi tiết</button>' + (status === 'waiting' ? '<button class="btn-primary" data-contract-action="sign" data-contract-id="' + esc(contract.id) + '">Ký xác nhận</button>' : status === 'ended' || status === 'cancelled' ? '' : '<button class="btn-primary" data-contract-action="renew" data-contract-id="' + esc(contract.id) + '">Yêu cầu gia hạn</button>') + '<button class="billing-filter" data-contract-action="invoices" data-contract-id="' + esc(contract.id) + '">Hóa đơn phòng</button></div></article>';
+        }).join('');
+        notifyContractDeadlines(contracts, now);
+    }
+
+    function contractDetails(contract) {
+        const apartment = apartmentFor(contract.apartmentId);
+        const building = buildingFor(contract.buildingId || (apartment && apartment.buildingId));
+        const coResidents = Array.isArray(contract.occupants) ? contract.occupants : Array.isArray(contract.residents) ? contract.residents : [];
+        const assets = Array.isArray(contract.handoverAssets) ? contract.handoverAssets : Array.isArray(contract.assets) ? contract.assets : [];
+        const appendices = Array.isArray(contract.appendices) ? contract.appendices : [];
+        const history = Array.isArray(contract.history) ? contract.history : [];
+        const relatedInvoices = portfolioInvoices().filter(invoice => invoice.contractId === contract.id);
+        const list = (values, fallback) => values.length ? '<ul>' + values.map(value => '<li>' + esc(typeof value === 'string' ? value : value.name || value.fullName || value.title || 'Thông tin hồ sơ') + '</li>').join('') + '</ul>' : '<p>' + fallback + '</p>';
+        const documentActions = '<div class="live-action-row"><button class="billing-filter" data-contract-action="preview" data-contract-id="' + esc(contract.id) + '"><i class="fas fa-eye"></i> Xem trước / In PDF</button>' + (Array.isArray(contract.files) && contract.files.length ? '<button class="billing-filter" data-contract-action="download" data-contract-id="' + esc(contract.id) + '"><i class="fas fa-download"></i> Tải tài liệu</button>' : '') + '</div>';
+        return '<div class="live-detail-list"><div class="live-detail-row"><span>Tòa nhà</span><strong>' + esc(building && building.name || '—') + '</strong></div><div class="live-detail-row"><span>Phòng</span><strong>' + esc(apartment && apartment.name || '—') + '</strong></div><div class="live-detail-row"><span>Thời hạn</span><strong>' + esc(fmtDate(contract.startDate) + ' – ' + fmtDate(contract.endDate)) + '</strong></div><div class="live-detail-row"><span>Tiền thuê / cọc</span><strong>' + moneyLabel(contract.rentPrice) + ' / ' + moneyLabel(contract.depositPrice) + '</strong></div><h3>Điều khoản</h3><p>' + esc(contract.note || 'Điều khoản chi tiết được lưu trong tài liệu hợp đồng.') + '</p><h3>Người ở cùng</h3>' + list(coResidents, 'Chưa có người ở cùng được ghi nhận.') + '<h3>Tài sản bàn giao</h3>' + list(assets, 'Danh sách tài sản sẽ hiển thị khi Ban quản lý cập nhật biên bản bàn giao.') + '<h3>Lịch sử gia hạn</h3>' + list(history, 'Chưa có lịch sử gia hạn.') + '<h3>Phụ lục</h3>' + list(appendices, 'Chưa có phụ lục.') + '<h3>Hóa đơn của phòng</h3>' + list(relatedInvoices.map(invoice => (invoice.code || invoice.id) + ' · ' + moneyLabel(invoice.total)), 'Chưa có hóa đơn liên kết.') + '</div>' + documentActions + '<div class="live-action-row"><button class="btn-primary" data-contract-action="renew" data-contract-id="' + esc(contract.id) + '">Yêu cầu gia hạn</button><button class="billing-filter" data-contract-action="terminate" data-contract-id="' + esc(contract.id) + '">Yêu cầu chấm dứt</button></div>';
+    }
+
+    function submitRenewal(contract, duration, note) {
+        const request = window.RHD.create('supportRequests', {
+            code: window.RHD.nextSupportCode(), buildingId: contract.buildingId || '', apartmentId: contract.apartmentId || '', customerId: contract.customerId || residentCustomerId(),
+            residentEmail: window.RH_SESSION && window.RH_SESSION.email || '', residentName: window.RH_SESSION && window.RH_SESSION.name || '',
+            category: 'Hợp đồng', title: 'Yêu cầu gia hạn hợp đồng ' + (contract.code || ''),
+            description: 'Thời hạn mong muốn: ' + duration + ' tháng.' + (note ? ' Ghi chú: ' + note : ''), location: 'Phòng ' + ((apartmentFor(contract.apartmentId) || {}).name || ''),
+            priority: 'normal', status: 'new', assignee: '', attachments: 0, messages: []
+        });
+        if (!request.ok) throw new Error(request.error || 'Không gửi được yêu cầu gia hạn.');
+        const result = window.RHD.update('contracts', contract.id, { renewalRequest: { status: 'submitted', durationMonths: duration, note: note, requestId: request.item.id, createdAt: Date.now() } });
+        if (!result.ok) throw new Error(result.error || 'Đã tạo yêu cầu nhưng không thể cập nhật hợp đồng.');
+    }
+
+    function notifyContractDeadlines(contracts, now) {
+        const key = 'residenthub_contract_notices_' + userKey();
+        let sent = {};
+        try { sent = JSON.parse(localStorage.getItem(key) || '{}'); } catch (error) { sent = {}; }
+        contracts.forEach(contract => {
+            if (contractStatus(contract, now) === 'ended' || !contract.endDate) return;
+            const days = clock.daysRemaining(contract.endDate, now);
+            if (![30, 7].includes(days)) return;
+            const noticeKey = contract.id + ':' + days;
+            if (sent[noticeKey]) return;
+            sent[noticeKey] = true;
+            sendNotification('Hợp đồng sắp hết hạn', 'Hợp đồng ' + (contract.code || '') + ' còn ' + days + ' ngày. Bạn có thể gửi đề nghị gia hạn.', 'contract');
+        });
+        try { localStorage.setItem(key, JSON.stringify(sent)); } catch (error) { /* Không chặn giao diện nếu bộ nhớ đầy. */ }
+    }
+
+    function renderAll() {
+        populateResidenceFilters();
+        renderInvoiceRows();
+        renderContracts();
+        lastRenderedDay = todayKey();
+        lastPeriod = currentPeriod().label;
+    }
+
+    function refreshResidentWorkspace(change) {
+        renderAll();
+        if (change && change.entity === 'invoices' && !internalInvoiceWrite) document.getElementById('invoiceChangeAlert').hidden = false;
+    }
+    window.refreshResidentWorkspace = refreshResidentWorkspace;
+
+    document.getElementById('invoiceBuildingFilter').addEventListener('change', () => { pageSize = 10; populateResidenceFilters(); renderInvoiceRows(); });
+    document.getElementById('invoiceRoomFilter').addEventListener('change', () => { pageSize = 10; renderInvoiceRows(); });
+    document.getElementById('invoicePeriodFilter').addEventListener('change', () => { pageSize = 10; renderInvoiceRows(); });
+    document.getElementById('invoiceSort').addEventListener('change', renderInvoiceRows);
+    document.getElementById('billingSearch').addEventListener('input', () => {
+        window.clearTimeout(searchTimer);
+        searchTimer = window.setTimeout(() => { pageSize = 10; renderInvoiceRows(); }, 300);
+    });
+    document.getElementById('contractLiveSearch').addEventListener('input', renderContracts);
+    document.addEventListener('input', event => {
+        if (event.target.matches('[data-contract-file-search]')) filterContractDocuments(event.target.closest('.resident-contract-page'));
+    });
+    document.addEventListener('change', event => {
+        if (event.target.matches('[data-contract-file-type]')) filterContractDocuments(event.target.closest('.resident-contract-page'));
+    });
+    document.addEventListener('click', event => {
+        const invoiceTab = event.target.closest('[data-invoice-filter]');
+        if (invoiceTab) {
+            activeInvoiceFilter = invoiceTab.dataset.invoiceFilter;
+            document.querySelectorAll('[data-invoice-filter]').forEach(button => button.setAttribute('aria-pressed', String(button === invoiceTab)));
+            pageSize = 10;
+            renderInvoiceRows();
+            return;
+        }
+        const contractTab = event.target.closest('[data-contract-filter]');
+        if (contractTab) {
+            activeContractFilter = contractTab.dataset.contractFilter;
+            document.querySelectorAll('[data-contract-filter]').forEach(button => button.setAttribute('aria-pressed', String(button === contractTab)));
+            renderContracts();
+            return;
+        }
+        const invoiceAction = event.target.closest('[data-invoice-action]');
+        if (invoiceAction) {
+            const action = invoiceAction.dataset.invoiceAction;
+            const invoice = portfolioInvoices().find(item => item.id === invoiceAction.dataset.invoiceId);
+            if (action === 'contact') {
+                document.querySelector('.nav-item[data-target="requests"]')?.click();
+                return;
+            }
+            if (action === 'refresh') {
+                window.RH_CTX = window.RHD.residentContext(window.RH_SESSION);
+                renderAll();
+                document.getElementById('invoiceChangeAlert').hidden = true;
+                return;
+            }
+            if (action === 'close-dialog') { closeDialog(); return; }
+            if (action === 'pay-selected') { openPayment([...selectedInvoices]); return; }
+            if (action === 'pay-one' && invoice) { closeDrawer(); openPayment([invoice.id]); return; }
+            if (action === 'payment-confirm') { submitPayment(invoiceAction.dataset.invoiceIds.split(',').filter(Boolean), invoiceAction); return; }
+            if (!invoice) return;
+            if (action === 'detail') { openDrawer('Hóa đơn ' + (invoice.code || ''), invoiceDetail(invoice)); return; }
+            if (action === 'copy') { navigator.clipboard?.writeText(invoice.code || invoice.id).then(() => toast('Đã sao chép mã hóa đơn.')).catch(() => toast('Không thể sao chép mã hóa đơn trên trình duyệt này.')); return; }
+            if (action === 'print') { printInvoice(invoice); return; }
+            if (action === 'complaint') { complainAbout(invoice); return; }
+        }
+        const contractAction = event.target.closest('[data-contract-action]');
+        if (contractAction) {
+            const action = contractAction.dataset.contractAction;
+            const contract = portfolioContracts().find(item => item.id === contractAction.dataset.contractId);
+            if (action === 'contact') { document.querySelector('.nav-item[data-target="requests"]')?.click(); return; }
+            if (!contract) return;
+            if (action === 'preview-contract' || action === 'preview-file') {
+                const files = Array.isArray(contract.files) ? contract.files : [];
+                const file = action === 'preview-file'
+                    ? files.find(item => String(item.id || item.name) === contractAction.dataset.fileId) || files[0]
+                    : files[0] || { name: 'Hop-dong-' + (contract.code || 'ResidentHub') + '.pdf', format: 'PDF', docType: 'Hợp đồng thuê nhà' };
+                if (!file) return toast('Hợp đồng này chưa có tệp hồ sơ được liên kết.');
+                const format = String(file.format || String(file.name || '').split('.').pop() || '').toUpperCase();
+                const url = contractPdfDataUrl(contract, file);
+                const preview = format === 'PDF'
+                    ? '<iframe class="resident-contract-pdf" title="' + esc(file.name || contract.code) + '" src="' + esc(url) + '"></iframe>'
+                    : /^JPE?G|PNG$/.test(format) && (file.dataUrl || file.url)
+                        ? '<img src="' + esc(file.dataUrl || file.url) + '" alt="' + esc(file.name) + '" style="display:block;max-width:100%;max-height:65vh;margin:auto;object-fit:contain">'
+                        : '<div class="resident-contract-empty">Định dạng ' + esc(format || 'tệp') + ' chưa hỗ trợ xem trước. Thông tin tài liệu được hiển thị bên dưới.</div>';
+                const details = '<details style="margin-top:.7rem"><summary style="cursor:pointer;color:#1769e8;font-size:.76rem;font-weight:700">Chi tiết tài liệu</summary><div class="live-detail-list"><div class="live-detail-row"><span>Loại tài liệu</span><strong>' + esc(file.docType || 'Hồ sơ hợp đồng') + '</strong></div><div class="live-detail-row"><span>Định dạng · dung lượng</span><strong>' + esc(format + ' · ' + (file.size || (file.sizeBytes ? Math.round(file.sizeBytes / 1024) + ' KB' : 'Chưa rõ'))) + '</strong></div><div class="live-detail-row"><span>Tải lên · cập nhật</span><strong>' + esc(fmtDate(file.uploadedAt) + ' · ' + (file.updatedAt ? fmtDate(file.updatedAt) : 'Chưa cập nhật')) + '</strong></div><div class="live-detail-row"><span>Đơn vị cung cấp</span><strong>' + esc(file.provider || 'Chưa cập nhật') + '</strong></div><div class="live-detail-row"><span>Trạng thái · phiên bản</span><strong>' + esc((file.status || 'Chưa cập nhật') + ' · ' + (file.version || 'Chưa cập nhật')) + '</strong></div></div></details>';
+                const body = '<div class="live-detail-list"><p style="margin:.1rem 0 .7rem;color:#64748b;font-size:.76rem">' + esc(file.name || contract.code) + '</p>' + preview + details + '<div class="resident-contract-preview-actions">' + (url ? '<button type="button" class="btn-primary" data-contract-action="download-file" data-contract-id="' + esc(contract.id) + '" data-file-id="' + esc(file.id || file.name) + '">Tải xuống</button>' : '<span class="resident-contract-empty">Chưa có tệp tải xuống được liên kết.</span>') + '</div></div>';
+                openDrawer(file.name || 'Hợp đồng thuê nhà', body, true);
+                return;
+            }
+            if (action === 'download-file') {
+                const file = (contract.files || []).find(item => String(item.id || item.name) === contractAction.dataset.fileId) || (contract.files || [])[0];
+                if (!file) return toast('Không tìm thấy tệp hợp đồng.');
+                const url = file.dataUrl || file.url || file.href || contractPdfDataUrl(contract, file);
+                if (!url) return toast('Tài liệu này chưa có tệp tải xuống được liên kết.');
+                const link = document.createElement('a'); link.href = url; link.download = file.name || 'ho-so-hop-dong.pdf'; link.rel = 'noopener'; document.body.appendChild(link); link.click(); link.remove(); return;
+            }
+            if (action === 'detail') { openDrawer('Hợp đồng ' + (contract.code || ''), contractDetails(contract)); return; }
+            if (action === 'invoices') {
+                document.getElementById('invoiceRoomFilter').value = contract.apartmentId;
+                document.querySelector('.nav-item[data-target="invoices"]')?.click();
+                renderInvoiceRows();
+                return;
+            }
+            if (action === 'preview') {
+                const apartment = apartmentFor(contract.apartmentId);
+                const building = buildingFor(contract.buildingId);
+                openDrawer('Bản xem trước · ' + (contract.code || ''), '<div class="live-detail-list"><h2>HỢP ĐỒNG THUÊ NHÀ</h2><div class="live-detail-row"><span>Mã hợp đồng</span><strong>' + esc(contract.code) + '</strong></div><div class="live-detail-row"><span>Bên thuê</span><strong>' + esc((window.RH_CTX.customer && window.RH_CTX.customer.fullName) || window.RH_SESSION.name) + '</strong></div><div class="live-detail-row"><span>Căn hộ</span><strong>' + esc(building && building.name || '') + ' / ' + esc(apartment && apartment.name || '') + '</strong></div><div class="live-detail-row"><span>Thời hạn</span><strong>' + esc(fmtDate(contract.startDate) + ' - ' + fmtDate(contract.endDate)) + '</strong></div><div class="live-detail-row"><span>Tiền thuê</span><strong>' + moneyLabel(contract.rentPrice) + '</strong></div><div class="live-detail-row"><span>Tiền cọc</span><strong>' + moneyLabel(contract.depositPrice) + '</strong></div></div><button type="button" class="btn-primary" onclick="window.print()" style="width:100%;margin-top:1rem">In / Lưu PDF</button>');
+                return;
+            }
+            if (action === 'download') {
+                const file = (contract.files || [])[0];
+                if (!file || !(file.dataUrl || file.url)) return toast('Hợp đồng chưa có tài liệu tải xuống.');
+                const link = document.createElement('a'); link.href = file.dataUrl || file.url; link.download = file.name || 'hop-dong'; link.click(); return;
+            }
+            if (action === 'renew') {
+                if (contract.renewalRequest && contract.renewalRequest.status === 'submitted') {
+                    showDialog('Yêu cầu gia hạn đang chờ duyệt', '<p>Yêu cầu gia hạn đã được gửi. Bạn có thể hủy yêu cầu nếu Ban quản lý chưa xử lý.</p><div class="live-action-row"><button class="billing-filter" data-contract-action="cancel-renewal" data-contract-id="' + esc(contract.id) + '">Hủy yêu cầu</button><button class="btn-secondary" data-contract-action="close-dialog">Đóng</button></div>');
+                } else {
+                    showDialog('Yêu cầu gia hạn hợp đồng', '<form id="renewalForm"><label>Thời hạn muốn gia hạn</label><select name="duration" required><option value="3">3 tháng</option><option value="6">6 tháng</option><option value="12" selected>12 tháng</option></select><label>Ghi chú</label><textarea name="note" maxlength="1000" rows="3"></textarea><p id="renewalError" role="alert"></p><div class="live-action-row"><button type="button" class="billing-filter" data-contract-action="close-dialog">Hủy</button><button type="submit" class="btn-primary">Gửi yêu cầu</button></div></form>');
+                    document.getElementById('renewalForm').addEventListener('submit', formEvent => {
+                        formEvent.preventDefault();
+                        const form = formEvent.currentTarget;
+                        const duration = Number(new FormData(form).get('duration'));
+                        const note = String(new FormData(form).get('note') || '').trim();
+                        if (![3, 6, 12].includes(duration)) { document.getElementById('renewalError').textContent = 'Vui lòng chọn thời hạn 3, 6 hoặc 12 tháng.'; return; }
+                        try { submitRenewal(contract, duration, note); closeDialog(); renderAll(); toast('Đã gửi yêu cầu gia hạn.'); }
+                        catch (error) { document.getElementById('renewalError').textContent = error.message; }
+                    });
+                }
+                return;
+            }
+            if (action === 'cancel-renewal') {
+                const result = window.RHD.update('contracts', contract.id, { renewalRequest: Object.assign({}, contract.renewalRequest, { status: 'cancelled', cancelledAt: Date.now() }) });
+                if (!result.ok) return toast(result.error || 'Không thể hủy yêu cầu.');
+                closeDialog(); renderAll(); toast('Đã hủy yêu cầu gia hạn.'); return;
+            }
+            if (action === 'sign') {
+                if (!window.confirm('Bạn xác nhận đã đọc và đồng ý ký hợp đồng ' + (contract.code || '') + '?')) return;
+                const result = window.RHD.update('contracts', contract.id, { status: 'active', signedAt: Date.now() });
+                if (!result.ok) return toast(result.error || 'Không thể cập nhật chữ ký.');
+                renderAll(); toast('Đã ghi nhận xác nhận hợp đồng.'); return;
+            }
+            if (action === 'terminate') {
+                const days = contract.endDate ? clock.daysRemaining(contract.endDate) : null;
+                const noticeDays = Number(contract.noticeDays) || 30;
+                if (!window.confirm('Hợp đồng quy định báo trước ' + noticeDays + ' ngày. Thời hạn còn lại: ' + (days == null ? 'chưa xác định' : days + ' ngày') + '. Tiền cọc dự kiến đối soát: ' + moneyLabel(contract.depositPrice) + '. Tiếp tục bước xác nhận?')) return;
+                if (!window.confirm('Xác nhận gửi yêu cầu chấm dứt hợp đồng ' + (contract.code || '') + '? Ban quản lý sẽ kiểm tra tiền cọc và thời hạn báo trước.')) return;
+                const request = window.RHD.create('supportRequests', { code: window.RHD.nextSupportCode(), buildingId: contract.buildingId || '', apartmentId: contract.apartmentId || '', customerId: contract.customerId || residentCustomerId(), residentEmail: window.RH_SESSION.email || '', residentName: window.RH_SESSION.name || '', category: 'Hợp đồng', title: 'Yêu cầu chấm dứt hợp đồng ' + (contract.code || ''), description: 'Đề nghị chấm dứt hợp đồng. Quy định báo trước: ' + noticeDays + ' ngày; số ngày còn lại theo hệ thống: ' + (days == null ? 'chưa xác định' : days) + '. Tiền cọc dự kiến đối soát: ' + moneyLabel(contract.depositPrice) + '.', location: 'Phòng ' + ((apartmentFor(contract.apartmentId) || {}).name || ''), priority: 'normal', status: 'new', assignee: '', attachments: 0, messages: [] });
+                if (!request.ok) return toast(request.error || 'Không thể gửi yêu cầu chấm dứt.');
+                toast(days !== null && days < noticeDays ? 'Yêu cầu đã gửi. Thời gian báo trước chưa đủ; Ban quản lý sẽ giải thích khoản đối soát.' : 'Đã gửi yêu cầu chấm dứt hợp đồng.');
+            }
+        }
+    });
+
+    document.addEventListener('change', event => {
+        if (event.target.matches('[data-invoice-select]')) {
+            const id = event.target.dataset.invoiceSelect;
+            if (event.target.checked) selectedInvoices.add(id); else selectedInvoices.delete(id);
+            updatePaymentBar(invoicesForView());
+        }
+        if (event.target.id === 'invoiceSelectVisible') {
+            const visible = invoicesForView().filter(invoice => isPayable(invoice) && (activeInvoiceFilter === 'all' || displayStatus(invoice.effectiveStatus)[1] === activeInvoiceFilter));
+            visible.forEach(invoice => event.target.checked ? selectedInvoices.add(invoice.id) : selectedInvoices.delete(invoice.id));
+            renderInvoiceRows();
+        }
+    });
+
+    document.getElementById('invoicePaySelected').addEventListener('click', () => openPayment([...selectedInvoices]));
+    document.getElementById('invoiceLoadMore').addEventListener('click', () => { pageSize += 10; renderInvoiceRows(); });
+    drawer.querySelector('.live-drawer-close').addEventListener('click', closeDrawer);
+    drawer.addEventListener('click', event => { if (event.target === drawer) closeDrawer(); });
+    dialog.addEventListener('click', event => { if (event.target === dialog) closeDialog(); });
+    document.addEventListener('keydown', event => {
+        if (event.key === 'Escape') { closeDrawer(); closeDialog(); }
+        if (event.key === 'Enter' && event.target.matches('#billingRows tr[data-invoice-id]')) {
+            openDrawer('Hóa đơn', invoiceDetail(portfolioInvoices().find(invoice => invoice.id === event.target.dataset.invoiceId)));
+        }
+    });
+    document.getElementById('billingRows').addEventListener('click', event => {
+        if (event.target.closest('button,input')) return;
+        const row = event.target.closest('[data-invoice-id]');
+        if (!row) return;
+        const invoice = portfolioInvoices().find(item => item.id === row.dataset.invoiceId);
+        if (invoice) openDrawer('Hóa đơn ' + (invoice.code || ''), invoiceDetail(invoice));
+    });
+    document.getElementById('liveDialogContent').addEventListener('click', event => {
+        const action = event.target.closest('[data-contract-action]');
+        if (action && action.dataset.contractAction === 'close-dialog') closeDialog();
+    });
+    if (topbarClock) {
+        clock.start(now => {
+            const weekday = new Intl.DateTimeFormat('vi-VN', { timeZone: clock.TIME_ZONE, weekday: 'long' }).format(now);
+            document.getElementById('residentClockDate').textContent = weekday + ', ' + clock.formatDate(now);
+            document.getElementById('residentClockTime').textContent = new Intl.DateTimeFormat('vi-VN', { timeZone: clock.TIME_ZONE, hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' }).format(now);
+            const day = clock.dateKey(now);
+            const period = currentPeriod(now).label;
+            updateCountdowns(now);
+            if (day !== lastRenderedDay || period !== lastPeriod) renderAll();
+            contractSection.querySelectorAll('[data-contract-countdown]').forEach(element => {
+                const contract = portfolioContracts().find(item => item.id === element.dataset.contractCountdown);
+                if (!contract || !contract.endDate) return;
+                const days = clock.daysRemaining(contract.endDate, now);
+                element.textContent = days < 0 ? 'Đã hết hạn ' + Math.abs(days) + ' ngày' : 'Còn ' + days + ' ngày hết hạn';
+            });
+        });
+    }
+
+    requestAnimationFrame(() => {
+        populateResidenceFilters();
+        renderAll();
+    });
+})();
+
+    </script>
 </body>
 </html>
