@@ -321,7 +321,7 @@
                 '<div class="staff-detail-item"><small>Vị trí xử lý</small><strong>' + escapeHtml(request.location || '—') + '</strong></div>' +
                 '<div class="staff-detail-item"><small>Hạn xử lý</small><strong>' + escapeHtml(dateLabel(request.dueAt || request.scheduledAt)) + '</strong></div></div>' +
                 '<div class="staff-detail-item" style="margin-top:12px;"><small>Mô tả yêu cầu</small><div class="staff-description">' + escapeHtml(request.description || 'Không có mô tả.') + '</div></div>' +
-                (request.response ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Ghi chú từ Quản lý</small><div class="staff-description">' + escapeHtml(request.response) + '</div></div>' : '') +
+                (request.staffManagerNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Ghi chú từ Quản lý</small><div class="staff-description">' + escapeHtml(request.staffManagerNote) + '</div></div>' : '') +
                 (request.staffCompletionNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Báo cáo kết quả của bạn</small><div class="staff-description">' + escapeHtml(request.staffCompletionNote) + '</div></div>' : '') +
                 (attachments.length ? '<div class="staff-attachments">' + attachments.map(function (file, index) { return '<a href="' + escapeHtml(file.dataUrl) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(file.dataUrl) + '" alt="Ảnh yêu cầu ' + (index + 1) + '"></a>'; }).join('') + '</div>' : '') +
                 '<div class="staff-linked-request"><span>Mã hồ sơ liên kết: ' + escapeHtml(request.code || request.id) + '</span><span>Cư dân: Yêu cầu hỗ trợ</span><span>Quản lý: Hồ sơ yêu cầu</span></div>' +

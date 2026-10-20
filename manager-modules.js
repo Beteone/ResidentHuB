@@ -3523,6 +3523,7 @@
             '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"><small>Chọn tài khoản để nhiệm vụ chỉ hiển thị với đúng nhân viên.</small></div>' +
             '<div class="rh-field"><label>Nhóm chuyên môn</label><select id="srStaffGroup"><option value="">Chọn nhóm</option>' + selectOptions(RHD.SUPPORT_STAFF_GROUPS, 'id', 'label', selectedStaffGroup) + '</select></div>' +
             '<div class="rh-field"><label>Hạn xử lý</label><input id="srDueAt" type="date" value="' + escapeHtml(String(r.dueAt || '').slice(0, 10)) + '"></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú cho nhân viên</label><textarea id="srStaffNote" rows="3" placeholder="Nhập hướng dẫn hoặc lưu ý dành riêng cho nhân viên">' + escapeHtml(r.staffManagerNote || '') + '</textarea><small>Ghi chú này chỉ hiển thị trong chi tiết nhiệm vụ của nhân viên.</small></div>' +
             '<div class="support-drawer-chat"><div class="support-drawer-chat-head"><strong>Trao đổi với cư dân</strong></div><div id="srConversation" class="support-drawer-messages">' + supportConversationHtml(Array.isArray(r.messages) ? r.messages : []) + '</div><div class="support-drawer-compose"><textarea id="srReply" rows="2" placeholder="Nhập tin nhắn gửi cư dân..."></textarea><button type="button" class="btn-primary" onclick="RHUI.sendSupportReply()" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div></div>' +
             '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
@@ -3621,6 +3622,7 @@
             assigneeId: assignedStaff ? assignedStaff.id : '',
             staffGroup: byId('srStaffGroup').value,
             dueAt: byId('srDueAt').value,
+            staffManagerNote: byId('srStaffNote').value.trim(),
             updatedAt: now
         };
         if (assignedStaff && assignmentChanged && status !== 'resolved' && status !== 'closed') {

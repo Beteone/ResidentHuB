@@ -96,10 +96,11 @@ try {
         picker.dispatchEvent(new Event('change',{bubbles:true}));
         document.getElementById('srStaffGroup').value='technical';
         document.getElementById('srDueAt').value='2026-10-30';
+        document.getElementById('srStaffNote').value='Kiểm tra van khóa trước khi thay thiết bị.';
         RHUI.submitSupportForm({preventDefault(){}});
     `);
-    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {assigneeId:r.assigneeId,group:r.staffGroup,status:r.status,dueAt:r.dueAt}})()`), {
-        assigneeId: 'staff-task-check', group: 'technical', status: 'accepted', dueAt: '2026-10-30'
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {assigneeId:r.assigneeId,group:r.staffGroup,status:r.status,dueAt:r.dueAt,note:r.staffManagerNote}})()`), {
+        assigneeId: 'staff-task-check', group: 'technical', status: 'accepted', dueAt: '2026-10-30', note: 'Kiểm tra van khóa trước khi thay thiết bị.'
     }, 'Management assigns a grouped task on the shared support request');
 
     await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='staff-task-check'),false)`);
@@ -112,6 +113,7 @@ try {
     assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Nhiệm vụ của người khác')`), false);
     await evaluate(`document.querySelector('[data-open-task="staff-task-request"]').click()`);
     assert.equal(await evaluate(`document.getElementById('staffPageTitle').textContent==='Chi tiết nhiệm vụ'&&document.getElementById('staffContent').textContent.includes('Kiểm tra điều hòa')`), true, 'Selecting a task opens its details');
+    assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Kiểm tra van khóa trước khi thay thiết bị.')`), true, 'Staff sees the manager-only task note');
     await evaluate(`document.querySelector('[data-title="Cập nhật tiến độ"]').click();document.querySelector('[data-task-action="start"]').click()`);
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus}})()`), {
         status: 'in_progress', taskStatus: 'in_progress'
