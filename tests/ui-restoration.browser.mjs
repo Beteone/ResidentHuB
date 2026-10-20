@@ -149,13 +149,13 @@ try {
     assert.equal(await evaluate('RHD.get("supportRequests","ui-request").messages.at(-1).text'), 'Manager reply');
     assert.equal(await evaluate('RHD.get("supportRequests","ui-request").customField'), 'keep');
     assert.equal(await evaluate('RHD.get("supportRequests","ui-request").response'), 'Keep response');
-    await evaluate('RHUI.openSupportForm("ui-request");document.getElementById("srResponse").value="Unsaved response";document.getElementById("srReply").value="Unsaved reply";RHD.update("supportRequests","ui-request",{messages:RHD.get("supportRequests","ui-request").messages.concat([{from:"Cư dân",text:"Resident follow-up",time:"Now"}])});window.dispatchEvent(new StorageEvent("storage",{key:"residenthub_demo_supportRequests"}))');
+    await evaluate('RHUI.openSupportForm("ui-request");document.getElementById("srReply").value="Unsaved reply";RHD.update("supportRequests","ui-request",{messages:RHD.get("supportRequests","ui-request").messages.concat([{from:"Cư dân",text:"Resident follow-up",time:"Now"}])});window.dispatchEvent(new StorageEvent("storage",{key:"residenthub_demo_supportRequests"}))');
+    assert.equal(await evaluate('document.getElementById("srResponse")'), null, 'Manager support form no longer has a separate resident response field');
     assert.equal(await evaluate('document.getElementById("srConversation").textContent.includes("Resident follow-up")'), true);
-    assert.equal(await evaluate('document.getElementById("srResponse").value'), 'Unsaved response');
     assert.equal(await evaluate('document.getElementById("srReply").value'), 'Unsaved reply');
     await evaluate('RHUI.sendSupportReply()');
     assert.equal(await evaluate('RHD.get("supportRequests","ui-request").messages.at(-1).text'), 'Unsaved reply');
-    assert.equal(await evaluate('document.getElementById("srResponse").value'), 'Unsaved response');
+    assert.equal(await evaluate('RHD.get("supportRequests","ui-request").response'), 'Keep response', 'Removing the input preserves any previously saved resident response');
     await evaluate('RHUI.closeDrawer()');
     await send('Page.captureScreenshot', { format: 'png' }).then(r => writeFileSync(join(artifactDir, 'support-desktop.png'), Buffer.from(r.data, 'base64')));
     // Denied direct handler calls must neither expose nor mutate an out-of-scope request.
@@ -178,7 +178,7 @@ try {
         RHD.create('apartments',{id:'live-ui-apartment',buildingId:'live-ui-building',name:'UI101',status:'occupied'});
         RHD.create('customers',{id:'live-ui-resident',fullName:'Live UI Resident'});
         RHD.create('contracts',{id:'live-ui-contract',code:'UI-HD-001',buildingId:'live-ui-building',apartmentId:'live-ui-apartment',customerId:'live-ui-resident',status:'active',startDate:'2026-01-01',endDate:'2027-12-31',rentPrice:1000000});
-        RHD.create('supportRequests',{id:'live-ui-request',code:'UI-YC-001',buildingId:'live-ui-building',apartmentId:'live-ui-apartment',customerId:'live-ui-resident',residentName:'Live UI Resident',title:'Live request',description:'Live description',status:'new',priority:'normal',messages:[]});
+        RHD.create('supportRequests',{id:'live-ui-request',code:'UI-YC-001',buildingId:'live-ui-building',apartmentId:'live-ui-apartment',customerId:'live-ui-resident',residentName:'Live UI Resident',title:'Live request',description:'Live description',status:'new',priority:'normal',response:'Legacy response',messages:[]});
         RH.createUser({name:'Live UI Resident',email:'ui-resident@example.test',password:'ui-test-password',role:'resident',residentId:'live-ui-resident',apartmentId:'live-ui-apartment',unit:'UI101'});
         switchTab('support');RHUI.openSupportForm('live-ui-request');document.getElementById('srReply').value='Live manager message';RHUI.sendSupportReply();RHUI.closeDrawer();
         RH.login(RH.getUsers().find(u=>u.email==='ui-resident@example.test'),false);
@@ -208,15 +208,15 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
     await send('Page.captureScreenshot', { format: 'png' }).then(r => writeFileSync(join(artifactDir, 'support-mobile.png'), Buffer.from(r.data, 'base64')));
     assert.equal(await evaluate('document.querySelector(".support-inbox").getBoundingClientRect().width <= document.querySelector("#support-tab").getBoundingClientRect().width'), true);
-    // Diagnostic only: preserve the current implementation and record its actual
-    // status/response behavior. All affected records belong to this test profile.
+    // Diagnostic only: preserve the manager form's existing status behavior and
+    // verify legacy response data survives now that the form field is removed.
     const supportLogic = await evaluate(`(()=>{
         RHUI.openSupportForm('live-ui-request');
         document.getElementById('srStatus').value='resolved';
-        document.getElementById('srResponse').value='AUDIT_RESPONSE_ONLY';
+        const hasResponseField=!!document.getElementById('srResponse');
         RHUI.submitSupportForm({preventDefault(){}});
         const request=RHD.get('supportRequests','live-ui-request');
-        return {status:request.status,response:request.response,resolvedAt:request.resolvedAt||null,resolutionNote:request.resolutionNote||null,hasScheduleField:!!document.getElementById('srScheduledAt')};
+        return {status:request.status,response:request.response,resolvedAt:request.resolvedAt||null,resolutionNote:request.resolutionNote||null,hasResponseField:hasResponseField,hasScheduleField:!!document.getElementById('srScheduledAt')};
     })()`);
     const assetLogic = await evaluate(`(async()=>{
         await new Promise((resolve,reject)=>{const script=document.createElement('script');script.src='asset-module.js';script.onload=resolve;script.onerror=reject;document.head.appendChild(script)});
@@ -233,7 +233,7 @@ try {
     await evaluate('RH.login(RH.getUsers().find(u=>u.email==="ui-resident@example.test"),false)');
     await navigate('/resident-web.html');
     await evaluate('showResidentSection("requests");openRequestDetail("UI-YC-001")');
-    supportLogic.responseVisibleToResident = await evaluate('document.getElementById("modalBody").textContent.includes("AUDIT_RESPONSE_ONLY")');
+    supportLogic.responseVisibleToResident = await evaluate('document.getElementById("modalBody").textContent.includes("Legacy response")');
     console.log('SUPPORT_LOGIC_AUDIT', JSON.stringify(supportLogic));
     writeFileSync(join(artifactDir, 'support-logic-audit.json'), JSON.stringify(supportLogic, null, 2));
     assert.equal(errors.length, 0, JSON.stringify(errors));
