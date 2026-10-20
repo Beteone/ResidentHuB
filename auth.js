@@ -317,7 +317,7 @@
             data.users[user.id] = userData;
             writeDataStore(data);
             if (changed) {
-                createNotificationForUser(user.id, {
+                var notificationPayload = global.RHGeneralSettings ? global.RHGeneralSettings.prepareRecordNotice(record, kind, user) : {
                     type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
                     subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
                     title: kind === 'contract' ? 'Hợp đồng đã được cập nhật' : 'Hóa đơn mới đã được cập nhật',
@@ -326,7 +326,8 @@
                     refId: record.id,
                     actionUrl: kind === 'contract' ? 'contracts' : 'invoices',
                     actionLabel: kind === 'contract' ? 'Xem hợp đồng' : 'Xem hóa đơn'
-                });
+                };
+                if (notificationPayload) createNotificationForUser(user.id, notificationPayload);
             }
         });
         return { ok: true, count: targets.length };
@@ -421,15 +422,18 @@
     function syncManagerNotification(record) {
         var targets = usersForManagerRecord(record);
         targets.forEach(function (user) {
+            var message = global.RHGeneralSettings ? global.RHGeneralSettings.prepareSupport(record, user) : record;
+            if (!message) return;
             createNotificationForUser(user.id, {
-                type: ({ info: 'ANNOUNCEMENT', announcement: 'ANNOUNCEMENT', billing: 'BILLING', request: 'REQUEST', contract: 'CONTRACT' }[String(record.type || '').toLowerCase()] || String(record.type || 'ANNOUNCEMENT').toUpperCase()),
+                type: ({ info: 'ANNOUNCEMENT', announcement: 'ANNOUNCEMENT', billing: 'BILLING', request: 'REQUEST', contract: 'CONTRACT' }[String(message.type || '').toLowerCase()] || String(message.type || 'ANNOUNCEMENT').toUpperCase()),
                 subType: 'MANAGER_MESSAGE',
-                title: record.title || 'Thông báo từ ban quản lý',
-                body: record.body || '',
-                refType: record.refType || 'notifications',
-                refId: record.id || '',
-                actionUrl: record.actionUrl || 'notifications',
-                actionLabel: record.actionLabel || 'Xem thông báo'
+                campaignId: message.campaignId || '',
+                title: message.title || 'Thông báo từ ban quản lý',
+                body: message.body || '',
+                refType: message.refType || 'notifications',
+                refId: message.id || '',
+                actionUrl: message.actionUrl || 'notifications',
+                actionLabel: message.actionLabel || 'Xem thông báo'
             });
         });
         return { ok: true, count: targets.length };
@@ -657,6 +661,7 @@
         var users = readUsers();
         users.push(user);
         writeUsers(users);
+        if (global.RHActivity) global.RHActivity.record('users', 'create', null, user);
         syncResidentApartmentRecords(user);
         return { ok: true, user: user };
     }
@@ -688,6 +693,7 @@
             return { ok: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
         }
 
+        var beforeAudit = JSON.parse(JSON.stringify(users[index]));
         var user = users[index];
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
@@ -717,12 +723,13 @@
 
         users[index] = user;
         writeUsers(users);
+        if (global.RHActivity) global.RHActivity.record('users', 'update', beforeAudit, user);
 
         syncResidentApartmentRecords(user);
 
         var session = getSession();
         if (session && session.id === id) {
-            login(user, isRemembered());
+            login(user, isRemembered(), true);
         }
         return { ok: true, user: user };
     }
@@ -743,6 +750,7 @@
             return { ok: false, error: 'Phải có ít nhất một tài khoản Quản lý trong hệ thống.' };
         }
         writeUsers(next);
+        if (global.RHActivity) global.RHActivity.record('users', 'delete', removed, null);
         return { ok: true };
     }
 
@@ -1057,7 +1065,7 @@
         return !!localStorage.getItem(SESSION_KEY);
     }
 
-    function login(user, remember) {
+    function login(user, remember, refreshOnly) {
         var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', apartmentId: user.apartmentId || '', residentId: user.residentId || '', loginAt: Date.now(), currentUserId: user.id };
         var data = JSON.stringify(session);
         if (remember) {
@@ -1072,6 +1080,7 @@
             localStorage.removeItem(CURRENT_USER_KEY);
         }
         ensureUserContainer(user.id);
+        if (!refreshOnly && global.RHActivity) global.RHActivity.record('auth', 'login', null, { id: user.id }, { actor: user });
         return session;
     }
 
@@ -1100,10 +1109,17 @@
     }
 
     function logout() {
+        // Read the raw session to avoid recursion when getSession invalidates it.
+        var auditSession = null;
+        try {
+            auditSession = JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || 'null');
+            if (auditSession) auditSession = readUsers().find(function (u) { return u.id === auditSession.id; }) || auditSession;
+        } catch (e) { /* Session cleanup must still run. */ }
         sessionStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(SESSION_KEY);
         sessionStorage.removeItem(CURRENT_USER_KEY);
         localStorage.removeItem(CURRENT_USER_KEY);
+        if (auditSession && global.RHActivity) global.RHActivity.record('auth', 'logout', { id: auditSession.id }, null, { actor: auditSession });
     }
 
     // Blocks unauthorized access to a role-restricted page. Must be called
@@ -1156,6 +1172,7 @@
         syncManagerRecord: syncManagerRecord,
         removeManagerRecord: removeManagerRecord,
         syncManagerNotification: syncManagerNotification,
+        resolveNotificationRecipients: usersForManagerRecord,
         updateNotificationForUser: updateNotificationForUser,
         updateRequestForUser: updateRequestForUser,
         deleteRequestForUser: deleteRequestForUser,

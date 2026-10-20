@@ -190,7 +190,7 @@
                     type: campaign.type,
                     subType: 'MANAGER_MESSAGE',
                     title: campaign.title,
-                    body: campaign.body,
+                    body: global.RHGeneralSettings ? global.RHGeneralSettings.campaignBody(campaign, user) : campaign.body,
                     priority: campaign.priority,
                     refType: 'notifications',
                     refId: campaign.id,
@@ -613,6 +613,15 @@
             return;
         }
         var scheduledAt = data.get('scheduledAt') ? new Date(data.get('scheduledAt')).getTime() : 0;
+        var notificationPolicy = global.RHGeneralSettings ? global.RHGeneralSettings.campaignPolicy() : null;
+        if (action !== 'draft' && notificationPolicy && !notificationPolicy.enabled) {
+            global.alert('Thông báo hoạt động tòa nhà đang tắt trong Cài đặt chung.');
+            return;
+        }
+        if (action === 'send' && notificationPolicy && notificationPolicy.time) {
+            action = 'schedule';
+            scheduledAt = global.RHGeneralSettings.nextCampaignSend(notificationPolicy.time);
+        }
         if (action === 'schedule' && (!scheduledAt || scheduledAt <= Date.now())) {
             global.alert('Vui lòng chọn thời gian gửi trong tương lai.');
             return;
@@ -635,6 +644,7 @@
             id: campaignId,
             title: title,
             body: body,
+            notificationPolicy: notificationPolicy,
             type: String(data.get('type') || 'ANNOUNCEMENT'),
             priority: String(data.get('priority') || 'NORMAL'),
             audience: audience,
