@@ -133,7 +133,7 @@ function handleLogin(event){
     const user=result.user;
     RH.login(user,remember);
     showMessage('loginMessage','<div class="success-message">Đăng nhập thành công. Đang chuyển đến không gian của bạn...</div>');
-    setTimeout(()=>{closeLoginModal();window.location.href=user.role==='manager'?'dashboard.html':user.role==='staff'?'staff.html':'resident-web.html'},700)
+    setTimeout(()=>{closeLoginModal();window.location.href=(user.role==='staff'||user.accountTypeId==='at-staff')?'staff.html':user.role==='manager'?'dashboard.html':'resident-web.html'},700)
 }
 RHD.setMode('live');
 function toggleSignupRoleFields(){
@@ -247,7 +247,7 @@ if(new URLSearchParams(window.location.search).get('authRequired')){
 }
 const restoredSession=RH.getSession();
 if(restoredSession){
-    window.location.replace(restoredSession.role==='manager'?'dashboard.html':restoredSession.role==='staff'?'staff.html':'resident-web.html');
+    window.location.replace((restoredSession.role==='staff'||restoredSession.accountTypeId==='at-staff')?'staff.html':restoredSession.role==='manager'?'dashboard.html':'resident-web.html');
 }
 window.addEventListener('click',event=>{})
 document.querySelectorAll('.nav-links a').forEach(link=>link.addEventListener('click',()=>document.querySelector('.site-header').classList.remove('mobile-open')))

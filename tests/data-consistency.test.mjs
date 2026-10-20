@@ -47,11 +47,13 @@ const created = RH.createUser({
     department: 'Vận hành',
     title: 'Nhân viên',
     employeeCode: 'NV-01',
+    staffGroup: 'technical',
     status: 'inactive'
 });
 assert.equal(created.ok, true);
 assert.deepEqual(Array.from(created.user.buildingIds), ['building-a', 'building-b']);
 assert.equal(created.user.department, 'Vận hành');
+assert.equal(created.user.staffGroup, 'technical');
 assert.equal(created.user.status, 'inactive');
 
 const updated = RH.updateUser(created.user.id, {
@@ -60,6 +62,7 @@ const updated = RH.updateUser(created.user.id, {
     department: 'Kỹ thuật',
     title: 'Kỹ thuật viên',
     employeeCode: 'NV-02',
+    staffGroup: 'cleaning',
     status: 'locked'
 });
 assert.equal(updated.ok, true);
@@ -68,6 +71,7 @@ assert.deepEqual(Array.from(persisted.buildingIds), ['building-b']);
 assert.equal(persisted.department, 'Kỹ thuật');
 assert.equal(persisted.title, 'Kỹ thuật viên');
 assert.equal(persisted.employeeCode, 'NV-02');
+assert.equal(persisted.staffGroup, 'cleaning');
 assert.equal(persisted.status, 'locked');
 assert.equal(RH.updateUser(persisted.id, { status: 'unknown' }).ok, false);
 

@@ -509,6 +509,7 @@
         normalized.department = String(normalized.department || '').trim();
         normalized.title = String(normalized.title || '').trim();
         normalized.employeeCode = String(normalized.employeeCode || '').trim();
+        normalized.staffGroup = String(normalized.staffGroup || '').trim();
         // Links a resident login account to its Resident Profile (RHD customer,
         // see data.js). Set once, at account-request approval time, and never
         // re-derived — this is the account's identity link, not a display cache.
@@ -641,6 +642,7 @@
             department: String(data.department || '').trim(),
             title: String(data.title || '').trim(),
             employeeCode: String(data.employeeCode || '').trim(),
+            staffGroup: String(data.staffGroup || '').trim(),
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -709,6 +711,7 @@
         if (patch.department !== undefined) user.department = String(patch.department || '').trim();
         if (patch.title !== undefined) user.title = String(patch.title || '').trim();
         if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode || '').trim();
+        if (patch.staffGroup !== undefined) user.staffGroup = String(patch.staffGroup || '').trim();
         if (patch.status !== undefined) {
             if (['active', 'inactive', 'locked'].indexOf(patch.status) === -1) return { ok: false, error: 'Trạng thái tài khoản không hợp lệ.' };
             user.status = patch.status;
@@ -1058,7 +1061,7 @@
     }
 
     function login(user, remember) {
-        var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', apartmentId: user.apartmentId || '', residentId: user.residentId || '', loginAt: Date.now(), currentUserId: user.id };
+        var session = { id: user.id, name: user.name, email: user.email, role: user.role, accountTypeId: user.accountTypeId || '', staffGroup: user.staffGroup || '', unit: user.unit || '', apartmentId: user.apartmentId || '', residentId: user.residentId || '', loginAt: Date.now(), currentUserId: user.id };
         var data = JSON.stringify(session);
         if (remember) {
             localStorage.setItem(SESSION_KEY, data);
@@ -1089,6 +1092,8 @@
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                accountTypeId: user.accountTypeId || '',
+                staffGroup: user.staffGroup || '',
                 unit: user.unit || '',
                 apartmentId: user.apartmentId || '',
                 residentId: user.residentId || '',
@@ -1115,8 +1120,9 @@
             global.location.replace('index.html?authRequired=1');
             return null;
         }
-        if (session.role !== role) {
-            var target = session.role === ROLES.MANAGER ? 'dashboard.html' : session.role === ROLES.STAFF ? 'staff.html' : 'resident-web.html';
+        var staffPortalAccount = role === ROLES.STAFF && session.role === ROLES.MANAGER && session.accountTypeId === 'at-staff';
+        if (session.role !== role && !staffPortalAccount) {
+            var target = session.role === ROLES.MANAGER && session.accountTypeId === 'at-staff' ? 'staff.html' : session.role === ROLES.MANAGER ? 'dashboard.html' : session.role === ROLES.STAFF ? 'staff.html' : 'resident-web.html';
             global.location.replace(target + '?denied=1');
             return null;
         }

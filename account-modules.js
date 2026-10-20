@@ -246,7 +246,7 @@
         return global.RH.getUsers().filter(function (u) {
             if (userState.typeId && u.accountTypeId !== userState.typeId) return false;
             if (userState.status && u.status !== userState.status) return false;
-            if (q && fold([u.name, u.phone, u.email, u.employeeCode, u.department, u.title].join(' ')).indexOf(q) === -1) return false;
+            if (q && fold([u.name, u.phone, u.email, u.employeeCode, u.department, u.title, u.staffGroup].join(' ')).indexOf(q) === -1) return false;
             return true;
         }).sort(function (a, b) { return String(a.name).localeCompare(String(b.name), 'vi'); });
     }
@@ -266,7 +266,7 @@
                 (u.employeeCode ? '<div style="font-size:.75rem;color:#94a3b8;">' + esc(u.employeeCode) + '</div>' : '') + '</div></div></td>' +
                 '<td>' + esc(u.phone || '—') + (u.email ? '<div style="font-size:.75rem;color:#94a3b8;">' + esc(u.email) + '</div>' : '') + '</td>' +
                 '<td>' + typePill(global.RHP.getType(u.accountTypeId)) + '</td>' +
-                '<td>' + esc(u.department || '—') + (u.title ? '<div style="font-size:.75rem;color:#94a3b8;">' + esc(u.title) + '</div>' : '') + '</td>' +
+                '<td>' + esc(u.department || '—') + (u.title ? '<div style="font-size:.75rem;color:#94a3b8;">' + esc(u.title) + '</div>' : '') + (u.staffGroup ? '<div style="font-size:.75rem;color:#0d65d5;">' + esc(((RHD.SUPPORT_STAFF_GROUPS || []).filter(function (group) { return group.id === u.staffGroup; })[0] || {}).label || 'Nhóm nhân viên') + '</div>' : '') + '</td>' +
                 '<td>' + scopeCell(u) + '</td>' +
                 '<td>' + pill(st.label, st.color, st.bg) + '</td>' +
                 '<td style="text-align:right;white-space:nowrap;">' +
@@ -396,7 +396,10 @@
             (resident ? '<div class="rh-field" style="grid-column:span 2;"><label>Hồ sơ cư dân liên kết</label>' + residentProfileSelect(u || {id:'',residentId:''}) + '<div id="ufResidentPlacement"></div>' + '</div>'
                 : '<div class="rh-field"><label>Bộ phận</label><input id="ufDept" list="ufDeptList" maxlength="60" value="' + v('department') + '" placeholder="Chọn hoặc nhập bộ phận">' + datalist('ufDeptList', 'department') + '</div>' +
                 '<div class="rh-field"><label>Chức danh</label><input id="ufTitle" list="ufTitleList" maxlength="60" value="' + v('title') + '" placeholder="Chức danh">' + datalist('ufTitleList', 'title') + '</div>' +
-                '<div class="rh-field"><label>Mã nhân viên</label><input id="ufCode" maxlength="30" value="' + v('employeeCode') + '" placeholder="Mã nhân viên"></div>') +
+                    '<div class="rh-field"><label>Mã nhân viên</label><input id="ufCode" maxlength="30" value="' + v('employeeCode') + '" placeholder="Mã nhân viên"></div>' +
+                    '<div class="rh-field" id="ufStaffGroupWrap"><label>Nhóm nhân viên</label><select id="ufStaffGroup"><option value="">Chọn nhóm chuyên môn</option>' + (RHD.SUPPORT_STAFF_GROUPS || []).map(function (group) {
+                        return '<option value="' + esc(group.id) + '"' + (group.id === (u && u.staffGroup) ? ' selected' : '') + '>' + esc(group.label) + '</option>';
+                    }).join('') + '</select></div>') +
             '</div>' +
             (!u ? '<p class="uf-hint"><i class="fas fa-circle-info"></i> Chọn loại Cư dân để liên kết hồ sơ đã có. Cư dân tự đăng ký vẫn chờ phê duyệt.</p>' : '') +
             '</div>' +
@@ -422,6 +425,10 @@
         global.RHUI.openDrawer(u ? 'Sửa người dùng' : 'Thêm người dùng', html, { width: 820 });
 
         var defaultType = u ? u.accountTypeId : selectedType || (typeOptionsFor(null).filter(function (o) { return o.value === 'at-staff'; })[0] || {}).value || '';
+        function syncStaffGroupField(typeId) {
+            var groupWrap = byId('ufStaffGroupWrap');
+            if (groupWrap) groupWrap.style.display = typeId === 'at-staff' || !!(u && u.role === 'staff') ? '' : 'none';
+        }
         userState.fields.type = RHSelect.create(byId('ufTypeField'), {
             inputId: 'ufType',
             value: defaultType,
@@ -435,9 +442,13 @@
                 if (!u && (global.RHP.getType(typeId).portal === 'resident') !== resident) {
                     var draft={}; ['ufName','ufPhone','ufEmail','ufPassword','ufPassword2'].forEach(function(key){draft[key]=byId(key).value;});
                     openUser(null,typeId); Object.keys(draft).forEach(function(key){byId(key).value=draft[key];});
-                } else syncScopeSection();
+                } else {
+                    syncScopeSection();
+                    syncStaffGroupField(typeId);
+                }
             }
         });
+        syncStaffGroupField(defaultType);
         if (!resident) {
             userState.fields.buildings = RHSelect.createMulti(byId('ufBuildingsField'), {
                 values: u ? u.buildingIds : [],
@@ -487,6 +498,7 @@
         var pw = byId('ufPassword').value;
         var pw2 = byId('ufPassword2').value;
         var type = global.RHP.getType(typeId);
+        var staffAccount = typeId === 'at-staff' || !!(u && u.role === 'staff');
 
         if (!name) return fail('Vui lòng nhập họ tên.');
         if (!phone && !resident) return fail('Vui lòng nhập số điện thoại.');
@@ -500,6 +512,7 @@
             if (pw.length < 6) return fail('Mật khẩu phải có ít nhất 6 ký tự.');
             if (pw !== pw2) return fail('Mật khẩu xác nhận không khớp.');
         }
+        if (staffAccount && !byId('ufStaffGroup').value) return fail('Vui lòng gán nhân viên vào một nhóm chuyên môn.');
 
         var payload = { name: name, phone: phone, email: email, accountTypeId: typeId, role: type.portal === 'resident' ? 'resident' : 'manager' };
         if (!isSelf) payload.status = byId('ufActive').checked ? 'active' : 'inactive';
@@ -519,6 +532,7 @@
             payload.department = byId('ufDept').value.trim();
             payload.title = byId('ufTitle').value.trim();
             payload.employeeCode = byId('ufCode').value.trim();
+            payload.staffGroup = staffAccount ? byId('ufStaffGroup').value : '';
             if (!(isSelf && !isAdmin())) {
                 var all = !!(byId('ufAllBuildings').checked || type.fullAccess);
                 var picked = userState.fields.buildings.getValues();

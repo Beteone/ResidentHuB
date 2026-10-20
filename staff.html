@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
+    <script src="data.js"></script>
     <style>
         :root {
             --bg: #f5f8fc;
@@ -41,6 +42,40 @@
         .content { padding: 8px 2px; }
         .content h1 { margin: 0; font: 700 26px 'Plus Jakarta Sans', 'Be Vietnam Pro', sans-serif; }
         .content p { margin: 10px 0 0; color: var(--muted); font-size: 14px; }
+        .staff-summary-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(180px,1fr)); gap:14px; margin:20px 0; }
+        .staff-summary-card,.staff-panel { border:1px solid var(--line); border-radius:14px; background:var(--surface); box-shadow:0 8px 24px rgba(15,35,64,.04); }
+        .staff-summary-card { padding:18px; }
+        .staff-summary-card span { display:block; color:var(--muted); font-size:12px; }
+        .staff-summary-card strong { display:block; margin-top:7px; font:700 25px 'Plus Jakarta Sans',sans-serif; }
+        .staff-panel { margin-top:18px; padding:18px; }
+        .staff-panel h2 { margin:0 0 14px; font-size:17px; }
+        .staff-toolbar { display:grid; grid-template-columns:minmax(180px,2fr) repeat(5,minmax(130px,1fr)); gap:9px; margin:15px 0; }
+        .staff-toolbar input,.staff-toolbar select,.staff-report-input { min-width:0; width:100%; border:1px solid var(--line); border-radius:9px; background:#fff; color:var(--ink); padding:10px 11px; font:inherit; font-size:13px; }
+        .staff-table-wrap { width:100%; overflow-x:auto; }
+        .staff-table { width:100%; border-collapse:collapse; min-width:760px; text-align:left; }
+        .staff-table th,.staff-table td { padding:12px 10px; border-bottom:1px solid var(--line); vertical-align:top; font-size:13px; }
+        .staff-table th { color:var(--muted); font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+        .staff-task-open { border:0; padding:0; background:transparent; color:var(--primary-strong); font:600 13px 'Be Vietnam Pro',sans-serif; text-align:left; cursor:pointer; }
+        .staff-task-open:hover { text-decoration:underline; }
+        .staff-badge { display:inline-flex; align-items:center; border-radius:999px; padding:5px 9px; background:#eaf3ff; color:#0d65d5; font-size:11px; font-weight:700; white-space:nowrap; }
+        .staff-badge.waiting { background:#fff4df; color:#9a6700; }
+        .staff-badge.progress { background:#eaf3ff; color:#0d65d5; }
+        .staff-badge.approval { background:#f3e8ff; color:#7c3aed; }
+        .staff-badge.done { background:#e6f8ef; color:#16865e; }
+        .staff-empty { padding:30px 16px; color:var(--muted); text-align:center; }
+        .staff-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+        .staff-detail-item { padding:12px; border-radius:10px; background:#f7f9fc; }
+        .staff-detail-item small { display:block; margin-bottom:5px; color:var(--muted); }
+        .staff-detail-item strong { display:block; line-height:1.5; overflow-wrap:anywhere; }
+        .staff-description { white-space:pre-wrap; line-height:1.7; color:#334155; }
+        .staff-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:16px; }
+        .staff-action-btn { border:0; border-radius:9px; background:var(--primary); color:#fff; padding:10px 14px; font:600 13px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-action-btn.secondary { border:1px solid var(--line); background:#fff; color:var(--ink); }
+        .staff-action-btn:disabled { opacity:.55; cursor:not-allowed; }
+        .staff-linked-request { display:flex; flex-wrap:wrap; gap:8px; margin-top:14px; }
+        .staff-linked-request span { border:1px solid #dbeafe; border-radius:8px; padding:7px 9px; background:#eff6ff; color:#1d4ed8; font-size:12px; }
+        .staff-attachments { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
+        .staff-attachments img { width:130px; height:96px; object-fit:cover; border:1px solid var(--line); border-radius:9px; }
         .menu-toggle { display: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink); }
         @media (max-width: 760px) {
             .sidebar { box-shadow: 12px 0 30px rgba(15, 35, 64, .12); transform: translateX(-105%); transition: transform .2s ease; }
@@ -51,12 +86,17 @@
             .topbar-heading { flex: 1; }
             .user-label { display: none; }
             .content h1 { font-size: 22px; }
+            .staff-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .staff-toolbar input[type="search"] { grid-column:1/-1; }
+            .staff-detail-grid { grid-template-columns:minmax(0,1fr); }
+            .staff-panel { padding:14px; }
         }
     </style>
 </head>
 <body>
     <script>
         var RH_SESSION = RH.requireRole('staff');
+        RHD.setMode('live');
     </script>
     <aside class="sidebar" id="staffSidebar">
         <div class="sidebar-header">
@@ -69,12 +109,11 @@
         <nav aria-label="Menu Nhân viên">
             <div class="menu-group">
                 <div class="menu-heading">TỔNG QUAN</div>
-                <button class="menu-item active" data-title="Tổng quan"><i class="fas fa-chart-line"></i><span>Tổng quan</span></button>
+                <button class="menu-item" data-title="Tổng quan"><i class="fas fa-chart-line"></i><span>Tổng quan</span></button>
             </div>
             <div class="menu-group">
                 <div class="menu-heading">CÔNG VIỆC</div>
-                <button class="menu-item" data-title="Danh sách nhiệm vụ"><i class="fas fa-list-check"></i><span>Danh sách nhiệm vụ</span></button>
-                <button class="menu-item" data-title="Chi tiết nhiệm vụ"><i class="fas fa-clipboard-list"></i><span>Chi tiết nhiệm vụ</span></button>
+                <button class="menu-item active" data-title="Danh sách nhiệm vụ"><i class="fas fa-list-check"></i><span>Danh sách nhiệm vụ</span></button>
                 <button class="menu-item" data-title="Cập nhật tiến độ"><i class="fas fa-arrows-rotate"></i><span>Cập nhật tiến độ</span></button>
                 <button class="menu-item" data-title="Báo cáo kết quả"><i class="fas fa-file-circle-check"></i><span>Báo cáo kết quả</span></button>
             </div>
@@ -100,31 +139,279 @@
         <header class="topbar">
             <button class="menu-toggle" id="staffMenuToggle" aria-label="Mở menu"><i class="fas fa-bars"></i></button>
             <div class="topbar-heading">
-                <h2 class="topbar-title" id="staffPageTitle">Tổng quan</h2>
+                <h2 class="topbar-title" id="staffPageTitle">Danh sách nhiệm vụ</h2>
                 <div class="topbar-caption">ResidentHub · Không gian Nhân viên</div>
             </div>
             <div class="user-label" id="staffUserName"></div>
         </header>
         <section class="content" aria-live="polite">
-            <h1 id="staffContentTitle">Tổng quan</h1>
-            <p id="staffPlaceholder">Nội dung sẽ hiển thị tại đây.</p>
+            <h1 id="staffContentTitle">Danh sách nhiệm vụ</h1>
+            <div id="staffContent"></div>
         </section>
     </main>
     <script>
         var menuItems = document.querySelectorAll('.menu-item[data-title]');
-        menuItems.forEach(function (item) {
-            item.addEventListener('click', function () {
-                menuItems.forEach(function (menuItem) { menuItem.classList.remove('active'); });
-                item.classList.add('active');
-                document.getElementById('staffPageTitle').textContent = item.dataset.title;
-                document.getElementById('staffContentTitle').textContent = item.dataset.title;
-                document.getElementById('staffPlaceholder').textContent = item.dataset.title === 'Cập nhật tiến độ'
-                    ? 'Chờ tiếp nhận → Đang xử lý → Hoàn thành (Chờ Quản lý duyệt).'
-                    : 'Nội dung sẽ hiển thị tại đây.';
-                document.getElementById('staffSidebar').classList.remove('open');
+        var staffContent = document.getElementById('staffContent');
+        var selectedTaskId = '';
+        var currentStaffPage = 'Danh sách nhiệm vụ';
+        var staffFilters = { search: '', status: 'all', priority: 'all', building: 'all', from: '', to: '' };
+        var staffGroupLabels = {};
+        RHD.SUPPORT_STAFF_GROUPS.forEach(function (group) { staffGroupLabels[group.id] = group.label; });
+
+        function escapeHtml(value) {
+            return String(value == null ? '' : value).replace(/[&<>"']/g, function (character) {
+                return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[character];
             });
+        }
+
+        function assignedTasks() {
+            var ownName = String(RH_SESSION.name || '').trim().toLocaleLowerCase();
+            var ownEmail = String(RH_SESSION.email || '').trim().toLocaleLowerCase();
+            return RHD.list('supportRequests').filter(function (request) {
+                if (request.assigneeId) return request.assigneeId === RH_SESSION.id;
+                var assignee = String(request.assignee || '').trim().toLocaleLowerCase();
+                return !!assignee && (assignee === ownName || assignee === ownEmail);
+            }).sort(function (a, b) {
+                return Number(b.updatedAt || b.createdAt || 0) - Number(a.updatedAt || a.createdAt || 0);
+            });
+        }
+
+        function taskStatus(request) {
+            if (request.staffTaskStatus === 'pending_approval') return { label: 'Hoàn thành (Chờ Quản lý duyệt)', style: 'approval' };
+            if (request.staffTaskStatus === 'approved' || request.status === 'resolved') return { label: 'Hoàn thành', style: 'done' };
+            if (request.status === 'closed') return { label: 'Đã đóng', style: 'done' };
+            if (request.staffTaskStatus === 'in_progress' || request.status === 'in_progress') return { label: 'Đang xử lý', style: 'progress' };
+            return { label: 'Chờ tiếp nhận', style: 'waiting' };
+        }
+
+        function groupForTask(request) {
+            if (request.staffGroup && staffGroupLabels[request.staffGroup]) return request.staffGroup;
+            var category = String(request.category || '').toLocaleLowerCase();
+            if (category.indexOf('vệ sinh') !== -1) return 'cleaning';
+            if (category.indexOf('an ninh') !== -1) return 'security';
+            if (category.indexOf('sửa chữa') !== -1 || category.indexOf('cơ sở vật chất') !== -1) return 'technical';
+            return '';
+        }
+
+        function buildingForTask(request) {
+            var building = request.buildingId ? RHD.get('buildings', request.buildingId) : null;
+            var apartment = request.apartmentId ? RHD.get('apartments', request.apartmentId) : null;
+            return {
+                building: building,
+                apartment: apartment,
+                label: (building ? building.name : '') + (apartment ? ' · Căn ' + apartment.name : '')
+            };
+        }
+
+        function dateValue(value) {
+            if (!value) return '';
+            var text = String(value);
+            if (/^\d{4}-\d{2}-\d{2}/.test(text)) return text.slice(0, 10);
+            var date = new Date(value);
+            return isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
+        }
+
+        function dateLabel(value) {
+            var date = dateValue(value);
+            return date ? new Date(date + 'T00:00:00').toLocaleDateString('vi-VN') : 'Chưa đặt hạn';
+        }
+
+        function openPage(page) {
+            currentStaffPage = page;
+            document.getElementById('staffPageTitle').textContent = page;
+            document.getElementById('staffContentTitle').textContent = page;
+            menuItems.forEach(function (item) { item.classList.toggle('active', item.dataset.title === page); });
+            document.getElementById('staffSidebar').classList.remove('open');
+            renderStaffPage();
+        }
+
+        function renderOverview() {
+            var tasks = assignedTasks();
+            var waiting = tasks.filter(function (task) { return taskStatus(task).label === 'Chờ tiếp nhận'; }).length;
+            var active = tasks.filter(function (task) { return taskStatus(task).label === 'Đang xử lý'; }).length;
+            var review = tasks.filter(function (task) { return task.staffTaskStatus === 'pending_approval'; }).length;
+            staffContent.innerHTML = '<p>Xin chào ' + escapeHtml(RH_SESSION.name || 'nhân viên') + '. Danh sách chỉ gồm nhiệm vụ được phân công cho tài khoản này.</p>' +
+                '<div class="staff-summary-grid"><div class="staff-summary-card"><span>Tổng nhiệm vụ được giao</span><strong>' + tasks.length + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Chờ tiếp nhận</span><strong>' + waiting + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Đang xử lý</span><strong>' + active + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Chờ Quản lý duyệt</span><strong>' + review + '</strong></div></div>' +
+                '<div class="staff-panel"><h2>Quy trình nhiệm vụ</h2><p>Chờ tiếp nhận → Đang xử lý → Hoàn thành (Chờ Quản lý duyệt)</p>' +
+                '<div class="staff-actions"><button class="staff-action-btn" data-staff-page="Danh sách nhiệm vụ">Xem danh sách nhiệm vụ</button></div></div>';
+        }
+
+        function renderTaskList() {
+            var allTasks = assignedTasks();
+            var buildings = {};
+            allTasks.forEach(function (task) {
+                var pair = buildingForTask(task);
+                if (pair.building) buildings[pair.building.id] = pair.building.name;
+            });
+            var tasks = allTasks.filter(function (task) {
+                var pair = buildingForTask(task);
+                var status = taskStatus(task).label;
+                var priority = String(task.priority || 'normal');
+                var search = [task.code, task.title, task.category, task.residentName, task.location, pair.label].join(' ').toLocaleLowerCase();
+                var due = dateValue(task.dueAt || task.scheduledAt);
+                return (!staffFilters.search || search.indexOf(staffFilters.search.toLocaleLowerCase()) !== -1) &&
+                    (staffFilters.status === 'all' || status === staffFilters.status) &&
+                    (staffFilters.priority === 'all' || priority === staffFilters.priority) &&
+                    (staffFilters.building === 'all' || task.buildingId === staffFilters.building) &&
+                    (!staffFilters.from || (due && due >= staffFilters.from)) &&
+                    (!staffFilters.to || (due && due <= staffFilters.to));
+            });
+            var buildingOptions = '<option value="all">Tất cả tòa nhà</option>' + Object.keys(buildings).map(function (id) {
+                return '<option value="' + escapeHtml(id) + '"' + (staffFilters.building === id ? ' selected' : '') + '>' + escapeHtml(buildings[id]) + '</option>';
+            }).join('');
+            var priorityOptions = '<option value="all">Mọi mức độ</option>' + (RHD.SUPPORT_PRIORITIES || []).map(function (priority) {
+                return '<option value="' + escapeHtml(priority.id) + '"' + (staffFilters.priority === priority.id ? ' selected' : '') + '>' + escapeHtml(priority.label) + '</option>';
+            }).join('');
+            var rows = tasks.map(function (task) {
+                var pair = buildingForTask(task);
+                var status = taskStatus(task);
+                var group = groupForTask(task);
+                var priority = (RHD.SUPPORT_PRIORITIES || []).filter(function (item) { return item.id === task.priority; })[0];
+                return '<tr><td><button class="staff-task-open" data-open-task="' + escapeHtml(task.id) + '">' + escapeHtml(task.title || 'Yêu cầu hỗ trợ') + '</button><div style="color:#718096;font-size:11px;margin-top:4px;">' + escapeHtml(task.code || task.id) + ' · ' + escapeHtml(task.category || 'Khác') + '</div></td>' +
+                    '<td>' + escapeHtml(group ? staffGroupLabels[group] : 'Chưa phân nhóm') + '</td><td>' + escapeHtml(pair.label || task.location || 'Chưa rõ vị trí') + '</td>' +
+                    '<td><span class="staff-badge ' + status.style + '">' + escapeHtml(status.label) + '</span></td><td>' + escapeHtml(priority ? priority.label : 'Bình thường') + '</td>' +
+                    '<td>' + escapeHtml(dateLabel(task.dueAt || task.scheduledAt)) + '</td></tr>';
+            }).join('');
+            staffContent.innerHTML = '<div class="staff-panel"><p style="margin:0;color:#61708a;">Nhiệm vụ được đồng bộ từ hồ sơ yêu cầu của Cư dân và Quản lý; chỉ hiện nhiệm vụ được giao cho bạn.</p>' +
+                '<div class="staff-toolbar"><input id="staffTaskSearch" type="search" placeholder="Tìm mã, tiêu đề, cư dân..." value="' + escapeHtml(staffFilters.search) + '">' +
+                '<select id="staffTaskStatus"><option value="all">Mọi trạng thái</option>' +
+                ['Chờ tiếp nhận', 'Đang xử lý', 'Hoàn thành (Chờ Quản lý duyệt)', 'Hoàn thành', 'Đã đóng'].map(function (label) {
+                    return '<option value="' + escapeHtml(label) + '"' + (staffFilters.status === label ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+                }).join('') + '</select><select id="staffTaskPriority">' + priorityOptions + '</select><select id="staffTaskBuilding">' + buildingOptions + '</select>' +
+                '<input id="staffTaskFrom" type="date" aria-label="Hạn từ ngày" value="' + escapeHtml(staffFilters.from) + '">' +
+                '<input id="staffTaskTo" type="date" aria-label="Hạn đến ngày" value="' + escapeHtml(staffFilters.to) + '"></div>' +
+                '<div class="staff-table-wrap"><table class="staff-table"><thead><tr><th>Nhiệm vụ</th><th>Nhóm</th><th>Tòa nhà / căn hộ</th><th>Trạng thái</th><th>Ưu tiên</th><th>Hạn xử lý</th></tr></thead><tbody>' +
+                (rows || '<tr><td colspan="6" class="staff-empty">Không có nhiệm vụ phù hợp với bộ lọc.</td></tr>') + '</tbody></table></div><p style="color:#718096;font-size:12px;">Hiển thị ' + tasks.length + ' / ' + allTasks.length + ' nhiệm vụ được giao.</p></div>';
+            bindTaskFilters();
+        }
+
+        function renderTaskDetail(progressOnly) {
+            var request = assignedTasks().filter(function (task) { return task.id === selectedTaskId; })[0];
+            if (!request) {
+                staffContent.innerHTML = '<div class="staff-panel staff-empty">Chọn một nhiệm vụ trong danh sách để xem chi tiết và cập nhật tiến độ.<div class="staff-actions" style="justify-content:center;"><button class="staff-action-btn" data-staff-page="Danh sách nhiệm vụ">Mở danh sách nhiệm vụ</button></div></div>';
+                return;
+            }
+            var pair = buildingForTask(request);
+            var status = taskStatus(request);
+            var group = groupForTask(request);
+            var groupInfo = RHD.SUPPORT_STAFF_GROUPS.filter(function (item) { return item.id === group; })[0];
+            var attachments = Array.isArray(request.attachmentFiles) ? request.attachmentFiles.filter(function (file) {
+                return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || '');
+            }) : [];
+            var actionMarkup = '';
+            if (progressOnly && status.label === 'Chờ tiếp nhận') {
+                actionMarkup = '<button class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '">Tiếp nhận và bắt đầu xử lý</button>';
+            } else if (progressOnly && status.label === 'Đang xử lý') {
+                actionMarkup = '<label style="display:block;margin:14px 0 7px;font-weight:600;font-size:13px;">Báo cáo kết quả xử lý</label><textarea class="staff-report-input" id="staffCompletionNote" rows="4" placeholder="Mô tả công việc đã thực hiện"></textarea><button class="staff-action-btn" data-task-action="complete" data-task-id="' + escapeHtml(request.id) + '" style="margin-top:9px;">Báo hoàn thành, chờ Quản lý duyệt</button>';
+            } else if (progressOnly && status.label.indexOf('Chờ Quản lý duyệt') !== -1) {
+                actionMarkup = '<p class="staff-badge approval">Đã gửi kết quả, đang chờ Quản lý duyệt.</p>';
+            } else if (progressOnly) {
+                actionMarkup = '<p class="staff-badge done">Nhiệm vụ đã hoàn thành.</p>';
+            } else {
+                actionMarkup = '<button class="staff-action-btn" data-staff-page="Cập nhật tiến độ">Cập nhật tiến độ</button>';
+            }
+            staffContent.innerHTML = '<div class="staff-panel"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;"><div><div style="color:#718096;font-size:12px;">' + escapeHtml(request.code || request.id) + '</div><h2 style="margin:5px 0 0;">' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</h2></div><span class="staff-badge ' + status.style + '">' + escapeHtml(status.label) + '</span></div>' +
+                '<div class="staff-detail-grid"><div class="staff-detail-item"><small>Nhóm chuyên môn</small><strong>' + escapeHtml(group ? staffGroupLabels[group] : 'Chưa phân nhóm') + (groupInfo ? '<br><span style="font-size:12px;font-weight:400;color:#61708a;">' + escapeHtml(groupInfo.description) + '</span>' : '') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Loại yêu cầu / mức độ</small><strong>' + escapeHtml(request.category || 'Khác') + ' · ' + escapeHtml(((RHD.SUPPORT_PRIORITIES || []).filter(function (item) { return item.id === request.priority; })[0] || {}).label || 'Bình thường') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Cư dân gửi yêu cầu</small><strong>' + escapeHtml(request.residentName || '—') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Tòa nhà / căn hộ</small><strong>' + escapeHtml(pair.label || request.location || 'Chưa rõ vị trí') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Vị trí xử lý</small><strong>' + escapeHtml(request.location || '—') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Hạn xử lý</small><strong>' + escapeHtml(dateLabel(request.dueAt || request.scheduledAt)) + '</strong></div></div>' +
+                '<div class="staff-detail-item" style="margin-top:12px;"><small>Mô tả yêu cầu</small><div class="staff-description">' + escapeHtml(request.description || 'Không có mô tả.') + '</div></div>' +
+                (request.response ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Ghi chú từ Quản lý</small><div class="staff-description">' + escapeHtml(request.response) + '</div></div>' : '') +
+                (request.staffCompletionNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Báo cáo kết quả của bạn</small><div class="staff-description">' + escapeHtml(request.staffCompletionNote) + '</div></div>' : '') +
+                (attachments.length ? '<div class="staff-attachments">' + attachments.map(function (file, index) { return '<a href="' + escapeHtml(file.dataUrl) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(file.dataUrl) + '" alt="Ảnh yêu cầu ' + (index + 1) + '"></a>'; }).join('') + '</div>' : '') +
+                '<div class="staff-linked-request"><span>Mã hồ sơ liên kết: ' + escapeHtml(request.code || request.id) + '</span><span>Cư dân: Yêu cầu hỗ trợ</span><span>Quản lý: Hồ sơ yêu cầu</span></div>' +
+                '<div class="staff-actions"><button class="staff-action-btn secondary" data-staff-page="Danh sách nhiệm vụ">Quay lại danh sách</button>' + actionMarkup + '</div></div>';
+        }
+
+        function renderStaffPage() {
+            if (currentStaffPage === 'Tổng quan') renderOverview();
+            else if (currentStaffPage === 'Danh sách nhiệm vụ') renderTaskList();
+            else if (currentStaffPage === 'Chi tiết nhiệm vụ') renderTaskDetail(false);
+            else if (currentStaffPage === 'Cập nhật tiến độ') renderTaskDetail(true);
+            else staffContent.innerHTML = '<div class="staff-panel"><p>Nội dung sẽ hiển thị tại đây.</p></div>';
+        }
+
+        function bindTaskFilters() {
+            var controls = [
+                ['staffTaskSearch', 'search'], ['staffTaskStatus', 'status'], ['staffTaskPriority', 'priority'],
+                ['staffTaskBuilding', 'building'], ['staffTaskFrom', 'from'], ['staffTaskTo', 'to']
+            ];
+            controls.forEach(function (pair) {
+                var input = document.getElementById(pair[0]);
+                if (!input) return;
+                input.addEventListener(pair[1] === 'search' ? 'input' : 'change', function () {
+                    var focused = document.activeElement && document.activeElement.id === pair[0];
+                    var caret = pair[1] === 'search' && focused ? input.selectionStart : null;
+                    staffFilters[pair[1]] = input.value.trim();
+                    renderTaskList();
+                    if (focused) {
+                        var restored = document.getElementById(pair[0]);
+                        restored.focus();
+                        if (caret != null) restored.setSelectionRange(caret, caret);
+                    }
+                });
+            });
+        }
+
+        function updateTaskStatus(id, action) {
+            var request = assignedTasks().filter(function (task) { return task.id === id; })[0];
+            if (!request) {
+                alert('Nhiệm vụ không còn được phân công cho tài khoản này.');
+                renderStaffPage();
+                return;
+            }
+            var now = Date.now();
+            var changes = { updatedAt: now };
+            if (action === 'start') {
+                if (taskStatus(request).label !== 'Chờ tiếp nhận') return;
+                changes.status = 'in_progress';
+                changes.staffTaskStatus = 'in_progress';
+                changes.startedAt = now;
+                changes.acceptedAt = request.acceptedAt || now;
+            } else if (action === 'complete') {
+                var note = (document.getElementById('staffCompletionNote').value || '').trim();
+                if (!note) { alert('Vui lòng nhập báo cáo kết quả trước khi gửi Quản lý duyệt.'); return; }
+                if (taskStatus(request).label !== 'Đang xử lý') return;
+                changes.staffTaskStatus = 'pending_approval';
+                changes.staffCompletionNote = note;
+                changes.staffCompletedAt = now;
+            }
+            var result = RHD.update('supportRequests', request.id, changes);
+            if (!result.ok) {
+                alert(result.error || 'Không thể cập nhật tiến độ nhiệm vụ.');
+                return;
+            }
+            renderStaffPage();
+        }
+
+        staffContent.addEventListener('click', function (event) {
+            var pageButton = event.target.closest('[data-staff-page]');
+            if (pageButton) { openPage(pageButton.dataset.staffPage); return; }
+            var taskButton = event.target.closest('[data-open-task]');
+            if (taskButton) {
+                selectedTaskId = taskButton.dataset.openTask;
+                openPage('Chi tiết nhiệm vụ');
+                return;
+            }
+            var actionButton = event.target.closest('[data-task-action]');
+            if (actionButton) updateTaskStatus(actionButton.dataset.taskId, actionButton.dataset.taskAction);
         });
-        document.getElementById('staffUserName').textContent = RH_SESSION.name || '';
+        menuItems.forEach(function (item) {
+            item.addEventListener('click', function () { openPage(item.dataset.title); });
+        });
+        window.addEventListener('residenthub:business-data-changed', function (event) {
+            if (!event.detail || event.detail.entity === 'supportRequests') renderStaffPage();
+        });
+        window.addEventListener('storage', function (event) {
+            if (event.key === 'residenthub_live_supportRequests') renderStaffPage();
+        });
+        document.getElementById('staffUserName').textContent = (RH_SESSION.name || '') + (staffGroupLabels[RH_SESSION.staffGroup] ? ' · ' + staffGroupLabels[RH_SESSION.staffGroup] : '');
+        renderStaffPage();
         document.getElementById('staffMenuToggle').addEventListener('click', function () {
             document.getElementById('staffSidebar').classList.toggle('open');
         });

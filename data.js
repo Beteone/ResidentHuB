@@ -127,6 +127,11 @@
         { id: 'urgent', label: 'Khẩn cấp', color: '#c24141', bg: '#fff0f0' }
     ];
     var SUPPORT_CATEGORIES = ['Sửa chữa căn hộ', 'Cơ sở vật chất chung', 'An ninh', 'Vệ sinh', 'Phí & thanh toán', 'Phản ánh / góp ý', 'Khác'];
+    var SUPPORT_STAFF_GROUPS = [
+        { id: 'technical', label: 'Kỹ thuật – Sửa chữa', description: 'Kiểm tra, sửa điện nước, điều hòa, đèn và thiết bị hoặc cơ sở vật chất.' },
+        { id: 'cleaning', label: 'Vệ sinh – Lao công', description: 'Vệ sinh hành lang, cầu thang, thang máy và khu vực chung.' },
+        { id: 'security', label: 'An ninh – Bảo vệ', description: 'Giám sát an ninh, kiểm tra khu vực và ghi nhận sự cố.' }
+    ];
 
     // Small reference list — not the full VN administrative dataset (out of scope for a
     // demo/pitch app). Wards are free-typed with suggestions instead of a full mapping.
@@ -871,6 +876,7 @@
         SUPPORT_STATUSES: SUPPORT_STATUSES,
         SUPPORT_PRIORITIES: SUPPORT_PRIORITIES,
         SUPPORT_CATEGORIES: SUPPORT_CATEGORIES,
+        SUPPORT_STAFF_GROUPS: SUPPORT_STAFF_GROUPS,
         SETTINGS_DEFAULTS: SETTINGS_DEFAULTS,
         PROVINCES: PROVINCES,
         WARD_SUGGESTIONS: WARD_SUGGESTIONS,
