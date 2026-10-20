@@ -16,7 +16,7 @@
     var ACCOUNT_REQUESTS_KEY = 'residenthub_account_requests';
     var MAX_LOGIN_ATTEMPTS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000;
-    var ROLES = { MANAGER: 'manager', RESIDENT: 'resident' };
+    var ROLES = { MANAGER: 'manager', RESIDENT: 'resident', STAFF: 'staff' };
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
 
     function readDataStore() {
@@ -489,6 +489,10 @@
         return String(value || '').trim().toLowerCase().replace(/\s+/g, '');
     }
 
+    function normalizeRole(value) {
+        return [ROLES.MANAGER, ROLES.RESIDENT, ROLES.STAFF].indexOf(value) !== -1 ? value : ROLES.MANAGER;
+    }
+
     function normalizeUserRecord(user) {
         if (!user || typeof user !== 'object') return null;
         var normalized = Object.assign({}, user);
@@ -496,11 +500,19 @@
         normalized.name = String(normalized.name || '').trim();
         normalized.email = normalizeEmail(normalized.email || normalized.username || normalized.userEmail);
         if (!normalized.password && normalized.pass) normalized.password = normalized.pass;
-        normalized.role = normalized.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        normalized.role = normalizeRole(normalized.role);
         normalized.unit = String(normalized.unit || '').trim();
         normalized.building = String(normalized.building || '').trim();
         normalized.floor = String(normalized.floor || '').trim();
         normalized.phone = String(normalized.phone || '').trim();
+        normalized.accountTypeId = String(normalized.accountTypeId || '').trim();
+        normalized.allBuildings = normalized.allBuildings === true;
+        normalized.buildingIds = Array.isArray(normalized.buildingIds)
+            ? normalized.buildingIds.map(function (id) { return String(id || '').trim(); }).filter(function (id, index, ids) { return id && ids.indexOf(id) === index; })
+            : [];
+        normalized.department = String(normalized.department || '').trim();
+        normalized.title = String(normalized.title || '').trim();
+        normalized.employeeCode = String(normalized.employeeCode || '').trim();
         // Links a resident login account to its Resident Profile (RHD customer,
         // see data.js). Set once, at account-request approval time, and never
         // re-derived — this is the account's identity link, not a display cache.
@@ -530,6 +542,47 @@
         writeUsers(users);
     }
 
+    function seedDemoStaffAccount() {
+        var email = 'staff.demo@residenthub.test';
+        var users = readUsers();
+        var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
+        var user = index === -1 ? {
+            id: 'u-staff-demo',
+            createdAt: Date.now()
+        } : users[index];
+        var before = JSON.stringify(user);
+        user.name = 'Nguyễn Minh Anh';
+        user.email = email;
+        user.password = 'StaffDemo@2026';
+        user.role = ROLES.STAFF;
+        user.status = 'active';
+        if (index === -1) users.push(user);
+        else users[index] = user;
+        if (index === -1 || JSON.stringify(user) !== before) writeUsers(users);
+    }
+
+    function seedDemoResidentAccount() {
+        var email = 'resident.demo@residenthub.test';
+        var users = readUsers();
+        var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
+        var user = index === -1 ? {
+            id: 'u-resident-demo',
+            createdAt: Date.now()
+        } : users[index];
+        var before = JSON.stringify(user);
+        user.name = 'Cư dân Demo';
+        user.email = email;
+        user.password = 'ResidentDemo@2026';
+        user.role = ROLES.RESIDENT;
+        user.status = 'active';
+        user.unit = user.unit || '';
+        user.apartmentId = user.apartmentId || '';
+        user.residentId = user.residentId || '';
+        if (index === -1) users.push(user);
+        else users[index] = user;
+        if (index === -1 || JSON.stringify(user) !== before) writeUsers(users);
+    }
+
     function findUserByEmail(email) {
         var normalized = normalizeEmail(email);
         var users = readUsers();
@@ -547,11 +600,11 @@
         });
     }
 
-    function createUser(data) {
+    function createUserRecord(data) {
         var name = String(data.name || '').trim();
         var email = normalizeEmail(data.email);
         var password = String(data.password || '');
-        var role = data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        var role = normalizeRole(data.role);
 
         if (!name || !email || !password) {
             return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, email và mật khẩu.' };
@@ -562,6 +615,20 @@
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
         }
+        var residentId = String(data.residentId || '').trim();
+        var apartmentId = String(data.apartmentId || '').trim();
+        if (role === ROLES.RESIDENT) {
+            if (residentId && readUsers().some(function (user) { return user.role === ROLES.RESIDENT && user.residentId === residentId; })) {
+                return { ok: false, error: 'Hồ sơ cư dân này đã được liên kết với một tài khoản khác.' };
+            }
+            var apartment = global.RHD && apartmentId ? global.RHD.get('apartments', apartmentId) : null;
+            if (!residentId || !global.RHD || !global.RHD.get('customers', residentId) || !apartment) {
+                return { ok: false, error: 'Vui lòng liên kết hồ sơ cư dân và căn hộ hợp lệ.' };
+            }
+            if (global.RHP && !global.RHP.inScope(apartment.buildingId)) {
+                return { ok: false, error: 'Căn hộ nằm ngoài phạm vi tòa nhà bạn được quản lý.' };
+            }
+        }
 
         var user = {
             id: 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
@@ -569,7 +636,15 @@
             email: email,
             password: password,
             role: role,
-            status: 'active',
+            status: ['active', 'inactive', 'locked'].indexOf(data.status) !== -1 ? data.status : 'active',
+            accountTypeId: String(data.accountTypeId || (role === ROLES.RESIDENT && global.RHP ? global.RHP.RESIDENT_TYPE_ID : '') || '').trim(),
+            allBuildings: role === ROLES.MANAGER && data.allBuildings === true,
+            buildingIds: role === ROLES.MANAGER && Array.isArray(data.buildingIds)
+                ? data.buildingIds.map(function (id) { return String(id || '').trim(); }).filter(function (id, index, ids) { return id && ids.indexOf(id) === index; })
+                : [],
+            department: String(data.department || '').trim(),
+            title: String(data.title || '').trim(),
+            employeeCode: String(data.employeeCode || '').trim(),
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -589,6 +664,15 @@
         if (global.RHActivity) global.RHActivity.record('users', 'create', null, user);
         syncResidentApartmentRecords(user);
         return { ok: true, user: user };
+    }
+
+    function createUser(data) {
+        var role = data && data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        var permission = role === ROLES.RESIDENT ? 'users.createResident' : 'users.create';
+        if (global.RHP && !global.RHP.can(permission)) {
+            return { ok: false, error: 'Bạn không có quyền tạo loại tài khoản này.' };
+        }
+        return createUserRecord(data);
     }
 
     function updateUser(id, patch) {
@@ -613,7 +697,7 @@
         var user = users[index];
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
-        if (patch.role !== undefined) user.role = patch.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        if (patch.role !== undefined) user.role = normalizeRole(patch.role);
         if (patch.unit !== undefined) user.unit = String(patch.unit).trim();
         if (patch.apartmentId !== undefined) user.apartmentId = patch.apartmentId;
         if (patch.residentId !== undefined) user.residentId = patch.residentId;
@@ -621,6 +705,20 @@
         if (patch.floor !== undefined) user.floor = String(patch.floor).trim();
         if (patch.phone !== undefined) user.phone = String(patch.phone).trim();
         if (patch.avatar !== undefined) user.avatar = patch.avatar || '';
+        if (patch.accountTypeId !== undefined) user.accountTypeId = String(patch.accountTypeId || '').trim();
+        if (patch.allBuildings !== undefined) user.allBuildings = patch.allBuildings === true;
+        if (patch.buildingIds !== undefined) {
+            if (!Array.isArray(patch.buildingIds)) return { ok: false, error: 'Phạm vi tòa nhà không hợp lệ.' };
+            user.buildingIds = patch.buildingIds.map(function (buildingId) { return String(buildingId || '').trim(); })
+                .filter(function (buildingId, index, ids) { return buildingId && ids.indexOf(buildingId) === index; });
+        }
+        if (patch.department !== undefined) user.department = String(patch.department || '').trim();
+        if (patch.title !== undefined) user.title = String(patch.title || '').trim();
+        if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode || '').trim();
+        if (patch.status !== undefined) {
+            if (['active', 'inactive', 'locked'].indexOf(patch.status) === -1) return { ok: false, error: 'Trạng thái tài khoản không hợp lệ.' };
+            user.status = patch.status;
+        }
         if (patch.password) user.password = patch.password;
 
         users[index] = user;
@@ -674,13 +772,13 @@
         var guard = readLoginGuard();
         var guardKey = normalizeEmail(identifier);
         var lockedUntil = Number(guard[guardKey] && guard[guardKey].lockedUntil || 0);
-        if (lockedUntil > Date.now()) return { ok: false, reason: 'rate_limited', retryAfter: lockedUntil };
-        if (lockedUntil) delete guard[guardKey];
         var user = null;
         for (var i = 0; i < candidates.length; i++) {
             if (String(candidates[i].password) === String(password || '')) { user = candidates[i]; break; }
         }
         if (!user) {
+            if (lockedUntil > Date.now()) return { ok: false, reason: 'rate_limited', retryAfter: lockedUntil };
+            if (lockedUntil) delete guard[guardKey];
             // No active account matches this identifier at all (not just a wrong
             // password) — check whether it belongs to a pending/rejected resident
             // registration, so the message is accurate instead of "wrong password".
@@ -703,7 +801,7 @@
             }
             guard[guardKey] = attempt;
             writeLoginGuard(guard);
-            return { ok: false, reason: attempt.lockedUntil ? 'rate_limited' : 'invalid' };
+            return { ok: false, reason: attempt.lockedUntil ? 'rate_limited' : 'invalid', retryAfter: attempt.lockedUntil || 0 };
         }
         delete guard[guardKey];
         writeLoginGuard(guard);
@@ -891,7 +989,7 @@
         var apartment = global.RHD ? global.RHD.get('apartments', request.apartmentId) : null;
         var building = (apartment && global.RHD) ? global.RHD.get('buildings', apartment.buildingId) : null;
 
-        var userResult = createUser({
+        var userResult = createUserRecord({
             name: request.fullName,
             email: request.email,
             password: request.password,
@@ -1034,7 +1132,7 @@
             return null;
         }
         if (session.role !== role) {
-            var target = session.role === ROLES.MANAGER ? 'dashboard.html' : 'resident-web.html';
+            var target = session.role === ROLES.MANAGER ? 'dashboard.html' : session.role === ROLES.STAFF ? 'staff.html' : 'resident-web.html';
             global.location.replace(target + '?denied=1');
             return null;
         }
@@ -1042,6 +1140,8 @@
     }
 
     seedIfEmpty();
+    seedDemoStaffAccount();
+    seedDemoResidentAccount();
 
     global.RH = {
         ROLES: ROLES,

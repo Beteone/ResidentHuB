@@ -70,10 +70,50 @@ try {
     await send('Emulation.setDeviceMetricsOverride', { width: 1364, height: 900, deviceScaleFactor: 1, mobile: false });
     await navigate('/dashboard.html#demo=1');
     console.log('Dashboard loaded', JSON.stringify({ errors, pageLogs }));
-    for (const tab of ['dashboard', 'buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'service-fees', 'deposits', 'cashflow', 'support']) {
+    const legacyManagerMenu = await evaluate(`(()=>{const manager=RH.getUsers().find(u=>u.role==="manager");delete manager.accountTypeId;localStorage.setItem("residenthub_users",JSON.stringify(RH.getUsers()));window.RH_SESSION={id:manager.id,role:"manager"};applyNavPermissions();const result={canViewBuildings:RHP.can("buildings.view"),isAdmin:RHP.isAdmin(),buildingsMenu:document.querySelector('[data-perm="buildings.view"]').style.display};window.RH_SESSION={id:"demo",demo:true};applyNavPermissions();return result})()`);
+    assert.deepEqual(legacyManagerMenu, { canViewBuildings: true, isAdmin: false, buildingsMenu: '' }, 'Legacy manager accounts show feature navigation without admin access');
+    await evaluate('document.getElementById("rhReportsMenuItem").click()');
+    assert.equal(await evaluate('document.getElementById("rhReportsGroup").classList.contains("open")'), true, 'Reports submenu opens');
+    await evaluate('window.__statisticsChartLabels=[];window.__statisticsChartConfigs=[];window.Chart=function(_context,config){window.__statisticsChartLabels.push(config.data.datasets[0].label);window.__statisticsChartConfigs.push(config);this.destroy=function(){}}');
+    await evaluate('document.querySelectorAll("#rhReportsGroup .rh-nav-child")[1].click()');
+    assert.equal(await evaluate('document.getElementById("statistics-tab").style.display'), 'block', 'Statistics opens from the reports submenu');
+    await evaluate('document.querySelectorAll("#rhReportsGroup .rh-nav-child")[0].click()');
+    assert.equal(await evaluate('document.getElementById("reports-tab").style.display'), 'block', 'Financial reports remain a separate submenu page');
+    for (const tab of ['dashboard', 'buildings', 'apartments', 'customers', 'meters', 'contracts', 'invoices', 'service-fees', 'deposits', 'cashflow', 'support', 'reports', 'statistics']) {
         await evaluate(`switchTab(${JSON.stringify(tab)})`);
         assert.equal(await evaluate(`document.getElementById(${JSON.stringify(tab + '-tab')}).style.display`), 'block');
         console.log('Tab', tab, await evaluate(`document.getElementById(${JSON.stringify(tab + '-tab')}).innerText.slice(0,100)`));
+        if (tab === 'statistics') {
+            await evaluate('(async()=>{for(let i=0;i<50;i++){if(document.querySelector("#statistics-tab .sr-head"))return true;await new Promise(resolve=>setTimeout(resolve,10));}return false})()');
+            assert.equal(await evaluate('document.querySelector("#statistics-tab .sr-breadcrumb").innerText'), 'Báo cáo');
+            assert.equal(await evaluate('document.getElementById("statistics-tab").innerText.includes("Tỷ lệ lấp đầy")'), true);
+            assert.equal(await evaluate('window.__statisticsChartLabels.includes("Trạng thái căn hộ")'), true, 'The apartment classification chart is initialized with its displayed data');
+            assert.equal(await evaluate('window.__statisticsChartConfigs.find(config=>config.data.datasets[0].label==="Trạng thái căn hộ").options.plugins.legend.position'), 'bottom', 'Apartment chart legend sits below the chart');
+            const apartmentChartSize = await evaluate(`(()=>{const chart=document.querySelector(".sr-apartment-chart-content .sr-chart");const bounds=chart.getBoundingClientRect();return {width:Math.round(bounds.width),height:Math.round(bounds.height)}})()`);
+            assert.equal(apartmentChartSize.height, 300, 'Apartment chart uses a balanced fixed visual height');
+            assert.equal(apartmentChartSize.width <= 760, true, 'Apartment chart stays centered and constrained instead of stretching across the report');
+            await send('Emulation.setDeviceMetricsOverride', { width: 390, height: 844, deviceScaleFactor: 1, mobile: true });
+            const mobileApartmentChartSize = await evaluate(`(()=>{const chart=document.querySelector(".sr-apartment-chart-content .sr-chart");const bounds=chart.getBoundingClientRect();return {width:Math.round(bounds.width),height:Math.round(bounds.height)}})()`);
+            assert.equal(mobileApartmentChartSize.height, 240, 'Apartment chart height is reduced on mobile');
+            assert.equal(mobileApartmentChartSize.width <= 390, true, 'Apartment chart fits the mobile viewport');
+            await send('Emulation.setDeviceMetricsOverride', { width: 1364, height: 900, deviceScaleFactor: 1, mobile: false });
+            assert.equal(await evaluate(`(()=>{const card=[...document.querySelectorAll("#statistics-tab .sr-kpi")].find(x=>x.innerText.includes("Người đang cư trú"));return card&&card.querySelector(".sr-kpi-value").innerText})()`), '1', 'A resident on the active demo lease is counted once as currently residing');
+            assert.equal(await evaluate('document.getElementById("statistics-tab").innerText.includes("Tổng hồ sơ khách hàng") && document.getElementById("statistics-tab").innerText.includes("Hồ sơ tạo mới")'), true, 'Resident KPIs use distinct, concise definitions');
+            await evaluate('document.getElementById("srPeriod").value="custom";document.getElementById("srPeriod").dispatchEvent(new Event("change",{bubbles:true}))');
+            await evaluate('(async()=>{for(let i=0;i<50;i++){if(document.getElementById("srFrom"))return true;await new Promise(resolve=>setTimeout(resolve,10));}return false})()');
+            await evaluate('document.getElementById("srFrom").value="2026-10-20";document.getElementById("srTo").value="2026-10-01";document.querySelector("[data-apply-statistics]").click()');
+            assert.equal(await evaluate('document.querySelector("[data-filter-error]").textContent.includes("Ngày bắt đầu")'), true);
+            await evaluate('document.querySelector("[data-reset-statistics]").click()');
+            const businessCountsBeforeSample = await evaluate(`JSON.stringify(['buildings','apartments','customers','contracts','invoices','cashflows','supportRequests'].map(entity=>RHD.list(entity).length))`);
+            await evaluate('document.querySelector("[data-create-statistics-sample]").click()');
+            await evaluate('(async()=>{for(let i=0;i<50;i++){if(document.querySelector("[data-remove-statistics-sample]"))return true;await new Promise(resolve=>setTimeout(resolve,10));}return false})()');
+            assert.equal(await evaluate('document.getElementById("statistics-tab").innerText.includes("MH-HD-001")'), true, 'The generated sample dataset appears in statistics details');
+            assert.equal(await evaluate(`JSON.stringify(['buildings','apartments','customers','contracts','invoices','cashflows','supportRequests'].map(entity=>RHD.list(entity).length))`), businessCountsBeforeSample, 'Statistics sample generation leaves business records unchanged');
+            await evaluate('document.querySelector("[data-remove-statistics-sample]").click()');
+            await evaluate('(async()=>{for(let i=0;i<50;i++){if(document.querySelector("[data-create-statistics-sample]")&&!document.querySelector("[data-remove-statistics-sample]"))return true;await new Promise(resolve=>setTimeout(resolve,10));}return false})()');
+            assert.equal(await evaluate('localStorage.getItem("residenthub_demo_statistics_sample_data")'), null, 'Removing the sample deletes only its dedicated demo storage key');
+        }
+        if (tab === 'reports') assert.equal(await evaluate('document.getElementById("reports-tab").innerText.includes("PT-MH-001") && !document.querySelector("#reports-tab .fr-sample-notice")'), true, 'An empty report period shows illustrative data without the removed notice');
     }
     console.log('Smoke diagnostics', JSON.stringify({ errors, pageLogs }));
     await evaluate('switchTab("support");const search=document.getElementById("rhSupportSearch");search.focus();search.value="UI";search.setSelectionRange(2,2);search.dispatchEvent(new Event("input"))');
@@ -100,7 +140,7 @@ try {
     })()`);
     assert.equal(contractDraft.selected.includes(contractDraft.serviceId), true, 'Service checkbox keeps the actual ID after rerender');
     assert.equal(contractDraft.unchanged, true, 'Invalid draft still uses the existing business validation');
-    await evaluate(`RHD.create('supportRequests',{id:'ui-request',code:'UI-001',buildingId:'ui-building',apartmentId:'ui-apartment',residentName:'UI Resident',title:'UI Test',status:'new',priority:'normal',messages:[{from:'Cư dân',text:'Resident question',time:'Now'}],response:'Keep response',customField:'keep'});switchTab('support');document.querySelector('[data-support-view="chat"]').click();document.querySelector('[data-support-chat-id="ui-request"]').click();`);
+    await evaluate(`(()=>{const visible=RHD.list('supportRequests')[0];const apartment=RHD.list('apartments').find(item=>visible&&item.buildingId===visible.buildingId)||RHD.list('apartments')[0];const buildingId=visible?visible.buildingId:apartment.buildingId;const created=RHD.create('supportRequests',{id:'ui-request',code:'UI-001',buildingId,apartmentId:apartment.id,residentName:'UI Resident',title:'UI Test',status:'new',priority:'normal',messages:[{from:'Cư dân',text:'Resident question',time:'Now'}],response:'Keep response',customField:'keep'});if(!created.ok)throw Error(created.error);switchTab('support');document.querySelector('[data-support-view="chat"]').click();document.querySelector('[data-support-chat-resident$="ui resident"]').click();document.querySelector('[data-support-chat-id="ui-request"]').click();})()`);
     assert.equal(await evaluate('document.querySelector("[data-support-panel=chat]").classList.contains("active")'), true);
     assert.equal(await evaluate('document.getElementById("supportInboxMessages").textContent.includes("Resident question")'), true);
     await evaluate('document.getElementById("supportInboxReply").value="Inbox draft";window.dispatchEvent(new StorageEvent("storage",{key:"residenthub_demo_supportRequests"}))');
@@ -125,8 +165,6 @@ try {
     assert.equal(await evaluate('document.getElementById("support-tab").innerHTML'), '');
     // Reload removes test permission stubs, then use real manager/resident sessions.
     await navigate('/dashboard.html#demo=1');
-    // Typed fixture: auth.js currently lacks the account-type persistence used by
-    // permissions.js. That existing business conflict is reported, not repaired here.
     await evaluate('(()=>{const rows=RH.getUsers();rows.find(u=>u.role==="manager").accountTypeId=RHP.ADMIN_TYPE_ID;localStorage.setItem("residenthub_users",JSON.stringify(rows));RH.login(rows.find(u=>u.role==="manager"),false)})()');
     await navigate('/dashboard.html');
     await evaluate('switchTab("accounts")');

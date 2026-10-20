@@ -23,6 +23,9 @@
     <script src="manager-modules.js"></script>
     <script src="deposits-module.js"></script>
     <script src="dist/excel-tools.js"></script>
+    <script src="dist/financial-report-export.js"></script>
+    <script src="financial-report.js"></script>
+    <script src="statistics-report.js"></script>
     <script src="contracts-module.js"></script>
     <script src="account-modules.js"></script>
     <script src="dist/meter-reading.js"></script>
@@ -2537,6 +2540,80 @@
         .support-chat-context{align-items:center;background:#fff;flex-direction:row;flex-wrap:wrap;justify-content:flex-start;padding:9px 18px;text-align:left}
         .support-chat-context>strong{color:#203750;max-width:none}
         @media(max-width:640px){.support-ticket-list{grid-template-columns:1fr}.support-chat-context{align-items:flex-start;flex-direction:column}}
+        #statistics-tab{box-sizing:border-box;width:100%;min-width:0;max-width:100%;overflow-x:clip;padding-bottom:1rem}
+        #statistics-tab .sr-page,#statistics-tab .sr-page>*,#statistics-tab .sr-card,#statistics-tab .sr-chart-grid,#statistics-tab .sr-chart-grid>*,#statistics-tab .sr-kpis,#statistics-tab .sr-kpi,#statistics-tab .sr-table-wrap{box-sizing:border-box;min-width:0;max-width:100%}
+        #statistics-tab .sr-page{gap:.6rem;width:100%}
+        #statistics-tab .sr-head,#statistics-tab .sr-card{padding:.85rem}
+        #statistics-tab .sr-group-title{margin-bottom:.55rem}
+        #statistics-tab .sr-filters{grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr));gap:.5rem}
+        #statistics-tab .sr-kpis{grid-template-columns:repeat(3,minmax(0,1fr));gap:.5rem}
+        #statistics-tab .sr-kpi{padding:.65rem;gap:.5rem}
+        #statistics-tab .sr-kpi small{overflow-wrap:anywhere}
+        #statistics-tab .sr-chart-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+        #statistics-tab .sr-table-wrap{width:100%;overflow-x:auto}
+        #statistics-tab .sr-apartment-overview{display:grid;grid-template-columns:minmax(0,1.4fr) minmax(280px,.8fr);gap:.65rem;align-items:stretch}
+        #statistics-tab .sr-apartment-overview .sr-kpis{grid-template-columns:repeat(3,minmax(0,1fr));align-content:start}
+        #statistics-tab .sr-apartment-chart-card{display:flex;flex-direction:column;justify-content:center;margin:0!important;padding:.75rem}
+        #statistics-tab .sr-apartment-chart-card .sr-group-title{margin-bottom:.35rem}
+        #statistics-tab .sr-apartment-chart-content{width:min(100%,440px)}
+        #statistics-tab .sr-apartment-chart-content .sr-chart{height:220px}
+        #statistics-tab .sr-toolbar,#statistics-tab .sr-toolbar h2,#statistics-tab .sr-search-wrap{min-width:0}
+        #statistics-tab .sr-toolbar{flex-wrap:wrap}
+        #statistics-tab .sr-search{max-width:min(300px,45vw)}
+        @media(max-width:1050px){
+            #statistics-tab .sr-apartment-overview{grid-template-columns:minmax(0,1fr)}
+            #statistics-tab .sr-apartment-overview .sr-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+            #statistics-tab .sr-apartment-chart-card{min-height:0}
+        }
+        @media(max-width:900px){
+            #statistics-tab .sr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+        }
+        @media(max-width:620px){
+            #statistics-tab .sr-head,#statistics-tab .sr-card{padding:.75rem}
+            #statistics-tab .sr-chart-grid{grid-template-columns:minmax(0,1fr)}
+            #statistics-tab .sr-apartment-overview .sr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+            #statistics-tab .sr-apartment-chart-content .sr-chart{height:200px}
+            #statistics-tab .sr-search{max-width:100%}
+        }
+        #reports-tab{box-sizing:border-box;width:100%;min-width:0;max-width:100%;overflow-x:clip;padding-bottom:1rem}
+        #reports-tab .fr-page,#reports-tab .fr-page>*,#reports-tab .fr-head,#reports-tab .fr-card,#reports-tab .fr-charts,#reports-tab .fr-charts>*,#reports-tab .fr-kpis,#reports-tab .fr-kpi,#reports-tab .fr-table-wrap{box-sizing:border-box;min-width:0;max-width:100%}
+        #reports-tab .fr-page{width:100%;gap:.65rem}
+        #reports-tab .fr-head,#reports-tab .fr-card{padding:.9rem}
+        #reports-tab .fr-head{align-items:center;gap:.75rem}
+        #reports-tab .fr-title{font-size:1.4rem}
+        #reports-tab .fr-actions{gap:.45rem}
+        #reports-tab .fr-filter-row{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:.5rem;align-items:end}
+        #reports-tab .fr-filter{min-width:0}
+        #reports-tab .fr-filter-row>.fr-btn{align-self:end}
+        #reports-tab .fr-kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:.5rem}
+        #reports-tab .fr-kpi{padding:.75rem}
+        #reports-tab .fr-kpi-value{font-size:1.05rem}
+        #reports-tab .fr-kpi-help{overflow-wrap:anywhere}
+        #reports-tab .fr-charts{grid-template-columns:repeat(2,minmax(0,1fr));gap:.65rem}
+        #reports-tab .fr-chart-wrap{height:230px}
+        #reports-tab .fr-table-wrap{width:100%;overflow-x:auto}
+        #reports-tab .fr-table{min-width:900px}
+        #reports-tab .fr-toolbar{min-width:0}
+        #reports-tab section.fr-card>.fr-kpis{grid-template-columns:repeat(auto-fit,minmax(min(100%,180px),1fr))!important}
+        @media(max-width:1100px){
+            #reports-tab .fr-kpis{grid-template-columns:repeat(3,minmax(0,1fr))}
+            #reports-tab .fr-head{align-items:flex-start}
+        }
+        @media(max-width:900px){
+            #reports-tab .fr-filter-row{grid-template-columns:repeat(2,minmax(0,1fr))}
+            #reports-tab .fr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+            #reports-tab .fr-actions{justify-content:flex-start}
+        }
+        @media(max-width:620px){
+            #reports-tab .fr-head,#reports-tab .fr-card{padding:.75rem}
+            #reports-tab .fr-charts{grid-template-columns:minmax(0,1fr)}
+            #reports-tab .fr-chart-wrap{height:210px}
+            #reports-tab .fr-kpis{grid-template-columns:repeat(2,minmax(0,1fr))}
+            #reports-tab .fr-actions .fr-btn{padding:.5rem;font-size:.75rem}
+        }
+        @media(max-width:420px){
+            #reports-tab .fr-filter-row,#reports-tab .fr-kpis{grid-template-columns:minmax(0,1fr)}
+        }
     </style>
 </head>
 <body>
@@ -2634,9 +2711,20 @@
                     <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
                 </div>
             </div>
-            <div class="sidebar-menu-item" data-perm="reports.view" onclick="switchTab('reports')">
+            <div class="sidebar-menu-item rh-nav-parent" id="rhReportsMenuItem" data-perm="reports.view" role="button" tabindex="0" aria-expanded="false" aria-controls="rhReportsGroup" onclick="toggleNavGroup('rhReportsGroup')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();toggleNavGroup('rhReportsGroup');}">
                 <i class="fas fa-chart-bar"></i>
                 <span>Báo cáo</span>
+                <i class="fas fa-chevron-down rh-nav-caret"></i>
+            </div>
+            <div class="rh-nav-children" id="rhReportsGroup">
+                <div class="sidebar-menu-item rh-nav-child" data-perm="reports.view" onclick="switchTab('reports', event)">
+                    <i class="fas fa-coins"></i>
+                    <span>Báo cáo tài chính</span>
+                </div>
+                <div class="sidebar-menu-item rh-nav-child" data-perm="reports.view" onclick="switchTab('statistics', event)">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Thống kê</span>
+                </div>
             </div>
 
             <div style="padding: 1.5rem 1rem 0.5rem; border-top: 1px solid var(--line); margin-top: 1rem;">
@@ -3515,11 +3603,8 @@
         <div id="contracts-tab" style="display: none;"></div>
 
         <div id="reports-tab" style="display: none;">
-            <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Báo cáo</h2>
-                <p style="color: #94a3b8; margin-top: 1rem;">Nội dung báo cáo sẽ hiển thị ở đây</p>
-            </div>
         </div>
+        <div id="statistics-tab" style="display: none;"></div>
 
         <!-- Tài khoản: duyệt đăng ký Cư dân + quản lý tài khoản đăng nhập (tách khỏi Cài đặt) -->
         <div id="accounts-tab" style="display: none;">
@@ -4237,6 +4322,8 @@
             contracts: (f) => RHUI.renderContractsTab(f),
             invoices: (f) => RHUI.renderInvoicesTab(f),
             cashflow: () => RHUI.renderCashflowTab(),
+            reports: () => RHFinancialReport.render(),
+            statistics: () => RHStatisticsReport.render(),
             support: (f) => RHUI.renderSupportTab(f),
             notifications: () => renderNotificationsManagerTab(),
             roles: () => RHAccounts.renderRolesTab(),
@@ -4260,10 +4347,11 @@
             support: 'support.view',
             notifications: 'notifications.view',
             reports: 'reports.view',
+            statistics: 'reports.view',
             roles: 'roles.view',
             accounts: ['users.view', 'users.approveResident']
         };
-        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'notifications', 'accounts', 'roles', 'reports'];
+        const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'notifications', 'accounts', 'roles', 'reports', 'statistics'];
 
         function canOpenTab(tabName) {
             const permission = TAB_PERMS[tabName];
@@ -4295,6 +4383,10 @@
             const anyChild = Array.from(group.children).some(child => child.style.display !== 'none');
             document.getElementById('rhAccountsMenuItem').style.display = anyChild ? '' : 'none';
             if (!anyChild) toggleNavGroup('rhAccountsGroup', false);
+            const reportsGroup = document.getElementById('rhReportsGroup');
+            const anyReport = Array.from(reportsGroup.children).some(child => child.style.display !== 'none');
+            document.getElementById('rhReportsMenuItem').style.display = anyReport ? '' : 'none';
+            if (!anyReport) toggleNavGroup('rhReportsGroup', false);
             if (!canOpenTab(currentTab)) switchTab(TAB_ORDER.find(canOpenTab) || 'settings');
         }
 
@@ -4352,6 +4444,7 @@
                 'notifications': 'Quản lý thông báo',
                 'contracts': 'Hợp đồng',
                 'reports': 'Báo cáo',
+                'statistics': 'Thống kê',
                 'workflows': 'Quy trình làm việc',
                 'features': 'Chi tiết tính năng',
                 'architecture': 'Kiến trúc hệ thống',
@@ -4361,11 +4454,13 @@
             // Keep the sidebar highlight in sync when a tab is opened from a KPI card / bell.
             if (!sidebarItem) {
                 document.querySelectorAll('.sidebar-menu-item').forEach(item => {
-                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-z]+)'/);
+                    const match = (item.getAttribute('onclick') || '').match(/switchTab\('([a-z-]+)'/);
                     item.classList.toggle('active', !!match && match[1] === tabName);
                 });
             }
             document.getElementById('pageTitle').textContent = titles[tabName] || 'Quản lý';
+            const pageTitle = document.getElementById('pageTitle');
+            pageTitle.style.display = tabName === 'reports' || tabName === 'statistics' ? 'none' : '';
             window.scrollTo(0, 0);
         }
 
@@ -5292,7 +5387,7 @@
             const detailOpen = RHUI.refreshOpenDrawer(); // read-only detail drawers re-resolve their linked data
             RHUI.refreshOpenSupportConversation();
             applyNavPermissions();
-            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
+            if (['support', 'notifications', 'accounts', 'roles', 'invoices', 'cashflow', 'reports', 'statistics', 'service-fees', 'contracts', 'deposits', 'customers', 'buildings', 'apartments'].indexOf(currentTab) !== -1 && TAB_RENDERERS[currentTab] && canOpenTab(currentTab)) {
                 if (!detailOpen && document.querySelector('#rhDrawerOverlay.show')) return; // don't wipe an open form
                 try { TAB_RENDERERS[currentTab](currentTabFilter); } catch (e) { console.error(e); }
             }

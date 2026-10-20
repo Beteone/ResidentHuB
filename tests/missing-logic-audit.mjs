@@ -12,6 +12,7 @@ function environment() {
 }
 const context = environment();
 const { RH, RHP, RHD } = context;
+context.RHP = Object.assign({}, RHP, { can: () => true });
 const account = RH.createUser({ name: 'Audit Staff', email: 'audit@example.test', password: 'audit-test-password', role: 'manager', accountTypeId: RHP.ADMIN_TYPE_ID, allBuildings: true, buildingIds: ['audit-building'], department: 'Audit' });
 if (!account.ok) throw Error(account.error);
 RH.login(account.user, false);

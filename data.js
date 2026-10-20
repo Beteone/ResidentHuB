@@ -12,7 +12,7 @@
  * Nothing under 'demo' is ever read by 'live' screens and vice versa.
  */
 (function (global) {
-    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'supportRequests'];
+    var ENTITIES = ['buildings', 'apartments', 'customers', 'meters', 'contracts', 'deposits', 'depositTransactions', 'invoices', 'cashflows', 'supportRequests'];
 
     // Single source of truth for Demo Mode caps — change values here only, every
     // screen (banner, add-buttons, block messages) reads through RHD.limitInfo().
@@ -203,6 +203,19 @@
         }
     }
 
+    function notifyMeterChanges(readings) {
+        if (!global.RHB || typeof global.RHB.meterChanged !== 'function') return;
+        var seen = Object.create(null);
+        readings.forEach(function (reading) {
+            if (!reading) return;
+            var period = reading.readingPeriod || reading.periodMonth || '';
+            var slot = String(reading.apartmentId || '') + '|' + String(period);
+            if (seen[slot]) return;
+            seen[slot] = true;
+            global.RHB.meterChanged(reading);
+        });
+    }
+
     function genId(prefixStr) {
         return (prefixStr || 'id') + '-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
     }
@@ -231,6 +244,34 @@
         return { limited: true, max: max, count: count, reached: reached, near: near, label: DEMO_LIMIT_LABELS[entity] };
     }
 
+    function contractDataError(contract, excludeId) {
+        contract = contract || {};
+        var terminal = ['draft', 'ended', 'terminated', 'expired', 'liquidated', 'settled', 'closed', 'deposit', 'deposited', 'forfeited', 'deposit_forfeited'];
+        var tenantIds = contractTenantIds(contract);
+        var overlaps = readAll('contracts').some(function (other) {
+            if (other.id === excludeId || terminal.indexOf(String(other.status || '').toLowerCase()) !== -1 ||
+                terminal.indexOf(String(contract.status || '').toLowerCase()) !== -1) return false;
+            var dateOverlap = (!other.endDate || !contract.startDate || other.endDate >= contract.startDate) &&
+                (!other.startDate || !contract.endDate || other.startDate <= contract.endDate);
+            var sameTenant = contractTenantIds(other).some(function (id) {
+                return tenantIds.indexOf(id) !== -1;
+            });
+            return dateOverlap && (other.apartmentId === contract.apartmentId || sameTenant);
+        });
+        if (overlaps) return 'Căn hộ hoặc khách thuê đã có hợp đồng đang hiệu lực trong thời gian này.';
+
+        var assets = Array.isArray(contract.handoverAssets) ? contract.handoverAssets : [];
+        var assetIds = assets.map(function (asset) { return asset.assetId; });
+        if (assetIds.some(function (id, index) { return !id || assetIds.indexOf(id) !== index; })) return 'Tài sản bàn giao bị trùng hoặc thiếu mã tài sản.';
+        for (var i = 0; i < assets.length; i++) {
+            var original = get('assets', assets[i].assetId);
+            var quantity = Number(assets[i].quantity);
+            if (!original || original.apartmentId !== contract.apartmentId || !Number.isInteger(quantity) ||
+                quantity < 1 || quantity > Number(original.quantity)) return 'Số lượng hoặc tài sản bàn giao không hợp lệ.';
+        }
+        return '';
+    }
+
     function create(entity, data) {
         if (mode() === 'demo') {
             var info = limitInfo(entity);
@@ -238,11 +279,21 @@
                 return { ok: false, limitReached: true, error: 'Bạn đã đạt giới hạn ' + info.max + ' ' + info.label + ' trong bản Demo.' };
             }
         }
+        if (entity === 'contracts') {
+            var contractError = contractDataError(data, null);
+            if (contractError) return { ok: false, error: contractError };
+            if (data.signDate && global.RHDocuments && typeof global.RHDocuments.prepare === 'function') {
+                var prepared = global.RHDocuments.prepare(data, null);
+                if (!prepared.ok) return { ok: false, error: prepared.error };
+                data = prepared.item;
+            }
+        }
         var items = readAll(entity);
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
         writeAll(entity, items);
         auditChange(entity, 'create', null, record);
+        if (entity === 'meters') notifyMeterChanges([record]);
         return { ok: true, item: record };
     }
 
@@ -251,19 +302,35 @@
         var idx = -1;
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
-        var before = items[idx];
-        items[idx] = Object.assign({}, items[idx], patch, { id: items[idx].id, createdAt: items[idx].createdAt });
+        var previous = items[idx];
+        var updated = Object.assign({}, previous, patch, { id: previous.id, createdAt: previous.createdAt });
+        if (entity === 'contracts' && ['apartmentId', 'customerId', 'customerIds', 'tenantIds', 'startDate', 'endDate', 'status', 'handoverAssets'].some(function (key) {
+            return Object.prototype.hasOwnProperty.call(patch, key);
+        })) {
+            var contractError = contractDataError(updated, previous.id);
+            if (contractError) return { ok: false, error: contractError };
+        }
+        if (entity === 'contracts' && (patch.signDate || patch.contractTemplateId || patch.apartmentId || patch.customerId || patch.customerIds || patch.tenantIds || patch.startDate || patch.endDate || patch.handoverAssets) &&
+            updated.signDate && global.RHDocuments && typeof global.RHDocuments.prepare === 'function') {
+            var prepared = global.RHDocuments.prepare(updated, previous);
+            if (!prepared.ok) return { ok: false, error: prepared.error };
+            updated = prepared.item;
+        }
+        items[idx] = updated;
         writeAll(entity, items);
-        auditChange(entity, 'update', before, items[idx]);
+        auditChange(entity, 'update', previous, items[idx]);
+        if (entity === 'meters') notifyMeterChanges([previous, items[idx]]);
         return { ok: true, item: items[idx] };
     }
 
     function remove(entity, id) {
         var items = readAll(entity);
+        var removed = items.filter(function (r) { return r.id === id; });
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
         auditChange(entity, 'delete', items.filter(function (r) { return r.id === id; })[0], null);
+        if (entity === 'meters') notifyMeterChanges(removed);
         return { ok: true };
     }
 
@@ -332,7 +399,7 @@
     function residentPlacement(customerId) {
         var customer = customerId ? get('customers', customerId) : null;
         if (!customer) return null;
-        var contracts = readAll('contracts').filter(function (c) { return c.customerId === customer.id; })
+        var contracts = readAll('contracts').filter(function (c) { return contractTenantIds(c).indexOf(customer.id) !== -1; })
             .sort(function (a, b) { return b.createdAt - a.createdAt; });
         var active = contracts.filter(function (c) { return c.status !== 'ended'; })[0] || null;
         var ref = active || contracts[0] || null;
@@ -382,11 +449,11 @@
         var contracts = allContracts.filter(function (item) {
             return item.status !== 'ended' && item.status !== 'terminated' && item.status !== 'expired';
         });
-        var contractCandidates = apartment ? contracts.filter(function (item) { return item.apartmentId === apartment.id; }) : contracts.filter(function (item) { return customer && item.customerId === customer.id; });
+        var contractCandidates = apartment ? contracts.filter(function (item) { return item.apartmentId === apartment.id; }) : contracts.filter(function (item) { return customer && contractTenantIds(item).indexOf(customer.id) !== -1; });
         contractCandidates.sort(function (a, b) {
             if (customer && apartment) {
-                var aMatchesCustomer = a.customerId === customer.id ? 1 : 0;
-                var bMatchesCustomer = b.customerId === customer.id ? 1 : 0;
+                var aMatchesCustomer = contractTenantIds(a).indexOf(customer.id) !== -1 ? 1 : 0;
+                var bMatchesCustomer = contractTenantIds(b).indexOf(customer.id) !== -1 ? 1 : 0;
                 if (aMatchesCustomer !== bMatchesCustomer) return bMatchesCustomer - aMatchesCustomer;
             }
             return (b.createdAt || 0) - (a.createdAt || 0);
@@ -395,9 +462,9 @@
         if (!apartment && contract) apartment = get('apartments', contract.apartmentId);
         if (!apartment) return { apartment: null, building: null, contract: null, customer: customer, invoices: [], supportRequests: [] };
         var building = get('buildings', apartment.buildingId);
-        if (contract) customer = get('customers', contract.customerId) || customer;
+        if (!customer && contract) customer = get('customers', contract.customerId) || null;
         var residentContracts = contract ? allContracts.filter(function (item) {
-            return item.apartmentId === apartment.id && item.customerId === contract.customerId;
+            return item.apartmentId === apartment.id && (!customer || contractTenantIds(item).indexOf(customer.id) !== -1);
         }) : [];
         var residentContractIds = residentContracts.reduce(function (ids, item) { ids[item.id] = true; return ids; }, {});
         var invoices = readAll('invoices').filter(function (inv) {
@@ -489,6 +556,12 @@
         return best;
     }
 
+    function contractTenantIds(contract) {
+        if (Array.isArray(contract.tenantIds) && contract.tenantIds.length) return contract.tenantIds;
+        if (Array.isArray(contract.customerIds) && contract.customerIds.length) return contract.customerIds;
+        return contract.customerId ? [contract.customerId] : [];
+    }
+
     // Everything the Dashboard shows, computed from the entity stores on every
     // call (optionally scoped to one building). Nothing is cached or stored, so
     // records added in any module show up automatically.
@@ -513,7 +586,7 @@
         var meters = readAll('meters').filter(inScope);
         var allCustomers = readAll('customers');
         var customerIdsInBuilding = {};
-        contracts.forEach(function (c) { customerIdsInBuilding[c.customerId] = true; });
+        contracts.forEach(function (c) { contractTenantIds(c).forEach(function (id) { customerIdsInBuilding[id] = true; }); });
         var customers = scopeIds ? allCustomers.filter(function (c) { return customerIdsInBuilding[c.id]; }) : allCustomers;
         var sum = function (list) { return list.reduce(function (s, i) { return s + (Number(i.total) || 0); }, 0); };
 
@@ -676,8 +749,10 @@
         ctx = ctx || {};
         var unitPrice = Number(service.unitPrice) || 0;
         var qty = 1;
-        if (service.calcMethod === 'meter') {
+        if (service.calcMethod === 'meter' || utilityPolicy(service).metered) {
             var reading = ctx.meterReading;
+            var readingPeriod = reading && (reading.readingPeriod || reading.periodMonth);
+            if (ctx.readingPeriod && readingPeriod !== ctx.readingPeriod) reading = null;
             qty = reading ? Number(reading.consumption) || 0 : 0;
         } else if (service.calcMethod === 'quantity' || service.calcMethod === 'person') {
             qty = ctx.quantity != null ? Number(ctx.quantity) : 1;

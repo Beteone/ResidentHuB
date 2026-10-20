@@ -19,6 +19,7 @@
 (function (global) {
     var TYPES_KEY = 'residenthub_account_types';
     var ADMIN_TYPE_ID = 'at-admin';
+    var DEFAULT_MANAGER_TYPE_ID = 'at-building-manager';
     var RESIDENT_TYPE_ID = 'at-resident';
 
     var ACTIONS = [
@@ -138,6 +139,14 @@
     function listTypes() { return readTypes() || []; }
     function getType(id) { return listTypes().filter(function (t) { return t.id === id; })[0] || null; }
 
+    function typeForUser(user) {
+        if (!user) return null;
+        var type = getType(user.accountTypeId);
+        var portal = user.role === 'resident' ? 'resident' : 'manager';
+        if (type && type.portal === portal) return type;
+        return portal === 'resident' ? getType(RESIDENT_TYPE_ID) : getType(DEFAULT_MANAGER_TYPE_ID);
+    }
+
     function foldName(s) {
         return String(s || '').normalize('NFD').replace(/[̀-ͯ]/g, '').replace(/đ/g, 'd').replace(/Đ/g, 'D').trim().toLowerCase();
     }
@@ -227,7 +236,7 @@
         } else {
             cache.user = id && global.RH ? global.RH.getUsers().filter(function (u) { return u.id === id; })[0] || null : null;
         }
-        cache.type = cache.user ? getType(cache.user.accountTypeId) : null;
+        cache.type = typeForUser(cache.user);
         cache.set = {};
         (cache.type && cache.type.permissions || []).forEach(function (k) { cache.set[k] = true; });
         return cache;
@@ -238,7 +247,7 @@
     function typeOfUser(user) {
         if (!user) return null;
         var c = resolve();
-        return c.user && c.user.id === user.id ? c.type : getType(user.accountTypeId);
+        return c.user && c.user.id === user.id ? c.type : typeForUser(user);
     }
 
     function isAdmin(user) {
@@ -291,7 +300,10 @@
         if (entity === 'customers') {
             var contracts = global.RHD ? global.RHD.list('contracts') : [];
             return items.filter(function (c) {
-                var own = contracts.filter(function (k) { return (k.customerIds || [k.customerId]).indexOf(c.id) !== -1; });
+                var own = contracts.filter(function (k) {
+                    var tenantIds = k.tenantIds && k.tenantIds.length ? k.tenantIds : (k.customerIds && k.customerIds.length ? k.customerIds : [k.customerId]);
+                    return tenantIds.indexOf(c.id) !== -1;
+                });
                 return !own.length || own.some(function (k) { return scope.indexOf(k.buildingId) !== -1; });
             });
         }

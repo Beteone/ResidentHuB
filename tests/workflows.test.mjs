@@ -18,6 +18,7 @@ d.create('buildings',{id:'b',name:'Building',shortName:'B',managerId:'manager',s
 d.create('apartments',{id:'a',name:'101',buildingId:'b',maxGuests:2,rentPrice:1000000,depositPrice:1000000});
 for(const id of ['p1','p2','p3']) d.create('customers',{id,fullName:id,phone:id==='p1'?'0901234567':'',email:id+'@example.test'});
 d.create('assets',{id:'asset',apartmentId:'a',name:'Bed',quantity:2,value:300000});
+d.create('contracts',{id:'draft-before-signing',buildingId:'b',apartmentId:'a',customerId:'p1',status:'draft',startDate:'2026-10-01',endDate:'2027-09-30'});
 const original=t.getDefault('CONTRACT'), before=JSON.stringify(original);
 const originalIds=t.list().map(t=>t.id).sort();
 assert.equal(t.groupOf(t.list().find(t=>t.code==='invoice_deposit')),'deposit');
