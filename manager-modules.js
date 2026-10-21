@@ -571,9 +571,9 @@
             return '<option value="' + escapeHtml(type.id) + '"' + (type.id === RHUI.serviceFeeTypeFilter ? ' selected' : '') + '>' + escapeHtml(type.label) + '</option>';
         }).join('');
         tab.innerHTML = renderDemoBanner('buildings') +
-            '<div class="card">' +
-            '<div style="align-items:center;display:flex;flex-wrap:wrap;gap:1rem;justify-content:space-between;margin-bottom:1rem;">' +
-            '<h2 style="color:#526275;font-size:1.05rem;font-weight:600;">Danh sách dịch vụ</h2>' +
+            '<div class="card rh-fee-card">' +
+            '<div class="rh-fee-header">' +
+            '<h2 class="rh-fee-heading">Danh sách dịch vụ</h2>' +
             '<div class="rh-fee-top-actions">' +
             (noBuildings ? '<button type="button" class="rh-fee-top-button add" title="Thêm tòa nhà" onclick="RHUI.openBuildingForm()"><i class="fas fa-plus"></i></button>' : '<button type="button" class="rh-fee-top-button add" title="Thêm dịch vụ" aria-label="Thêm dịch vụ" onclick="RHUI.openServiceFeeForm(\'' + (RHUI.serviceFeeBuildingFilter || buildings[0].id) + '\',null)"><i class="fas fa-plus"></i></button>') +
             '<button type="button" class="rh-fee-top-button delete" title="Xóa dịch vụ đã chọn" aria-label="Xóa dịch vụ đã chọn" onclick="RHUI.deleteSelectedServiceFees()"><i class="fas fa-trash"></i></button></div>' +
