@@ -131,6 +131,20 @@ try {
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus}})()`), {
         status: 'resolved', taskStatus: 'approved'
     }, 'Management approval completes the same resident support request');
+    await evaluate(`RHUI.openSupportForm('staff-task-request');document.getElementById('srWageBase').value='100000';document.getElementById('srWageAdjustment').value='15000';document.getElementById('srWageStatus').value='paid';document.getElementById('srWagePaidDate').value=new Date().toISOString().slice(0,10);RHUI.submitSupportForm({preventDefault(){}})`);
+    assert.equal(await evaluate(`RHD.get('supportRequests','staff-task-request').staffWage===undefined&&RHD.list('cashflows').filter(row=>row.taskId==='staff-task-request').length===0`), true, 'An adjustment without a reason cannot be approved or written to the cashflow ledger');
+    await evaluate(`document.getElementById('srWageAdjustmentReason').value='Khối lượng phát sinh đã xác nhận';RHUI.submitSupportForm({preventDefault(){}})`);
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');const c=RHD.get('cashflows',r.staffWage.cashflowId);return {base:r.staffWage.baseAmount,total:r.staffWage.approvedAmount,adjustment:r.staffWage.adjustments[0].amount,reason:r.staffWage.adjustments[0].reason,status:r.staffWage.status,linked:c.taskId,ledgerAmount:c.amount}})()`), {
+        base: 100000, total: 115000, adjustment: 15000, reason: 'Khối lượng phát sinh đã xác nhận', status: 'paid', linked: 'staff-task-request', ledgerAmount: 115000
+    }, 'Management approval preserves adjustment reason and links the paid wage to a matching expense');
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='staff-task-check'),false);document.querySelector('[data-title="Lịch sử tiền công"]').click()`);
+    assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('115.000 đ')&&document.getElementById('staffContent').textContent.includes('Đã thanh toán')&&document.getElementById('staffContent').textContent.includes('Khớp phiếu')`), true, 'Staff wage history shows approved amount, payment state, and cashflow reconciliation');
+    assert.equal(await evaluate(`!document.getElementById('staffWageBase')&&!document.getElementById('staffWageAdjustment')`), true, 'Staff wage history has no amount or adjustment editor');
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request'),c=RHD.get('cashflows',r.staffWage.cashflowId);return {wageUpdate:RHD.update('supportRequests',r.id,{staffWage:{baseAmount:1}}).ok,cashflowUpdate:RHD.update('cashflows',c.id,{amount:1}).ok,cashflowDelete:RHD.remove('cashflows',c.id).ok,cashflowCreate:RHD.create('cashflows',{type:'expense',amount:1,taskId:r.id}).ok}})()`), {
+        wageUpdate: false, cashflowUpdate: false, cashflowDelete: false, cashflowCreate: false
+    }, 'The shared data layer rejects staff edits to approved wages and linked cashflows');
+    await evaluate(`document.querySelector('[data-open-task="staff-task-request"]').click()`);
+    assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Khối lượng phát sinh đã xác nhận')&&document.getElementById('staffContent').textContent.includes('115.000 đ')`), true, 'Staff can open the linked task and review its wage adjustment');
     await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='resident-task-check'),false)`);
     await navigate('/resident-web.html');
     await evaluate(`showResidentSection('requests');openRequestDetail('YC-TASK-01')`);

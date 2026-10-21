@@ -102,7 +102,7 @@
             var sign = record.type === 'income' ? '+' : '−';
             return '<tr><td><input class="rh-cashflow-select" type="checkbox" value="' + escapeHtml(record.id) + '" aria-label="Chọn phiếu ' + escapeHtml(record.code || '') + '"></td>' +
                 '<td class="rh-cashflow-code">' + escapeHtml(record.code || '—') + ' <i class="fas fa-shield-halved" title="Đã lưu"></i></td>' +
-                '<td><strong>' + escapeHtml(record.description || record.category || 'Thu chi') + '</strong><div class="rh-cashflow-row-sub">' + escapeHtml(record.category || '') + (record.reference ? ' · ' + escapeHtml(record.reference) : '') + '</div></td>' +
+                '<td><strong>' + escapeHtml(record.description || record.category || 'Thu chi') + '</strong><div class="rh-cashflow-row-sub">' + escapeHtml(record.category || '') + (record.reference ? ' · ' + escapeHtml(record.reference) : '') + (record.taskId ? ' · Nhiệm vụ ' + escapeHtml(record.taskCode || record.taskId) : '') + '</div></td>' +
                 '<td class="rh-cashflow-amount" style="color:' + (record.type === 'income' ? '#198754' : '#d17a0b') + ';text-align:right;">' + sign + money(record.amount) + '</td>' +
                 '<td>' + escapeHtml(building ? building.name : '—') + (apartment ? '<div class="rh-cashflow-row-sub">' + escapeHtml(apartment.name || apartment.code) + '</div>' : '') + '</td>' +
                 '<td>' + fmtDate(record.date) + '</td><td>' + escapeHtml(record.personName || '—') + '</td><td>' + escapeHtml(record.accountName || record.paymentMethod || '—') + '</td>' +
@@ -161,9 +161,12 @@
             detailItem('Tòa nhà', escapeHtml(building ? building.name : '')) + detailItem('Căn hộ / Phòng', escapeHtml(apartment ? apartment.name : '')) +
             detailItem(isIncome ? 'Người nộp' : 'Người nhận', escapeHtml(record.personName || '')) + detailItem('Tài khoản', escapeHtml(record.accountName || record.paymentMethod || '')) +
             detailItem('Mã tham chiếu', escapeHtml(record.reference || '')) + detailItem('Nội dung', escapeHtml(record.description || ''), true) +
+            (record.taskId ? detailItem('Nhiệm vụ liên kết', '<button type="button" class="btn-secondary" data-open-linked-task="' + escapeHtml(record.taskId) + '">' + escapeHtml(record.taskCode || record.taskId) + ' · Mở hồ sơ</button>', true) : '') +
             '</div><div style="border-top:1px solid #e6edf4;margin-top:1.25rem;padding-top:1rem;text-align:right;"><span style="color:#718096;">Số tiền</span><strong style="color:' + (isIncome ? '#198754' : '#d17a0b') + ';display:block;font-size:1.5rem;">' + (isIncome ? '+' : '−') + money(record.amount) + '</strong></div></div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1rem;"><button type="button" class="btn-primary" onclick="window.print()"><i class="fas fa-print"></i> In phiếu</button><button type="button" onclick="RHUI.openCashflowForm(\'' + record.id + '\')" style="background:#fff;border:1px solid var(--line);border-radius:8px;padding:.6rem 1.2rem;font:inherit;cursor:pointer;">Sửa</button></div>';
         openDrawer('Chi tiết phiếu ' + (record.code || ''), detail);
+        var linkedTask = document.querySelector('[data-open-linked-task]');
+        if (linkedTask) linkedTask.addEventListener('click', function () { RHUI.openSupportForm(this.getAttribute('data-open-linked-task')); });
     };
 
     RHUI.printCashflow = function (id) {
@@ -210,7 +213,7 @@
 
     RHUI.exportCashflows = function () {
         var records = RHD.list('cashflows');
-        var headers = ['code', 'type', 'date', 'buildingId', 'apartmentId', 'category', 'description', 'amount', 'personName', 'accountName', 'reference'];
+        var headers = ['code', 'type', 'date', 'buildingId', 'apartmentId', 'category', 'description', 'amount', 'personName', 'accountName', 'reference', 'taskId', 'taskCode', 'staffId', 'staffName'];
         var csvCell = function (value) { return '"' + String(value == null ? '' : value).replace(/"/g, '""') + '"'; };
         var csv = [headers.join(','), records.map(function (record) { return headers.map(function (key) { return csvCell(record[key]); }).join(','); }).join('\r\n')].join('\r\n');
         var blob = new Blob(['\ufeff' + csv], { type: 'text/csv;charset=utf-8' });
@@ -3505,6 +3508,26 @@
         var completionReview = r.staffTaskStatus === 'pending_approval'
             ? '<div style="grid-column:1/-1;padding:.8rem 1rem;border-radius:10px;background:#fff7df;color:#8a5a00;"><strong>Nhân viên đã báo hoàn thành.</strong> Trạng thái hiện tại: ' + escapeHtml(staffTaskStatusLabels[r.staffTaskStatus]) + '.<p style="margin:.5rem 0;color:#475569;">' + escapeHtml(r.staffCompletionNote || 'Nhân viên chưa gửi ghi chú kết quả.') + '</p><button type="button" class="btn-primary" id="srApproveCompletion">Duyệt hoàn thành</button></div>'
             : (r.staffTaskStatus ? '<div style="grid-column:1/-1;padding:.65rem .85rem;border-radius:10px;background:#f1f5f9;color:#475569;">Tiến độ nhiệm vụ: <strong>' + escapeHtml(staffTaskStatusLabels[r.staffTaskStatus] || r.staffTaskStatus) + '</strong></div>' : '');
+        var staffWage = r.staffWage || {};
+        var staffWageHistory = Array.isArray(staffWage.history) ? staffWage.history : [];
+        var staffWageAdjustments = Array.isArray(staffWage.adjustments) ? staffWage.adjustments : [];
+        var staffWageTotal = Number(staffWage.baseAmount || 0) + staffWageAdjustments.reduce(function (sum, item) { return sum + (Number(item.amount) || 0); }, 0);
+        var staffWageCashflow = staffWage.cashflowId ? RHD.get('cashflows', staffWage.cashflowId) : null;
+        var staffWageReady = r.staffTaskStatus === 'approved' || r.status === 'resolved';
+        var staffWageLocked = staffWage.status === 'paid';
+        var staffWageMarkup = '<div style="grid-column:1/-1;padding:1rem;border:1px solid #dbe4ef;border-radius:12px;background:#f8fbff;"><strong><i class="fas fa-coins" style="color:#1683ff;"></i> Tiền công nhiệm vụ</strong>' +
+            (staffWageReady ? '' : '<p style="margin:.45rem 0;color:#9a6700;font-size:.82rem;">Chỉ lập tiền công sau khi nhiệm vụ được Quản lý duyệt hoàn thành.</p>') +
+            '<div class="rh-grid-2" style="margin-top:.7rem;">' +
+            '<div class="rh-field"><label>Tiền công cơ bản đã duyệt (đ)</label><input id="srWageBase" type="number" min="0" step="1" value="' + (Number(staffWage.baseAmount) || '') + '"' + (!staffWageReady || staffWageLocked ? ' disabled' : '') + '></div>' +
+            '<div class="rh-field"><label>Điều chỉnh lần này (+/- đ)</label><input id="srWageAdjustment" type="number" step="1" value="" placeholder="0"' + (!staffWageReady || staffWageLocked ? ' disabled' : '') + '></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label>Lý do điều chỉnh (bắt buộc nếu có điều chỉnh)</label><input id="srWageAdjustmentReason" maxlength="300" placeholder="Nêu rõ căn cứ điều chỉnh"' + (!staffWageReady || staffWageLocked ? ' disabled' : '') + '></div>' +
+            '<div class="rh-field"><label>Trạng thái thanh toán</label><select id="srWageStatus"' + (!staffWageReady || staffWageLocked ? ' disabled' : '') + '><option value="unpaid">Chưa thanh toán</option><option value="paid"' + (staffWage.status === 'paid' ? ' selected' : '') + '>Đã thanh toán</option></select></div>' +
+            '<div class="rh-field"><label>Ngày thanh toán</label><input id="srWagePaidDate" type="date" value="' + escapeHtml(staffWage.paidAt ? String(staffWage.paidAt).slice(0, 10) : '') + '"' + (!staffWageReady || staffWageLocked ? ' disabled' : '') + '></div></div>' +
+            '<p style="margin:.55rem 0;color:#475569;font-size:.85rem;">Tổng tiền công hiện tại: <strong>' + money(staffWageTotal) + '</strong> · ' + escapeHtml(staffWage.status === 'paid' ? 'Đã thanh toán' : staffWage.baseAmount != null ? 'Chưa thanh toán' : 'Chưa lập') +
+            (staffWageCashflow ? ' · Sổ quỹ: ' + money(staffWageCashflow.amount) + (Number(staffWageCashflow.amount) === staffWageTotal ? ' (khớp)' : ' (chênh ' + money(Number(staffWageCashflow.amount) - staffWageTotal) + ')') + ' · <a href="#" data-open-wage-cashflow="' + escapeHtml(staffWage.cashflowId) + '">Mở phiếu chi ' + escapeHtml(staffWageCashflow.code || '') + '</a>' : '') + '</p>' +
+            (staffWageAdjustments.length ? '<details style="margin-top:.5rem;"><summary>Lịch sử điều chỉnh (' + staffWageAdjustments.length + ')</summary><ul style="margin:.45rem 0;color:#475569;font-size:.8rem;">' + staffWageAdjustments.map(function (item) { return '<li>' + (Number(item.amount) > 0 ? '+' : '') + money(item.amount) + ' · ' + escapeHtml(item.reason || '—') + ' · ' + escapeHtml(item.by || '') + ' · ' + escapeHtml(item.at ? new Date(item.at).toLocaleString('vi-VN') : '') + '</li>'; }).join('') + '</ul></details>' : '') +
+            (staffWageHistory.length ? '<details style="margin-top:.5rem;"><summary>Lịch sử duyệt / thanh toán</summary><ul style="margin:.45rem 0;color:#475569;font-size:.8rem;">' + staffWageHistory.slice().reverse().map(function (item) { return '<li>' + escapeHtml(item.label || 'Cập nhật') + ' · ' + escapeHtml(item.by || '') + ' · ' + escapeHtml(item.at ? new Date(item.at).toLocaleString('vi-VN') : '') + (item.note ? ' — ' + escapeHtml(item.note) : '') + '</li>'; }).join('') + '</ul></details>' : '') +
+            '</div>';
         var attachmentFiles = Array.isArray(r.attachmentFiles) ? r.attachmentFiles.filter(function (file) { return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || ''); }) : [];
         var attachmentMarkup = attachmentFiles.length
             ? '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Ảnh đính kèm</label><div style="display:flex;flex-wrap:wrap;gap:.65rem;margin-top:.45rem;">' + attachmentFiles.map(function (file, index) {
@@ -3518,6 +3541,7 @@
             '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
             attachmentMarkup +
             completionReview +
+            staffWageMarkup +
             '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
             '<div class="rh-field"><label>Tài khoản nhân viên</label><select id="srAssigneeAccount">' + staffAccountOptions + '</select></div>' +
             '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"><small>Chọn tài khoản để nhiệm vụ chỉ hiển thị với đúng nhân viên.</small></div>' +
@@ -3539,6 +3563,11 @@
         if (approveCompletion) approveCompletion.addEventListener('click', function () {
             byId('srStatus').value = 'resolved';
             RHUI.submitSupportForm({ preventDefault: function () {} });
+        });
+        var openWageCashflow = document.querySelector('[data-open-wage-cashflow]');
+        if (openWageCashflow) openWageCashflow.addEventListener('click', function (event) {
+            event.preventDefault();
+            RHUI.openCashflowDetail(this.getAttribute('data-open-wage-cashflow'));
         });
         byId('srReply').addEventListener('keydown', function (ev) {
             if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); RHUI.sendSupportReply(); }
@@ -3647,7 +3676,83 @@
             if (before.status !== 'resolved') changes.resolvedAt = now;
         }
         if (status === 'closed' && before.status !== 'closed') changes.closedAt = now;
+        var newWageCashflowId = '';
+        var wageBaseInput = byId('srWageBase');
+        if (wageBaseInput) {
+            var previousWage = before.staffWage || {};
+            var previousAdjustments = Array.isArray(previousWage.adjustments) ? previousWage.adjustments.slice() : [];
+            var previousWageHistory = Array.isArray(previousWage.history) ? previousWage.history.slice() : [];
+            var baseAmount = Number(wageBaseInput.value) || 0;
+            var adjustmentAmount = Number(byId('srWageAdjustment').value) || 0;
+            var adjustmentReason = byId('srWageAdjustmentReason').value.trim();
+            var wageStatus = byId('srWageStatus').value;
+            var paidDate = byId('srWagePaidDate').value;
+            var oldBaseAmount = Number(previousWage.baseAmount) || 0;
+            var wasPaid = previousWage.status === 'paid';
+            var wageWasChanged = baseAmount !== oldBaseAmount || adjustmentAmount !== 0 || wageStatus !== (previousWage.status === 'paid' ? 'paid' : 'unpaid') || paidDate !== String(previousWage.paidAt || '').slice(0, 10);
+            if (oldBaseAmount > 0 && baseAmount !== oldBaseAmount) {
+                alert('Mức tiền công cơ bản đã duyệt được giữ nguyên. Hãy ghi phần chênh lệch thành khoản điều chỉnh và nêu lý do.');
+                return;
+            }
+            if (wasPaid && wageWasChanged) {
+                alert('Khoản tiền công đã thanh toán được khóa. Không thể sửa số đã duyệt hoặc ghi nhận thanh toán lần nữa.');
+                return;
+            }
+            var wageTaskApproved = before.staffTaskStatus === 'approved' || before.status === 'resolved';
+            if (!wageTaskApproved && (baseAmount > 0 || adjustmentAmount !== 0 || wageStatus === 'paid')) {
+                alert('Chỉ lập tiền công sau khi Quản lý duyệt hoàn thành nhiệm vụ.');
+                return;
+            }
+            if (baseAmount < 0 || (adjustmentAmount !== 0 && !adjustmentReason)) {
+                alert('Tiền công cơ bản không được âm; khoản điều chỉnh phải có lý do.');
+                return;
+            }
+            var wageHistory = previousWageHistory;
+            if (baseAmount !== oldBaseAmount && baseAmount > 0) {
+                wageHistory.push({ label: 'Duyệt tiền công cơ bản', by: actorName(), at: now, note: 'Mức cơ bản: ' + money(baseAmount) });
+            }
+            if (adjustmentAmount !== 0) {
+                previousAdjustments.push({ id: 'wage-adjust-' + now + '-' + Math.random().toString(36).slice(2, 7), amount: adjustmentAmount, reason: adjustmentReason, by: actorName(), at: now });
+                wageHistory.push({ label: 'Điều chỉnh tiền công', by: actorName(), at: now, note: (adjustmentAmount > 0 ? '+' : '') + money(adjustmentAmount) + ' — ' + adjustmentReason });
+            }
+            var approvedAmount = baseAmount + previousAdjustments.reduce(function (sum, item) { return sum + (Number(item.amount) || 0); }, 0);
+            if (approvedAmount < 0 || (wageStatus === 'paid' && approvedAmount <= 0)) {
+                alert('Tổng tiền công phải lớn hơn 0 trước khi ghi nhận thanh toán.');
+                return;
+            }
+            if (wageStatus === 'paid' && !paidDate) {
+                alert('Vui lòng chọn ngày thanh toán để tạo phiếu chi đối chiếu.');
+                return;
+            }
+            if (wageStatus === 'paid' && previousWage.status !== 'paid') {
+                var wageCashflow = RHD.create('cashflows', {
+                    code: 'TC-' + String(now).slice(-8), type: 'expense', date: paidDate,
+                    buildingId: before.buildingId || '', apartmentId: before.apartmentId || '',
+                    category: 'Tiền công nhân viên', amount: approvedAmount,
+                    paymentMethod: 'Chưa ghi rõ', accountName: 'Chưa ghi rõ', personName: assignee || 'Nhân viên',
+                    reference: 'Nhiệm vụ ' + (before.code || before.id), description: 'Chi tiền công nhiệm vụ: ' + (before.title || before.code || before.id),
+                    status: 'confirmed', taskId: before.id, taskCode: before.code || before.id,
+                    staffId: assignedStaff ? assignedStaff.id : before.assigneeId || '', staffName: assignee || before.assignee || ''
+                });
+                if (!wageCashflow.ok) { alert(wageCashflow.error || 'Không thể tạo phiếu chi tiền công.'); return; }
+                newWageCashflowId = wageCashflow.item.id;
+                wageHistory.push({ label: 'Ghi nhận đã thanh toán', by: actorName(), at: now, note: 'Phiếu chi ' + wageCashflow.item.code + ' · ' + money(approvedAmount) });
+            }
+            changes.staffWage = {
+                baseAmount: baseAmount,
+                approvedAmount: approvedAmount,
+                adjustments: previousAdjustments,
+                status: wageStatus === 'paid' ? 'paid' : (approvedAmount > 0 ? 'unpaid' : 'draft'),
+                approvedAt: approvedAmount > 0 ? (previousWage.approvedAt || now) : null,
+                approvedBy: approvedAmount > 0 ? (previousWage.approvedBy || actorName()) : '',
+                paidAt: wageStatus === 'paid' ? paidDate : '',
+                cashflowId: newWageCashflowId || previousWage.cashflowId || '',
+                history: wageHistory
+            };
+        }
         var res = RHD.update('supportRequests', RHUI.drawerId, changes);
+        if (!res.ok && newWageCashflowId) RHD.remove('cashflows', newWageCashflowId);
+        if (!res.ok) { alert(res.error || 'Không thể lưu hồ sơ nhiệm vụ và tiền công.'); return; }
         // Notify the resident account linked to this request (by residentId).
         if (res.ok && RHD.getSettings().notifySupportStatus && before && before.status !== res.item.status && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
             global.RH.syncManagerNotification({
