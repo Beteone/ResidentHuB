@@ -233,6 +233,11 @@
 
     function list(entity) { return readAll(entity); }
 
+    function isStaffPortalSession() {
+        var session = global.RH && typeof global.RH.getSession === 'function' ? global.RH.getSession() : null;
+        return !!session && (session.role === 'staff' || (session.role === 'manager' && session.accountTypeId === 'at-staff'));
+    }
+
     function get(entity, id) {
         var items = readAll(entity);
         for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
@@ -278,6 +283,10 @@
     }
 
     function create(entity, data) {
+        if (isStaffPortalSession() && ((entity === 'supportRequests' && data && Object.prototype.hasOwnProperty.call(data, 'staffWage')) ||
+            (entity === 'cashflows' && data && data.taskId))) {
+            return { ok: false, error: 'Nhân viên không có quyền tự ghi tiền công hoặc phiếu chi liên kết nhiệm vụ.' };
+        }
         if (mode() === 'demo') {
             var info = limitInfo(entity);
             if (info.reached) {
@@ -308,6 +317,10 @@
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         var previous = items[idx];
+        if (isStaffPortalSession() && ((entity === 'supportRequests' && Object.prototype.hasOwnProperty.call(patch || {}, 'staffWage')) ||
+            (entity === 'cashflows' && (previous.taskId || Object.prototype.hasOwnProperty.call(patch || {}, 'taskId'))))) {
+            return { ok: false, error: 'Nhân viên không có quyền sửa tiền công đã duyệt hoặc phiếu chi liên kết nhiệm vụ.' };
+        }
         var updated = Object.assign({}, previous, patch, { id: previous.id, createdAt: previous.createdAt });
         if (entity === 'contracts' && ['apartmentId', 'customerId', 'customerIds', 'tenantIds', 'startDate', 'endDate', 'status', 'handoverAssets'].some(function (key) {
             return Object.prototype.hasOwnProperty.call(patch, key);
@@ -331,6 +344,9 @@
     function remove(entity, id) {
         var items = readAll(entity);
         var removed = items.filter(function (r) { return r.id === id; });
+        if (isStaffPortalSession() && entity === 'cashflows' && removed.some(function (record) { return !!record.taskId; })) {
+            return { ok: false, error: 'Nhân viên không có quyền xóa phiếu chi liên kết tiền công.' };
+        }
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         writeAll(entity, next);
