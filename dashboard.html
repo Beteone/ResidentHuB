@@ -2544,6 +2544,20 @@
         .set-drop i{color:#1683ff;margin-right:.3rem}
         .set-drop small{color:#94a3b8}
         .set-drop img{max-height:64px;max-width:180px;object-fit:contain}
+        .logo-editor-shade{position:fixed;inset:0;z-index:10050;display:flex;align-items:center;justify-content:center;padding:20px;background:rgba(16,33,60,.62)}
+        .logo-editor{width:min(460px,100%);max-height:calc(100dvh - 40px);overflow:auto;background:#fff;border-radius:16px;box-shadow:0 24px 70px rgba(16,33,60,.3);padding:22px}
+        .logo-editor h3{margin:0 0 6px;color:#10213c;font-size:1.1rem}
+        .logo-editor p{margin:0 0 16px;color:#61708a;font-size:.86rem;line-height:1.5}
+        .logo-editor-canvas{display:block;width:min(320px,100%);aspect-ratio:1;margin:0 auto 14px;border:1px solid #dbe4ef;border-radius:10px;background-color:#fff;background-image:linear-gradient(45deg,#e8edf3 25%,transparent 25%),linear-gradient(-45deg,#e8edf3 25%,transparent 25%),linear-gradient(45deg,transparent 75%,#e8edf3 75%),linear-gradient(-45deg,transparent 75%,#e8edf3 75%);background-size:20px 20px;background-position:0 0,0 10px,10px -10px,-10px 0;touch-action:none;cursor:grab}
+        .logo-editor-canvas:active{cursor:grabbing}
+        .logo-editor-zoom{display:flex;align-items:center;gap:12px;color:#52647a;font-size:.82rem}
+        .logo-editor-zoom input{flex:1;accent-color:#1683ff}
+        .logo-editor-remove-bg{display:flex;align-items:flex-start;gap:9px;margin:16px 0;color:#334155;font-size:.86rem;line-height:1.45}
+        .logo-editor-remove-bg input{margin-top:3px;accent-color:#1683ff}
+        .logo-editor-actions{display:flex;justify-content:flex-end;gap:8px;margin-top:18px}
+        .logo-editor-actions button{border:1px solid #cbd5e1;border-radius:8px;background:#fff;padding:9px 14px;color:#334155}
+        .logo-editor-actions .logo-editor-apply{border-color:#1683ff;background:#1683ff;color:#fff;font-weight:600}
+        @media(max-width:480px){.logo-editor-shade{padding:10px}.logo-editor{padding:16px}}
         .rh-switch{position:relative;width:44px;height:24px;flex:0 0 44px;cursor:pointer}
         .rh-switch input{position:absolute;opacity:0;width:0;height:0}
         .rh-switch span{position:absolute;inset:0;background:#dbe3ec;border-radius:999px;transition:.2s}
@@ -3937,6 +3951,20 @@
                     </div>
                 </div>
 
+                <div id="logoEditorShade" class="logo-editor-shade" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="logoEditorTitle">
+                    <div class="logo-editor">
+                        <h3 id="logoEditorTitle">Chỉnh sửa logo</h3>
+                        <p>Kéo ảnh để căn giữa và dùng thanh trượt để phóng to, thu nhỏ trong khung vuông. Phần nằm ngoài khung sẽ được cắt.</p>
+                        <canvas id="logoEditorCanvas" class="logo-editor-canvas" width="320" height="320" aria-label="Khung xem trước logo vuông"></canvas>
+                        <label class="logo-editor-zoom"><span>Thu nhỏ</span><input id="logoEditorZoom" type="range" min="1" max="4" value="1" step="0.01" aria-label="Thu phóng ảnh"><span>Phóng to</span></label>
+                        <label class="logo-editor-remove-bg"><input type="checkbox" id="logoEditorRemoveBg" checked><span>Làm trong suốt phần nền liền với mép ảnh (có thể bỏ chọn nếu ảnh bị mất chi tiết).</span></label>
+                        <div class="logo-editor-actions">
+                            <button type="button" id="logoEditorCancel">Huỷ</button>
+                            <button type="button" class="logo-editor-apply" id="logoEditorApply">Dùng logo này</button>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="set-save" id="settingsSaveBar">
                     <span class="set-saved" id="settingsSaved"><i class="fas fa-circle-check"></i> Đã lưu cài đặt</span>
                     <span id="settingsError" style="color:#ef4444;font-size:.85rem;"></span>
@@ -5315,6 +5343,132 @@
             document.getElementById('setLogoRemove').style.display = dataUrl ? '' : 'none';
         }
 
+        let logoEditorImage = null;
+        let logoEditorScale = 1;
+        let logoEditorBaseScale = 1;
+        let logoEditorOffsetX = 0;
+        let logoEditorOffsetY = 0;
+        let logoEditorDrag = null;
+
+        function renderLogoEditor() {
+            const canvas = document.getElementById('logoEditorCanvas');
+            const ctx = canvas.getContext('2d');
+            if (!ctx || !logoEditorImage) return;
+            const width = logoEditorImage.naturalWidth * logoEditorBaseScale * logoEditorScale;
+            const height = logoEditorImage.naturalHeight * logoEditorBaseScale * logoEditorScale;
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.drawImage(logoEditorImage, (canvas.width - width) / 2 + logoEditorOffsetX, (canvas.height - height) / 2 + logoEditorOffsetY, width, height);
+        }
+
+        function openLogoEditor(dataUrl) {
+            const err = document.getElementById('settingsError');
+            const image = new Image();
+            image.onload = function () {
+                const canvas = document.getElementById('logoEditorCanvas');
+                const slider = document.getElementById('logoEditorZoom');
+                logoEditorImage = image;
+                logoEditorBaseScale = Math.max(canvas.width / image.naturalWidth, canvas.height / image.naturalHeight);
+                logoEditorScale = 1;
+                logoEditorOffsetX = 0;
+                logoEditorOffsetY = 0;
+                slider.value = '1';
+                document.getElementById('logoEditorRemoveBg').checked = true;
+                document.getElementById('logoEditorShade').style.display = 'flex';
+                renderLogoEditor();
+                document.getElementById('logoEditorCancel').focus();
+            };
+            image.onerror = function () { err.textContent = 'Không thể mở ảnh logo này. Vui lòng thử file ảnh khác.'; };
+            image.src = dataUrl;
+        }
+
+        function closeLogoEditor() {
+            document.getElementById('logoEditorShade').style.display = 'none';
+            logoEditorImage = null;
+            logoEditorDrag = null;
+        }
+
+        function removeLogoBackground(imageData) {
+            const { data, width, height } = imageData;
+            const visited = new Uint8Array(width * height);
+            const queue = new Int32Array(width * height);
+            const threshold = 48 * 48 * 3;
+            const seeds = [0, width - 1, (height - 1) * width, height * width - 1];
+            seeds.forEach(seed => {
+                if (visited[seed]) return;
+                const seedOffset = seed * 4;
+                const red = data[seedOffset];
+                const green = data[seedOffset + 1];
+                const blue = data[seedOffset + 2];
+                if (data[seedOffset + 3] === 0) return;
+                let read = 0;
+                let write = 0;
+                queue[write++] = seed;
+                visited[seed] = 1;
+                while (read < write) {
+                    const pixel = queue[read++];
+                    const offset = pixel * 4;
+                    const dr = data[offset] - red;
+                    const dg = data[offset + 1] - green;
+                    const db = data[offset + 2] - blue;
+                    if (dr * dr + dg * dg + db * db > threshold || data[offset + 3] === 0) continue;
+                    data[offset + 3] = 0;
+                    const x = pixel % width;
+                    const neighbors = [];
+                    if (x > 0) neighbors.push(pixel - 1);
+                    if (x < width - 1) neighbors.push(pixel + 1);
+                    if (pixel >= width) neighbors.push(pixel - width);
+                    if (pixel < width * (height - 1)) neighbors.push(pixel + width);
+                    neighbors.forEach(next => {
+                        const nextOffset = next * 4;
+                        const nextRed = data[nextOffset] - red;
+                        const nextGreen = data[nextOffset + 1] - green;
+                        const nextBlue = data[nextOffset + 2] - blue;
+                        if (!visited[next] && data[nextOffset + 3] > 0 && nextRed * nextRed + nextGreen * nextGreen + nextBlue * nextBlue <= threshold) {
+                            visited[next] = 1;
+                            queue[write++] = next;
+                        }
+                    });
+                }
+            });
+            return imageData;
+        }
+
+        function applyLogoCrop() {
+            const err = document.getElementById('settingsError');
+            const preview = document.getElementById('logoEditorCanvas');
+            const removeBackground = document.getElementById('logoEditorRemoveBg').checked;
+            try {
+                const output = document.createElement('canvas');
+                let dataUrl = '';
+                [384, 256, 192, 128, 64].some(size => {
+                    output.width = size;
+                    output.height = size;
+                    const ctx = output.getContext('2d');
+                    if (!ctx) throw new Error('Không thể xử lý ảnh trên trình duyệt này.');
+                    ctx.clearRect(0, 0, size, size);
+                    ctx.drawImage(preview, 0, 0, size, size);
+                    if (removeBackground) {
+                        const imageData = ctx.getImageData(0, 0, size, size);
+                        ctx.putImageData(removeLogoBackground(imageData), 0, 0);
+                    }
+                    const pixels = ctx.getImageData(0, 0, size, size).data;
+                    let hasVisiblePixel = false;
+                    for (let index = 3; index < pixels.length; index += 4) {
+                        if (pixels[index] > 0) { hasVisiblePixel = true; break; }
+                    }
+                    if (!hasVisiblePixel) throw new Error('Khung logo đang trống. Hãy căn lại ảnh hoặc bỏ chọn mục làm trong suốt nền.');
+                    dataUrl = output.toDataURL('image/png');
+                    return dataUrl.length <= 300 * 1024;
+                });
+                if (dataUrl.length > 300 * 1024) throw new Error('Ảnh logo sau khi xử lý vẫn quá lớn. Vui lòng chọn ảnh khác.');
+                setLogoPreview(dataUrl);
+                err.textContent = '';
+                closeLogoEditor();
+            } catch (error) {
+                err.textContent = error && error.message ? error.message : 'Không thể xử lý ảnh logo.';
+            }
+        }
+
         function readLogoFile(file) {
             const err = document.getElementById('settingsError');
             err.textContent = '';
@@ -5322,7 +5476,8 @@
             if (!/^image\/(png|jpeg|svg\+xml)$/.test(file.type)) { err.textContent = 'Logo phải là file SVG, PNG hoặc JPG.'; return; }
             if (file.size > 300 * 1024) { err.textContent = 'Logo tối đa 300KB.'; return; }
             const reader = new FileReader();
-            reader.onload = () => setLogoPreview(reader.result);
+            reader.onload = () => openLogoEditor(reader.result);
+            reader.onerror = () => { err.textContent = 'Không thể đọc file logo. Vui lòng thử lại.'; };
             reader.readAsDataURL(file);
         }
 
@@ -5341,6 +5496,33 @@
             ['dragleave', 'drop'].forEach(t => drop.addEventListener(t, () => drop.classList.remove('over')));
             drop.addEventListener('drop', e => { e.preventDefault(); readLogoFile(e.dataTransfer.files[0]); });
             document.getElementById('setLogoRemove').addEventListener('click', () => setLogoPreview(''));
+            document.getElementById('logoEditorZoom').addEventListener('input', function () {
+                logoEditorScale = Number(this.value);
+                renderLogoEditor();
+            });
+            document.getElementById('logoEditorApply').addEventListener('click', applyLogoCrop);
+            document.getElementById('logoEditorCancel').addEventListener('click', closeLogoEditor);
+            const logoCanvas = document.getElementById('logoEditorCanvas');
+            logoCanvas.addEventListener('pointerdown', function (event) {
+                if (!logoEditorImage) return;
+                logoEditorDrag = { x: event.clientX, y: event.clientY, offsetX: logoEditorOffsetX, offsetY: logoEditorOffsetY };
+                logoCanvas.setPointerCapture(event.pointerId);
+            });
+            logoCanvas.addEventListener('pointermove', function (event) {
+                if (!logoEditorDrag) return;
+                const bounds = logoCanvas.getBoundingClientRect();
+                const factor = logoCanvas.width / bounds.width;
+                const width = logoEditorImage.naturalWidth * logoEditorBaseScale * logoEditorScale;
+                const height = logoEditorImage.naturalHeight * logoEditorBaseScale * logoEditorScale;
+                const minOffsetX = 32 - ((logoCanvas.width - width) / 2 + width);
+                const maxOffsetX = logoCanvas.width - 32 - (logoCanvas.width - width) / 2;
+                const minOffsetY = 32 - ((logoCanvas.height - height) / 2 + height);
+                const maxOffsetY = logoCanvas.height - 32 - (logoCanvas.height - height) / 2;
+                logoEditorOffsetX = Math.max(minOffsetX, Math.min(maxOffsetX, logoEditorDrag.offsetX + (event.clientX - logoEditorDrag.x) * factor));
+                logoEditorOffsetY = Math.max(minOffsetY, Math.min(maxOffsetY, logoEditorDrag.offsetY + (event.clientY - logoEditorDrag.y) * factor));
+                renderLogoEditor();
+            });
+            ['pointerup', 'pointercancel', 'lostpointercapture'].forEach(type => logoCanvas.addEventListener(type, () => { logoEditorDrag = null; }));
         }
 
         function renderSettingsTab() {
@@ -5386,7 +5568,7 @@
             const logo = RHD.getSettings().orgLogo;
             const box = document.querySelector('.sidebar-logo');
             if (!box) return;
-            box.innerHTML = logo ? '<img src="' + logo + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;background:#fff;">' : '<i class="fas fa-home"></i>';
+            box.innerHTML = logo ? '<img src="' + logo + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;background:transparent;">' : '<i class="fas fa-home"></i>';
         }
 
         function changeOwnPassword() {
