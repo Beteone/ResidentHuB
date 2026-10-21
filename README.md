@@ -14,6 +14,8 @@ npm run dev        # build lại tự động khi sửa file trong src/
 - Mã nguồn: `src/meter-reading/` (`MeterReadingPage` giữ state; `DashboardCards`, `RecordTable`, `AddRecordModal`, `MeterBlock`, `PhotoViewer`).
 - `dist/meter-reading.js` được commit vào repo để web vẫn chạy tĩnh không cần build. Sửa code trong `src/` thì nhớ chạy `npm run build` và commit cả file trong `dist/`.
 - Class Tailwind do Tailwind CDN trong `dashboard.html` sinh ra lúc chạy.
+- Hướng dẫn phát triển, kiểm thử và build các module: [PLAYBOOK.md](./PLAYBOOK.md).
+- Tài liệu giới thiệu sản phẩm dành cho Marketing/Content: [docs/PRODUCT-INTRODUCTION-FOR-MARKETING.md](./docs/PRODUCT-INTRODUCTION-FOR-MARKETING.md).
 
 ## Phân quyền (Loại tài khoản)
 
