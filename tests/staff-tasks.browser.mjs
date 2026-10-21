@@ -1,0 +1,149 @@
+import assert from 'node:assert/strict';
+import { createServer } from 'node:http';
+import { readFileSync, mkdtempSync, rmSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import { resolve, join, extname } from 'node:path';
+import { spawn } from 'node:child_process';
+
+const root = resolve('.');
+const server = createServer((req, res) => {
+    const path = resolve(root, '.' + req.url.split(/[?#]/)[0]);
+    if (!path.startsWith(root + '\\')) { res.writeHead(403).end(); return; }
+    try {
+        let content = readFileSync(path);
+        const extension = extname(path);
+        if (extension === '.html') content = Buffer.from(content.toString('utf8')
+            .replace(/<script[^>]*src="https?:[^"<>]+"[^>]*><\/script>/g, '')
+            .replace(/<link[^>]*href="https?:[^"<>]+"[^>]*>/g, ''));
+        res.setHeader('Content-Type', extension === '.js' ? 'text/javascript; charset=utf-8' : extension === '.css' ? 'text/css; charset=utf-8' : extension === '.html' ? 'text/html; charset=utf-8' : 'application/octet-stream');
+        res.end(content);
+    } catch { res.writeHead(404).end(); }
+});
+await new Promise(resolveListen => server.listen(0, '127.0.0.1', resolveListen));
+const profileRoot = mkdtempSync(join(tmpdir(), 'residenthub-staff-task-check-'));
+const browser = spawn('C:/Program Files (x86)/Microsoft/Edge/Application/msedge.exe', [
+    '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+    '--remote-debugging-port=0', `--user-data-dir=${join(profileRoot, 'profile')}`, 'about:blank'
+], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
+let ws;
+try {
+    const endpoint = await new Promise((resolveEndpoint, reject) => {
+        const timer = setTimeout(() => reject(Error('Browser startup timeout')), 15000);
+        browser.once('error', reject);
+        browser.stderr.on('data', chunk => {
+            const match = String(chunk).match(/DevTools listening on (ws:\/\/\S+)/);
+            if (match) { clearTimeout(timer); resolveEndpoint(match[1]); }
+        });
+    });
+    const targets = await (await fetch(`http://${new URL(endpoint).host}/json/list`)).json();
+    ws = new WebSocket(targets.find(target => target.type === 'page').webSocketDebuggerUrl);
+    await new Promise((resolveOpen, reject) => { ws.onopen = resolveOpen; ws.onerror = reject; });
+    let sequence = 0;
+    const pending = new Map();
+    const errors = [];
+    ws.onmessage = event => {
+        const message = JSON.parse(event.data);
+        if (message.method === 'Runtime.exceptionThrown') errors.push(message.params.exceptionDetails);
+        const call = pending.get(message.id);
+        if (!call) return;
+        pending.delete(message.id);
+        message.error ? call.reject(Error(JSON.stringify(message.error))) : call.resolve(message.result);
+    };
+    const send = (method, params = {}) => new Promise((resolveCall, rejectCall) => {
+        const id = ++sequence;
+        pending.set(id, { resolve: resolveCall, reject: rejectCall });
+        ws.send(JSON.stringify({ id, method, params }));
+    });
+    const evaluate = async expression => {
+        const result = await send('Runtime.evaluate', { expression, returnByValue: true, awaitPromise: true });
+        if (result.exceptionDetails) throw Error(JSON.stringify(result.exceptionDetails));
+        return result.result.value;
+    };
+    const navigate = async path => {
+        await send('Page.navigate', { url: `http://127.0.0.1:${server.address().port}${path}` });
+        for (let i = 0; i < 150; i++) {
+            if (await evaluate('document.readyState === "complete" && !!window.RHD')) return;
+            await new Promise(resolveWait => setTimeout(resolveWait, 50));
+        }
+        throw Error('Page load timeout: ' + path);
+    };
+
+    await send('Page.enable');
+    await send('Runtime.enable');
+    await send('Page.addScriptToEvaluateOnNewDocument', { source: 'window.alert=message=>{window.__lastAlert=message};window.__lastAlert="";' });
+    await navigate('/index.html');
+    await evaluate(`
+        const users=RH.getUsers();
+        const manager=users.find(user=>user.role==='manager');
+        users.push({id:'staff-task-check',name:'Staff Task Check',email:'staff-task-check@example.test',password:'test-password',role:'manager',accountTypeId:'at-staff',staffGroup:'technical',status:'active'});
+        users.push({id:'resident-task-check',name:'Resident Task Check',email:'resident-task-check@example.test',password:'test-password',role:'resident',residentId:'staff-task-resident',apartmentId:'staff-task-apartment',unit:'101',status:'active'});
+        localStorage.setItem('residenthub_users',JSON.stringify(users));
+        RH.login(manager,false);
+        RHD.setMode('live');
+        RHD.create('buildings',{id:'staff-task-building',name:'Task Building',shortName:'TB',managerId:manager.id});
+        RHD.create('apartments',{id:'staff-task-apartment',buildingId:'staff-task-building',name:'101'});
+        RHD.create('customers',{id:'staff-task-resident',fullName:'Task Resident'});
+        RHD.create('contracts',{id:'staff-task-contract',buildingId:'staff-task-building',apartmentId:'staff-task-apartment',customerId:'staff-task-resident',status:'active',startDate:'2026-01-01',endDate:'2027-01-01'});
+        RHD.create('supportRequests',{id:'staff-task-request',code:'YC-TASK-01',buildingId:'staff-task-building',apartmentId:'staff-task-apartment',customerId:'staff-task-resident',residentName:'Task Resident',category:'Sửa chữa căn hộ',title:'Kiểm tra điều hòa',description:'Điều hòa không lạnh.',location:'Phòng 101',priority:'needed',status:'new',assignee:'',messages:[]});
+        RHD.create('supportRequests',{id:'staff-task-private',code:'YC-TASK-02',title:'Nhiệm vụ của người khác',description:'Không hiển thị cho nhân viên này.',status:'new',priority:'urgent',messages:[]});
+    `);
+    await navigate('/dashboard.html');
+    await evaluate(`
+        switchTab('support');
+        RHUI.openSupportForm('staff-task-request');
+        const picker=document.getElementById('srAssigneeAccount');
+        picker.value='staff-task-check';
+        picker.dispatchEvent(new Event('change',{bubbles:true}));
+        document.getElementById('srStaffGroup').value='technical';
+        document.getElementById('srDueAt').value='2026-10-30';
+        document.getElementById('srStaffNote').value='Kiểm tra van khóa trước khi thay thiết bị.';
+        RHUI.submitSupportForm({preventDefault(){}});
+    `);
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {assigneeId:r.assigneeId,group:r.staffGroup,status:r.status,dueAt:r.dueAt,note:r.staffManagerNote}})()`), {
+        assigneeId: 'staff-task-check', group: 'technical', status: 'accepted', dueAt: '2026-10-30', note: 'Kiểm tra van khóa trước khi thay thiết bị.'
+    }, 'Management assigns a grouped task on the shared support request');
+
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='staff-task-check'),false)`);
+    await navigate('/staff.html');
+    assert.equal(await evaluate(`document.getElementById('staffPageTitle').textContent==='Danh sách nhiệm vụ'&&!!document.getElementById('staffTaskSearch')`), true, 'Staff opens directly on the task list');
+    await evaluate(`document.querySelector('[data-title="Danh sách nhiệm vụ"]').click()`);
+    assert.equal(await evaluate(`!!document.getElementById('staffTaskStatus')&&!!document.getElementById('staffTaskPriority')&&!!document.getElementById('staffTaskBuilding')&&!!document.getElementById('staffTaskFrom')&&!!document.getElementById('staffTaskTo')`), true, 'Task list supports status, priority, building, and due-date filters');
+    assert.equal(await evaluate(`!Array.from(document.querySelectorAll('#staffSidebar [data-title]')).some(item=>item.dataset.title==='Chi tiết nhiệm vụ')`), true, 'Task detail is not a separate sidebar menu item');
+    assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Kiểm tra điều hòa')`), true);
+    assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Nhiệm vụ của người khác')`), false);
+    await evaluate(`document.querySelector('[data-open-task="staff-task-request"]').click()`);
+    assert.equal(await evaluate(`document.getElementById('staffPageTitle').textContent==='Chi tiết nhiệm vụ'&&document.getElementById('staffContent').textContent.includes('Kiểm tra điều hòa')`), true, 'Selecting a task opens its details');
+    assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Kiểm tra van khóa trước khi thay thiết bị.')`), true, 'Staff sees the manager-only task note');
+    await evaluate(`document.querySelector('[data-title="Cập nhật tiến độ"]').click();document.querySelector('[data-task-action="start"]').click()`);
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus}})()`), {
+        status: 'in_progress', taskStatus: 'in_progress'
+    });
+    await evaluate(`document.getElementById('staffCompletionNote').value='Đã kiểm tra và khắc phục.';document.querySelector('[data-task-action="complete"]').click()`);
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus,note:r.staffCompletionNote}})()`), {
+        status: 'in_progress', taskStatus: 'pending_approval', note: 'Đã kiểm tra và khắc phục.'
+    }, 'Staff completion waits for management approval without closing the resident request');
+
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.role==='manager'),false)`);
+    await navigate('/dashboard.html');
+    await evaluate(`switchTab('support');RHUI.openSupportForm('staff-task-request')`);
+    assert.equal(await evaluate(`document.getElementById('rhDrawerBody').textContent.includes('Đã kiểm tra và khắc phục.')`), true);
+    await evaluate(`document.getElementById('srApproveCompletion').click()`);
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus}})()`), {
+        status: 'resolved', taskStatus: 'approved'
+    }, 'Management approval completes the same resident support request');
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='resident-task-check'),false)`);
+    await navigate('/resident-web.html');
+    await evaluate(`showResidentSection('requests');openRequestDetail('YC-TASK-01')`);
+    assert.equal(await evaluate(`document.getElementById('modalBody').textContent.includes('Yêu cầu đã được xử lý')`), true, 'The resident support page shows the approved request');
+    assert.equal(errors.length, 0, JSON.stringify(errors));
+    console.log('Staff task assignment, access isolation, progress, and approval passed.');
+} finally {
+    ws?.close();
+    if (browser.exitCode === null) {
+        browser.kill();
+        await new Promise(resolveExit => browser.once('exit', resolveExit));
+    }
+    server.closeAllConnections();
+    server.close();
+    rmSync(profileRoot, { recursive: true, force: true });
+}

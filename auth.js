@@ -317,7 +317,7 @@
             data.users[user.id] = userData;
             writeDataStore(data);
             if (changed) {
-                createNotificationForUser(user.id, {
+                var notificationPayload = global.RHGeneralSettings ? global.RHGeneralSettings.prepareRecordNotice(record, kind, user) : {
                     type: kind === 'contract' ? 'CONTRACT' : 'BILLING',
                     subType: kind === 'contract' ? 'CONTRACT_UPDATED' : 'INVOICE_UPDATED',
                     title: kind === 'contract' ? 'Hợp đồng đã được cập nhật' : 'Hóa đơn mới đã được cập nhật',
@@ -326,7 +326,8 @@
                     refId: record.id,
                     actionUrl: kind === 'contract' ? 'contracts' : 'invoices',
                     actionLabel: kind === 'contract' ? 'Xem hợp đồng' : 'Xem hóa đơn'
-                });
+                };
+                if (notificationPayload) createNotificationForUser(user.id, notificationPayload);
             }
         });
         return { ok: true, count: targets.length };
@@ -421,15 +422,18 @@
     function syncManagerNotification(record) {
         var targets = usersForManagerRecord(record);
         targets.forEach(function (user) {
+            var message = global.RHGeneralSettings ? global.RHGeneralSettings.prepareSupport(record, user) : record;
+            if (!message) return;
             createNotificationForUser(user.id, {
-                type: ({ info: 'ANNOUNCEMENT', announcement: 'ANNOUNCEMENT', billing: 'BILLING', request: 'REQUEST', contract: 'CONTRACT' }[String(record.type || '').toLowerCase()] || String(record.type || 'ANNOUNCEMENT').toUpperCase()),
+                type: ({ info: 'ANNOUNCEMENT', announcement: 'ANNOUNCEMENT', billing: 'BILLING', request: 'REQUEST', contract: 'CONTRACT' }[String(message.type || '').toLowerCase()] || String(message.type || 'ANNOUNCEMENT').toUpperCase()),
                 subType: 'MANAGER_MESSAGE',
-                title: record.title || 'Thông báo từ ban quản lý',
-                body: record.body || '',
-                refType: record.refType || 'notifications',
-                refId: record.id || '',
-                actionUrl: record.actionUrl || 'notifications',
-                actionLabel: record.actionLabel || 'Xem thông báo'
+                campaignId: message.campaignId || '',
+                title: message.title || 'Thông báo từ ban quản lý',
+                body: message.body || '',
+                refType: message.refType || 'notifications',
+                refId: message.id || '',
+                actionUrl: message.actionUrl || 'notifications',
+                actionLabel: message.actionLabel || 'Xem thông báo'
             });
         });
         return { ok: true, count: targets.length };
@@ -509,6 +513,7 @@
         normalized.department = String(normalized.department || '').trim();
         normalized.title = String(normalized.title || '').trim();
         normalized.employeeCode = String(normalized.employeeCode || '').trim();
+        normalized.staffGroup = String(normalized.staffGroup || '').trim();
         // Links a resident login account to its Resident Profile (RHD customer,
         // see data.js). Set once, at account-request approval time, and never
         // re-derived — this is the account's identity link, not a display cache.
@@ -641,6 +646,7 @@
             department: String(data.department || '').trim(),
             title: String(data.title || '').trim(),
             employeeCode: String(data.employeeCode || '').trim(),
+            staffGroup: String(data.staffGroup || '').trim(),
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -657,6 +663,7 @@
         var users = readUsers();
         users.push(user);
         writeUsers(users);
+        if (global.RHActivity) global.RHActivity.record('users', 'create', null, user);
         syncResidentApartmentRecords(user);
         return { ok: true, user: user };
     }
@@ -688,6 +695,7 @@
             return { ok: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
         }
 
+        var beforeAudit = JSON.parse(JSON.stringify(users[index]));
         var user = users[index];
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
@@ -709,6 +717,7 @@
         if (patch.department !== undefined) user.department = String(patch.department || '').trim();
         if (patch.title !== undefined) user.title = String(patch.title || '').trim();
         if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode || '').trim();
+        if (patch.staffGroup !== undefined) user.staffGroup = String(patch.staffGroup || '').trim();
         if (patch.status !== undefined) {
             if (['active', 'inactive', 'locked'].indexOf(patch.status) === -1) return { ok: false, error: 'Trạng thái tài khoản không hợp lệ.' };
             user.status = patch.status;
@@ -717,12 +726,13 @@
 
         users[index] = user;
         writeUsers(users);
+        if (global.RHActivity) global.RHActivity.record('users', 'update', beforeAudit, user);
 
         syncResidentApartmentRecords(user);
 
         var session = getSession();
         if (session && session.id === id) {
-            login(user, isRemembered());
+            login(user, isRemembered(), true);
         }
         return { ok: true, user: user };
     }
@@ -743,6 +753,7 @@
             return { ok: false, error: 'Phải có ít nhất một tài khoản Quản lý trong hệ thống.' };
         }
         writeUsers(next);
+        if (global.RHActivity) global.RHActivity.record('users', 'delete', removed, null);
         return { ok: true };
     }
 
@@ -1057,7 +1068,7 @@
         return !!localStorage.getItem(SESSION_KEY);
     }
 
-    function login(user, remember) {
+    function login(user, remember, refreshOnly) {
         var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', apartmentId: user.apartmentId || '', residentId: user.residentId || '', loginAt: Date.now(), currentUserId: user.id };
         var data = JSON.stringify(session);
         if (remember) {
@@ -1072,6 +1083,7 @@
             localStorage.removeItem(CURRENT_USER_KEY);
         }
         ensureUserContainer(user.id);
+        if (!refreshOnly && global.RHActivity) global.RHActivity.record('auth', 'login', null, { id: user.id }, { actor: user });
         return session;
     }
 
@@ -1089,6 +1101,8 @@
                 name: user.name,
                 email: user.email,
                 role: user.role,
+                accountTypeId: user.accountTypeId || '',
+                staffGroup: user.staffGroup || '',
                 unit: user.unit || '',
                 apartmentId: user.apartmentId || '',
                 residentId: user.residentId || '',
@@ -1100,10 +1114,17 @@
     }
 
     function logout() {
+        // Read the raw session to avoid recursion when getSession invalidates it.
+        var auditSession = null;
+        try {
+            auditSession = JSON.parse(sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY) || 'null');
+            if (auditSession) auditSession = readUsers().find(function (u) { return u.id === auditSession.id; }) || auditSession;
+        } catch (e) { /* Session cleanup must still run. */ }
         sessionStorage.removeItem(SESSION_KEY);
         localStorage.removeItem(SESSION_KEY);
         sessionStorage.removeItem(CURRENT_USER_KEY);
         localStorage.removeItem(CURRENT_USER_KEY);
+        if (auditSession && global.RHActivity) global.RHActivity.record('auth', 'logout', { id: auditSession.id }, null, { actor: auditSession });
     }
 
     // Blocks unauthorized access to a role-restricted page. Must be called
@@ -1115,8 +1136,9 @@
             global.location.replace('index.html?authRequired=1');
             return null;
         }
-        if (session.role !== role) {
-            var target = session.role === ROLES.MANAGER ? 'dashboard.html' : session.role === ROLES.STAFF ? 'staff.html' : 'resident-web.html';
+        var staffPortalAccount = role === ROLES.STAFF && session.role === ROLES.MANAGER && session.accountTypeId === 'at-staff';
+        if (session.role !== role && !staffPortalAccount) {
+            var target = session.role === ROLES.MANAGER && session.accountTypeId === 'at-staff' ? 'staff.html' : session.role === ROLES.MANAGER ? 'dashboard.html' : session.role === ROLES.STAFF ? 'staff.html' : 'resident-web.html';
             global.location.replace(target + '?denied=1');
             return null;
         }
@@ -1156,6 +1178,7 @@
         syncManagerRecord: syncManagerRecord,
         removeManagerRecord: removeManagerRecord,
         syncManagerNotification: syncManagerNotification,
+        resolveNotificationRecipients: usersForManagerRecord,
         updateNotificationForUser: updateNotificationForUser,
         updateRequestForUser: updateRequestForUser,
         deleteRequestForUser: deleteRequestForUser,
