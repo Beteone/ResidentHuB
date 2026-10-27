@@ -286,9 +286,58 @@
         .staff-notice-row p { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
         .staff-notice-row small { display:block; margin-top:6px; color:var(--muted); font-size:10px; }
         .staff-notice-read { flex:0 0 auto; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:7px 9px; font:500 11px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-notification-page { display:grid; grid-template-columns:minmax(0,.95fr) minmax(0,1.05fr); align-items:stretch; gap:16px; }
+        .sr-only { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; clip-path:inset(50%); }
+        .staff-notification-panel { min-width:0; margin:0; padding:20px; }
+        .staff-notification-panel-head { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; margin-bottom:16px; }
+        .staff-notification-title { display:flex; min-width:0; align-items:flex-start; gap:12px; }
+        .staff-notification-icon { display:grid; width:38px; height:38px; flex:0 0 38px; place-items:center; border-radius:12px; background:#edf5ff; color:var(--primary); }
+        .staff-notification-title h2 { margin:1px 0 0; font-size:16px; }
+        .staff-notification-title p { margin:5px 0 0; color:var(--muted); font-size:11px; line-height:1.55; }
+        .staff-notification-panel h3 { margin:18px 0 5px; padding:9px 11px; border-radius:8px; background:#f3f6fa; color:#52637b; font-size:10px; letter-spacing:.04em; }
+        .staff-notification-panel .staff-setting-choice { align-items:center; padding:12px 4px; }
+        .staff-notification-panel .staff-setting-choice strong { font-size:12px; }
+        .staff-notification-panel .staff-setting-choice small { font-size:10px; }
+        .staff-notification-switch { width:38px !important; height:21px !important; flex:0 0 38px; margin:0; appearance:none; border:0; border-radius:999px; background:#d5dde8; cursor:pointer; transition:background .16s ease; }
+        .staff-notification-switch:before { display:block; width:15px; height:15px; margin:3px; border-radius:50%; background:#fff; box-shadow:0 1px 3px #0002; content:''; transition:transform .16s ease; }
+        .staff-notification-switch:checked { background:var(--primary); }
+        .staff-notification-switch:checked:before { transform:translateX(17px); }
+        .staff-notification-switch:disabled { cursor:not-allowed; opacity:.55; }
+        .staff-notification-switch:focus-visible,.staff-notice-read:focus-visible,.staff-notification-filter:focus-visible,.staff-notification-search:focus-visible { outline:3px solid #8cc4ff; outline-offset:2px; }
+        .staff-notification-unavailable { flex:0 0 auto; align-self:center; border-radius:999px; background:#f1f5f9; color:#64748b; padding:4px 8px; font-size:9px; }
+        .staff-inbox-actions { display:flex; align-items:center; justify-content:flex-end; min-height:38px; }
+        .staff-notification-search { width:100%; min-height:40px; margin-bottom:11px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); padding:9px 12px; font:inherit; font-size:12px; }
+        .staff-notification-filters { display:flex; flex-wrap:wrap; gap:7px; margin-bottom:10px; }
+        .staff-notification-filter { display:inline-flex; align-items:center; gap:6px; min-height:33px; border:1px solid var(--line); border-radius:999px; background:var(--surface); color:var(--muted); padding:6px 11px; font:600 10px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-notification-filter[aria-pressed="true"] { border-color:var(--primary); background:var(--primary); color:#fff; }
+        .staff-notification-list { max-height:640px; overflow-y:auto; }
+        .staff-notice-row { gap:10px; }
+        .staff-notice-copy { min-width:0; flex:1; }
+        .staff-notice-copy strong { font-size:12px; line-height:1.5; }
+        .staff-notice-row.unread { border-left:3px solid var(--primary); padding-left:10px; }
+        .staff-notice-row p { font-size:11px; overflow-wrap:anywhere; }
+        .staff-notice-action { display:flex; flex:0 0 auto; flex-direction:column; align-items:flex-end; gap:6px; }
+        .staff-notification-empty { display:grid; min-height:260px; place-content:center; justify-items:center; padding:24px; color:var(--muted); text-align:center; }
+        .staff-notification-empty i { display:grid; width:76px; height:76px; place-items:center; margin-bottom:12px; border-radius:50%; background:#edf5ff; color:var(--primary); font-size:30px; }
+        .staff-notification-empty strong { color:var(--ink); font-size:15px; }
+        .staff-notification-empty span { max-width:320px; margin-top:6px; font-size:11px; line-height:1.6; }
+        .staff-notification-caution { margin-top:14px; padding:11px 13px; border:1px solid #cfe2ff; border-radius:9px; background:#f2f8ff; color:#2563a6; font-size:10px; line-height:1.6; }
+        html[data-theme="dark"] .staff-notification-panel h3 { background:#293548; color:#c2cedd; }
+        html[data-theme="dark"] .staff-notification-icon,html[data-theme="dark"] .staff-notification-empty i { background:#263b55; }
+        html[data-theme="dark"] .staff-notification-unavailable { background:#293548; color:#c2cedd; }
+        html[data-theme="dark"] .staff-notification-caution { border-color:#344e6e; background:#223852; color:#c8daf0; }
         .staff-settings-note { margin-top:12px; color:var(--muted); font-size:11px; line-height:1.6; }
         .staff-settings-message { min-height:20px; margin-top:10px; color:#16865e; font-size:12px; }
         .staff-settings-message.error { color:#c24141; }
+        @media (max-width: 1050px) { .staff-notification-page { grid-template-columns:minmax(0,1fr); } }
+        @media (max-width: 560px) {
+            .staff-notification-panel { padding:14px; }
+            .staff-notification-panel-head { flex-direction:column; }
+            .staff-inbox-actions { justify-content:flex-start; }
+            .staff-notice-row { flex-direction:column; }
+            .staff-notice-action { flex-direction:row; align-items:center; }
+            .staff-notification-list { max-height:none; }
+        }
         .staff-appearance-page { display:grid; grid-template-columns:minmax(340px,.95fr) minmax(0,1.05fr); gap:14px; align-items:stretch; }
         .staff-appearance-panel { min-width:0; margin:0; padding:16px; }
         .staff-appearance-panel h2 { margin:0; font-size:15px; }
@@ -492,6 +541,8 @@
         var profileDraftAvatar = '';
         var profileFieldErrors = {};
         var staffSettingsMessage = null;
+        var notificationFilter = 'all';
+        var notificationSearch = '';
         var appearanceDraft = null;
         var appearancePreviewDevice = 'desktop';
         var profileTab = 'overview';
@@ -898,6 +949,38 @@
             }[category];
         }
 
+        function renderNotificationList(notifications) {
+            var list = document.getElementById('staffNotificationList');
+            if (!list) return;
+            var search = notificationSearch.trim().toLocaleLowerCase('vi');
+            var filtered = notifications.filter(function (item) {
+                if (notificationFilter === 'unread' && item.isRead) return false;
+                if (notificationFilter === 'read' && !item.isRead) return false;
+                var category = notificationLabel(item.subType);
+                var text = [item.title, item.body, category && category[0]].join(' ').toLocaleLowerCase('vi');
+                return !search || text.indexOf(search) !== -1;
+            });
+            if (!filtered.length) {
+                var message = search ? 'Không tìm thấy thông báo phù hợp với từ khóa.' :
+                    (notificationFilter === 'unread' ? 'Bạn đã xem hết thông báo chưa đọc.' :
+                        (notificationFilter === 'read' ? 'Chưa có thông báo đã đọc.' : 'Các thông báo mới sẽ xuất hiện tại đây khi có sự kiện liên quan đến công việc của bạn.'));
+                list.innerHTML = '<div class="staff-notification-empty"><i class="fas fa-bell" aria-hidden="true"></i><strong>' +
+                    (search ? 'Không có kết quả' : (notificationFilter === 'all' && !notifications.length ? 'Bạn chưa có thông báo' : 'Không có thông báo')) +
+                    '</strong><span>' + escapeHtml(message) + '</span></div>';
+                return;
+            }
+            list.innerHTML = filtered.map(function (item) {
+                var isTask = item.refType === 'task' && item.refId;
+                var action = isTask ? '<button type="button" class="staff-notice-read" data-notification-task="' + escapeHtml(item.refId) + '" data-notification-id="' + escapeHtml(item.id) + '">' +
+                    escapeHtml(item.actionLabel || 'Mở nhiệm vụ') + '</button>' : '';
+                var readAction = !item.isRead ? '<button type="button" class="staff-notice-read" data-notification-read="' + escapeHtml(item.id) + '">Đánh dấu đã đọc</button>' :
+                    '<span class="staff-settings-note">Đã đọc</span>';
+                return '<article class="staff-notice-row' + (!item.isRead ? ' unread' : '') + '">' +
+                    '<div class="staff-notice-copy"><strong>' + escapeHtml(item.title || 'Thông báo') + '</strong><p>' + escapeHtml(item.body || '') + '</p><small>' + escapeHtml(formatNotificationTime(item.createdAt)) + '</small></div>' +
+                    '<div class="staff-notice-action">' + action + readAction + '</div></article>';
+            }).join('');
+        }
+
         function formatNotificationTime(value) {
             var date = new Date(Number(value) || value);
             return isNaN(date.getTime()) ? '' : date.toLocaleString('vi-VN');
@@ -945,20 +1028,26 @@
             var categories = ['taskNew', 'assignmentChanged', 'deadline', 'infoRequest', 'taskStatus', 'system'];
             var categoryMarkup = categories.map(function (category) {
                 var label = notificationLabel(category);
-                return '<label class="staff-setting-choice"><span><strong>' + escapeHtml(label[0]) + '</strong><small>' + escapeHtml(label[1]) + '</small></span><input type="checkbox" data-notification-category="' + category + '"' + (settings.categories[category] ? ' checked' : '') + ' aria-label="Bật thông báo: ' + escapeHtml(label[0]) + '"></label>';
-            }).join('');
-            var inboxMarkup = notifications.map(function (item) {
-                return '<div class="staff-notice-row' + (!item.isRead ? ' unread' : '') + '"><div><strong>' + escapeHtml(item.title || 'Thông báo') + '</strong><p>' + escapeHtml(item.body || '') + '</p><small>' + escapeHtml(formatNotificationTime(item.createdAt)) + '</small></div>' +
-                    (!item.isRead ? '<button type="button" class="staff-notice-read" data-notification-read="' + escapeHtml(item.id) + '">Đánh dấu đã đọc</button>' : '<span class="staff-settings-note">Đã đọc</span>') + '</div>';
+                return '<label class="staff-setting-choice"><span><strong>' + escapeHtml(label[0]) + '</strong><small>' + escapeHtml(label[1]) + '</small></span><input class="staff-notification-switch" type="checkbox" role="switch" data-notification-category="' + category + '"' + (settings.categories[category] ? ' checked' : '') + ' aria-label="Bật thông báo: ' + escapeHtml(label[0]) + '"></label>';
             }).join('');
             var unread = notifications.filter(function (item) { return !item.isRead; }).length;
-            staffContent.innerHTML = '<div class="staff-settings-grid"><div class="staff-panel"><h2>Tùy chọn nhận thông báo</h2>' +
-                '<label class="staff-setting-choice"><span><strong>Thông báo trong website</strong><small>Bật/tắt kênh thông báo lưu trong tài khoản.</small></span><input type="checkbox" data-notification-channel="inApp"' + (settings.channels.inApp ? ' checked' : '') + ' aria-label="Thông báo trong website"></label>' +
-                '<label class="staff-setting-choice"><span><strong>Email</strong><small>Chưa khả dụng vì hệ thống chưa tích hợp dịch vụ gửi email.</small></span><input type="checkbox" disabled aria-label="Thông báo email chưa được hỗ trợ"></label>' + categoryMarkup +
-                '<p class="staff-settings-message' + (staffSettingsMessage && staffSettingsMessage.error ? ' error' : '') + '" id="staffSettingsMessage" role="status">' + escapeHtml(staffSettingsMessage ? staffSettingsMessage.text : '') + '</p></div>' +
-                '<div class="staff-panel"><h2>Hộp thư thông báo <span class="staff-badge">' + unread + ' chưa đọc</span></h2>' +
-                (inboxMarkup || '<div class="staff-empty">Chưa có thông báo.</div>') +
-                '<p class="staff-settings-note">Thông báo ở đây lấy từ dữ liệu thực của tài khoản. Tắt thông báo chỉ ngừng tạo thông báo mới, không ảnh hưởng nhiệm vụ.</p></div></div>';
+            var read = notifications.length - unread;
+            staffContent.innerHTML = '<div class="staff-notification-page">' +
+                '<section class="staff-panel staff-notification-panel" aria-labelledby="staffNotificationPreferencesTitle"><div class="staff-notification-panel-head"><div class="staff-notification-title"><span class="staff-notification-icon"><i class="fas fa-bell" aria-hidden="true"></i></span><div><h2 id="staffNotificationPreferencesTitle">Tùy chọn nhận thông báo</h2><p>Chọn loại thông tin công việc bạn muốn nhận. Tùy chọn được lưu theo tài khoản.</p></div></div><span class="staff-badge done"><i class="fas fa-circle-check" aria-hidden="true"></i>&nbsp; Lưu tự động</span></div>' +
+                '<h3>KÊNH NHẬN THÔNG BÁO</h3>' +
+                '<label class="staff-setting-choice"><span><strong><i class="fas fa-desktop" aria-hidden="true"></i>&nbsp; Thông báo trên website</strong><small>Hiển thị thông báo trong tài khoản và cập nhật số chưa đọc.</small></span><input class="staff-notification-switch" type="checkbox" role="switch" data-notification-channel="inApp"' + (settings.channels.inApp ? ' checked' : '') + ' aria-label="Thông báo trên website"></label>' +
+                '<div class="staff-setting-choice"><span><strong><i class="fas fa-envelope" aria-hidden="true"></i>&nbsp; Thông báo qua email</strong><small>Gửi email khi hệ thống được tích hợp dịch vụ email.</small></span><span class="staff-notification-unavailable">Chưa tích hợp</span></div>' +
+                '<h3>LOẠI THÔNG BÁO</h3>' + categoryMarkup +
+                '<p class="staff-settings-message' + (staffSettingsMessage && staffSettingsMessage.error ? ' error' : '') + '" id="staffSettingsMessage" role="status" aria-live="polite">' + escapeHtml(staffSettingsMessage ? staffSettingsMessage.text : '') + '</p></section>' +
+                '<section class="staff-panel staff-notification-panel" aria-labelledby="staffNotificationInboxTitle"><div class="staff-notification-panel-head"><div class="staff-notification-title"><span class="staff-notification-icon"><i class="fas fa-bell" aria-hidden="true"></i></span><div><h2 id="staffNotificationInboxTitle">Hộp thư thông báo <span class="staff-badge">' + unread + ' chưa đọc</span></h2><p>Xem và quản lý các thông báo liên quan đến công việc của bạn.</p></div></div><div class="staff-inbox-actions"><button type="button" class="staff-notice-read" data-notification-mark-all' + (!unread ? ' disabled' : '') + '><i class="fas fa-check" aria-hidden="true"></i>&nbsp; Đánh dấu tất cả đã đọc</button></div></div>' +
+                '<label class="sr-only" for="staffNotificationSearch">Tìm kiếm thông báo</label><input id="staffNotificationSearch" class="staff-notification-search" type="search" value="' + escapeHtml(notificationSearch) + '" placeholder="Tìm kiếm thông báo..." autocomplete="off">' +
+                '<div class="staff-notification-filters" role="group" aria-label="Lọc thông báo">' +
+                '<button type="button" class="staff-notification-filter" data-notification-filter="all" aria-pressed="' + (notificationFilter === 'all') + '">Tất cả (' + notifications.length + ')</button>' +
+                '<button type="button" class="staff-notification-filter" data-notification-filter="unread" aria-pressed="' + (notificationFilter === 'unread') + '">Chưa đọc (' + unread + ')</button>' +
+                '<button type="button" class="staff-notification-filter" data-notification-filter="read" aria-pressed="' + (notificationFilter === 'read') + '">Đã đọc (' + read + ')</button></div>' +
+                '<div class="staff-notification-list" id="staffNotificationList" aria-live="polite"></div>' +
+                '<p class="staff-notification-caution"><i class="fas fa-circle-info" aria-hidden="true"></i>&nbsp; Cài đặt này chỉ ảnh hưởng đến việc nhận thông báo, không thay đổi nhiệm vụ, phân công hoặc trạng thái công việc.</p></section></div>';
+            renderNotificationList(notifications);
             updateStaffNotificationCount();
         }
 
@@ -1212,6 +1301,37 @@
         staffContent.addEventListener('click', function (event) {
             var pageButton = event.target.closest('[data-staff-page]');
             if (pageButton) { openPage(pageButton.dataset.staffPage); return; }
+            var notificationFilterButton = event.target.closest('[data-notification-filter]');
+            if (notificationFilterButton) {
+                notificationFilter = notificationFilterButton.dataset.notificationFilter;
+                renderNotificationSettings();
+                return;
+            }
+            var markAllButton = event.target.closest('[data-notification-mark-all]');
+            if (markAllButton) {
+                var unreadNotifications = RH.getCurrentUserNotifications().filter(function (item) { return !item.isRead; });
+                var markedCount = 0;
+                var markError = '';
+                unreadNotifications.forEach(function (item) {
+                    if (markError) return;
+                    var result = RH.markCurrentUserNotificationRead(item.id);
+                    if (!result.ok) markError = result.error || 'Không thể cập nhật tất cả thông báo.';
+                    else markedCount++;
+                });
+                staffSettingsMessage = markError
+                    ? { text: markedCount ? 'Đã đánh dấu ' + markedCount + ' thông báo; còn một số thông báo chưa cập nhật. ' + markError : markError, error: true }
+                    : { text: markedCount ? 'Đã đánh dấu ' + markedCount + ' thông báo là đã đọc.' : 'Không có thông báo chưa đọc.', error: false };
+                renderNotificationSettings();
+                return;
+            }
+            var taskNoticeButton = event.target.closest('[data-notification-task]');
+            if (taskNoticeButton) {
+                var noticeReadResult = RH.markCurrentUserNotificationRead(taskNoticeButton.dataset.notificationId);
+                if (!noticeReadResult.ok) setStaffSettingsMessage(noticeReadResult.error || 'Không thể cập nhật thông báo.', true);
+                selectedTaskId = taskNoticeButton.dataset.notificationTask;
+                openPage(assignedTasks().some(function (task) { return task.id === selectedTaskId; }) ? 'Chi tiết nhiệm vụ' : 'Danh sách nhiệm vụ');
+                return;
+            }
             var appearanceOption = event.target.closest('[data-appearance-option]');
             if (appearanceOption) {
                 appearanceDraft[appearanceOption.dataset.appearanceOption] = appearanceOption.dataset.value;
@@ -1364,6 +1484,13 @@
             renderProfile();
         });
         staffContent.addEventListener('input', function (event) {
+            if (event.target.id === 'staffNotificationSearch') {
+                notificationSearch = event.target.value;
+                renderNotificationList(RH.getCurrentUserNotifications().slice().sort(function (a, b) {
+                    return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+                }));
+                return;
+            }
             var field = event.target.id === 'staffProfileEmail' ? 'email' : (event.target.id === 'staffProfilePhone' ? 'phone' : '');
             if (!field || !profileFieldErrors[field]) return;
             setProfileFieldError(field, profileFieldError(field, event.target.value.trim()));
