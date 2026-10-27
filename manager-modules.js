@@ -3381,7 +3381,7 @@
             var searchText = [r.code, r.residentName, r.title, r.category, r.location, apt && apt.name, building && building.name, building && building.shortName].join(' ').toLocaleLowerCase();
             return (!supportListFilters.search || searchText.indexOf(supportListFilters.search.toLocaleLowerCase()) !== -1) &&
                 (supportListFilters.source === 'all' || (r.source === 'staff' ? 'staff' : 'resident') === supportListFilters.source) &&
-                (supportListFilters.status === 'all' || r.status === supportListFilters.status) &&
+                (supportListFilters.status === 'all' || r.status === supportListFilters.status || (supportListFilters.status === 'pending_approval' && r.staffTaskStatus === 'pending_approval')) &&
                 (supportListFilters.category === 'all' || r.category === supportListFilters.category) &&
                 (supportListFilters.priority === 'all' || r.priority === supportListFilters.priority);
         });
@@ -3420,11 +3420,11 @@
             '<div style="display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:1rem;">' +
             '<select id="rhSupportSourceFilter" aria-label="Nguồn yêu cầu" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;">' + [{id:'all',label:'Tất cả nguồn'},{id:'resident',label:'Cư dân'},{id:'staff',label:'Nhân viên'}].map(function (source) { return '<option value="' + source.id + '"' + (supportListFilters.source === source.id ? ' selected' : '') + '>' + source.label + '</option>'; }).join('') + '</select>' +
             '<input id="rhSupportSearch" type="search" value="' + escapeHtml(supportListFilters.search) + '" placeholder="Tìm mã, cư dân, căn hộ, nội dung..." aria-label="Tìm yêu cầu hỗ trợ" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;">' +
-            '<select id="rhSupportStatusFilter" aria-label="Lọc trạng thái" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả trạng thái</option>' + (RHD.SUPPORT_STATUSES || []).map(function (s) { return '<option value="' + escapeHtml(s.id) + '"' + (supportListFilters.status === s.id ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>'; }).join('') + '</select>' +
+            '<select id="rhSupportStatusFilter" aria-label="Lọc trạng thái" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả trạng thái</option>' + (RHD.SUPPORT_STATUSES || []).map(function (s) { return '<option value="' + escapeHtml(s.id) + '"' + (supportListFilters.status === s.id ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>'; }).join('') + '<option value="pending_approval"' + (supportListFilters.status === 'pending_approval' ? ' selected' : '') + '>Chờ duyệt kết quả (Nhân viên)</option></select>' +
             '<select id="rhSupportTypeFilter" aria-label="Lọc loại yêu cầu" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả loại</option>' + categories.map(function (category) { return '<option value="' + escapeHtml(category) + '"' + (supportListFilters.category === category ? ' selected' : '') + '>' + escapeHtml(category) + '</option>'; }).join('') + '</select>' +
             '<select id="rhSupportPriorityFilter" aria-label="Lọc mức độ ưu tiên" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả mức độ</option>' + (RHD.SUPPORT_PRIORITIES || []).map(function (priority) { return '<option value="' + escapeHtml(priority.id) + '"' + (supportListFilters.priority === priority.id ? ' selected' : '') + '>' + escapeHtml(priority.label) + '</option>'; }).join('') + '</select></div>' +
-            '<div class="support-status-filters" role="group" aria-label="Lọc yêu cầu theo trạng thái">' + [{ id: 'all', label: 'Tất cả' }].concat(RHD.SUPPORT_STATUSES || []).map(function (status) {
-                return '<button type="button" data-support-status-filter="' + escapeHtml(status.id) + '" class="' + (supportListFilters.status === status.id ? 'active' : '') + '" aria-pressed="' + (supportListFilters.status === status.id) + '">' + escapeHtml(status.label) + '<span>' + requests.filter(function (request) { return status.id === 'all' || request.status === status.id; }).length + '</span></button>';
+            '<div class="support-status-filters" role="group" aria-label="Lọc yêu cầu theo trạng thái">' + [{ id: 'all', label: 'Tất cả' }].concat(RHD.SUPPORT_STATUSES || []).concat([{ id: 'pending_approval', label: 'Chờ duyệt kết quả' }]).map(function (status) {
+                return '<button type="button" data-support-status-filter="' + escapeHtml(status.id) + '" class="' + (supportListFilters.status === status.id ? 'active' : '') + '" aria-pressed="' + (supportListFilters.status === status.id) + '">' + escapeHtml(status.label) + '<span>' + requests.filter(function (request) { return status.id === 'all' || (status.id === 'pending_approval' ? request.staffTaskStatus === 'pending_approval' : request.status === status.id); }).length + '</span></button>';
             }).join('') + '</div>' +
             (requests.length ? '<div style="color:#70839d;font-size:.82rem;margin-bottom:.55rem;">Hiển thị ' + visibleRequests.length + ' / ' + requests.length + ' yêu cầu</div><div class="table-container support-request-table-wrap"><table class="support-request-table"><thead><tr><th>Yêu cầu</th><th>Cư dân / căn hộ</th><th>Mức độ</th><th>Trạng thái</th><th>Phụ trách / ghi chú</th><th>Thời gian gửi</th><th>Thao tác</th></tr></thead><tbody>' + (rows || '<tr><td colspan="7" style="padding:1rem;text-align:center;color:#94a3b8;">Không có yêu cầu phù hợp với bộ lọc.</td></tr>') + '</tbody></table></div>'
                 : emptyState('fa-headset', 'Chưa có yêu cầu hỗ trợ nào từ cư dân.')) +
@@ -3510,8 +3510,28 @@
             pending_approval: 'Hoàn thành (Chờ Quản lý duyệt)',
             approved: 'Đã được Quản lý duyệt'
         };
+        var completionImages = (r.staffProgress && Array.isArray(r.staffProgress.images)) ? r.staffProgress.images : [];
+        var completionImagesHtml = completionImages.length ? ('<div style="margin-top:.7rem;"><strong style="font-size:.82rem;color:#78350f;display:block;margin-bottom:6px;"><i class="fas fa-camera"></i> Hình ảnh hoàn thành / nghiệm thu (' + completionImages.length + ' ảnh):</strong><div style="display:flex;flex-wrap:wrap;gap:8px;">' + completionImages.map(function (img, idx) {
+            return '<a href="' + escapeHtml(img.dataUrl) + '" target="_blank" rel="noopener" style="display:inline-block;width:80px;height:80px;border-radius:8px;overflow:hidden;border:1px solid #ffd591;box-shadow:0 1px 3px rgba(0,0,0,.08);"><img src="' + escapeHtml(img.dataUrl) + '" alt="' + escapeHtml(img.name || 'Ảnh minh chứng ' + (idx + 1)) + '" style="width:100%;height:100%;object-fit:cover;"></a>';
+        }).join('') + '</div></div>') : '';
+        var followUpHtml = (r.staffProgress && r.staffProgress.followUpProposal)
+            ? '<div style="margin-top:.5rem;padding:.5rem .75rem;border-radius:8px;background:#fff;border:1px solid #fed7aa;font-size:.85rem;color:#7c2d12;"><i class="fas fa-circle-exclamation" style="color:#ea580c;"></i> <strong>Đề xuất xử lý tiếp / Tồn đọng:</strong> ' + escapeHtml(r.staffProgress.followUpProposal) + '</div>'
+            : '';
+        var reviewMaterials = Array.isArray(r.staffMaterials) ? r.staffMaterials : [];
+        var reviewMaterialsTotal = reviewMaterials.reduce(function (sum, item) { return sum + (Number(item.amount) || (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0)); }, 0);
+        var reviewMaterialsHtml = reviewMaterials.length ? ('<div style="margin-top:.8rem;border-top:1px dashed #fed7aa;padding-top:.7rem;"><strong style="font-size:.82rem;color:#78350f;display:block;margin-bottom:6px;"><i class="fas fa-boxes-stacked"></i> Vật tư / chi phí phát sinh đề xuất duyệt (' + reviewMaterials.length + ' mục):</strong><ul style="margin:0;padding-left:18px;font-size:.85rem;color:#475569;">' + reviewMaterials.map(function (m) {
+            return '<li><strong>' + escapeHtml(m.materialName) + '</strong>: SL ' + (m.quantity || 1) + ' × ' + money(m.unitPrice || 0) + ' = <strong>' + money(m.amount || ((m.quantity || 1) * (m.unitPrice || 0))) + '</strong> (' + escapeHtml(m.reason || 'Sửa chữa') + ')' + (m.receipt && m.receipt.dataUrl ? ' · <a href="' + escapeHtml(m.receipt.dataUrl) + '" target="_blank" rel="noopener" style="color:#0284c7;font-weight:600;"><i class="fas fa-receipt"></i> Xem hóa đơn</a>' : '') + '</li>';
+        }).join('') + '</ul><p style="margin:.45rem 0 0;font-weight:700;color:#047857;font-size:.9rem;">Tổng chi phí vật tư: ' + money(reviewMaterialsTotal) + '</p></div>') : '';
+
         var completionReview = r.staffTaskStatus === 'pending_approval'
-            ? '<div style="grid-column:1/-1;padding:.8rem 1rem;border-radius:10px;background:#fff7df;color:#8a5a00;"><strong>Nhân viên đã báo hoàn thành.</strong> Trạng thái hiện tại: ' + escapeHtml(staffTaskStatusLabels[r.staffTaskStatus]) + '.<p style="margin:.5rem 0;color:#475569;">' + escapeHtml(r.staffCompletionNote || 'Nhân viên chưa gửi ghi chú kết quả.') + '</p><button type="button" class="btn-primary" id="srApproveCompletion">Duyệt hoàn thành</button></div>'
+            ? '<div style="grid-column:1/-1;padding:1rem 1.15rem;border-radius:12px;background:#fffbeb;border:1px solid #fef3c7;box-shadow:0 1px 3px rgba(0,0,0,.05);"><div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:8px;"><div style="display:flex;align-items:center;gap:8px;"><span style="display:inline-flex;width:28px;height:28px;border-radius:50%;background:#fef3c7;color:#d97706;align-items:center;justify-content:center;font-size:14px;"><i class="fas fa-clipboard-check"></i></span><strong style="color:#92400e;font-size:.95rem;">Hồ sơ báo cáo hoàn thành từ Nhân viên</strong></div><span class="staff-badge approval" style="background:#fef3c7;color:#b45309;font-weight:700;padding:.3rem .65rem;border-radius:6px;">Chờ Quản lý duyệt</span></div>' +
+              (r.staffCompletedAt ? '<div style="margin-top:.4rem;font-size:.8rem;color:#92400e;"><i class="fas fa-clock"></i> Thời gian gửi: ' + new Date(r.staffCompletedAt).toLocaleString('vi-VN') + (r.assignee ? ' · Phụ trách: <strong>' + escapeHtml(r.assignee) + '</strong>' : '') + '</div>' : '') +
+              '<div style="margin-top:.6rem;padding:.65rem .85rem;background:#fff;border-radius:8px;border:1px solid #fed7aa;"><strong style="font-size:.82rem;color:#9a3412;">Kết quả xử lý chi tiết:</strong><p style="margin:.3rem 0 0;color:#334155;font-size:.9rem;line-height:1.55;white-space:pre-wrap;">' + escapeHtml(r.staffCompletionNote || 'Nhân viên chưa gửi ghi chú kết quả.') + '</p></div>' +
+              followUpHtml + completionImagesHtml + reviewMaterialsHtml +
+              '<div style="display:flex;gap:10px;margin-top:1rem;flex-wrap:wrap;">' +
+              '<button type="button" class="btn-primary" id="srApproveCompletion" style="background:#10b981;border-color:#10b981;padding:.55rem 1.1rem;font-weight:600;"><i class="fas fa-check-circle"></i> Duyệt hoàn thành &amp; Chi phí</button>' +
+              '<button type="button" class="btn-secondary" id="srRejectCompletion" style="background:#fff;border:1px solid #ef4444;color:#ef4444;padding:.55rem 1.1rem;font-weight:600;"><i class="fas fa-rotate-left"></i> Yêu cầu làm lại</button>' +
+              '</div></div>'
             : (r.staffTaskStatus ? '<div style="grid-column:1/-1;padding:.65rem .85rem;border-radius:10px;background:#f1f5f9;color:#475569;">Tiến độ nhiệm vụ: <strong>' + escapeHtml(staffTaskStatusLabels[r.staffTaskStatus] || r.staffTaskStatus) + '</strong></div>' : '');
         var staffWage = r.staffWage || {};
         var staffWageHistory = Array.isArray(staffWage.history) ? staffWage.history : [];
@@ -3569,7 +3589,35 @@
         var approveCompletion = byId('srApproveCompletion');
         if (approveCompletion) approveCompletion.addEventListener('click', function () {
             byId('srStatus').value = 'resolved';
+            var currentReq = RHD.get('supportRequests', id);
+            var mats = Array.isArray(currentReq.staffMaterials) ? currentReq.staffMaterials.slice() : [];
+            var updatedMats = mats.map(function (m) {
+                if (m.approvalStatus === 'pending' || m.approvalStatus === 'draft') return Object.assign({}, m, { approvalStatus: 'approved' });
+                return m;
+            });
+            RHD.update('supportRequests', id, { staffTaskStatus: 'approved', staffMaterials: updatedMats });
             RHUI.submitSupportForm({ preventDefault: function () {} });
+        });
+        var rejectCompletion = byId('srRejectCompletion');
+        if (rejectCompletion) rejectCompletion.addEventListener('click', function () {
+            var reason = prompt('Nhập lý do / nội dung yêu cầu nhân viên làm lại:', 'Sự cố chưa được giải quyết dứt điểm, vui lòng kiểm tra và xử lý lại.');
+            if (reason === null) return;
+            var currentReq = RHD.get('supportRequests', id);
+            RHD.update('supportRequests', id, {
+                staffTaskStatus: 'in_progress',
+                staffManagerNote: (currentReq.staffManagerNote ? currentReq.staffManagerNote + '\n[Quản lý yêu cầu làm lại]: ' : '[Quản lý yêu cầu làm lại]: ') + reason
+            });
+            if (currentReq.assigneeId && global.RH && global.RH.createStaffNotificationForEvent) {
+                global.RH.createStaffNotificationForEvent(currentReq.assigneeId, 'taskStatus', {
+                    eventId: 'task:' + id + ':rework:' + Date.now(),
+                    title: 'Quản lý yêu cầu làm lại nhiệm vụ ' + (currentReq.code || id),
+                    body: reason,
+                    refType: 'task', refId: id, actionUrl: 'staff.html', actionLabel: 'Mở nhiệm vụ'
+                });
+            }
+            alert('Đã gửi yêu cầu làm lại cho nhân viên. Nhiệm vụ chuyển về trạng thái Đang xử lý.');
+            RHUI.closeDrawer();
+            RHUI.renderSupportTab();
         });
         var openWageCashflow = document.querySelector('[data-open-wage-cashflow]');
         if (openWageCashflow) openWageCashflow.addEventListener('click', function (event) {

@@ -1651,7 +1651,7 @@
             var progress = request.staffProgress || {};
             var materials = Array.isArray(request.staffMaterials) ? request.staffMaterials : [];
             var sampleTask = request.id.indexOf('sample-CV') === 0;
-            var canUpdate = !sampleTask && staffAllowed('staffTasks.update') && status.label !== 'Hoàn thành' && status.label !== 'Đã đóng';
+            var canUpdate = !sampleTask && staffAllowed('staffTasks.update') && status.label !== 'Hoàn thành' && status.label !== 'Đã đóng' && status.label.indexOf('Chờ Quản lý duyệt') === -1;
             var stage = status.label === 'Chờ tiếp nhận' ? 0 : status.label === 'Đang xử lý' ? 1 :
                 status.label.indexOf('Chờ Quản lý duyệt') !== -1 ? 2 : 3;
             var steps = ['Chờ tiếp nhận', 'Đang xử lý', 'Chờ duyệt', 'Hoàn thành'];
@@ -1684,22 +1684,31 @@
             }).join('');
             var total = materials.reduce(function (sum, item) { return sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0); }, 0);
             var startButton = status.label === 'Chờ tiếp nhận' && staffAllowed('staffTasks.accept')
-                ? '<button type="button" class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '">Tiếp nhận và bắt đầu xử lý</button>' : '';
+                ? '<button type="button" class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '"><i class="fas fa-play"></i> Tiếp nhận và bắt đầu xử lý</button>' : '';
             var completionButton = status.label === 'Đang xử lý' && staffAllowed('staffTasks.report')
-                ? '<button type="button" class="staff-action-btn" data-progress-save="complete">Báo hoàn thành, chờ Quản lý duyệt</button>' : '';
+                ? '<button type="button" class="staff-action-btn" style="background:#10b981;border-color:#10b981;" data-progress-save="complete"><i class="fas fa-check-circle"></i> Báo hoàn thành, chờ Quản lý duyệt</button>' : '';
             var materialButton = canUpdate && materials.some(function (item) { return !item.approvalStatus || item.approvalStatus === 'draft'; })
-                ? '<button type="button" class="staff-action-btn secondary" data-progress-save="materials">Gửi duyệt vật tư</button>' : '';
+                ? '<button type="button" class="staff-action-btn secondary" data-progress-save="materials">Gửi duyệt vật tư riêng</button>' : '';
             var readOnly = !canUpdate;
-            var requestNote = '<section class="staff-progress-section"><h3>Cập nhật tiến độ</h3>' +
+            var approvalBanner = (status.label.indexOf('Chờ Quản lý duyệt') !== -1 || request.staffTaskStatus === 'pending_approval')
+                ? '<div class="staff-progress-approval-banner" style="margin:16px 18px 0;padding:14px 18px;border-radius:12px;background:#fff8e6;border:1px solid #ffd591;color:#874d00;display:flex;align-items:flex-start;gap:12px;">' +
+                  '<i class="fas fa-clock-rotate-left" style="font-size:20px;margin-top:2px;color:#d46b08;"></i>' +
+                  '<div><strong style="font-size:14px;color:#874d00;">Nhiệm vụ đã báo cáo hoàn thành — Đang chờ Quản lý duyệt</strong>' +
+                  '<p style="margin:4px 0 0;font-size:12px;color:#a05e03;line-height:1.5;">Hồ sơ nghiệm thu, hình ảnh và chi phí vật tư đã được khóa ở chế độ Chỉ xem (Read-only). Bạn không thể thay đổi thông tin trong thời gian chờ thẩm định.</p></div></div>'
+                : '';
+            var requestNote = '<section class="staff-progress-section"><h3>Báo cáo kết quả &amp; tiến độ xử lý</h3>' +
                 '<div class="staff-progress-steps">' + stepMarkup + '</div>' +
                 '<div class="staff-progress-request"><strong>Mô tả yêu cầu ban đầu</strong><p>' + escapeHtml(request.description || 'Không có mô tả.') + '</p>' +
-                '<div class="staff-progress-fields"><label>Ghi chú tiến độ<textarea id="staffProgressNote" rows="3" maxlength="5000"' + (readOnly ? ' readonly' : '') + ' placeholder="Ghi lại công việc đã thực hiện">' + escapeHtml(progress.note || request.staffCompletionNote || '') + '</textarea></label>' +
+                '<div class="staff-progress-fields">' +
+                '<label>Nội dung kết quả xử lý <span style="color:#e02424;">*</span><textarea id="staffProgressNote" rows="3" maxlength="2000"' + (readOnly ? ' readonly' : '') + ' placeholder="Mô tả chi tiết nguyên nhân, công việc đã hoàn thành và tình trạng thiết bị sau xử lý (tối thiểu 10 ký tự)...">' + escapeHtml(progress.note || request.staffCompletionNote || '') + '</textarea></label>' +
                 '<label>Thời gian bắt đầu thực tế<input id="staffActualStart" type="datetime-local" value="' + escapeHtml(progress.actualStartAt || progressDateTime(request.startedAt)) + '"' + (readOnly ? ' readonly' : '') + '></label>' +
                 '<label>Thời gian kết thúc thực tế<input id="staffActualEnd" type="datetime-local" value="' + escapeHtml(progress.actualEndAt || '') + '"' + (readOnly ? ' readonly' : '') + '></label>' +
-                '<label>Nguyên nhân chậm trễ (nếu có)<input id="staffDelayReason" maxlength="1000" value="' + escapeHtml(progress.delayReason || '') + '"' + (readOnly ? ' readonly' : '') + ' placeholder="Nhập nguyên nhân nếu bị chậm"></label></div>' +
-                '<div class="staff-progress-gallery"><strong>Hình ảnh tiến độ</strong><div id="staffProgressImages" class="staff-progress-images">' + imageMarkup +
+                '<label>Nguyên nhân chậm trễ (nếu có)<input id="staffDelayReason" maxlength="1000" value="' + escapeHtml(progress.delayReason || '') + '"' + (readOnly ? ' readonly' : '') + ' placeholder="Nhập nguyên nhân nếu bị chậm"></label>' +
+                '<label style="grid-column:1/-1;">Đề xuất xử lý tiếp / Lưu ý tồn đọng (nếu có)<textarea id="staffFollowUpProposal" rows="2" maxlength="1000"' + (readOnly ? ' readonly' : '') + ' placeholder="Ghi chú lưu ý hoặc đề xuất bảo hành/theo dõi thêm (nếu sự cố chưa dứt điểm)...">' + escapeHtml(progress.followUpProposal || '') + '</textarea></label>' +
+                '</div>' +
+                '<div class="staff-progress-gallery"><strong>Hình ảnh hoàn thành / nghiệm thu ' + (canUpdate ? '<span style="color:#e02424;">*</span> <small style="font-weight:normal;color:var(--muted);">(Tối thiểu 1 ảnh minh chứng khi báo hoàn thành, tối đa 5 ảnh)</small>' : '') + '</strong><div id="staffProgressImages" class="staff-progress-images">' + imageMarkup +
                 (canUpdate ? '<label class="staff-progress-add-image" aria-label="Thêm ảnh tiến độ"><span>+</span><small>Thêm ảnh</small><input type="file" id="staffProgressImageFile" accept="image/png,image/jpeg,image/webp"></label>' : '') +
-                (!imageMarkup && readOnly ? '<span class="staff-progress-empty">Chưa có ảnh tiến độ.</span>' : '') + '</div></div></div>' +
+                (!imageMarkup && readOnly ? '<span class="staff-progress-empty">Chưa có ảnh tiến độ / nghiệm thu.</span>' : '') + '</div></div></div>' +
                 (sampleTask ? '<p class="staff-progress-message">Nhiệm vụ minh họa chỉ xem; không thể lưu thay đổi.</p>' : '') + '</section>';
             var materialsSection = '<section class="staff-progress-section"><div class="staff-progress-section-heading"><h3>Vật tư phát sinh</h3><span>Trạng thái duyệt vật tư độc lập với trạng thái nhiệm vụ.</span></div>' +
                 '<div class="staff-progress-table-wrap"><table class="staff-progress-material-table"><thead><tr><th>STT</th><th>Tên vật tư</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th>Lý do sử dụng</th><th>Hóa đơn/chứng từ</th><th>Thao tác / duyệt</th></tr></thead><tbody id="staffMaterialRows">' +
@@ -1713,10 +1722,11 @@
                 '<div><small>Căn hộ · Tòa nhà</small><strong>' + escapeHtml(pair.label || request.location || 'Chưa rõ vị trí') + '</strong></div>' +
                 '<div><small>Người được phân công</small><strong>' + escapeHtml(assignedUser ? assignedUser.name : request.assignee || '—') + '</strong></div>' +
                 '<div><small>Hạn xử lý</small><strong>' + escapeHtml(dateLabel(request.dueAt || request.scheduledAt)) + '</strong></div></div>' +
-                requestNote + materialsSection +
+                approvalBanner + requestNote + materialsSection +
                 '<div class="staff-progress-footer"><button type="button" class="staff-action-btn secondary" data-staff-page="Danh sách nhiệm vụ">Quay lại danh sách</button><div class="staff-progress-footer-actions">' + taskAction + startButton +
-                (canUpdate ? '<button type="button" class="staff-action-btn" data-progress-save="save">Lưu cập nhật</button>' : '') + materialButton + completionButton + '</div></div>' +
+                (canUpdate ? '<button type="button" class="staff-action-btn secondary" data-progress-save="save"><i class="fas fa-floppy-disk"></i> Lưu nháp tiến độ</button>' : '') + materialButton + completionButton + '</div></div>' +
                 '<p class="staff-progress-save-message" id="staffProgressMessage" role="status" aria-live="polite"></p></div>';
+
         }
 
         function renderTaskDetail(progressOnly) {
@@ -1943,8 +1953,8 @@
                     amount: quantity * unitPrice,
                     reason: reason,
                     receipt: receipt ? { name: receipt.dataset.receiptName, type: receipt.dataset.receiptType, dataUrl: receipt.dataset.receiptUrl } : null,
-                    approvalStatus: mode === 'materials' ? 'pending' : 'draft',
-                    submittedAt: mode === 'materials' ? Date.now() : null
+                    approvalStatus: (mode === 'materials' || mode === 'complete') ? 'pending' : 'draft',
+                    submittedAt: (mode === 'materials' || mode === 'complete') ? Date.now() : null
                 });
             });
             if (incomplete) {
@@ -1955,23 +1965,41 @@
                 showProgressMessage('Thêm ít nhất một dòng vật tư hợp lệ trước khi gửi duyệt.', true);
                 return;
             }
+            if (mode === 'complete') {
+                materials = materials.map(function (item) {
+                    if (!item.approvalStatus || item.approvalStatus === 'draft') {
+                        return Object.assign({}, item, { approvalStatus: 'pending', submittedAt: Date.now() });
+                    }
+                    return item;
+                });
+            }
             var progressImages = Array.from(staffContent.querySelectorAll('[data-progress-image]')).map(function (figure) {
                 return { name: figure.dataset.imageName, type: figure.dataset.imageType, dataUrl: figure.dataset.imageUrl };
             });
+            var followUpInput = document.getElementById('staffFollowUpProposal');
             var progress = {
                 note: document.getElementById('staffProgressNote').value.trim(),
+                followUpProposal: followUpInput ? followUpInput.value.trim() : '',
                 actualStartAt: document.getElementById('staffActualStart').value,
                 actualEndAt: document.getElementById('staffActualEnd').value,
                 delayReason: document.getElementById('staffDelayReason').value.trim(),
                 images: progressImages
             };
-            if (mode === 'complete' && !progress.note) {
-                showProgressMessage('Nhập ghi chú kết quả trước khi gửi Quản lý duyệt.', true);
-                return;
-            }
-            if (mode === 'complete' && taskStatus(request).label !== 'Đang xử lý') {
-                showProgressMessage('Chỉ có thể báo hoàn thành khi nhiệm vụ đang xử lý.', true);
-                return;
+            if (mode === 'complete') {
+                if (!progress.note || progress.note.length < 10) {
+                    showProgressMessage('Vui lòng nhập nội dung kết quả xử lý chi tiết (tối thiểu 10 ký tự).', true);
+                    var noteElem = document.getElementById('staffProgressNote');
+                    if (noteElem) noteElem.focus();
+                    return;
+                }
+                if (progressImages.length === 0) {
+                    showProgressMessage('Cần tải lên ít nhất 1 hình ảnh nghiệm thu hoàn thành công việc.', true);
+                    return;
+                }
+                if (taskStatus(request).label !== 'Đang xử lý') {
+                    showProgressMessage('Chỉ có thể báo hoàn thành khi nhiệm vụ đang xử lý.', true);
+                    return;
+                }
             }
             var changes = { staffProgress: progress, staffMaterials: materials, updatedAt: Date.now() };
             if (mode === 'complete') {
@@ -1983,6 +2011,30 @@
             if (!result.ok) {
                 showProgressMessage(result.error || 'Không thể lưu tiến độ nhiệm vụ.', true);
                 return;
+            }
+            if (mode === 'complete') {
+                try {
+                    var allUsers = global.RH && global.RH.getUsers ? global.RH.getUsers() : [];
+                    var managers = allUsers.filter(function (u) {
+                        return u.status === 'active' && (u.role === 'manager' || u.role === 'admin' || (u.accountTypeId && (u.accountTypeId.indexOf('manager') !== -1 || u.accountTypeId.indexOf('admin') !== -1)));
+                    });
+                    managers.forEach(function (mgr) {
+                        if (global.RH && global.RH.createNotificationForUser) {
+                            global.RH.createNotificationForUser(mgr.id, {
+                                type: 'REQUEST',
+                                subType: 'STAFF_COMPLETION_REPORT',
+                                title: 'Nhân viên đã báo cáo hoàn thành nhiệm vụ',
+                                body: 'Nhân viên ' + (RH_SESSION.name || 'Kỹ thuật') + ' đã báo cáo hoàn thành nhiệm vụ ' + (request.code || request.id) + '. Vui lòng kiểm tra và phê duyệt.',
+                                refType: 'request',
+                                refId: request.id,
+                                actionUrl: 'dashboard.html',
+                                actionLabel: 'Kiểm tra và duyệt'
+                            });
+                        }
+                    });
+                } catch (notifyErr) {
+                    console.warn('Không thể gửi thông báo cho quản lý:', notifyErr);
+                }
             }
             renderStaffPage();
             showProgressMessage(mode === 'materials' ? 'Vật tư đã được gửi và đang chờ Quản lý duyệt.' :

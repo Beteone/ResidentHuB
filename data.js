@@ -354,7 +354,7 @@
 
     function staffProgressError(progress) {
         if (!progress || typeof progress !== 'object' || Array.isArray(progress)) return 'Thông tin tiến độ không hợp lệ.';
-        if (String(progress.note || '').length > 5000 || String(progress.delayReason || '').length > 1000) return 'Ghi chú tiến độ vượt quá giới hạn cho phép.';
+        if (String(progress.note || '').length > 5000 || String(progress.delayReason || '').length > 1000 || String(progress.followUpProposal || '').length > 1000) return 'Ghi chú tiến độ vượt quá giới hạn cho phép.';
         if (progress.images !== undefined && !Array.isArray(progress.images)) return 'Danh sách ảnh tiến độ không hợp lệ.';
         var images = Array.isArray(progress.images) ? progress.images : [];
         if (images.length > 5 || images.some(staffImageError)) return 'Ảnh tiến độ không hợp lệ hoặc vượt quá 5 ảnh.';
