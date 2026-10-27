@@ -75,6 +75,7 @@ try {
     await evaluate(`
         const users=RH.getUsers();
         const manager=users.find(user=>user.role==='manager');
+        manager.accountTypeId='at-admin';manager.allBuildings=true;
         users.push({id:'staff-task-check',name:'Staff Task Check',email:'staff-task-check@example.test',password:'test-password',role:'manager',accountTypeId:'at-staff',staffGroup:'technical',status:'active'});
         users.push({id:'resident-task-check',name:'Resident Task Check',email:'resident-task-check@example.test',password:'test-password',role:'resident',residentId:'staff-task-resident',apartmentId:'staff-task-apartment',unit:'101',status:'active'});
         localStorage.setItem('residenthub_users',JSON.stringify(users));
@@ -89,6 +90,7 @@ try {
     `);
     await navigate('/dashboard.html');
     await evaluate(`
+        if(!['staffTasks.view','staffTasks.accept','staffTasks.update','staffTasks.report','staffIncome.view','support.create'].every(key=>RHP.getType('at-staff').permissions.includes(key)))throw new Error('Missing seeded staff permissions');
         switchTab('support');
         RHUI.openSupportForm('staff-task-request');
         const picker=document.getElementById('srAssigneeAccount');
@@ -132,7 +134,7 @@ try {
         status: 'resolved', taskStatus: 'approved'
     }, 'Management approval completes the same resident support request');
     await evaluate(`RHUI.openSupportForm('staff-task-request');document.getElementById('srWageBase').value='100000';document.getElementById('srWageAdjustment').value='15000';document.getElementById('srWageStatus').value='paid';document.getElementById('srWagePaidDate').value=new Date().toISOString().slice(0,10);RHUI.submitSupportForm({preventDefault(){}})`);
-    assert.equal(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return (!r.staffWage||Number(r.staffWage.approvedAmount)===0)&&RHD.list('cashflows').filter(row=>row.taskId==='staff-task-request').length===0})()`), true, 'An adjustment without a reason cannot be approved or written to the cashflow ledger');
+    assert.equal(await evaluate(`(()=>{const wage=RHD.get('supportRequests','staff-task-request').staffWage||{};return !['approved','paid'].includes(wage.status)&&!Number(wage.approvedAmount)&&!wage.approvedAt&&!wage.cashflowId&&RHD.list('cashflows').filter(row=>row.taskId==='staff-task-request').length===0})()`), true, 'An adjustment without a reason cannot be approved or written to the cashflow ledger (empty draft metadata is allowed)');
     await evaluate(`document.getElementById('srWageAdjustmentReason').value='Khối lượng phát sinh đã xác nhận';RHUI.submitSupportForm({preventDefault(){}})`);
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');const c=RHD.get('cashflows',r.staffWage.cashflowId);return {base:r.staffWage.baseAmount,total:r.staffWage.approvedAmount,adjustment:r.staffWage.adjustments[0].amount,reason:r.staffWage.adjustments[0].reason,status:r.staffWage.status,linked:c.taskId,ledgerAmount:c.amount}})()`), {
         base: 100000, total: 115000, adjustment: 15000, reason: 'Khối lượng phát sinh đã xác nhận', status: 'paid', linked: 'staff-task-request', ledgerAmount: 115000
@@ -163,7 +165,12 @@ try {
     }, 'The shared data layer rejects staff edits to approved wages and linked cashflows');
     await evaluate(`document.querySelector('[data-open-task="staff-task-request"]').click()`);
     assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('Khối lượng phát sinh đã xác nhận')&&document.getElementById('staffContent').textContent.includes('115.000 đ')`), true, 'Staff can open the linked task and review its wage adjustment');
-    await evaluate(`RHD.update('supportRequests','staff-task-request',{assigneeId:'another-staff-id'});document.querySelector('[data-title="Tổng hợp tiền công & chi phí"]').click();document.getElementById('staffCompensationMonth').value='2026-10';document.getElementById('staffCompensationMonth').dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('staffCompensationStatus').value='all';document.getElementById('staffCompensationStatus').dispatchEvent(new Event('change',{bubbles:true}))`);
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.role==='manager'),false)`);
+    await navigate('/dashboard.html');
+    assert.equal(await evaluate(`RHD.update('supportRequests','staff-task-request',{assigneeId:'another-staff-id'}).ok`), true, 'Management can reassign the task');
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='staff-task-check'),false)`);
+    await navigate('/staff.html');
+    await evaluate(`document.querySelector('[data-title="Tổng hợp tiền công & chi phí"]').click();document.getElementById('staffCompensationMonth').value='2026-10';document.getElementById('staffCompensationMonth').dispatchEvent(new Event('change',{bubbles:true}));document.getElementById('staffCompensationStatus').value='all';document.getElementById('staffCompensationStatus').dispatchEvent(new Event('change',{bubbles:true}))`);
     assert.equal(await evaluate(`!document.getElementById('staffContent').textContent.includes('Dữ liệu giả định')&&document.getElementById('staffContent').textContent.includes('630.000 ₫')&&document.getElementById('staffContent').textContent.includes('140.000 ₫')&&document.getElementById('staffContent').textContent.includes('770.000 ₫')&&document.getElementById('staffContent').textContent.includes('145.000 ₫')`), true, 'October totals remain visible without the sample-data label');
     assert.equal(await evaluate(`document.getElementById('staffContentTitle').hidden&&document.getElementById('staffPageTitle').textContent==='Tổng hợp tiền công & chi phí'&&!!document.getElementById('staffCompensationSearch')&&!!document.getElementById('staffCompensationTasks')&&Array.from(document.getElementById('staffCompensationTasks').options).some(option=>option.value.includes('CV002')&&option.value.includes('Sửa điện hành lang tầng 2'))`), true, 'The summary has one page heading and a combined task search with code/title suggestions');
     await evaluate(`document.getElementById('staffCompensationSearch').value='CV002';document.getElementById('staffCompensationSearch').dispatchEvent(new Event('input',{bubbles:true}))`);

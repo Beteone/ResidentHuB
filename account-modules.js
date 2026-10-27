@@ -402,7 +402,10 @@
                     '<div class="rh-field"><label>Mã nhân viên</label><input id="ufCode" maxlength="30" value="' + v('employeeCode') + '" placeholder="Mã nhân viên"></div>' +
                     '<div class="rh-field" id="ufStaffGroupWrap"><label>Nhóm nhân viên</label><select id="ufStaffGroup"><option value="">Chọn nhóm chuyên môn</option>' + (RHD.SUPPORT_STAFF_GROUPS || []).map(function (group) {
                         return '<option value="' + esc(group.id) + '"' + (group.id === (u && u.staffGroup) ? ' selected' : '') + '>' + esc(group.label) + '</option>';
-                    }).join('') + '</select></div>') +
+                    }).join('') + '</select></div>' +
+                    '<div class="rh-field" id="ufSupervisorWrap"><label>Cấp quản lý trực tiếp</label><select id="ufSupervisor"><option value="">Chưa phân công</option>' + global.RH.getUsers().filter(function (manager) {
+                        return manager.status === 'active' && manager.role === 'manager' && manager.accountTypeId !== 'at-staff' && global.RHP.can('support.update', manager);
+                    }).map(function (manager) { return '<option value="' + esc(manager.id) + '"' + (u && u.supervisorId === manager.id ? ' selected' : '') + '>' + esc(manager.name) + '</option>'; }).join('') + '</select></div>') +
             '</div>' +
             (!u ? '<p class="uf-hint"><i class="fas fa-circle-info"></i> Chọn loại Cư dân để liên kết hồ sơ đã có. Cư dân tự đăng ký vẫn chờ phê duyệt.</p>' : '') +
             '</div>' +
@@ -431,6 +434,8 @@
         function syncStaffGroupField(typeId) {
             var groupWrap = byId('ufStaffGroupWrap');
             if (groupWrap) groupWrap.style.display = typeId === 'at-staff' || !!(u && u.role === 'staff') ? '' : 'none';
+            var supervisorWrap = byId('ufSupervisorWrap');
+            if (supervisorWrap) supervisorWrap.style.display = typeId === 'at-staff' || !!(u && u.role === 'staff') ? '' : 'none';
         }
         userState.fields.type = RHSelect.create(byId('ufTypeField'), {
             inputId: 'ufType',
@@ -536,6 +541,7 @@
             payload.title = byId('ufTitle').value.trim();
             payload.employeeCode = byId('ufCode').value.trim();
             payload.staffGroup = staffAccount ? byId('ufStaffGroup').value : '';
+            if (staffAccount) payload.supervisorId = byId('ufSupervisor').value;
             if (!(isSelf && !isAdmin())) {
                 var all = !!(byId('ufAllBuildings').checked || type.fullAccess);
                 var picked = userState.fields.buildings.getValues();

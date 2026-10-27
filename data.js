@@ -231,15 +231,37 @@
         return s;
     }
 
-    function list(entity) { return readAll(entity); }
+    function list(entity) {
+        var items = readAll(entity);
+        if (!isStaffPortalSession()) return items;
+        if (entity === 'cashflows') {
+            if (!global.RHP || !global.RHP.can('staffIncome.view')) return [];
+            var assigned = readAll('supportRequests').filter(function (r) { return r.source !== 'staff' && staffCanReadRequest(r); }).map(function (r) { return r.id; });
+            return items.filter(function (r) { return r.taskId && assigned.indexOf(r.taskId) !== -1; });
+        }
+        if (entity === 'supportRequests') return items.filter(staffCanReadRequest).map(function (r) {
+            if (global.RHP && global.RHP.can('staffIncome.view')) return r;
+            var copy = Object.assign({}, r); delete copy.staffWage; return copy;
+        });
+        return items;
+    }
+
+    function staffCanReadRequest(request) {
+        var session = global.RH.getSession();
+        if (!session) return false;
+        if (request.source === 'staff' && request.requesterId === session.id) return true;
+        if (!global.RHP || !(request.source === 'staff' ? global.RHP.can('support.view') || global.RHP.can('support.update') : global.RHP.can('staffTasks.view') || global.RHP.can('staffIncome.view'))) return false;
+        return request.assigneeId ? request.assigneeId === session.id : !!request.assignee && [session.name, session.email].some(function (value) { return String(value || '').trim().toLowerCase() === String(request.assignee).trim().toLowerCase(); });
+    }
 
     function isStaffPortalSession() {
         var session = global.RH && typeof global.RH.getSession === 'function' ? global.RH.getSession() : null;
+        if (!session && global.RH_SESSION && (global.RH_SESSION.role === 'staff' || global.RH_SESSION.accountTypeId === 'at-staff')) return true;
         return !!session && (session.role === 'staff' || (session.role === 'manager' && session.accountTypeId === 'at-staff'));
     }
 
     function get(entity, id) {
-        var items = readAll(entity);
+        var items = entity === 'supportRequests' || entity === 'cashflows' ? list(entity) : readAll(entity);
         for (var i = 0; i < items.length; i++) if (items[i].id === id) return items[i];
         return null;
     }
@@ -283,6 +305,16 @@
     }
 
     function create(entity, data) {
+        if (isStaffPortalSession() && entity === 'supportRequests' && (!global.RHP || !global.RHP.can('support.create') || !data || data.source !== 'staff' || data.requesterId !== global.RH.getSession().id || !global.RHP.inScope(data.buildingId))) {
+            return { ok: false, error: 'Bạn không có quyền gửi yêu cầu hỗ trợ này.' };
+        }
+        if (isStaffPortalSession() && entity === 'supportRequests') {
+            var sender = global.RH.getUsers().filter(function (u) { return u.id === global.RH.getSession().id; })[0];
+            var managers = global.RH.getUsers().filter(function (u) { return u.status === 'active' && u.role === 'manager' && u.accountTypeId !== 'at-staff' && global.RHP.can('support.update', u) && global.RHP.can('support.view', u) && global.RHP.inScope(data.buildingId, u); });
+            var building = get('buildings', data.buildingId);
+            var manager = managers.filter(function (u) { return u.id === sender.supervisorId; })[0] || managers.filter(function (u) { return building && u.id === building.managerId; })[0] || managers[0];
+            data = Object.assign({}, data, { code: nextSupportCode(), source: 'staff', requesterId: sender.id, requesterName: sender.name, residentName: sender.name, responsibleManagerId: manager ? manager.id : '', status: 'new', staffTaskStatus: '', assigneeId: '', assignee: '', createdAt: Date.now(), updatedAt: Date.now() });
+        }
         if (isStaffPortalSession() && ((entity === 'supportRequests' && data && Object.prototype.hasOwnProperty.call(data, 'staffWage')) ||
             (entity === 'cashflows' && data && data.taskId))) {
             return { ok: false, error: 'Nhân viên không có quyền tự ghi tiền công hoặc phiếu chi liên kết nhiệm vụ.' };
@@ -317,6 +349,22 @@
         for (var i = 0; i < items.length; i++) if (items[i].id === id) { idx = i; break; }
         if (idx === -1) return { ok: false, error: 'Không tìm thấy bản ghi.' };
         var previous = items[idx];
+        if (isStaffPortalSession() && entity === 'supportRequests') {
+            var session = global.RH.getSession();
+            if (!session) return { ok: false, error: 'Phiên đăng nhập không còn hợp lệ.' };
+            var assigned = previous.assigneeId ? previous.assigneeId === session.id : !!previous.assignee && [session.name, session.email].some(function (value) { return String(value || '').trim().toLowerCase() === String(previous.assignee).trim().toLowerCase(); });
+            var permission = previous.source === 'staff' ? 'support.update' : patch.staffTaskStatus === 'pending_approval' ? 'staffTasks.report' : patch.staffTaskStatus === 'in_progress' ? 'staffTasks.accept' : 'staffTasks.update';
+            var allowedFields = previous.source === 'staff' ? ['status', 'response', 'messages', 'updatedAt'] : ['status', 'staffTaskStatus', 'startedAt', 'acceptedAt', 'staffCompletionNote', 'staffCompletedAt', 'updatedAt'];
+            if (!assigned || !global.RHP || !global.RHP.can(permission) ||
+                (previous.source !== 'staff' && patch.status === 'in_progress' && previous.status !== 'in_progress' && !global.RHP.can('staffTasks.accept')) ||
+                (previous.source !== 'staff' && patch.staffTaskStatus === 'pending_approval' && previous.status !== 'in_progress') ||
+                (previous.source === 'staff' && patch.status !== undefined && !SUPPORT_STATUSES.some(function (s) { return s.id === patch.status; })) ||
+                (previous.source !== 'staff' && patch.status !== undefined && patch.status !== previous.status && patch.status !== 'in_progress') ||
+                (previous.source !== 'staff' && patch.staffTaskStatus !== undefined && ['in_progress', 'pending_approval'].indexOf(patch.staffTaskStatus) === -1) ||
+                Object.keys(patch || {}).some(function (key) { return allowedFields.indexOf(key) === -1; })) {
+                return { ok: false, error: 'Bạn không có quyền cập nhật yêu cầu này.' };
+            }
+        }
         if (isStaffPortalSession() && ((entity === 'supportRequests' && Object.prototype.hasOwnProperty.call(patch || {}, 'staffWage')) ||
             (entity === 'cashflows' && (previous.taskId || Object.prototype.hasOwnProperty.call(patch || {}, 'taskId'))))) {
             return { ok: false, error: 'Nhân viên không có quyền sửa tiền công đã duyệt hoặc phiếu chi liên kết nhiệm vụ.' };
@@ -342,6 +390,7 @@
     }
 
     function remove(entity, id) {
+        if (isStaffPortalSession() && entity === 'supportRequests') return { ok: false, error: 'Nhân viên không được xóa yêu cầu hỗ trợ.' };
         var items = readAll(entity);
         var removed = items.filter(function (r) { return r.id === id; });
         if (isStaffPortalSession() && entity === 'cashflows' && removed.some(function (record) { return !!record.taskId; })) {
