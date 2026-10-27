@@ -9,6 +9,7 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="auth.js"></script>
+    <script src="permissions.js"></script>
     <script src="data.js"></script>
     <style>
         :root {
@@ -467,6 +468,30 @@
             .topbar { flex-wrap:wrap; }
             .staff-notification-link { margin-left:auto; }
         }
+        #staffPasswordForm{max-width:520px;display:grid;gap:14px;margin-top:18px}
+        #staffPasswordForm label,#staffHelpForm label{display:block;font-weight:600;margin-bottom:6px}
+        .staff-password-field{display:flex;gap:8px}
+        #staffPasswordForm input,#staffHelpForm input,#staffHelpForm select,#staffHelpForm textarea,#staffOtpInput{min-width:0;width:100%;padding:11px;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);font:inherit}
+        .staff-password-field button{flex:0 0 auto;border:1px solid var(--line);border-radius:9px;background:var(--surface);color:var(--ink);padding:8px}
+        #staffOtpDialog{width:min(480px,calc(100vw - 32px));max-height:90vh;overflow:auto;margin:auto;border:1px solid var(--line);border-radius:16px;color:var(--ink);background:var(--surface)}
+        #staffOtpDialog::backdrop{background:rgba(11,36,71,.45)}
+        #staffDemoCode{font-size:28px;font-weight:700;letter-spacing:6px;margin:18px 0}
+        #staffSecurityMessage,#staffOtpError,#staffHelpMessage{min-height:22px;margin-top:10px;color:#b42318}
+        #staffHelpForm{display:grid;gap:14px;margin:20px 0}.staff-help-guide{padding:12px 0;border-bottom:1px solid var(--line)}
+        /* Scoped to the employee Help page and its dialog. */
+        .staff-help{--help-blue:#0878ed;--help-line:#e2e9f2;color:var(--ink);font-size:15px}
+        .staff-help h2{font-size:25px;margin:0 0 8px}.staff-help h3{margin:0 0 10px;font-size:18px}.staff-help p{line-height:1.7}.staff-help-lead{color:var(--muted);margin:0 0 22px}
+        .staff-help-nav{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:20px}.staff-help-nav button{display:flex;align-items:center;gap:9px;padding:12px 17px;border:1px solid var(--line);border-radius:10px;background:var(--surface);color:var(--muted);font:inherit;cursor:pointer}.staff-help-nav button[aria-pressed=true]{background:#eaf4ff;color:#0868cc;border-color:#a6cffb;font-weight:700}
+        .staff-help-card{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:24px}.staff-help [hidden]{display:none!important}
+        .staff-help .staff-help-guide{padding:0;margin:0;border-bottom:1px solid var(--line)}.staff-help-guide:last-child{border-bottom:0}.staff-help .staff-help-guide summary{list-style:none;display:flex;align-items:center;gap:13px;padding:18px 0;cursor:pointer;font-weight:600}.staff-help-guide summary::-webkit-details-marker{display:none}.staff-help-guide summary>i:first-child{background:#edf5ff;color:#1475d7;padding:11px;border-radius:10px;width:38px;text-align:center}.staff-help-guide .help-chevron{margin-left:auto;transition:transform .15s}.staff-help-guide[open] .help-chevron{transform:rotate(180deg)}.staff-help .staff-help-guide p{margin:0 0 18px 51px;color:var(--muted)}
+        .staff-help-manager{display:flex;align-items:flex-start;gap:20px}.staff-help-avatar{display:grid;place-items:center;flex-shrink:0;width:66px;height:66px;background:#edf5ff;color:#1475d7;border-radius:18px;font-size:27px}.staff-help-contact{display:grid;gap:10px;margin-top:18px;overflow-wrap:anywhere}.staff-help-contact span{display:flex;gap:10px;align-items:center}.staff-help-contact i{color:var(--muted);width:18px}.staff-help-org{border-top:1px solid var(--line);margin-top:22px;padding-top:16px;color:var(--muted)}
+        .staff-help .staff-action-btn{border-radius:9px;min-height:44px;padding:11px 18px;font:inherit;font-weight:600;cursor:pointer}.staff-help button:hover{filter:brightness(.97)}.staff-help button:disabled{opacity:.55;cursor:not-allowed}.staff-help :is(button,input,select,textarea,summary):focus-visible{outline:3px solid #9acaff;outline-offset:3px}
+        .staff-help-empty{text-align:center;padding:28px 12px}.staff-help-empty>i{font-size:30px;color:#1475d7;background:#edf5ff;border-radius:18px;padding:20px;margin-bottom:17px}.staff-help-empty p{color:var(--muted);margin:8px 0 18px}
+        dialog.staff-help{padding:0;border:0;border-radius:18px;width:min(640px,calc(100vw - 28px));max-height:calc(100dvh - 32px);background:var(--surface);box-shadow:0 24px 80px #10213c38;overflow:auto}dialog.staff-help::backdrop{background:#10213c80}.staff-help-modal-head{display:flex;align-items:center;justify-content:space-between;padding:22px 24px;border-bottom:1px solid var(--line)}.staff-help-modal-head h3{margin:0}.staff-help-close{border:0;background:transparent;color:var(--muted);font-size:24px;cursor:pointer;width:38px;height:38px;border-radius:8px}
+        .staff-help #staffHelpForm{padding:22px 24px;margin:0;gap:18px}.staff-help #staffHelpForm label{font-size:14px;margin:0;display:grid;gap:8px}.staff-help #staffHelpForm :is(input:not([type=file]),select,textarea){min-height:45px;border:1px solid var(--line);border-radius:9px;background:var(--surface);font:inherit;color:var(--ink);padding:11px 12px}.staff-help #staffHelpForm textarea{min-height:125px;resize:vertical}.staff-help-fields{display:grid;grid-template-columns:1fr 1fr;gap:16px}.staff-help-required{color:#c43b36}.staff-help-upload{border:1px dashed #a7bdd7;border-radius:11px;padding:18px;text-align:center;background:#f5f9ff;color:#345574}.staff-help-upload>i{display:block;font-size:25px;margin-bottom:8px;color:#1475d7}.staff-help-upload small{display:block;margin:6px 0 12px}.staff-help #staffHelpFiles{padding:4px;background:transparent;border:0;font-size:13px}.staff-help-previews{display:flex;gap:10px;flex-wrap:wrap}.staff-help-preview{position:relative;width:86px}.staff-help-preview img{width:86px;height:76px;object-fit:cover;border:1px solid var(--line);border-radius:9px}.staff-help-preview button{position:absolute;right:3px;top:3px;border:0;border-radius:50%;background:#fff;color:#a52626;width:25px;height:25px;cursor:pointer}.staff-help-footer{display:flex;justify-content:flex-end;gap:10px;border-top:1px solid var(--line);padding-top:18px}.staff-help-form-message{color:#b42318;margin:0;line-height:1.5}.staff-help #staffHelpMessage:empty{display:none}
+        .staff-help-request{border:1px solid var(--line);border-radius:12px;margin-top:12px;overflow:hidden}.staff-help-request summary{cursor:pointer;list-style:none;padding:18px;display:flex;gap:12px;align-items:center;justify-content:space-between}.staff-help-request summary::-webkit-details-marker{display:none}.staff-help-request-title{display:grid;gap:6px;min-width:0;overflow-wrap:anywhere}.staff-help-request small{color:var(--muted);font-size:13px}.staff-help-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:20px;background:#edf2f8;color:#4b617b;white-space:nowrap;font-size:13px;font-weight:600}.staff-help-badge[data-state=new]{background:#fff4dc;color:#855306}.staff-help-badge[data-state=in_progress]{background:#eaf3ff;color:#1768bf}.staff-help-badge[data-state=resolved]{background:#e6f6ef;color:#126b49}.staff-help-badge[data-priority=urgent]{background:#fff0ef;color:#b32f2b}.staff-help-badge[data-priority=needed]{background:#fff4dc;color:#855306}.staff-help-badge[data-priority=normal]{background:#e6f6ef;color:#126b49}.staff-help-request-meta{display:flex;gap:10px;flex-wrap:wrap;margin-top:6px}.staff-help-request-body{padding:0 18px 18px;border-top:1px solid var(--line);overflow-wrap:anywhere}.staff-help-request-body form{display:grid;gap:12px}.staff-help-request-body label{display:grid;gap:6px}.staff-help-request-body :is(textarea,select){width:100%;padding:10px;border:1px solid var(--line);border-radius:8px;background:var(--surface);color:var(--ink);font:inherit}.staff-help-attachments{display:flex;flex-wrap:wrap;gap:10px}.staff-help-attachments img{width:90px;height:80px;object-fit:cover;border-radius:8px}
+        .staff-help-footer{position:sticky;bottom:0;background:var(--surface);padding-bottom:8px}.staff-help #staffHelpPriority option[value=normal]{color:#126b49}.staff-help #staffHelpPriority option[value=needed]{color:#855306}.staff-help #staffHelpPriority option[value=urgent]{color:#b32f2b}
+        @media(max-width:600px){.staff-help-nav{display:grid;grid-template-columns:1fr 1fr;gap:7px}.staff-help-nav button{padding:12px 10px;font-size:13px}.staff-help-card{padding:17px}.staff-help-manager{gap:12px}.staff-help-fields{grid-template-columns:1fr}.staff-help #staffHelpForm{padding:18px}.staff-help-modal-head{padding:16px 18px}.staff-help-footer .staff-action-btn{padding:10px 13px}.staff-help-request summary{align-items:flex-start;flex-wrap:wrap}.staff-help .staff-help-guide p{margin-left:0}}
     </style>
     <script src="theme.js"></script>
 </head>
@@ -506,8 +531,7 @@
                 <button class="menu-item" data-title="Cài đặt giao diện"><i class="fas fa-palette"></i><span>Cài đặt giao diện</span></button>
                 <button class="menu-item" data-title="Cài đặt thông báo"><i class="fas fa-bell"></i><span>Cài đặt thông báo</span></button>
                 <button class="menu-item" data-title="Bảo mật tài khoản"><i class="fas fa-shield-halved"></i><span>Bảo mật tài khoản</span></button>
-                <button class="menu-item" data-title="Quyền truy cập"><i class="fas fa-key"></i><span>Quyền truy cập</span></button>
-                <button class="menu-item" data-title="Hỗ trợ và thông tin hệ thống"><i class="fas fa-circle-info"></i><span>Hỗ trợ và thông tin hệ thống</span></button>
+                <button class="menu-item" data-title="Hỗ trợ"><i class="fas fa-circle-info"></i><span>Hỗ trợ</span></button>
                 <button class="menu-item logout" id="staffLogout"><i class="fas fa-right-from-bracket"></i><span>Đăng xuất</span></button>
             </div>
         </nav>
@@ -530,6 +554,7 @@
         </section>
     </main>
     <script>
+        if (RH_SESSION) {
         var menuItems = document.querySelectorAll('.menu-item[data-title]');
         var staffContent = document.getElementById('staffContent');
         var selectedTaskId = '';
@@ -541,6 +566,7 @@
         var profileDraftAvatar = '';
         var profileFieldErrors = {};
         var staffSettingsMessage = null;
+        var staffPasswordChallengeId = '';
         var notificationFilter = 'all';
         var notificationSearch = '';
         var appearanceDraft = null;
@@ -555,10 +581,97 @@
             });
         }
 
+        function staffAllowed(key) {
+            var session = RH.getSession();
+            var user = session && RH.getUsers().filter(function (u) { return u.id === session.id; })[0];
+            return !!(user && user.id === RH_SESSION.id && user.status === 'active' && RHP.allKeys().indexOf(key) !== -1 && RHP.can(key));
+        }
+        function staffPageAllowed(page) {
+            if (['Hồ sơ cá nhân', 'Cài đặt giao diện', 'Cài đặt thông báo', 'Bảo mật tài khoản', 'Hỗ trợ'].indexOf(page) !== -1) return true;
+            if (page === 'Tổng quan') return staffAllowed('dashboard.view');
+            if (page === 'Báo cáo kết quả') return staffAllowed('staffTasks.view') && staffAllowed('staffTasks.report');
+            if (page === 'Cập nhật tiến độ') return staffAllowed('staffTasks.view') && (staffAllowed('staffTasks.accept') || staffAllowed('staffTasks.update') || staffAllowed('staffTasks.report'));
+            if (['Danh sách nhiệm vụ', 'Chi tiết nhiệm vụ', 'Cập nhật tiến độ', 'Báo cáo kết quả'].indexOf(page) !== -1) return staffAllowed('staffTasks.view');
+            if (['Tổng hợp tiền công và chi phí', 'Theo dõi trạng thái tiền công', 'Lịch sử tiền công'].indexOf(page) !== -1) return staffAllowed('staffIncome.view');
+            console.warn('Trang nhân viên chưa khai báo quyền:', page);
+            return false;
+        }
+        function renderStaffSecurity() {
+            staffContent.innerHTML = '<section class="staff-panel"><h2>Đổi mật khẩu</h2><p>Sau khi đổi thành công, bạn sẽ được đăng xuất và cần đăng nhập lại.</p><form id="staffPasswordForm">' + [
+                ['staffCurrentPassword', 'Mật khẩu hiện tại', 'current-password'], ['staffNewPassword', 'Mật khẩu mới', 'new-password'], ['staffConfirmPassword', 'Xác nhận mật khẩu mới', 'new-password']
+            ].map(function (field) { return '<div class="form-field"><label for="' + field[0] + '">' + field[1] + '</label><div class="staff-password-field"><input id="' + field[0] + '" type="password" autocomplete="' + field[2] + '" required maxlength="128"><button type="button" data-password-toggle="' + field[0] + '" aria-label="Hiện mật khẩu">Hiện</button></div></div>'; }).join('') + '<p>Mật khẩu mới: 8–128 ký tự, có chữ và số.</p><button class="staff-action-btn" type="submit">Tiếp tục xác thực</button><p id="staffSecurityMessage" role="status"></p></form></section><dialog id="staffOtpDialog" class="staff-panel"><h3>Mã xác thực DEMO</h3><p id="staffDemoCode"></p><p>Mã hiển thị trên thiết bị này, không phải xác thực hai yếu tố thực sự. Có hiệu lực 2 phút, tối đa 5 lần nhập sai.</p><form id="staffOtpForm"><label for="staffOtpInput">Nhập mã xác thực</label><input id="staffOtpInput" inputmode="numeric" autocomplete="one-time-code" pattern="[0-9]{6}" maxlength="6" required><p id="staffOtpError" role="status"></p><div class="staff-actions"><button class="staff-action-btn" type="submit">Xác nhận đổi mật khẩu</button><button class="staff-action-btn secondary" type="button" id="staffResendOtp">Cấp lại mã</button><button class="staff-action-btn secondary" type="button" id="staffCancelOtp">Đóng</button></div></form></dialog>';
+        }
+        // Only this presenter knows that delivery is an on-screen DEMO popup.
+        function presentDemoPasswordCode(result) {
+            staffPasswordChallengeId = result.challengeId;
+            document.getElementById('staffDemoCode').textContent = result.demoCode;
+            document.getElementById('staffOtpInput').value = '';
+            document.getElementById('staffOtpError').textContent = '';
+            var dialog = document.getElementById('staffOtpDialog');
+            if (!dialog.open) dialog.showModal();
+        }
+        function renderStaffHelp() {
+            var settings = RHD.getSettings();
+            var buildings = RHP.scopeList('buildings', RHD.list('buildings'));
+            var user = RHP.currentUser();
+            var manager = user.supervisorId && RH.getUsers().filter(function (u) { return u.id === user.supervisorId && u.status === 'active'; })[0];
+            var requests = RHD.list('supportRequests').filter(function (r) { return r.source === 'staff' && (r.requesterId === RH_SESSION.id || r.assigneeId === RH_SESSION.id); });
+            var guides = [
+                ['clipboard-list', 'Xem và tiếp nhận nhiệm vụ', 'Mở Danh sách nhiệm vụ để tìm, lọc và chọn công việc được giao. Trong Cập nhật tiến độ, chọn Bắt đầu khi bạn có quyền tiếp nhận.'],
+                ['list-check', 'Cập nhật tiến độ', 'Mở Cập nhật tiến độ, chọn nhiệm vụ được giao để xem và cập nhật tiến độ theo quyền hiện có.'],
+                ['file-lines', 'Báo cáo kết quả', 'Nhập báo cáo kết quả tại chi tiết nhiệm vụ rồi gửi quản lý duyệt. Nhiệm vụ chưa được nghiệm thu cho đến khi quản lý xác nhận.'],
+                ['coins', 'Xem tiền công', 'Mở Lịch sử tiền công để đối chiếu nhiệm vụ, số tiền, lý do điều chỉnh và trạng thái thanh toán. Chỉ quản lý được sửa khoản đã duyệt.'],
+                ['user-gear', 'Hồ sơ và Cài đặt', 'Mở Hồ sơ cá nhân để cập nhật thông tin liên hệ. Giao diện và thông báo được lưu riêng cho tài khoản.'],
+                ['lock', 'Đổi mật khẩu', 'Mở Bảo mật tài khoản, nhập mật khẩu hiện tại và mật khẩu mới, sau đó xác nhận bằng mã DEMO hiện trên màn hình. Đăng nhập lại sau khi hoàn tất.'],
+                ['comment-dots', 'Gửi phản hồi hoặc báo lỗi', 'Chọn Gửi yêu cầu hỗ trợ nếu được cấp quyền. Yêu cầu được chuyển tới quản lý; theo dõi trạng thái và phản hồi trong Yêu cầu của tôi.']
+            ];
+            var tabs = [['guides','book-open','Hướng dẫn sử dụng'],['contact','address-card','Liên hệ quản lý'],['send','circle-plus','Gửi yêu cầu hỗ trợ'],['requests','inbox','Yêu cầu của tôi']];
+            staffContent.innerHTML = '<section class="staff-help"><h2>Hỗ trợ nhân viên</h2><p class="staff-help-lead">Tìm hướng dẫn sử dụng, liên hệ người quản lý hoặc gửi yêu cầu hỗ trợ khi gặp vấn đề.</p><nav class="staff-help-nav" aria-label="Nội dung hỗ trợ">' + tabs.map(function (t) { return '<button type="button" data-help-tab="' + t[0] + '" aria-pressed="' + (t[0] === 'guides') + '" aria-controls="staffHelpSection-' + t[0] + '"><i class="fas fa-' + t[1] + '" aria-hidden="true"></i>' + t[2] + '</button>'; }).join('') + '</nav><p id="staffHelpMessage" role="status"></p>' +
+                '<section class="staff-help-card" id="staffHelpSection-guides"><h3>Hướng dẫn sử dụng</h3>' + guides.map(function (g) { return '<details class="staff-help-guide"><summary><i class="fas fa-' + g[0] + '" aria-hidden="true"></i>' + g[1] + '<i class="fas fa-chevron-down help-chevron" aria-hidden="true"></i></summary><p>' + g[2] + '</p></details>'; }).join('') + '</section>' +
+                '<section class="staff-help-card" id="staffHelpSection-contact" hidden><div class="staff-help-manager"><span class="staff-help-avatar"><i class="fas fa-user-tie" aria-hidden="true"></i></span><div><h3>' + escapeHtml(manager ? manager.name : 'Chưa được gán người quản lý trực tiếp') + '</h3><span>' + escapeHtml(manager ? manager.title || (RHP.typeOfUser(manager) || {}).name || 'Quản lý' : 'Liên hệ ban quản lý để cập nhật thông tin') + '</span>' + (manager ? '<div class="staff-help-contact"><span><i class="fas fa-phone" aria-hidden="true"></i>' + escapeHtml(manager.phone || 'Số điện thoại chưa cập nhật') + '</span><span><i class="fas fa-envelope" aria-hidden="true"></i>' + escapeHtml(manager.contactEmail || manager.email || 'Email chưa cập nhật') + '</span>' + (manager.department ? '<span><i class="fas fa-briefcase" aria-hidden="true"></i>' + escapeHtml(manager.department) + '</span>' : '') + '</div>' : '') + '</div></div><div class="staff-help-org"><strong>' + escapeHtml(settings.orgName || 'Ban quản lý') + '</strong><div>' + escapeHtml(settings.orgHotline || 'Chưa cấu hình số liên hệ') + ' · ' + escapeHtml(settings.orgEmail || 'Chưa cấu hình email') + '</div></div></section>' +
+                '<section class="staff-help-card staff-help-empty" id="staffHelpSection-send" hidden><i class="fas fa-headset" aria-hidden="true"></i><h3>Chúng tôi có thể giúp gì cho bạn?</h3><p>Gửi vấn đề cần hỗ trợ, phản hồi hoặc báo lỗi đến người quản lý.</p>' + (staffAllowed('support.create') ? '<button type="button" class="staff-action-btn" data-help-open>+ Gửi yêu cầu hỗ trợ</button>' : '<p>Bạn chưa được cấp quyền gửi yêu cầu hỗ trợ. Liên hệ quản lý qua thông tin trong mục Liên hệ quản lý.</p>') + '</section>' +
+                '<section class="staff-help-card" id="staffHelpSection-requests" hidden><h3>Yêu cầu của tôi</h3><p class="staff-help-lead">Theo dõi yêu cầu đã gửi và yêu cầu bạn được giao xử lý.</p>' + (requests.map(function (r) {
+                    var status = RHD.SUPPORT_STATUSES.filter(function (x) { return x.id === r.status; })[0];
+                    var priority = RHD.SUPPORT_PRIORITIES.filter(function (x) { return x.id === r.priority; })[0];
+                    var handler = RH.getUsers().filter(function (u) { return u.id === r.assigneeId; })[0];
+                    return '<details class="staff-help-request"><summary><span class="staff-help-request-title"><small>' + escapeHtml(r.code || 'Chưa có mã') + ' · ' + escapeHtml(r.createdAt ? new Date(r.createdAt).toLocaleString('vi-VN') : 'Chưa cập nhật thời gian') + '</small><strong>' + escapeHtml(r.title) + '</strong><small>' + escapeHtml(r.category || 'Chưa phân loại') + ' · Phụ trách: ' + escapeHtml(handler ? handler.name : r.assignee || 'Chưa phân công') + '</small><span class="staff-help-request-meta"><span class="staff-help-badge" data-priority="' + escapeHtml(r.priority || '') + '">' + escapeHtml(priority ? priority.label : r.priority || 'Chưa cập nhật mức độ') + '</span></span></span><span class="staff-help-badge" data-state="' + escapeHtml(r.status) + '">' + escapeHtml(status ? status.label : r.status) + '</span></summary><div class="staff-help-request-body"><p>' + escapeHtml(r.description || '') + '</p><div class="staff-help-attachments">' + (r.attachmentFiles || []).filter(function (f) { return /^data:image\/(png|jpeg|webp);base64,/.test(f.dataUrl || ''); }).map(function (f) { return '<img src="' + escapeHtml(f.dataUrl) + '" alt="' + escapeHtml(f.name || 'Ảnh đính kèm') + '">'; }).join('') + '</div><p>' + escapeHtml(r.response || 'Chưa có phản hồi.') + '</p>' + (r.messages || []).map(function (m) { return '<p><strong>' + escapeHtml(m.from || '') + '</strong>: ' + escapeHtml(m.text || '') + '</p>'; }).join('') +
+                        (r.assigneeId === RH_SESSION.id && staffAllowed('support.update') ? '<form data-staff-help-reply="' + escapeHtml(r.id) + '"><label>Nội dung xử lý<textarea name="response" required maxlength="2000"></textarea></label><label>Trạng thái<select name="status">' + RHD.SUPPORT_STATUSES.map(function (x) { return '<option value="' + x.id + '"' + (x.id === r.status ? ' selected' : '') + '>' + escapeHtml(x.label) + '</option>'; }).join('') + '</select></label><button class="staff-action-btn" type="submit">Lưu kết quả hỗ trợ</button></form>' : '') + '</div></details>';
+                }).join('') || '<div class="staff-help-empty"><i class="fas fa-inbox" aria-hidden="true"></i><p>Bạn chưa gửi yêu cầu hỗ trợ nào</p></div>') + '</section>' +
+                (staffAllowed('support.create') ? '<dialog id="staffHelpDialog" class="staff-help" aria-labelledby="staffHelpDialogTitle"><div class="staff-help-modal-head"><h3 id="staffHelpDialogTitle">Gửi yêu cầu hỗ trợ</h3><button type="button" class="staff-help-close" data-help-close aria-label="Đóng biểu mẫu">×</button></div><form id="staffHelpForm"><label for="staffHelpTitle">Tiêu đề *<input id="staffHelpTitle" required maxlength="120" placeholder="Ví dụ: Không thể cập nhật tiến độ nhiệm vụ"></label><div class="staff-help-fields"><label for="staffHelpType">Loại yêu cầu<select id="staffHelpType"><option value="Phản hồi">Phản hồi / góp ý</option><option value="Lỗi kỹ thuật">Lỗi hệ thống</option><option>Hỗ trợ sử dụng</option></select></label><label for="staffHelpPriority">Mức độ<select id="staffHelpPriority">' + RHD.SUPPORT_PRIORITIES.map(function (p) { return '<option value="' + escapeHtml(p.id) + '">' + escapeHtml(p.label) + '</option>'; }).join('') + '</select></label></div><label for="staffHelpBuilding">Tòa nhà *<select id="staffHelpBuilding" required><option value="">Chọn tòa nhà</option>' + buildings.map(function (b) { return '<option value="' + escapeHtml(b.id) + '">' + escapeHtml(b.name) + '</option>'; }).join('') + '</select></label><label for="staffHelpDescription">Mô tả vấn đề *<textarea id="staffHelpDescription" required maxlength="2000" placeholder="Mô tả vấn đề bạn gặp, thao tác đã thực hiện và nội dung cần hỗ trợ..."></textarea></label><label for="staffHelpFiles">Hình ảnh đính kèm</label><div class="staff-help-upload"><i class="fas fa-cloud-arrow-up" aria-hidden="true"></i><strong>Chọn ảnh minh họa vấn đề</strong><small>Tối đa 3 ảnh PNG, JPEG hoặc WebP · Không quá 2 MB/ảnh</small><input id="staffHelpFiles" type="file" accept="image/png,image/jpeg,image/webp" multiple></div><div id="staffHelpPreviews" class="staff-help-previews"></div><p id="staffHelpFormMessage" class="staff-help-form-message" role="alert"></p><div class="staff-help-footer"><button class="staff-action-btn secondary" type="button" data-help-close>Hủy</button><button class="staff-action-btn" type="submit">Gửi yêu cầu</button></div></form></dialog>' : '') + '</section>';
+            var helpDialog = document.getElementById('staffHelpDialog');
+            if (helpDialog) helpDialog.addEventListener('close', function () { var opener = staffContent.querySelector('[data-help-open]'); if (opener && !opener.closest('[hidden]')) opener.focus(); });
+        }
+
+        function switchStaffHelpSection(section) {
+            staffContent.querySelectorAll('[data-help-tab]').forEach(function (button) { button.setAttribute('aria-pressed', String(button.dataset.helpTab === section)); });
+            ['guides', 'contact', 'send', 'requests'].forEach(function (name) { var panel = document.getElementById('staffHelpSection-' + name); if (panel) panel.hidden = name !== section; });
+        }
+
+        function previewStaffHelpFiles() {
+            var input = document.getElementById('staffHelpFiles');
+            var files = Array.from(input.files);
+            var message = document.getElementById('staffHelpFormMessage');
+            var previews = document.getElementById('staffHelpPreviews');
+            previews.innerHTML = '';
+            if (files.length > 3 || files.some(function (f) { return f.size > 2 * 1024 * 1024 || !/^image\/(png|jpeg|webp)$/.test(f.type); })) {
+                input.value = ''; message.textContent = 'Chọn tối đa 3 ảnh PNG/JPEG/WebP, không quá 2 MB mỗi ảnh.'; return;
+            }
+            message.textContent = '';
+            files.forEach(function (file, index) {
+                var item = document.createElement('div'); item.className = 'staff-help-preview';
+                var img = document.createElement('img'); img.alt = file.name;
+                var url = URL.createObjectURL(file); img.onload = img.onerror = function () { URL.revokeObjectURL(url); }; img.src = url;
+                var remove = document.createElement('button'); remove.type = 'button'; remove.textContent = '×'; remove.dataset.helpRemoveImage = index; remove.setAttribute('aria-label', 'Xóa ảnh ' + file.name);
+                item.append(img, remove); previews.appendChild(item);
+            });
+        }
+
         function assignedTasks() {
+            if (!staffAllowed('staffTasks.view') && !staffAllowed('staffIncome.view')) return [];
             var ownName = String(RH_SESSION.name || '').trim().toLocaleLowerCase();
             var ownEmail = String(RH_SESSION.email || '').trim().toLocaleLowerCase();
             return RHD.list('supportRequests').filter(function (request) {
+                if (request.source === 'staff') return false;
                 if (request.assigneeId) return request.assigneeId === RH_SESSION.id;
                 var assignee = String(request.assignee || '').trim().toLocaleLowerCase();
                 return !!assignee && (assignee === ownName || assignee === ownEmail);
@@ -1058,6 +1171,7 @@
         }
 
         function renderWageHistory() {
+            if (!staffAllowed('staffIncome.view')) { staffContent.innerHTML = '<div class="staff-panel"><p>Bạn chưa được cấp quyền xem tiền công.</p></div>'; return; }
             var completed = assignedTasks().filter(function (task) {
                 return task.staffTaskStatus === 'approved' || task.status === 'resolved' || task.status === 'closed';
             });
@@ -1200,14 +1314,14 @@
                 return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || '');
             }) : [];
             var actionMarkup = '';
-            if (progressOnly && status.label === 'Chờ tiếp nhận') {
+            if (progressOnly && status.label === 'Chờ tiếp nhận' && staffAllowed('staffTasks.accept')) {
                 actionMarkup = '<button class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '">Tiếp nhận và bắt đầu xử lý</button>';
-            } else if (progressOnly && status.label === 'Đang xử lý') {
+            } else if (progressOnly && status.label === 'Đang xử lý' && staffAllowed('staffTasks.report')) {
                 actionMarkup = '<label style="display:block;margin:14px 0 7px;font-weight:600;font-size:13px;">Báo cáo kết quả xử lý</label><textarea class="staff-report-input" id="staffCompletionNote" rows="4" placeholder="Mô tả công việc đã thực hiện"></textarea><button class="staff-action-btn" data-task-action="complete" data-task-id="' + escapeHtml(request.id) + '" style="margin-top:9px;">Báo hoàn thành, chờ Quản lý duyệt</button>';
             } else if (progressOnly && status.label.indexOf('Chờ Quản lý duyệt') !== -1) {
                 actionMarkup = '<p class="staff-badge approval">Đã gửi kết quả, đang chờ Quản lý duyệt.</p>';
             } else if (progressOnly) {
-                actionMarkup = '<p class="staff-badge done">Nhiệm vụ đã hoàn thành.</p>';
+                actionMarkup = '<p class="staff-badge">' + escapeHtml(status.label) + ' · Không có thao tác được cấp quyền tại đây.</p>';
             } else {
                 actionMarkup = '<button class="staff-action-btn" data-staff-page="Cập nhật tiến độ">Cập nhật tiến độ</button>';
             }
@@ -1216,6 +1330,7 @@
             var taskWageCashflow = taskWage.cashflowId ? RHD.get('cashflows', taskWage.cashflowId) : null;
             var wageMarkup = (taskWage.baseAmount != null || taskWage.status) ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Tiền công đã được Quản lý duyệt · chỉ xem</small><div class="staff-detail-grid"><div><small>Tiền cơ bản</small><strong>' + (Number(taskWage.baseAmount) || 0).toLocaleString('vi-VN') + ' đ</strong></div><div><small>Tổng tiền công</small><strong>' + wageTotal(taskWage).toLocaleString('vi-VN') + ' đ</strong></div><div><small>Trạng thái</small><strong><span class="staff-badge ' + taskWageState.style + '">' + escapeHtml(taskWageState.label) + '</span></strong></div><div><small>Phiếu chi liên kết</small><strong>' + (taskWageCashflow ? escapeHtml(taskWageCashflow.code || taskWageCashflow.reference || 'Đã ghi nhận') + (Number(taskWageCashflow.amount) !== wageTotal(taskWage) ? ' · Chênh ' + (Number(taskWageCashflow.amount) - wageTotal(taskWage)).toLocaleString('vi-VN') + ' đ' : ' · Khớp số tiền') : (taskWage.status === 'paid' ? 'Không tìm thấy phiếu chi' : 'Chưa có')) + '</strong></div></div>' +
                 ((taskWage.adjustments || []).length ? '<details style="margin-top:8px;"><summary>Lịch sử điều chỉnh có lý do (' + taskWage.adjustments.length + ')</summary>' + taskWage.adjustments.map(function (item) { return '<p style="margin:6px 0;color:#475569;font-size:12px;">' + (Number(item.amount) > 0 ? '+' : '') + Number(item.amount).toLocaleString('vi-VN') + ' đ · ' + escapeHtml(item.reason || '—') + ' · ' + escapeHtml(item.by || 'Quản lý') + '</p>'; }).join('') + '</details>' : '') + '</div>' : '<div class="staff-detail-item" style="margin-top:12px;"><small>Tiền công</small><strong>Chưa được Quản lý lập hoặc duyệt.</strong></div>';
+            if (!staffAllowed('staffIncome.view')) wageMarkup = '';
             staffContent.innerHTML = '<div class="staff-panel"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;"><div><div style="color:#718096;font-size:12px;">' + escapeHtml(request.code || request.id) + '</div><h2 style="margin:5px 0 0;">' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</h2></div><span class="staff-badge ' + status.style + '">' + escapeHtml(status.label) + '</span></div>' +
                 '<div class="staff-detail-grid"><div class="staff-detail-item"><small>Nhóm chuyên môn</small><strong>' + escapeHtml(group ? staffGroupLabels[group] : 'Chưa phân nhóm') + (groupInfo ? '<br><span style="font-size:12px;font-weight:400;color:#61708a;">' + escapeHtml(groupInfo.description) + '</span>' : '') + '</strong></div>' +
                 '<div class="staff-detail-item"><small>Loại yêu cầu / mức độ</small><strong>' + escapeHtml(request.category || 'Khác') + ' · ' + escapeHtml(((RHD.SUPPORT_PRIORITIES || []).filter(function (item) { return item.id === request.priority; })[0] || {}).label || 'Bình thường') + '</strong></div>' +
@@ -1234,14 +1349,27 @@
         }
 
         function renderStaffPage() {
+            var liveSession = RH.getSession();
+            if (!liveSession || liveSession.id !== RH_SESSION.id) {
+                var account = RH.getUsers().filter(function (u) { return u.id === RH_SESSION.id; })[0];
+                if (!account || account.status !== 'active') alert('Tài khoản đã bị khóa, vô hiệu hóa hoặc xóa. Vui lòng liên hệ quản lý.');
+                RH.requireRole('staff'); return;
+            }
+            var liveUser = RH.getUsers().filter(function (u) { return u.id === liveSession.id; })[0];
+            if (!liveUser || liveUser.status !== 'active') { RH.logout(); window.location.replace('index.html'); return; }
+            menuItems.forEach(function (item) { item.hidden = !staffPageAllowed(item.dataset.title); });
+            if (!staffPageAllowed(currentStaffPage)) { staffContent.innerHTML = '<div class="staff-panel"><p>Bạn chưa được cấp quyền sử dụng chức năng này.</p></div>'; return; }
             if (currentStaffPage === 'Tổng quan') renderOverview();
             else if (currentStaffPage === 'Danh sách nhiệm vụ') renderTaskList();
             else if (currentStaffPage === 'Chi tiết nhiệm vụ') renderTaskDetail(false);
             else if (currentStaffPage === 'Cập nhật tiến độ') renderTaskDetail(true);
+            else if (currentStaffPage === 'Báo cáo kết quả') renderTaskDetail(true);
             else if (currentStaffPage === 'Lịch sử tiền công' || currentStaffPage === 'Theo dõi trạng thái tiền công' || currentStaffPage === 'Tổng hợp tiền công và chi phí') renderWageHistory();
             else if (currentStaffPage === 'Hồ sơ cá nhân') renderProfile();
             else if (currentStaffPage === 'Cài đặt giao diện') renderAppearanceSettings();
             else if (currentStaffPage === 'Cài đặt thông báo') renderNotificationSettings();
+            else if (currentStaffPage === 'Hỗ trợ') renderStaffHelp();
+            else if (currentStaffPage === 'Bảo mật tài khoản') renderStaffSecurity();
             else staffContent.innerHTML = '<div class="staff-panel"><p>Nội dung sẽ hiển thị tại đây.</p></div>';
         }
 
@@ -1268,6 +1396,7 @@
         }
 
         function updateTaskStatus(id, action) {
+            if (!staffAllowed(action === 'start' ? 'staffTasks.accept' : action === 'complete' ? 'staffTasks.report' : 'staffTasks.update')) { alert('Bạn không có quyền thực hiện thao tác nhiệm vụ này.'); return; }
             var request = assignedTasks().filter(function (task) { return task.id === id; })[0];
             if (!request) {
                 alert('Nhiệm vụ không còn được phân công cho tài khoản này.');
@@ -1299,6 +1428,26 @@
         }
 
         staffContent.addEventListener('click', function (event) {
+            var helpTab = event.target.closest('[data-help-tab]');
+            if (helpTab) { switchStaffHelpSection(helpTab.dataset.helpTab); return; }
+            if (event.target.closest('[data-help-open]')) {
+                var helpDialog = document.getElementById('staffHelpDialog');
+                if (helpDialog && staffAllowed('support.create')) helpDialog.showModal();
+                return;
+            }
+            if (event.target.closest('[data-help-close]')) { document.getElementById('staffHelpDialog').close(); return; }
+            var removeHelpImage = event.target.closest('[data-help-remove-image]');
+            if (removeHelpImage) {
+                var imageInput = document.getElementById('staffHelpFiles');
+                var remainingImages = new DataTransfer();
+                Array.from(imageInput.files).forEach(function (file, index) { if (index !== Number(removeHelpImage.dataset.helpRemoveImage)) remainingImages.items.add(file); });
+                imageInput.files = remainingImages.files;
+                previewStaffHelpFiles(); return;
+            }
+            var toggle = event.target.closest('[data-password-toggle]');
+            if (toggle) { var input = document.getElementById(toggle.dataset.passwordToggle); input.type = input.type === 'password' ? 'text' : 'password'; toggle.textContent = input.type === 'password' ? 'Hiện' : 'Ẩn'; toggle.setAttribute('aria-label', input.type === 'password' ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'); return; }
+            if (event.target.id === 'staffCancelOtp') { document.getElementById('staffOtpDialog').close(); return; }
+            if (event.target.id === 'staffResendOtp') { var codeResult = RH.resendOwnPasswordCode(staffPasswordChallengeId); if (codeResult.ok) presentDemoPasswordCode(codeResult); else document.getElementById('staffOtpError').textContent = codeResult.error; return; }
             var pageButton = event.target.closest('[data-staff-page]');
             if (pageButton) { openPage(pageButton.dataset.staffPage); return; }
             var notificationFilterButton = event.target.closest('[data-notification-filter]');
@@ -1447,7 +1596,51 @@
             var actionButton = event.target.closest('[data-task-action]');
             if (actionButton) updateTaskStatus(actionButton.dataset.taskId, actionButton.dataset.taskAction);
         });
-        staffContent.addEventListener('submit', function (event) {
+        staffContent.addEventListener('submit', async function (event) {
+            if (event.target.id === 'staffPasswordForm') {
+                event.preventDefault();
+                var result = RH.beginOwnPasswordChange({ currentPassword: document.getElementById('staffCurrentPassword').value, newPassword: document.getElementById('staffNewPassword').value, confirmPassword: document.getElementById('staffConfirmPassword').value });
+                document.getElementById('staffSecurityMessage').textContent = result.ok ? '' : result.error;
+                if (result.ok) { event.target.reset(); presentDemoPasswordCode(result); }
+                return;
+            }
+            if (event.target.id === 'staffOtpForm') {
+                event.preventDefault();
+                var result = RH.confirmOwnPasswordChange(staffPasswordChallengeId, document.getElementById('staffOtpInput').value);
+                if (!result.ok) { document.getElementById('staffOtpError').textContent = result.error; return; }
+                document.getElementById('staffOtpDialog').close();
+                document.getElementById('staffSecurityMessage').textContent = 'Đổi mật khẩu thành công. Vui lòng đăng nhập lại.';
+                alert('Đổi mật khẩu thành công. Vui lòng đăng nhập lại.');
+                window.location.replace('index.html?passwordChanged=1');
+                return;
+            }
+            if (event.target.dataset.staffHelpReply) {
+                event.preventDefault();
+                var replyResult = RHD.update('supportRequests', event.target.dataset.staffHelpReply, { response: event.target.elements.response.value.trim(), status: event.target.elements.status.value });
+                if (!replyResult.ok) { alert(replyResult.error); return; }
+                renderStaffHelp(); return;
+            }
+            if (event.target.id === 'staffHelpForm') {
+                event.preventDefault();
+                if (!staffAllowed('support.create')) { alert('Bạn chưa được cấp quyền gửi yêu cầu hỗ trợ.'); return; }
+                var title = document.getElementById('staffHelpTitle').value.trim(), content = document.getElementById('staffHelpDescription').value.trim(), buildingId = document.getElementById('staffHelpBuilding').value;
+                if (!title || !content || !buildingId || !RHP.inScope(buildingId)) { alert('Nhập tiêu đề, nội dung và chọn tòa nhà trong phạm vi phụ trách.'); return; }
+                var files = Array.from(document.getElementById('staffHelpFiles').files);
+                if (files.length > 3 || files.some(function (file) { return file.size > 2 * 1024 * 1024 || !/^image\/(png|jpeg|webp)$/.test(file.type); })) { document.getElementById('staffHelpFormMessage').textContent = 'Chọn tối đa 3 ảnh PNG/JPEG/WebP, không quá 2 MB mỗi ảnh.'; return; }
+                var requestType = document.getElementById('staffHelpType').value, priority = document.getElementById('staffHelpPriority').value;
+                var button = event.target.querySelector('button[type="submit"]'); button.disabled = true;
+                try {
+                    var attachments = await Promise.all(files.map(function (file) { return new Promise(function (resolve, reject) { var reader = new FileReader(); reader.onload = function () { resolve({ name: file.name, type: file.type, dataUrl: reader.result }); }; reader.onerror = reject; reader.readAsDataURL(file); }); }));
+                    if (!staffAllowed('support.create')) throw new Error('Quyền gửi hỗ trợ hoặc phiên đăng nhập đã thay đổi.');
+                    var result = RHD.create('supportRequests', { code: 'NV-' + Date.now(), title: title, description: content, category: requestType, status: 'new', priority: priority, buildingId: buildingId, requesterId: RH_SESSION.id, requesterName: RH_SESSION.name, from: RH_SESSION.name, source: 'staff', messages: [], attachmentFiles: attachments });
+                    if (!result.ok) throw new Error(result.error);
+                } catch (error) { button.disabled = false; document.getElementById('staffHelpFormMessage').textContent = error.message || 'Không thể lưu yêu cầu. Kiểm tra dung lượng lưu trữ.'; return; }
+                renderStaffHelp();
+                switchStaffHelpSection('requests');
+                document.getElementById('staffHelpMessage').textContent = 'Yêu cầu đã được gửi thành công.';
+                document.getElementById('staffHelpMessage').style.color = '#16865e';
+                return;
+            }
             if (event.target.id !== 'staffProfileForm') return;
             event.preventDefault();
             var emailInput = document.getElementById('staffProfileEmail');
@@ -1496,6 +1689,7 @@
             setProfileFieldError(field, profileFieldError(field, event.target.value.trim()));
         });
         staffContent.addEventListener('change', function (event) {
+            if (event.target.id === 'staffHelpFiles') { previewStaffHelpFiles(); return; }
             var target = event.target;
             if (target.id === 'staffActivityFrom' || target.id === 'staffActivityTo' ||
                 target.id === 'staffActivityStatus' || target.id === 'staffActivityType') {
@@ -1575,13 +1769,15 @@
             if (currentStaffPage === 'Cài đặt giao diện' || currentStaffPage === 'Cài đặt thông báo') renderStaffPage();
         });
         window.addEventListener('storage', function (event) {
+            if (event.key === 'residenthub_account_types' || event.key === 'residenthub_session' || event.key === null) { renderStaffPage(); return; }
             if (event.key === 'residenthub_live_supportRequests' || event.key === 'residenthub_live_cashflows') renderStaffPage();
             if (event.key === 'residenthub_users' || event.key === 'residenthub_internal_data') {
                 updateStaffNotificationCount();
                 if (currentStaffPage === 'Cài đặt giao diện') appearanceDraft = null;
-                if (currentStaffPage === 'Hồ sơ cá nhân' || currentStaffPage === 'Cài đặt giao diện' || currentStaffPage === 'Cài đặt thông báo') renderStaffPage();
+                renderStaffPage();
             }
         });
+        window.addEventListener('pageshow', function (event) { if (event.persisted) renderStaffPage(); });
         document.getElementById('staffUserName').textContent = (RH_SESSION.name || '') + (staffGroupLabels[RH_SESSION.staffGroup] ? ' · ' + staffGroupLabels[RH_SESSION.staffGroup] : '');
         var currentPreferences = RH.getCurrentUserSettings();
         document.body.classList.toggle('staff-density-compact', currentPreferences.density === 'compact');
@@ -1593,9 +1789,11 @@
             document.getElementById('staffSidebar').classList.toggle('open');
         });
         document.getElementById('staffLogout').addEventListener('click', function () {
+            if (!confirm('Bạn muốn đăng xuất khỏi hệ thống?')) return;
             RH.logout();
             window.location.replace('index.html');
         });
+        }
     </script>
 </body>
 </html>

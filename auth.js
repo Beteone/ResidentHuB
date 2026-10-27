@@ -789,6 +789,10 @@
         var email = 'staff.demo@residenthub.test';
         var users = readUsers();
         var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
+        var seedKey = 'residenthub_staff_demo_initialized';
+        if (index !== -1) { localStorage.setItem(seedKey, '1'); return; }
+        if (localStorage.getItem(seedKey)) return;
+        localStorage.setItem(seedKey, '1');
         var user = index === -1 ? {
             id: 'u-staff-demo',
             createdAt: Date.now()
@@ -909,6 +913,7 @@
             title: String(data.title || '').trim(),
             employeeCode: String(data.employeeCode || '').trim(),
             staffGroup: String(data.staffGroup || '').trim(),
+            supervisorId: String(data.supervisorId || '').trim(),
             unit: data.unit ? String(data.unit).trim() : '',
             // Links this login account to a real Apartment record in RHD (data.js), so
             // resident-web.html can look up the actual contracts/invoices/requests that
@@ -928,6 +933,11 @@
         if (global.RHActivity) global.RHActivity.record('users', 'create', null, user);
         syncResidentApartmentRecords(user);
         return { ok: true, user: user };
+    }
+
+    function eligibleSupervisor(id) {
+        var user = readUsers().filter(function (u) { return u.id === id; })[0];
+        return !!(user && user.status === 'active' && user.role === ROLES.MANAGER && user.accountTypeId !== 'at-staff' && global.RHP && global.RHP.can('support.update', user));
     }
 
     function createUser(data) {
@@ -954,10 +964,18 @@
             }
         }
         data.role = role;
+        if (data.supervisorId && !eligibleSupervisor(data.supervisorId)) return { ok: false, error: 'Người quản lý phụ trách không hợp lệ hoặc chưa có quyền xử lý hỗ trợ.' };
         return createUserRecord(data);
     }
 
     function updateUser(id, patch) {
+        if (patch.supervisorId !== undefined && (!global.RHP || !global.RHP.can('users.update') || (patch.supervisorId && !eligibleSupervisor(patch.supervisorId)))) {
+            return { ok: false, error: 'Bạn không có quyền gán người quản lý này.' };
+        }
+        var actor = getSession();
+        if (actor && (actor.role === ROLES.STAFF || actor.accountTypeId === 'at-staff') && (!global.RHP || !global.RHP.can('users.update'))) {
+            return { ok: false, error: 'Bạn không có quyền sửa tài khoản.' };
+        }
         var users = readUsers();
         var index = -1;
         for (var i = 0; i < users.length; i++) {
@@ -1012,6 +1030,7 @@
         if (patch.title !== undefined) user.title = String(patch.title || '').trim();
         if (patch.employeeCode !== undefined) user.employeeCode = String(patch.employeeCode || '').trim();
         if (patch.staffGroup !== undefined) user.staffGroup = String(patch.staffGroup || '').trim();
+        if (patch.supervisorId !== undefined) user.supervisorId = String(patch.supervisorId || '').trim();
         if (patch.status !== undefined) {
             if (['active', 'inactive', 'locked'].indexOf(patch.status) === -1) return { ok: false, error: 'Trạng thái tài khoản không hợp lệ.' };
             user.status = patch.status;
@@ -1033,6 +1052,9 @@
 
     function deleteUser(id) {
         var session = getSession();
+        if (session && (session.role === ROLES.STAFF || session.accountTypeId === 'at-staff') && (!global.RHP || !global.RHP.can('users.delete'))) {
+            return { ok: false, error: 'Bạn không có quyền xóa tài khoản.' };
+        }
         if (session && session.id === id) {
             return { ok: false, error: 'Bạn không thể xoá tài khoản đang đăng nhập.' };
         }
@@ -1360,12 +1382,72 @@
         return result;
     }
 
+    // Local-only DEMO verification. The renderer displays the code; no email/SMS is sent.
+    var ownPasswordChallenge = null;
+    function passwordActor() {
+        var session = getSession();
+        var user = session && readUsers().filter(function (u) { return u.id === session.id; })[0];
+        return user && user.status === 'active' && (user.role === ROLES.STAFF || user.accountTypeId === 'at-staff') ? user : null;
+    }
+    function demoCode() {
+        if (!global.crypto || !global.crypto.getRandomValues) throw new Error('Trình duyệt không hỗ trợ mã xác thực.');
+        var bytes = new Uint32Array(1);
+        do { global.crypto.getRandomValues(bytes); } while (bytes[0] >= 4294000000);
+        return String(bytes[0] % 1000000).padStart(6, '0');
+    }
+    function passwordChallengeResult() {
+        return { ok: true, challengeId: ownPasswordChallenge.id, demoCode: ownPasswordChallenge.code, expiresAt: ownPasswordChallenge.expiresAt };
+    }
+    function beginOwnPasswordChange(input) {
+        ownPasswordChallenge = null;
+        var user = passwordActor();
+        if (!user) return { ok: false, error: 'Phiên đăng nhập không còn hợp lệ.' };
+        input = input || {};
+        if (!input.currentPassword || user.password !== String(input.currentPassword)) return { ok: false, error: 'Mật khẩu hiện tại không đúng.' };
+        var next = String(input.newPassword || '');
+        if (next.length < 8 || next.length > 128 || !/[A-Za-z]/.test(next) || !/\d/.test(next)) return { ok: false, error: 'Mật khẩu mới cần 8–128 ký tự, có chữ và số.' };
+        if (next !== input.confirmPassword) return { ok: false, error: 'Xác nhận mật khẩu mới không khớp.' };
+        if (next === user.password) return { ok: false, error: 'Mật khẩu mới phải khác mật khẩu hiện tại.' };
+        try {
+            ownPasswordChallenge = { id: demoCode() + '-' + Date.now(), userId: user.id, original: user.password, next: next, code: demoCode(), expiresAt: Date.now() + 120000, attempts: 0, resends: 0 };
+            return passwordChallengeResult();
+        } catch (error) { return { ok: false, error: 'Không thể tạo mã xác thực trên trình duyệt này.' }; }
+    }
+    function resendOwnPasswordCode(id) {
+        var user = passwordActor(), c = ownPasswordChallenge;
+        if (!user || !c || c.id !== id || c.userId !== user.id || user.password !== c.original) return { ok: false, error: 'Yêu cầu đã hết hiệu lực. Nhập lại thông tin mật khẩu.' };
+        if (c.resends >= 3) return { ok: false, error: 'Đã hết số lần cấp lại. Nhập lại thông tin mật khẩu.' };
+        var previousCode = c.code;
+        do { c.code = demoCode(); } while (c.code === previousCode);
+        c.expiresAt = Date.now() + 120000; c.resends++;
+        return passwordChallengeResult();
+    }
+    function confirmOwnPasswordChange(id, code) {
+        var user = passwordActor(), c = ownPasswordChallenge;
+        if (!user || !c || c.id !== id || c.userId !== user.id || user.password !== c.original) return { ok: false, error: 'Yêu cầu không còn hợp lệ.' };
+        if (Date.now() >= c.expiresAt) return { ok: false, error: 'Mã đã hết hạn. Hãy cấp lại mã.' };
+        if (String(code || '').trim() !== c.code) {
+            c.attempts++;
+            if (c.attempts >= 5) { ownPasswordChallenge = null; return { ok: false, error: 'Đã nhập sai 5 lần. Nhập lại thông tin mật khẩu.' }; }
+            return { ok: false, error: 'Mã xác thực không đúng.' };
+        }
+        var users = readUsers();
+        var target = users.filter(function (u) { return u.id === user.id; })[0];
+        target.password = c.next;
+        target.credentialVersion = Number(target.credentialVersion || 0) + 1;
+        ownPasswordChallenge = null;
+        writeUsers(users);
+        logout();
+        return { ok: true };
+    }
+
     function isRemembered() {
         return !!localStorage.getItem(SESSION_KEY);
     }
 
     function login(user, remember, refreshOnly) {
         var session = { id: user.id, name: user.name, email: user.email, role: user.role, unit: user.unit || '', apartmentId: user.apartmentId || '', residentId: user.residentId || '', loginAt: Date.now(), currentUserId: user.id };
+        session.credentialVersion = Number(user.credentialVersion || 0);
         var data = JSON.stringify(session);
         if (remember) {
             localStorage.setItem(SESSION_KEY, data);
@@ -1389,7 +1471,7 @@
             if (!raw) return null;
             var session = JSON.parse(raw);
             var user = readUsers().filter(function (item) { return item.id === session.id; })[0];
-            if (!user) {
+            if (!user || user.status !== 'active' || Number(session.credentialVersion || 0) !== Number(user.credentialVersion || 0)) {
                 logout();
                 return null;
             }
@@ -1410,6 +1492,7 @@
     }
 
     function logout() {
+        ownPasswordChallenge = null;
         // Read the raw session to avoid recursion when getSession invalidates it.
         var auditSession = null;
         try {
@@ -1450,6 +1533,9 @@
         getUsers: readUsers,
         findUserByEmail: findUserByEmail,
         createUser: createUser,
+        beginOwnPasswordChange: beginOwnPasswordChange,
+        resendOwnPasswordCode: resendOwnPasswordCode,
+        confirmOwnPasswordChange: confirmOwnPasswordChange,
         updateUser: updateUser,
         deleteUser: deleteUser,
         authenticate: authenticate,

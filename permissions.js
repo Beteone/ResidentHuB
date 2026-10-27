@@ -3,7 +3,8 @@
  *
  *   User --accountTypeId--> AccountType --permissions[]--> "module.action" keys
  *
- * PERMISSION_SCHEMA below is the ONLY place permissions are declared. The
+ * PERMISSION_SCHEMA below is the single registry; shared module scripts may
+ * extend it with RHP.registerModule() at startup on both manager/staff pages. The
  * permission matrix in "Loại tài khoản" renders straight from it, and every
  * screen asks RHP.can('module.action') — so a new module only needs one entry
  * here (plus its can() checks), never a redesign. Account types store the
@@ -44,7 +45,11 @@
         { id: 'contracts', label: 'Hợp đồng', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'invoices', label: 'Hóa đơn', actions: ['view', 'create', 'update', 'delete'],
             extra: [{ id: 'approve', label: 'Duyệt hóa đơn nháp' }, { id: 'issue', label: 'Phát hành hóa đơn' }, { id: 'send', label: 'Gửi hóa đơn cho cư dân' }, { id: 'collect', label: 'Xác nhận đã thu tiền' }, { id: 'adjust', label: 'Điều chỉnh / hủy hóa đơn đã phát hành' }] },
-        { id: 'support', label: 'Yêu cầu hỗ trợ', actions: ['view', 'update'] },
+        { id: 'support', label: 'Yêu cầu hỗ trợ', actions: ['view', 'update'], extra: [{ id: 'create', label: 'Gửi yêu cầu hỗ trợ' }] },
+        { id: 'staffTasks', label: 'Nhiệm vụ nhân viên', actions: ['view', 'update'], extra: [
+            { id: 'accept', label: 'Tiếp nhận nhiệm vụ' }, { id: 'report', label: 'Gửi báo cáo kết quả' }
+        ] },
+        { id: 'staffIncome', label: 'Tiền công cá nhân', actions: ['view'] },
         { id: 'notifications', label: 'Quản lý thông báo', actions: ['view', 'create', 'update', 'delete'] },
         { id: 'reports', label: 'Báo cáo', actions: ['view'] },
         { id: 'roles', label: 'Loại tài khoản', actions: ['view', 'create', 'update', 'delete'] },
@@ -63,6 +68,20 @@
         return keys;
     }
 
+    // Extend the existing schema and editor; registration never grants permissions.
+    function registerModule(module) {
+        if (!module || !/^[a-zA-Z][\w-]*$/.test(module.id || '')) throw new Error('Mã module quyền không hợp lệ.');
+        var actions = module.actions || [], extra = module.extra || [];
+        if (!Array.isArray(actions) || !Array.isArray(extra) || actions.some(function (id) { return !ACTIONS.some(function (a) { return a.id === id; }); }) || extra.some(function (a) { return !a || !/^[a-zA-Z][\w-]*$/.test(a.id || '') || !a.label; })) throw new Error('Khai báo quyền không hợp lệ.');
+        var existing = PERMISSION_SCHEMA.filter(function (m) { return m.id === module.id; })[0];
+        if (!existing) { existing = { id: module.id, label: module.label || module.id, actions: [], extra: [] }; PERMISSION_SCHEMA.push(existing); }
+        actions.forEach(function (id) { if (existing.actions.indexOf(id) === -1 && !(existing.extra || []).some(function (a) { return a.id === id; })) existing.actions.push(id); });
+        extra.forEach(function (a) { if (existing.actions.indexOf(a.id) === -1 && !(existing.extra || []).some(function (x) { return x.id === a.id; })) (existing.extra || (existing.extra = [])).push({ id: a.id, label: a.label }); });
+        cache.key = null;
+        return existing;
+    }
+    function undeclaredPermissions(keys) { var known = allKeys(); return (keys || []).filter(function (key) { return known.indexOf(key) === -1; }); }
+
     function moduleOf(key) { return String(key).split('.')[0]; }
 
     function labelOf(key) {
@@ -72,6 +91,15 @@
         var a = ACTIONS.filter(function (x) { return x.id === parts[1]; })[0] || (m.extra || []).filter(function (x) { return x.id === parts[1]; })[0];
         return (a ? a.label : parts[1]) + ' · ' + m.label;
     }
+
+    // Exact historical template: migrate only untouched, unedited seed records.
+    var LEGACY_STAFF_PERMISSIONS = ['dashboard.view', 'buildings.view', 'apartments.view',
+        'assets.view', 'assets.create', 'assets.update', 'assetTypes.view', 'assetTypes.create',
+        'customers.view', 'customers.create', 'customers.update',
+        'meters.view', 'meters.create', 'meters.update', 'contracts.view', 'invoices.view',
+        'support.view', 'support.update'];
+    var STAFF_DEFAULT_PERMISSIONS = ['dashboard.view', 'staffTasks.view', 'staffTasks.accept',
+        'staffTasks.update', 'staffTasks.report', 'staffIncome.view', 'support.create'];
 
     // Starting templates for the two editable staff roles. They are ordinary
     // account types afterwards: rename, re-grant or delete them freely.
@@ -94,12 +122,9 @@
         },
         {
             id: 'at-staff', name: 'Nhân viên', portal: 'manager',
-            description: 'Nhân viên vận hành: ghi chỉ số, tài sản, xử lý yêu cầu.',
-            permissions: ['dashboard.view', 'buildings.view', 'apartments.view',
-                'assets.view', 'assets.create', 'assets.update', 'assetTypes.view', 'assetTypes.create',
-                'customers.view', 'customers.create', 'customers.update',
-                'meters.view', 'meters.create', 'meters.update', 'contracts.view', 'invoices.view',
-                'support.view', 'support.update']
+            description: 'Nhiệm vụ được giao, tiền công cá nhân và gửi yêu cầu hỗ trợ; dùng chung cho Kỹ thuật, Vệ sinh, An ninh.',
+            permissions: STAFF_DEFAULT_PERMISSIONS,
+            staffDefaultsVersion: 1
         },
         {
             id: RESIDENT_TYPE_ID, name: 'Cư dân', portal: 'resident', system: true,
@@ -125,13 +150,26 @@
     function seed() {
         var list = readTypes();
         if (!list) { writeTypes(DEFAULT_TYPES.map(function (t) { return Object.assign({ createdAt: Date.now() }, t); })); return; }
-        // The two system types must always exist (users fall back to them).
+        // Restore the common staff template if missing, without duplicating a
+        // pre-existing same-name custom type or changing its identity/grants.
         var changed = false;
-        [ADMIN_TYPE_ID, RESIDENT_TYPE_ID].forEach(function (id) {
+        [ADMIN_TYPE_ID, RESIDENT_TYPE_ID, 'at-staff'].forEach(function (id) {
+            if (id === 'at-staff' && list.some(function (t) { return t.id !== id && foldName(t.name) === foldName('Nhân viên'); })) return;
             if (!list.some(function (t) { return t.id === id; })) {
                 list.push(Object.assign({ createdAt: Date.now() }, DEFAULT_TYPES.filter(function (t) { return t.id === id; })[0]));
                 changed = true;
             }
+        });
+        list.forEach(function (t) {
+            if (t.id !== 'at-staff' || t.staffDefaultsVersion || t.updatedAt || t.fullAccess || t.system ||
+                t.name !== 'Nhân viên' || t.portal !== 'manager' ||
+                t.description !== 'Nhân viên vận hành: ghi chỉ số, tài sản, xử lý yêu cầu.' ||
+                !Array.isArray(t.permissions) || t.permissions.length !== LEGACY_STAFF_PERMISSIONS.length ||
+                !LEGACY_STAFF_PERMISSIONS.every(function (key) { return t.permissions.indexOf(key) !== -1; })) return;
+            t.permissions = STAFF_DEFAULT_PERMISSIONS.slice();
+            t.description = DEFAULT_TYPES[2].description;
+            t.staffDefaultsVersion = 1;
+            changed = true;
         });
         if (changed) writeTypes(list);
     }
@@ -144,6 +182,7 @@
         var type = getType(user.accountTypeId);
         var portal = user.role === 'resident' ? 'resident' : 'manager';
         if (type && type.portal === portal) return type;
+        if (user.role === 'staff') return getType('at-staff');
         return portal === 'resident' ? getType(RESIDENT_TYPE_ID) : getType(DEFAULT_MANAGER_TYPE_ID);
     }
 
@@ -188,6 +227,7 @@
                 return can(k, me) ? requested.indexOf(k) !== -1 : before.indexOf(k) !== -1;
             });
         }
+        (existing && existing.permissions || []).forEach(function (key) { if (allKeys().indexOf(key) === -1 && requested.indexOf(key) === -1) requested.push(key); });
         var record = Object.assign({}, existing || { id: 'at-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6), createdAt: Date.now() }, {
             name: name,
             description: String(data.description || '').trim(),
@@ -222,7 +262,7 @@
         var s = global.RH_SESSION;
         if (s && s.demo) return 'demo';
         var live = global.RH && global.RH.getSession ? global.RH.getSession() : null;
-        return live ? live.id : (s ? s.id : null);
+        return live ? live.id : (global.RH ? null : (s ? s.id : null));
     }
 
     function resolve() {
@@ -257,6 +297,7 @@
 
     // can('buildings.update') for the signed-in user, or for any given user.
     function can(key, user) {
+        if (allKeys().indexOf(key) === -1) { if (global.console) global.console.warn('Quyền chưa được khai báo:', key); return false; }
         if (user === undefined) {
             var c = resolve();
             if (!c.user || !c.type || c.type.portal !== 'manager') return false;
@@ -336,6 +377,8 @@
         RESIDENT_TYPE_ID: RESIDENT_TYPE_ID,
         ACTIONS: ACTIONS,
         SCHEMA: PERMISSION_SCHEMA,
+        registerModule: registerModule,
+        undeclaredPermissions: undeclaredPermissions,
         allKeys: allKeys,
         moduleOf: moduleOf,
         labelOf: labelOf,

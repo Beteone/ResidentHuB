@@ -44,11 +44,11 @@ check('session reload, logout and account switch', () => {
   assert.equal(reload.c.RH.getSession().id, 'audit-only');
 });
 a.c.RH.login(user, false);
-check('locked account retains an existing session and permissions (defect)', () => {
+check('locked account invalidates the existing session and permissions', () => {
   a.c.RH.updateUser(user.id, { status:'locked' });
   assert.equal(a.c.RH.authenticateDetailed(user.email,user.password).reason, 'locked');
-  assert.equal(a.c.RH.getSession().id, user.id);
-  assert.equal(a.c.RHP.can('buildings.create'), true);
+  assert.equal(a.c.RH.getSession(), null);
+  assert.equal(a.c.RHP.can('buildings.create'), false);
 });
 check('data API bypasses UI permission checks (defect)', () => {
   a.c.RH.logout();
@@ -56,12 +56,12 @@ check('data API bypasses UI permission checks (defect)', () => {
   assert.equal(a.c.RHP.can('buildings.create'), false);
   assert.equal(a.c.RHD.create('buildings', { id:'unguarded' }).ok, true);
 });
-check('demo account initialization overwrites password and lock (defect)', () => {
+check('demo initialization preserves changed credentials and lock', () => {
   a.c.RH.updateUser('u-staff-demo', { password:'changed-demo-secret', status:'locked' });
   const reload = workspace(a.local);
   const demo = reload.c.RH.getUsers().find(u => u.id === 'u-staff-demo');
-  assert.notEqual(demo.password, 'changed-demo-secret');
-  assert.equal(demo.status, 'active');
+  assert.equal(demo.password, 'changed-demo-secret');
+  assert.equal(demo.status, 'locked');
 });
 check('live seed replaces remaining collections when buildings are empty (defect)', () => {
   const b = workspace();

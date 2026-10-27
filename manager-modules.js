@@ -3274,7 +3274,7 @@
     // (RHD.create('supportRequests', ...)) lands here untouched, and a status
     // change made here is what the resident sees reflected on their side.
 
-    var supportListFilters = { search: '', status: 'all', category: 'all', priority: 'all' };
+    var supportListFilters = { search: '', status: 'all', category: 'all', priority: 'all', source: 'all' };
     var activeSupportView = 'requests';
     var selectedSupportChatId = null;
     var selectedSupportResidentKey = null;
@@ -3301,6 +3301,7 @@
     }
 
     function supportResidentKey(request) {
+        if (request.source === 'staff') return 'staff:' + request.requesterId;
         if (request.residentEmail) return 'email:' + String(request.residentEmail).trim().toLocaleLowerCase();
         if (request.customerId) return 'customer:' + request.customerId;
         return 'apartment:' + (request.apartmentId || request.buildingId || request.location || '') + ':' + String(request.residentName || 'Cư dân').trim().toLocaleLowerCase();
@@ -3372,12 +3373,14 @@
         var selectedChat = requests.filter(function (request) { return request.id === selectedSupportChatId; })[0] || null;
         selectedSupportResidentKey = selectedChat ? supportResidentKey(selectedChat) : null;
         var selectedResident = residentGroupsByKey[selectedSupportResidentKey] || null;
-        var categories = RHD.SUPPORT_CATEGORIES || [];
+        var categories = (RHD.SUPPORT_CATEGORIES || []).slice();
+        requests.forEach(function (r) { if (r.category && categories.indexOf(r.category) === -1) categories.push(r.category); });
         var visibleRequests = requests.filter(function (r) {
             var apt = RHD.get('apartments', r.apartmentId);
             var building = RHD.get('buildings', r.buildingId);
             var searchText = [r.code, r.residentName, r.title, r.category, r.location, apt && apt.name, building && building.name, building && building.shortName].join(' ').toLocaleLowerCase();
             return (!supportListFilters.search || searchText.indexOf(supportListFilters.search.toLocaleLowerCase()) !== -1) &&
+                (supportListFilters.source === 'all' || (r.source === 'staff' ? 'staff' : 'resident') === supportListFilters.source) &&
                 (supportListFilters.status === 'all' || r.status === supportListFilters.status) &&
                 (supportListFilters.category === 'all' || r.category === supportListFilters.category) &&
                 (supportListFilters.priority === 'all' || r.priority === supportListFilters.priority);
@@ -3387,7 +3390,7 @@
             var building = RHD.get('buildings', r.buildingId);
             var st = statusMeta(RHD.SUPPORT_STATUSES, r.status);
             var pr = statusMeta(RHD.SUPPORT_PRIORITIES, r.priority);
-            var staffProgress = {
+            var staffProgress = r.source === 'staff' ? '' : {
                 waiting: 'Chờ tiếp nhận',
                 in_progress: 'Đang xử lý',
                 pending_approval: 'Hoàn thành (Chờ Quản lý duyệt)',
@@ -3396,7 +3399,7 @@
                 ? (r.status === 'in_progress' ? 'Đang xử lý' : r.status === 'resolved' ? 'Hoàn thành' : 'Chờ tiếp nhận')
                 : '');
             return '<tr>' +
-                '<td class="support-request-cell"><strong class="support-request-code">' + escapeHtml(r.code || '—') + '</strong><span class="support-request-name">' + escapeHtml(r.title || 'Yêu cầu hỗ trợ') + '</span><small>' + escapeHtml(r.category || 'Khác') + '</small></td>' +
+                '<td class="support-request-cell"><strong class="support-request-code">' + escapeHtml(r.code || '—') + '</strong><span class="support-request-name">' + escapeHtml(r.title || 'Yêu cầu hỗ trợ') + '</span><small>' + escapeHtml(r.category || 'Khác') + ' · ' + (r.source === 'staff' ? 'Nhân viên' : 'Cư dân') + '</small></td>' +
                 '<td class="support-resident-cell"><strong>' + escapeHtml(r.residentName || '—') + '</strong><small>' + escapeHtml(building ? building.shortName : '—') + ' · Căn hộ ' + escapeHtml(apt ? apt.name : '—') + '</small></td>' +
                 '<td>' + badge(pr.label || r.priority, '#61708a', '#f1f5f9') + '</td>' +
                 '<td>' + badge(st.label, st.color, st.bg) + (staffProgress ? '<small style="display:block;margin-top:.35rem;color:#7c3aed;">Nhiệm vụ: ' + escapeHtml(staffProgress) + '</small>' : '') + '</td>' +
@@ -3415,6 +3418,7 @@
             '<div><p style="color:#94a3b8;font-size:.875rem;margin:0;">Yêu cầu do cư dân gửi từ ứng dụng — cập nhật trạng thái tại đây sẽ phản ánh ngay bên cư dân.</p></div>' +
             '</div>' +
             '<div style="display:grid;gap:.65rem;grid-template-columns:repeat(auto-fit,minmax(170px,1fr));margin-bottom:1rem;">' +
+            '<select id="rhSupportSourceFilter" aria-label="Nguồn yêu cầu" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;">' + [{id:'all',label:'Tất cả nguồn'},{id:'resident',label:'Cư dân'},{id:'staff',label:'Nhân viên'}].map(function (source) { return '<option value="' + source.id + '"' + (supportListFilters.source === source.id ? ' selected' : '') + '>' + source.label + '</option>'; }).join('') + '</select>' +
             '<input id="rhSupportSearch" type="search" value="' + escapeHtml(supportListFilters.search) + '" placeholder="Tìm mã, cư dân, căn hộ, nội dung..." aria-label="Tìm yêu cầu hỗ trợ" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;">' +
             '<select id="rhSupportStatusFilter" aria-label="Lọc trạng thái" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả trạng thái</option>' + (RHD.SUPPORT_STATUSES || []).map(function (s) { return '<option value="' + escapeHtml(s.id) + '"' + (supportListFilters.status === s.id ? ' selected' : '') + '>' + escapeHtml(s.label) + '</option>'; }).join('') + '</select>' +
             '<select id="rhSupportTypeFilter" aria-label="Lọc loại yêu cầu" style="border:1px solid var(--line);border-radius:9px;padding:.65rem .75rem;font:inherit;"><option value="all">Tất cả loại</option>' + categories.map(function (category) { return '<option value="' + escapeHtml(category) + '"' + (supportListFilters.category === category ? ' selected' : '') + '>' + escapeHtml(category) + '</option>'; }).join('') + '</select>' +
@@ -3459,7 +3463,7 @@
         if (inboxReply) inboxReply.addEventListener('keydown', function (ev) {
             if (ev.key === 'Enter' && !ev.shiftKey) { ev.preventDefault(); sendSupportMessage(selectedSupportChatId, 'supportInboxReply'); }
         });
-        ['rhSupportSearch', 'rhSupportStatusFilter', 'rhSupportTypeFilter', 'rhSupportPriorityFilter'].forEach(function (id) {
+        ['rhSupportSearch', 'rhSupportStatusFilter', 'rhSupportTypeFilter', 'rhSupportPriorityFilter', 'rhSupportSourceFilter'].forEach(function (id) {
             var input = byId(id);
             if (!input) return;
             input.addEventListener(id === 'rhSupportSearch' ? 'input' : 'change', function () {
@@ -3467,6 +3471,7 @@
                 supportListFilters.status = byId('rhSupportStatusFilter').value;
                 supportListFilters.category = byId('rhSupportTypeFilter').value;
                 supportListFilters.priority = byId('rhSupportPriorityFilter').value;
+                supportListFilters.source = byId('rhSupportSourceFilter').value;
                 renderSupportTab();
             });
         });
@@ -3486,10 +3491,10 @@
         var building = RHD.get('buildings', r.buildingId);
         var selectedStaffGroup = r.staffGroup || supportGroupForRequest(r);
         var allStaffAccounts = global.RH ? global.RH.getUsers().filter(function (user) {
-            return (user.role === 'staff' || user.accountTypeId === 'at-staff') && user.status === 'active';
+            return user.status === 'active' && (r.source === 'staff' ? global.RHP.can('support.update', user) && global.RHP.inScope(r.buildingId, user) : user.role === 'staff' || user.accountTypeId === 'at-staff');
         }) : [];
         var staffAccounts = allStaffAccounts.filter(function (user) {
-            return !selectedStaffGroup || !user.staffGroup || user.staffGroup === selectedStaffGroup || user.id === r.assigneeId;
+            return r.source === 'staff' || !selectedStaffGroup || !user.staffGroup || user.staffGroup === selectedStaffGroup || user.id === r.assigneeId;
         });
         var selectedStaffId = r.assigneeId || (staffAccounts.filter(function (user) {
             return String(user.name || '').trim().toLocaleLowerCase() === String(r.assignee || '').trim().toLocaleLowerCase() ||
@@ -3528,7 +3533,7 @@
             (staffWageAdjustments.length ? '<details style="margin-top:.5rem;"><summary>Lịch sử điều chỉnh (' + staffWageAdjustments.length + ')</summary><ul style="margin:.45rem 0;color:#475569;font-size:.8rem;">' + staffWageAdjustments.map(function (item) { return '<li>' + (Number(item.amount) > 0 ? '+' : '') + money(item.amount) + ' · ' + escapeHtml(item.reason || '—') + ' · ' + escapeHtml(item.by || '') + ' · ' + escapeHtml(item.at ? new Date(item.at).toLocaleString('vi-VN') : '') + '</li>'; }).join('') + '</ul></details>' : '') +
             (staffWageHistory.length ? '<details style="margin-top:.5rem;"><summary>Lịch sử duyệt / thanh toán</summary><ul style="margin:.45rem 0;color:#475569;font-size:.8rem;">' + staffWageHistory.slice().reverse().map(function (item) { return '<li>' + escapeHtml(item.label || 'Cập nhật') + ' · ' + escapeHtml(item.by || '') + ' · ' + escapeHtml(item.at ? new Date(item.at).toLocaleString('vi-VN') : '') + (item.note ? ' — ' + escapeHtml(item.note) : '') + '</li>'; }).join('') + '</ul></details>' : '') +
             '</div>';
-        var attachmentFiles = Array.isArray(r.attachmentFiles) ? r.attachmentFiles.filter(function (file) { return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || ''); }) : [];
+        var attachmentFiles = Array.isArray(r.attachmentFiles) ? r.attachmentFiles.filter(function (file) { return file && (r.source === 'staff' ? /^data:image\/(?:png|jpeg|webp);base64,/i : /^data:image\/jpeg;base64,/i).test(file.dataUrl || ''); }) : [];
         var attachmentMarkup = attachmentFiles.length
             ? '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Ảnh đính kèm</label><div style="display:flex;flex-wrap:wrap;gap:.65rem;margin-top:.45rem;">' + attachmentFiles.map(function (file, index) {
                 return '<a href="' + escapeHtml(file.dataUrl) + '" target="_blank" rel="noopener" style="display:grid;gap:.3rem;width:120px;color:#61708a;font-size:.72rem;text-decoration:none;"><img src="' + escapeHtml(file.dataUrl) + '" alt="Ảnh đính kèm ' + (index + 1) + '" style="width:120px;height:90px;object-fit:cover;border:1px solid var(--line);border-radius:8px;"><span>' + escapeHtml(file.name || 'Ảnh ' + (index + 1)) + '</span></a>';
@@ -3537,19 +3542,20 @@
         var html = '<form onsubmit="RHUI.submitSupportForm(event)">' +
             '<div class="rh-grid-2">' +
             '<div><label style="font-size:.8rem;color:#94a3b8;">Người gửi</label><div style="font-weight:600;">' + escapeHtml(r.residentName || '—') + '</div></div>' +
+            (r.source === 'staff' ? '<div><label>Nguồn / Quản lý phụ trách</label><div>Nhân viên · ' + escapeHtml(((global.RH.getUsers().filter(function (u) { return u.id === r.responsibleManagerId; })[0]) || {}).name || 'Chưa định tuyến') + '</div></div>' : '') +
             '<div><label style="font-size:.8rem;color:#94a3b8;">Căn hộ</label><div style="font-weight:600;">' + escapeHtml(building ? building.name : '—') + ' / ' + escapeHtml(apt ? apt.name : '—') + '</div></div>' +
             '<div style="grid-column:1/-1;"><label style="font-size:.8rem;color:#94a3b8;">Nội dung</label><div style="font-weight:600;">' + escapeHtml(r.title) + '</div><p style="color:#61708a;font-size:.85rem;margin-top:.35rem;">' + escapeHtml(r.description) + '</p></div>' +
             attachmentMarkup +
             completionReview +
-            staffWageMarkup +
+            (r.source === 'staff' ? '' : staffWageMarkup) +
             '<div class="rh-field"><label>Trạng thái</label><select id="srStatus">' + selectOptions(RHD.SUPPORT_STATUSES, 'id', 'label', r.status) + '</select></div>' +
-            '<div class="rh-field"><label>Tài khoản nhân viên</label><select id="srAssigneeAccount">' + staffAccountOptions + '</select></div>' +
+            '<div class="rh-field"><label>' + (r.source === 'staff' ? 'Tài khoản xử lý hỗ trợ' : 'Tài khoản nhân viên') + '</label><select id="srAssigneeAccount">' + staffAccountOptions + '</select></div>' +
             '<div class="rh-field"><label>Người phụ trách</label><input id="srAssignee" value="' + escapeHtml(r.assignee || RHD.getSettings().supportAutoAssignee || '') + '" placeholder="Tên nhân viên xử lý"><small>Chọn tài khoản để nhiệm vụ chỉ hiển thị với đúng nhân viên.</small></div>' +
             '<div class="rh-field"><label>Nhóm chuyên môn</label><select id="srStaffGroup"><option value="">Chọn nhóm</option>' + selectOptions(RHD.SUPPORT_STAFF_GROUPS, 'id', 'label', selectedStaffGroup) + '</select></div>' +
             '<div class="rh-field"><label>Hạn xử lý</label><input id="srDueAt" type="date" value="' + escapeHtml(String(r.dueAt || '').slice(0, 10)) + '"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú cho nhân viên</label><textarea id="srStaffNote" rows="3" placeholder="Nhập hướng dẫn hoặc lưu ý dành riêng cho nhân viên">' + escapeHtml(r.staffManagerNote || '') + '</textarea><small>Ghi chú này chỉ hiển thị trong chi tiết nhiệm vụ của nhân viên.</small></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label style="display:flex;align-items:center;gap:.55rem;"><input id="srNeedsStaffInfo" type="checkbox"' + (r.requiresStaffInformation ? ' checked' : '') + '> Yêu cầu nhân viên bổ sung thông tin</label><small>Bật lựa chọn này để gửi thông báo cho nhân viên được phân công.</small></div>' +
-            '<div class="support-drawer-chat"><div class="support-drawer-chat-head"><strong>Trao đổi với cư dân</strong></div><div id="srConversation" class="support-drawer-messages">' + supportConversationHtml(Array.isArray(r.messages) ? r.messages : []) + '</div><div class="support-drawer-compose"><textarea id="srReply" rows="2" placeholder="Nhập tin nhắn gửi cư dân..."></textarea><button type="button" class="btn-primary" onclick="RHUI.sendSupportReply()" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div></div>' +
+            '<div class="support-drawer-chat"><div class="support-drawer-chat-head"><strong>Trao đổi với ' + (r.source === 'staff' ? 'nhân viên' : 'cư dân') + '</strong></div><div id="srConversation" class="support-drawer-messages">' + supportConversationHtml(Array.isArray(r.messages) ? r.messages : []) + '</div><div class="support-drawer-compose"><textarea id="srReply" rows="2" placeholder="Nhập tin nhắn gửi ' + (r.source === 'staff' ? 'nhân viên' : 'cư dân') + '..."></textarea><button type="button" class="btn-primary" onclick="RHUI.sendSupportReply()" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div></div>' +
             '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
             '<button type="submit" class="btn-primary">Cập nhật</button>' +
@@ -3596,7 +3602,7 @@
         input.value = '';
         if (refreshDrawer) refreshOpenSupportConversation();
         else renderSupportTab();
-        if (RHD.getSettings().notifySupportStatus && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
+        if (request.source !== 'staff' && RHD.getSettings().notifySupportStatus && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
             global.RH.syncManagerNotification({
                 id: result.item.id, customerId: result.item.customerId, apartmentId: result.item.apartmentId, residentEmail: result.item.residentEmail,
                 type: 'request', title: 'Tin nhắn mới về yêu cầu ' + result.item.code,
@@ -3626,7 +3632,7 @@
         var assignee = byId('srAssignee').value.trim();
         var selectedStaffId = byId('srAssigneeAccount').value;
         var staffAccounts = global.RH ? global.RH.getUsers().filter(function (user) {
-            return (user.role === 'staff' || user.accountTypeId === 'at-staff') && user.status === 'active';
+            return user.status === 'active' && (before.source === 'staff' ? global.RHP.can('support.update', user) && global.RHP.inScope(before.buildingId, user) : user.role === 'staff' || user.accountTypeId === 'at-staff');
         }) : [];
         var assignedStaff = staffAccounts.filter(function (user) {
             return user.id === selectedStaffId ||
@@ -3638,11 +3644,11 @@
         var assignmentChanged = String(before.assigneeId || '') !== String(assignedStaff ? assignedStaff.id : '') ||
             String(before.assignee || '').trim() !== assignee ||
             String(before.staffGroup || '') !== byId('srStaffGroup').value;
-        if (assignedStaff && !byId('srStaffGroup').value) {
+        if (before.source !== 'staff' && assignedStaff && !byId('srStaffGroup').value) {
             alert('Vui lòng chọn nhóm chuyên môn cho nhiệm vụ.');
             return;
         }
-        if (assignedStaff && assignedStaff.staffGroup && byId('srStaffGroup').value && assignedStaff.staffGroup !== byId('srStaffGroup').value) {
+        if (before.source !== 'staff' && assignedStaff && assignedStaff.staffGroup && byId('srStaffGroup').value && assignedStaff.staffGroup !== byId('srStaffGroup').value) {
             alert('Nhân viên không thuộc nhóm chuyên môn đã chọn.');
             return;
         }
@@ -3656,12 +3662,12 @@
             requiresStaffInformation: byId('srNeedsStaffInfo').checked,
             updatedAt: now
         };
-        if (assignedStaff && assignmentChanged && status !== 'resolved' && status !== 'closed') {
+        if (before.source !== 'staff' && assignedStaff && assignmentChanged && status !== 'resolved' && status !== 'closed') {
             changes.status = 'accepted';
             changes.staffTaskStatus = 'waiting';
             changes.assignedAt = now;
             changes.acceptedAt = now;
-        } else if (assignedStaff && !before.staffTaskStatus && status === 'accepted') {
+        } else if (before.source !== 'staff' && assignedStaff && !before.staffTaskStatus && status === 'accepted') {
             changes.staffTaskStatus = 'waiting';
         } else if (!assignee && (before.assigneeId || before.assignee) && assignmentChanged && status !== 'resolved' && status !== 'closed') {
             changes.status = 'new';
@@ -3756,7 +3762,7 @@
         if (!res.ok && newWageCashflowId) RHD.remove('cashflows', newWageCashflowId);
         if (!res.ok) { alert(res.error || 'Không thể lưu hồ sơ nhiệm vụ và tiền công.'); return; }
         // Notify the resident account linked to this request (by residentId).
-        if (res.ok && RHD.getSettings().notifySupportStatus && before && before.status !== res.item.status && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
+        if (res.ok && before.source !== 'staff' && RHD.getSettings().notifySupportStatus && before && before.status !== res.item.status && RHD.mode() !== 'demo' && global.RH && global.RH.syncManagerNotification) {
             global.RH.syncManagerNotification({
                 id: res.item.id, customerId: res.item.customerId, apartmentId: res.item.apartmentId, residentEmail: res.item.residentEmail,
                 type: 'request', title: 'Yêu cầu ' + res.item.code + ' đã được cập nhật',
@@ -3764,7 +3770,7 @@
                 refType: 'request', actionUrl: 'requests', actionLabel: 'Xem yêu cầu'
             });
         }
-        if (res.ok && RHD.mode() !== 'demo' && global.RH && global.RH.createStaffNotificationForEvent) {
+        if (res.ok && before.source !== 'staff' && RHD.mode() !== 'demo' && global.RH && global.RH.createStaffNotificationForEvent) {
             var notificationFailure = '';
             var notification = function (recipientId, category, eventId, title, body) {
                 if (!recipientId) return;

@@ -75,6 +75,7 @@ try {
     await evaluate(`
         const users=RH.getUsers();
         const manager=users.find(user=>user.role==='manager');
+        manager.accountTypeId='at-admin';manager.allBuildings=true;
         users.push({id:'staff-task-check',name:'Staff Task Check',email:'staff-task-check@example.test',password:'test-password',role:'manager',accountTypeId:'at-staff',staffGroup:'technical',status:'active'});
         users.push({id:'resident-task-check',name:'Resident Task Check',email:'resident-task-check@example.test',password:'test-password',role:'resident',residentId:'staff-task-resident',apartmentId:'staff-task-apartment',unit:'101',status:'active'});
         localStorage.setItem('residenthub_users',JSON.stringify(users));
@@ -89,6 +90,7 @@ try {
     `);
     await navigate('/dashboard.html');
     await evaluate(`
+        if(!['staffTasks.view','staffTasks.accept','staffTasks.update','staffTasks.report','staffIncome.view','support.create'].every(key=>RHP.getType('at-staff').permissions.includes(key)))throw new Error('Missing seeded staff permissions');
         switchTab('support');
         RHUI.openSupportForm('staff-task-request');
         const picker=document.getElementById('srAssigneeAccount');
@@ -132,12 +134,14 @@ try {
         status: 'resolved', taskStatus: 'approved'
     }, 'Management approval completes the same resident support request');
     await evaluate(`RHUI.openSupportForm('staff-task-request');document.getElementById('srWageBase').value='100000';document.getElementById('srWageAdjustment').value='15000';document.getElementById('srWageStatus').value='paid';document.getElementById('srWagePaidDate').value=new Date().toISOString().slice(0,10);RHUI.submitSupportForm({preventDefault(){}})`);
-    assert.equal(await evaluate(`RHD.get('supportRequests','staff-task-request').staffWage===undefined&&RHD.list('cashflows').filter(row=>row.taskId==='staff-task-request').length===0`), true, 'An adjustment without a reason cannot be approved or written to the cashflow ledger');
+    assert.equal(await evaluate(`(()=>{const wage=RHD.get('supportRequests','staff-task-request').staffWage||{};return !['approved','paid'].includes(wage.status)&&!Number(wage.approvedAmount)&&!wage.approvedAt&&!wage.cashflowId&&RHD.list('cashflows').filter(row=>row.taskId==='staff-task-request').length===0})()`), true, 'An adjustment without a reason cannot be approved or written to the cashflow ledger (empty draft metadata is allowed)');
     await evaluate(`document.getElementById('srWageAdjustmentReason').value='Khối lượng phát sinh đã xác nhận';RHUI.submitSupportForm({preventDefault(){}})`);
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');const c=RHD.get('cashflows',r.staffWage.cashflowId);return {base:r.staffWage.baseAmount,total:r.staffWage.approvedAmount,adjustment:r.staffWage.adjustments[0].amount,reason:r.staffWage.adjustments[0].reason,status:r.staffWage.status,linked:c.taskId,ledgerAmount:c.amount}})()`), {
         base: 100000, total: 115000, adjustment: 15000, reason: 'Khối lượng phát sinh đã xác nhận', status: 'paid', linked: 'staff-task-request', ledgerAmount: 115000
     }, 'Management approval preserves adjustment reason and links the paid wage to a matching expense');
-    await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='staff-task-check'),false);document.querySelector('[data-title="Lịch sử tiền công"]').click()`);
+    await evaluate(`RH.login(RH.getUsers().find(user=>user.id==='staff-task-check'),false)`);
+    await navigate('/staff.html');
+    await evaluate(`document.querySelector('[data-title="Lịch sử tiền công"]').click()`);
     assert.equal(await evaluate(`document.getElementById('staffContent').textContent.includes('115.000 đ')&&document.getElementById('staffContent').textContent.includes('Đã thanh toán')&&document.getElementById('staffContent').textContent.includes('Khớp phiếu')`), true, 'Staff wage history shows approved amount, payment state, and cashflow reconciliation');
     assert.equal(await evaluate(`!document.getElementById('staffWageBase')&&!document.getElementById('staffWageAdjustment')`), true, 'Staff wage history has no amount or adjustment editor');
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request'),c=RHD.get('cashflows',r.staffWage.cashflowId);return {wageUpdate:RHD.update('supportRequests',r.id,{staffWage:{baseAmount:1}}).ok,cashflowUpdate:RHD.update('cashflows',c.id,{amount:1}).ok,cashflowDelete:RHD.remove('cashflows',c.id).ok,cashflowCreate:RHD.create('cashflows',{type:'expense',amount:1,taskId:r.id}).ok}})()`), {
