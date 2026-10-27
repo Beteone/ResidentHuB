@@ -5,7 +5,7 @@
  * - The permission matrix is rendered from RHP.SCHEMA (permissions.js) only;
  *   nothing here lists modules or actions by hand.
  * - Người dùng manages the single account store in auth.js (RH). Resident
- *   accounts still come only from the registration-approval flow, whose
+ *   accounts can be created here or through the registration-approval flow, whose
  *   queue (dashboard.html: renderAccountRequestsTable/openAccountRequestDrawer)
  *   is shown as the "Chờ duyệt" sub-tab here.
  * - Non-admins can never escalate: they cannot assign/edit Admin, change their
@@ -282,8 +282,9 @@
         if (!tab) return;
         var canUsers = U().can('users.view');
         var canRequests = U().can('users.approveResident');
+        var canCreate = U().can('users.create') || U().can('users.createResident');
         if (!canUsers && !canRequests) {
-            tab.innerHTML = U().can('users.createResident') ? '<div class="card"><h2>Tài khoản cư dân</h2><button class="btn-primary" onclick="RHAccounts.openUser()">+ Thêm người dùng</button></div>' : '';
+            tab.innerHTML = canCreate ? '<div class="card"><h2>Người dùng</h2><button class="btn-primary" onclick="RHAccounts.openUser()">+ Thêm người dùng</button></div>' : '';
             return;
         }
         // Dashboard links pass a request filter ('pending', ...) to open the approval queue.
@@ -296,7 +297,7 @@
         tab.innerHTML = '<div class="card">' +
             '<div class="acc-head"><div><h2>Người dùng</h2><p>Tài khoản đăng nhập của Admin, nhân viên và cư dân. Quyền của mỗi người lấy từ Loại tài khoản; phạm vi dữ liệu theo tòa nhà phụ trách.</p></div>' +
 
-            (userState.panel === 'users' ? U().addButton('Thêm người dùng', 'RHAccounts.openUser()', null, U().can('users.create') ? 'users.create' : 'users.createResident') : '') + '</div>' +
+            (canCreate ? U().addButton('Thêm người dùng', 'RHAccounts.openUser()', null, U().can('users.create') ? 'users.create' : 'users.createResident') : '') + '</div>' +
             '<div class="acc-subtabs">' +
             (canUsers ? '<button type="button" class="' + (userState.panel === 'users' ? 'active' : '') + '" onclick="RHAccounts.showPanel(\'users\')"><i class="fas fa-users"></i> Danh sách người dùng <span>' + global.RH.getUsers().length + '</span></button>' : '') +
             (canRequests ? '<button type="button" class="' + (userState.panel === 'requests' ? 'active' : '') + '" onclick="RHAccounts.showPanel(\'requests\')"><i class="fas fa-user-clock"></i> Tài khoản cư dân chờ duyệt' + (pending ? ' <span class="rh-nav-badge" style="display:inline-flex;margin-left:.35rem;">' + pending + '</span>' : '') + '</button>' : '') +
@@ -314,6 +315,8 @@
             '</div>';
 
         if (userState.panel === 'users') {
+            tab.insertAdjacentHTML('beforeend', '<section id="staffProfileUpdates" class="card" aria-label="Theo dõi cập nhật hồ sơ nhân viên" style="margin-top:1.75rem;"></section>');
+            if (typeof global.renderStaffProfileUpdates === 'function') global.renderStaffProfileUpdates();
             byId('usersFilterQ').addEventListener('input', function () { userState.q = this.value; renderUsersTable(); });
             byId('usersFilterType').addEventListener('change', function () { userState.typeId = this.value; renderUsersTable(); });
             byId('usersFilterStatus').addEventListener('change', function () { userState.status = this.value; renderUsersTable(); });
@@ -332,7 +335,7 @@
     }
 
     function typeOptionsFor(user) {
-        var portal = user ? user.role : 'manager';
+        var portal = user && user.role === 'resident' ? 'resident' : 'manager';
         return global.RHP.listTypes().filter(function (t) {
             if (user && (t.portal === 'resident' ? 'resident' : 'manager') !== portal) return false;
             if (!user && !U().can(t.portal === 'resident' ? 'users.createResident' : 'users.create')) return false;
@@ -483,7 +486,7 @@
     function submitUser(ev) {
         ev.preventDefault();
         var id = userState.editingId;
-        if (!U().guard(id ? 'users.update' : 'users.create')) return;
+        if (id && !U().guard('users.update')) return;
         var u = id ? global.RH.getUsers().filter(function (x) { return x.id === id; })[0] : null;
         var err = byId('ufError');
         var fail = function (msg) { err.textContent = msg; };

@@ -34,7 +34,9 @@ for (const file of ['auth.js', 'permissions.js', 'data.js', 'billing.js']) {
 
 const { RH, RHP, RHD } = context;
 const admin = RH.getUsers()[0];
-RH.updateUser(admin.id, { accountTypeId: RHP.ADMIN_TYPE_ID, allBuildings: true });
+// Seed the test administrator directly; assigning Admin now requires an Admin actor.
+local.set('residenthub_users', JSON.stringify(RH.getUsers().map(user => user.id === admin.id
+    ? { ...user, accountTypeId: RHP.ADMIN_TYPE_ID, allBuildings: true } : user)));
 RH.login(RH.getUsers().find((user) => user.id === admin.id), false);
 const created = RH.createUser({
     name: 'Scoped staff',

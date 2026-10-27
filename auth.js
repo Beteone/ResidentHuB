@@ -20,7 +20,7 @@
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
     var STAFF_NOTIFICATION_CATEGORIES = ['taskNew', 'assignmentChanged', 'deadline', 'infoRequest', 'taskStatus', 'system'];
     var DEFAULT_STAFF_PREFERENCES = {
-        theme: 'system',
+        theme: 'light',
         density: 'comfortable',
         fontSize: 'medium',
         accentColor: 'blue',
@@ -762,7 +762,7 @@
         normalized.residentId = String(normalized.residentId || '').trim();
         normalized.avatar = normalized.avatar || '';
         normalized.status = ['inactive', 'locked'].indexOf(normalized.status) !== -1 ? normalized.status : 'active';
-        return normalized.id && normalized.email && normalized.password ? normalized : null;
+        return normalized.id && (normalized.email || normalized.phone) && normalized.password ? normalized : null;
     }
 
     function seedIfEmpty() {
@@ -828,6 +828,7 @@
 
     function findUserByEmail(email) {
         var normalized = normalizeEmail(email);
+        if (!normalized) return null;
         var users = readUsers();
         for (var i = 0; i < users.length; i++) {
             if (normalizeEmail(users[i].email) === normalized) return users[i];
@@ -838,9 +839,24 @@
     function usersForLogin(identifier) {
         var normalized = normalizeEmail(identifier);
         var name = String(identifier || '').trim().toLowerCase();
+        var phone = /^[\d\s+().-]+$/.test(String(identifier || '').trim()) ? normalizePhone(identifier) : '';
+        if (!normalized) return [];
         return readUsers().filter(function (user) {
-            return normalizeEmail(user.email) === normalized || String(user.name || '').trim().toLowerCase() === name;
+            return (user.email && normalizeEmail(user.email) === normalized) ||
+                (phone && normalizePhone(user.phone) === phone) || String(user.name || '').trim().toLowerCase() === name;
         });
+    }
+
+    function normalizePhone(value) {
+        return String(value || '').replace(/[^\d+]/g, '');
+    }
+
+    function findStaffByPhone(phone, exceptId) {
+        var normalized = normalizePhone(phone);
+        if (!normalized) return null;
+        return readUsers().filter(function (user) {
+            return user.role !== ROLES.RESIDENT && user.id !== exceptId && normalizePhone(user.phone) === normalized;
+        })[0] || null;
     }
 
     function createUserRecord(data) {
@@ -849,14 +865,17 @@
         var password = String(data.password || '');
         var role = normalizeRole(data.role);
 
-        if (!name || !email || !password) {
-            return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, email và mật khẩu.' };
+        if (!name || (!email && !String(data.phone || '').trim()) || !password) {
+            return { ok: false, error: 'Vui lòng nhập đầy đủ họ tên, số điện thoại hoặc email và mật khẩu.' };
         }
         if (password.length < 6) {
             return { ok: false, error: 'Mật khẩu phải có ít nhất 6 ký tự.' };
         }
         if (findUserByEmail(email)) {
             return { ok: false, error: 'Email này đã được sử dụng cho một tài khoản khác.' };
+        }
+        if (role !== ROLES.RESIDENT && findStaffByPhone(data.phone)) {
+            return { ok: false, error: 'Số điện thoại này đã được dùng cho một tài khoản nhân viên khác.' };
         }
         var residentId = String(data.residentId || '').trim();
         var apartmentId = String(data.apartmentId || '').trim();
@@ -877,6 +896,7 @@
             id: 'u-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
             name: name,
             email: email,
+            phone: String(data.phone || '').trim(),
             password: password,
             role: role,
             status: ['active', 'inactive', 'locked'].indexOf(data.status) !== -1 ? data.status : 'active',
@@ -911,11 +931,29 @@
     }
 
     function createUser(data) {
-        var role = data && data.role === ROLES.RESIDENT ? ROLES.RESIDENT : ROLES.MANAGER;
+        data = Object.assign({}, data || {});
+        var type = data.accountTypeId && global.RHP ? global.RHP.getType(data.accountTypeId) : null;
+        if (data.accountTypeId && global.RHP && !type) return { ok: false, error: 'Loại tài khoản không hợp lệ.' };
+        var role = type ? (type.portal === 'resident' ? ROLES.RESIDENT : ROLES.MANAGER) : normalizeRole(data.role);
+        if (type && type.fullAccess && !global.RHP.isAdmin()) return { ok: false, error: 'Chỉ Admin mới được gán loại tài khoản Admin.' };
         var permission = role === ROLES.RESIDENT ? 'users.createResident' : 'users.create';
         if (global.RHP && !global.RHP.can(permission)) {
             return { ok: false, error: 'Bạn không có quyền tạo loại tài khoản này.' };
         }
+        if (role === ROLES.RESIDENT && global.RHP && global.RHD) {
+            var profile = global.RHD.get('customers', data.residentId);
+            if (profile && !global.RHP.scopeList('customers', [profile]).length) {
+                return { ok: false, error: 'Hồ sơ cư dân ngoài phạm vi quản lý.' };
+            }
+            var linked = global.RHD.list('contracts').filter(function (contract) {
+                var residents = contract.tenantIds && contract.tenantIds.length ? contract.tenantIds : (contract.customerIds || [contract.customerId]);
+                return residents.indexOf(data.residentId) !== -1 && contract.status !== 'ended';
+            });
+            if (linked.length && !linked.some(function (contract) { return contract.apartmentId === data.apartmentId; })) {
+                return { ok: false, error: 'Căn hộ không khớp hợp đồng đang hiệu lực.' };
+            }
+        }
+        data.role = role;
         return createUserRecord(data);
     }
 
@@ -939,6 +977,20 @@
 
         var beforeAudit = JSON.parse(JSON.stringify(users[index]));
         var user = users[index];
+        if (patch.accountTypeId !== undefined && global.RHP) {
+            var nextType = global.RHP.getType(patch.accountTypeId);
+            if (!nextType) return { ok: false, error: 'Loại tài khoản không hợp lệ.' };
+            if ((nextType.portal === 'resident') !== (user.role === ROLES.RESIDENT)) {
+                return { ok: false, error: 'Không thể chuyển tài khoản giữa Cổng quản lý và Cổng cư dân.' };
+            }
+            if (nextType.fullAccess && user.accountTypeId !== nextType.id && !global.RHP.isAdmin()) {
+                return { ok: false, error: 'Chỉ Admin mới được gán loại tài khoản Admin.' };
+            }
+            patch = Object.assign({}, patch, { role: nextType.portal === 'resident' ? ROLES.RESIDENT : ROLES.MANAGER });
+        }
+        if (patch.phone !== undefined && user.role !== ROLES.RESIDENT && findStaffByPhone(patch.phone, id)) {
+            return { ok: false, error: 'Số điện thoại này đã được dùng cho một tài khoản nhân viên khác.' };
+        }
         if (patch.name !== undefined) user.name = String(patch.name).trim();
         if (patch.email !== undefined) user.email = normalizeEmail(patch.email);
         if (patch.role !== undefined) user.role = normalizeRole(patch.role);
@@ -1200,6 +1252,7 @@
     }
 
     function approveAccountRequest(requestId, managerId, opts) {
+        if (global.RHP && !global.RHP.can('users.approveResident')) return { ok: false, error: 'Bạn không có quyền duyệt tài khoản cư dân.' };
         opts = opts || {};
         var requests = readAccountRequests();
         var idx = -1;
@@ -1268,6 +1321,7 @@
     }
 
     function rejectAccountRequest(requestId, managerId, reason) {
+        if (global.RHP && !global.RHP.can('users.approveResident')) return { ok: false, error: 'Bạn không có quyền duyệt tài khoản cư dân.' };
         var requests = readAccountRequests();
         var idx = -1;
         for (var i = 0; i < requests.length; i++) if (requests[i].id === requestId) { idx = i; break; }
