@@ -329,6 +329,26 @@
         if (!validAvatar) {
             return { ok: false, error: 'Ảnh đại diện không hợp lệ hoặc vượt quá 2 MB.' };
         }
+        var beforeEmail = user.contactEmail || user.email;
+        var beforePhone = user.phone || '';
+        var beforeAvatar = user.avatar || '';
+        var changes = [];
+        if (beforeEmail !== email) changes.push({ field: 'contactEmail', label: 'Email liên hệ', before: beforeEmail, after: email });
+        if (beforePhone !== phone) changes.push({ field: 'phone', label: 'Số điện thoại', before: beforePhone, after: phone });
+        if (beforeAvatar !== avatar) changes.push({ field: 'avatar', label: 'Ảnh đại diện' });
+        if (changes.length) {
+            var history = Array.isArray(user.profileUpdateHistory) ? user.profileUpdateHistory.slice() : [];
+            history.push({
+                id: 'profile-update-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8),
+                at: new Date().toISOString(),
+                actorId: user.id,
+                actorName: user.name || user.email,
+                changes: changes,
+                managerStatus: 'new',
+                managerNote: ''
+            });
+            user.profileUpdateHistory = history.slice(-50);
+        }
         user.contactEmail = email;
         user.phone = phone;
         user.avatar = avatar;
@@ -339,9 +359,46 @@
             return { ok: false, error: 'Không thể lưu hồ sơ vào bộ nhớ thiết bị.' };
         }
         try {
-            global.dispatchEvent(new CustomEvent('residenthub:user-updated', { detail: { id: user.id } }));
+            global.dispatchEvent(new CustomEvent('residenthub:user-updated', { detail: { id: user.id, profileUpdate: changes.length > 0 } }));
         } catch (e) { /* Storage events remain available in older browsers. */ }
         return { ok: true, user: user };
+    }
+
+    function updateStaffProfileFollowUp(userId, updateId, patch) {
+        var actor = currentAccount();
+        if (!actor || actor.role !== ROLES.MANAGER || actor.accountTypeId === 'at-staff') {
+            return { ok: false, error: 'Chỉ Quản lý mới được cập nhật tình hình hồ sơ nhân viên.' };
+        }
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch) ||
+            Object.keys(patch).some(function (key) { return ['managerStatus', 'managerNote'].indexOf(key) === -1; })) {
+            return { ok: false, error: 'Thông tin theo dõi hồ sơ không hợp lệ.' };
+        }
+        var status = patch.managerStatus;
+        if (status !== undefined && ['new', 'contacted', 'resolved'].indexOf(status) === -1) {
+            return { ok: false, error: 'Trạng thái theo dõi không hợp lệ.' };
+        }
+        var note = patch.managerNote === undefined ? undefined : String(patch.managerNote || '').trim();
+        if (note !== undefined && note.length > 1000) return { ok: false, error: 'Ghi chú theo dõi không được vượt quá 1.000 ký tự.' };
+        var users = readUsers();
+        var user = users.filter(function (item) { return item.id === userId && (item.role === ROLES.STAFF || item.accountTypeId === 'at-staff'); })[0];
+        if (!user) return { ok: false, error: 'Không tìm thấy tài khoản nhân viên.' };
+        var history = Array.isArray(user.profileUpdateHistory) ? user.profileUpdateHistory : [];
+        var update = history.filter(function (item) { return item.id === updateId; })[0];
+        if (!update) return { ok: false, error: 'Không tìm thấy nội dung cập nhật hồ sơ.' };
+        if (status !== undefined) update.managerStatus = status;
+        if (note !== undefined) update.managerNote = note;
+        update.reviewedAt = new Date().toISOString();
+        update.reviewedBy = actor.id;
+        update.reviewedByName = actor.name || actor.email;
+        try {
+            writeUsers(users.map(function (item) { return item.id === user.id ? user : item; }));
+        } catch (error) {
+            return { ok: false, error: 'Không thể lưu tình hình theo dõi hồ sơ.' };
+        }
+        try {
+            global.dispatchEvent(new CustomEvent('residenthub:user-updated', { detail: { id: user.id, profileUpdate: true } }));
+        } catch (e) { /* Storage events remain available in older browsers. */ }
+        return { ok: true, user: user, update: update };
     }
 
     function updateCurrentUserSettings(patch) {
@@ -1367,6 +1424,7 @@
         updateNotificationForUser: updateNotificationForUser,
         getCurrentUserSettings: getCurrentUserSettings,
         updateCurrentUserProfile: updateCurrentUserProfile,
+        updateStaffProfileFollowUp: updateStaffProfileFollowUp,
         updateCurrentUserSettings: updateCurrentUserSettings,
         createStaffNotificationForEvent: createStaffNotificationForEvent,
         getCurrentUserNotifications: getCurrentUserNotifications,

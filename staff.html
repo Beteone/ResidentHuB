@@ -19,12 +19,13 @@
             --line: #e4eaf2;
             --primary: #1683ff;
             --primary-strong: #0d65d5;
+        }
+        @media (max-width: 1050px) {
             .staff-profile-hero { grid-template-columns:auto minmax(0,1fr); }
-            .staff-profile-hero > .staff-profile-action-link { grid-column:1/-1; }
+            .staff-profile-hero-actions { grid-column:1/-1; }
             .staff-profile-filter-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
         }
         @media (max-width: 560px) {
-            .staff-profile-hero { grid-template-columns:minmax(0,1fr); justify-items:start; }
             .staff-profile-event { grid-template-columns:minmax(0,1fr); gap:4px; }
             .staff-profile-filter-row { grid-template-columns:minmax(0,1fr); }
         }
@@ -157,6 +158,118 @@
         .staff-profile-page .staff-action-btn.secondary:hover:not(:disabled) { background:#f5f8fc; }
         .staff-profile-page .staff-action-btn:focus-visible,.staff-profile-actions label:focus-visible { outline:3px solid rgba(22,131,255,.28); outline-offset:2px; }
         .staff-profile-load-error { border-color:#f2c6c6; color:#b42318; }
+        .staff-profile-page { max-width:none; }
+        .staff-profile-toolbar { margin:2px 0 12px; }
+        .staff-profile-toolbar .staff-profile-action-link { display:inline-flex; align-items:center; gap:7px; color:var(--primary-strong); }
+        .staff-profile-hero { position:relative; grid-template-columns:auto minmax(0,1fr) auto; gap:16px; margin:0 0 12px; padding:18px 20px; overflow:hidden; border-color:#dbe9fb; background:linear-gradient(112deg,#eef6ff 0%,var(--surface) 72%); }
+        .staff-profile-hero:before { position:absolute; inset:0 auto 0 0; width:4px; background:var(--primary); content:''; }
+        .staff-profile-hero .staff-avatar { width:82px; height:82px; flex-basis:82px; border:3px solid #fff; box-shadow:0 0 0 2px color-mix(in srgb,var(--primary) 55%,transparent); background:#dcecff; color:var(--primary-strong); font-size:23px; }
+        .staff-profile-hero .staff-profile-heading { margin:0; }
+        .staff-profile-hero .staff-profile-identity h2 { font:700 19px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif; letter-spacing:-.02em; }
+        .staff-profile-identity p { margin:5px 0 0; }
+        .staff-profile-meta { gap:7px; margin-top:9px; }
+        .staff-profile-meta span { padding:5px 9px; background:rgba(255,255,255,.72); font-size:11px; }
+        .staff-profile-meta .staff-profile-status { background:#effaf4; }
+        .staff-profile-hero-meta { grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; margin-top:12px; padding-top:10px; border-top:1px solid var(--line); }
+        .staff-profile-hero-meta .staff-profile-work-item { align-items:center; padding:2px 10px; border:0; border-right:1px solid var(--line); }
+        .staff-profile-hero-meta .staff-profile-work-item:first-child { padding-left:0; }
+        .staff-profile-hero-meta .staff-profile-work-item:last-child { padding-right:0; border-right:0; }
+        .staff-profile-hero-meta .staff-profile-work-icon { width:28px; height:28px; flex-basis:28px; background:transparent; color:var(--primary-strong); }
+        .staff-profile-hero-meta .staff-profile-work-item small { font-size:10px; }
+        .staff-profile-hero-meta .staff-profile-work-item strong { font-size:11px; }
+        .staff-profile-hero-actions { display:flex; align-self:start; gap:7px; }
+        .staff-profile-hero-actions .staff-profile-action-link { min-height:36px; white-space:nowrap; }
+        .staff-profile-hero-actions .staff-profile-edit-link { border-color:var(--primary); background:var(--primary); color:#fff; }
+        .staff-profile-overview-grid { display:grid; grid-template-columns:minmax(0,1.08fr) minmax(0,1fr); align-items:stretch; gap:12px; }
+        .staff-profile-overview-column { display:grid; min-width:0; align-content:start; gap:12px; }
+        .staff-profile-overview-grid .staff-profile-card { padding:16px; }
+        .staff-profile-section-title { margin-bottom:12px; font-size:16px; }
+        .staff-profile-title-label { display:flex; align-items:center; gap:9px; }
+        .staff-profile-title-icon { display:grid; width:28px; height:28px; flex:0 0 28px; place-items:center; border-radius:9px; background:#edf5ff; color:var(--primary); font-size:12px; }
+        .staff-profile-mini-action { border:1px solid var(--line); border-radius:7px; background:var(--surface); color:var(--primary-strong); padding:7px 10px; cursor:pointer; font:600 11px 'Be Vietnam Pro',sans-serif; }
+        .staff-profile-personal-summary { display:grid; grid-template-columns:82px minmax(0,1fr); align-items:start; gap:13px; }
+        .staff-profile-personal-avatar { display:grid; width:78px; height:78px; place-items:center; overflow:hidden; border-radius:50%; background:#e4f0ff; color:var(--primary); font-size:21px; font-weight:700; box-shadow:0 0 0 3px #f4f8ff; }
+        .staff-profile-personal-avatar img { width:100%; height:100%; object-fit:cover; }
+        .staff-profile-info-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 12px; }
+        .staff-profile-info-item { display:flex; min-width:0; gap:8px; padding:9px 0; border-bottom:1px solid var(--line); }
+        .staff-profile-info-item:nth-last-child(-n+2) { border-bottom:0; }
+        .staff-profile-info-icon { display:grid; width:22px; height:22px; flex:0 0 22px; place-items:center; border-radius:7px; background:#f1f6fc; color:#526982; font-size:10px; }
+        .staff-profile-info-item small { display:block; margin-bottom:3px; color:var(--muted); font-size:11px; }
+        .staff-profile-info-item strong { display:block; overflow-wrap:anywhere; color:var(--ink); font-size:12px; font-weight:600; line-height:1.5; }
+        .staff-profile-info-wide { grid-column:1/-1; }
+        .staff-profile-readonly-notice { margin:10px 0 0; padding:9px 10px; border-radius:7px; background:#f3f8ff; color:#526982; font-size:11px; line-height:1.55; }
+        .staff-profile-readonly-badge { border:1px solid var(--line); border-radius:7px; padding:6px 9px; color:var(--muted); font-size:10px; font-weight:500; white-space:nowrap; }
+        .staff-profile-inline-link { border:0; background:transparent; color:var(--primary-strong); cursor:pointer; font:600 11px 'Be Vietnam Pro',sans-serif; white-space:nowrap; }
+        .staff-profile-completion { display:grid; gap:7px; margin-top:12px; }
+        .staff-profile-completion > div:first-child { display:flex; justify-content:space-between; gap:10px; font-size:12px; }
+        .staff-profile-stat-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:7px; }
+        .staff-profile-stat { position:relative; min-width:0; min-height:67px; padding:9px 8px; border-radius:9px; }
+        .staff-profile-stat-icon { display:grid; width:23px; height:23px; place-items:center; margin-bottom:5px; border-radius:7px; background:#edf5ff; color:var(--primary); font-size:11px; }
+        .staff-profile-stat[data-profile-task-filter="pending"] .staff-profile-stat-icon { background:#fff4e5; color:#f59e0b; }
+        .staff-profile-stat[data-profile-task-filter="progress"] .staff-profile-stat-icon { background:#eff5ff; color:#3b82f6; }
+        .staff-profile-stat[data-profile-task-filter="completed"] .staff-profile-stat-icon { background:#e9f9f1; color:#10a879; }
+        .staff-profile-stat[data-profile-task-filter="overdue"] .staff-profile-stat-icon { background:#fff0f0; color:#ef4444; }
+        .staff-profile-stat span { font-size:11px; line-height:1.4; }
+        .staff-profile-stat strong { margin-top:4px; font-size:16px; }
+        .staff-profile-progress { height:7px; }
+        .staff-profile-overview-grid .staff-profile-note { margin:8px 0 0; font-size:11px; }
+        .staff-profile-recent-list { display:grid; }
+        .staff-profile-recent-item { display:grid; grid-template-columns:24px minmax(0,1fr) auto; align-items:start; gap:8px; padding:8px 0; border-bottom:1px solid var(--line); }
+        .staff-profile-recent-item:last-child { border-bottom:0; }
+        .staff-profile-recent-icon { display:grid; width:23px; height:23px; place-items:center; border-radius:50%; background:#e9f9f1; color:#10a879; font-size:10px; }
+        .staff-profile-recent-item[data-type="assignmentChanged"] .staff-profile-recent-icon { background:#f2eaff; color:#8b5cf6; }
+        .staff-profile-recent-item[data-type="taskNew"] .staff-profile-recent-icon { background:#eaf3ff; color:#1683ff; }
+        .staff-profile-recent-item[data-type="infoRequest"] .staff-profile-recent-icon { background:#fff4e5; color:#f59e0b; }
+        .staff-profile-recent-item[data-type="deadline"] .staff-profile-recent-icon { background:#fff0f0; color:#ef4444; }
+        .staff-profile-recent-item strong { display:block; font-size:12px; line-height:1.5; }
+        .staff-profile-recent-item p { margin:3px 0 0; color:var(--muted); font-size:11px; line-height:1.5; }
+        .staff-profile-recent-item time { color:var(--muted); font-size:10px; white-space:nowrap; }
+        .staff-profile-tabs { gap:0; margin:12px 0 0; padding:0 8px; border:1px solid var(--line); border-radius:10px 10px 0 0; background:var(--surface); }
+        .staff-profile-tab { display:inline-flex; min-height:44px; align-items:center; justify-content:center; gap:7px; padding:9px 12px; border:0; border-bottom:2px solid transparent; border-radius:0; background:transparent; font-size:11px; }
+        .staff-profile-tab i { color:var(--muted); }
+        .staff-profile-tab.active { border-color:var(--primary); background:transparent; color:var(--primary-strong); }
+        .staff-profile-tab.active i { color:var(--primary); }
+        .staff-profile-tab-content { padding-top:12px; }
+        .staff-profile-page .staff-detail-item { border:0; border-bottom:1px solid var(--line); border-radius:0; background:transparent; padding:10px 4px; }
+        .staff-profile-page .staff-detail-item:nth-last-child(-n+2) { border-bottom:0; }
+        .staff-profile-page .staff-detail-item small { font-size:11px; }
+        .staff-profile-page .staff-detail-item strong { font-size:13px; }
+        .staff-profile-page .staff-profile-contact-actions { margin-top:16px; }
+        .staff-profile-page .staff-profile-hero-actions .staff-profile-action-link:hover,.staff-profile-page .staff-profile-mini-action:hover { border-color:var(--primary); }
+        html[data-theme="dark"] .staff-profile-hero { border-color:var(--line); background:linear-gradient(112deg,#1b2c43 0%,var(--surface) 72%); }
+        html[data-theme="dark"] .staff-profile-meta span { background:#263244; }
+        html[data-theme="dark"] .staff-profile-title-icon,html[data-theme="dark"] .staff-profile-info-icon { background:#263b55; color:#b8d8ff; }
+        html[data-theme="dark"] .staff-profile-personal-avatar { background:#263b55; }
+        html[data-theme="dark"] .staff-profile-readonly-notice { background:#223852; color:#c8daf0; }
+        @media (max-width: 1050px) {
+            .staff-profile-hero { grid-template-columns:auto minmax(0,1fr); }
+            .staff-profile-hero-actions { grid-column:1/-1; }
+            .staff-profile-hero-meta { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .staff-profile-hero-meta .staff-profile-work-item:nth-child(2) { border-right:0; }
+            .staff-profile-hero-meta .staff-profile-work-item:nth-child(n+3) { margin-top:7px; }
+            .staff-profile-overview-grid { grid-template-columns:minmax(0,1fr); }
+        }
+        @media (max-width: 620px) {
+            .staff-profile-hero { gap:10px; padding:14px; }
+            .staff-profile-hero .staff-avatar { width:64px; height:64px; flex-basis:64px; font-size:19px; }
+            .staff-profile-hero .staff-profile-identity h2 { font-size:16px; }
+            .staff-profile-hero-actions { grid-column:1/-1; }
+            .staff-profile-hero-actions .staff-profile-action-link { flex:1; justify-content:center; }
+            .staff-profile-hero-meta { grid-column:1/-1; }
+            .staff-profile-overview-grid .staff-profile-card { padding:13px; }
+            .staff-profile-personal-summary { grid-template-columns:minmax(0,1fr); }
+            .staff-profile-personal-avatar { width:58px; height:58px; justify-self:center; font-size:17px; }
+            .staff-profile-info-grid { grid-template-columns:repeat(2,minmax(0,1fr)); gap:0 8px; }
+            .staff-profile-info-item { min-width:0; }
+            .staff-profile-stat-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
+            .staff-profile-stat:last-child { grid-column:1/-1; }
+            .staff-profile-tabs { padding-inline:4px; }
+            .staff-profile-tab { min-width:42px; padding-inline:9px; }
+            .staff-profile-tab span { display:inline; }
+            .staff-profile-tab i { font-size:13px; }
+            .staff-profile-recent-item { grid-template-columns:23px minmax(0,1fr); }
+            .staff-profile-recent-item time { grid-column:2; }
+        }
         .staff-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
         .staff-field { min-width:0; }
         .staff-field label { display:block; margin-bottom:6px; color:var(--muted); font-size:12px; font-weight:600; }
@@ -608,20 +721,24 @@
                 ? '<div class="staff-profile-actions"><input class="staff-visually-hidden" id="staffAvatarFile" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Chọn ảnh đại diện"><label class="staff-action-btn secondary" for="staffAvatarFile">Đổi ảnh đại diện</label></div>'
                 : '';
             var tabs = [
-                ['overview', 'Tổng quan'], ['personal', 'Thông tin cá nhân'], ['work', 'Công tác'],
-                ['tasks', 'Công việc'], ['activity', 'Lịch sử hoạt động'], ['account', 'Tài khoản']
+                ['overview', 'Tổng quan', 'fa-house'],
+                ['personal', 'Thông tin cá nhân', 'fa-user'],
+                ['work', 'Công tác', 'fa-briefcase'],
+                ['tasks', 'Công việc', 'fa-chart-line'],
+                ['activity', 'Lịch sử hoạt động', 'fa-clock'],
+                ['account', 'Tài khoản', 'fa-users']
             ];
             var tabMarkup = tabs.map(function (tab) {
-                return '<button type="button" role="tab" class="staff-profile-tab' + (profileTab === tab[0] ? ' active' : '') + '" id="staffProfileTab-' + tab[0] + '" data-profile-tab="' + tab[0] + '" aria-selected="' + (profileTab === tab[0] ? 'true' : 'false') + '" tabindex="' + (profileTab === tab[0] ? '0' : '-1') + '" aria-controls="staffProfileTabPanel">' + tab[1] + '</button>';
+                return '<button type="button" role="tab" class="staff-profile-tab' + (profileTab === tab[0] ? ' active' : '') + '" id="staffProfileTab-' + tab[0] + '" data-profile-tab="' + tab[0] + '" aria-label="' + tab[1] + '" title="' + tab[1] + '" aria-selected="' + (profileTab === tab[0] ? 'true' : 'false') + '" tabindex="' + (profileTab === tab[0] ? '0' : '-1') + '" aria-controls="staffProfileTabPanel"><i class="fas ' + tab[2] + '" aria-hidden="true"></i><span>' + tab[1] + '</span></button>';
             }).join('');
             var statMarkup = [
-                ['all', 'Nhiệm vụ được giao', stats.total],
-                ['pending', 'Chưa thực hiện', stats.pending],
-                ['progress', 'Đang xử lý', stats.progress],
-                ['completed', 'Đã hoàn thành', stats.completed],
-                ['overdue', 'Quá hạn', stats.overdue]
+                ['all', 'Nhiệm vụ được giao', stats.total, 'fa-clipboard-list'],
+                ['pending', 'Chưa thực hiện', stats.pending, 'fa-clock'],
+                ['progress', 'Đang xử lý', stats.progress, 'fa-sun'],
+                ['completed', 'Đã hoàn thành', stats.completed, 'fa-check'],
+                ['overdue', 'Quá hạn', stats.overdue, 'fa-triangle-exclamation']
             ].map(function (item) {
-                return '<button type="button" class="staff-profile-stat" data-profile-task-filter="' + item[0] + '"><span>' + item[1] + '</span><strong>' + item[2] + '</strong></button>';
+                return '<button type="button" class="staff-profile-stat" data-profile-task-filter="' + item[0] + '"><span class="staff-profile-stat-icon"><i class="fas ' + item[3] + '" aria-hidden="true"></i></span><span>' + item[1] + '</span><strong>' + item[2] + '</strong></button>';
             }).join('');
             var personalMarkup = '<div class="staff-profile-layout"><article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Thông tin định danh</h2>' +
                 '<div class="staff-detail-grid"><div class="staff-detail-item"><small>Họ và tên</small><strong>' + escapeHtml(user.name || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Mã nhân viên</small><strong>' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + '</strong></div>' +
@@ -654,6 +771,17 @@
                 '<div class="staff-profile-progress" role="progressbar" aria-label="Tỷ lệ hoàn thành nhiệm vụ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stats.completionRate + '"><span style="width:' + stats.completionRate + '%"></span></div></div>' +
                 '<p class="staff-profile-note">Cập nhật tiến độ gần nhất: ' + escapeHtml(tasks.length ? profileDateTime(tasks.reduce(function (latest, task) { return Math.max(latest, profileTimestamp(task.updatedAt || task.createdAt)); }, 0)) : 'Chưa có dữ liệu') + '.</p></div>';
             var activityEvents = renderProfileActivity(tasks);
+            var recentEventsMarkup = activityEvents.length ? activityEvents.slice(0, 5).map(function (item) {
+                var icon = {
+                    taskNew: 'fa-plus',
+                    assignmentChanged: 'fa-user',
+                    taskStatus: 'fa-check',
+                    infoRequest: 'fa-circle-info',
+                    deadline: 'fa-clock'
+                }[item.type] || 'fa-circle';
+                var relatedTask = item.task ? '<button type="button" class="staff-task-open" data-open-task="' + escapeHtml(item.task.id) + '">' + escapeHtml(item.task.title || 'Nhiệm vụ') + '</button>' : 'Nhiệm vụ đã thay đổi phân công';
+                return '<article class="staff-profile-recent-item" data-type="' + escapeHtml(item.type) + '"><span class="staff-profile-recent-icon"><i class="fas ' + icon + '" aria-hidden="true"></i></span><div><strong>' + escapeHtml(item.title) + '</strong><p>' + relatedTask + ' · ' + escapeHtml(item.status) + '</p></div><time>' + escapeHtml(profileDateTime(item.at)) + '</time></article>';
+            }).join('') : '<div class="staff-empty">Chưa có hoạt động gần đây.</div>';
             var activityMarkup = '<div class="staff-panel"><h2>Lịch sử hoạt động công việc</h2><p>Lịch sử gồm các thông báo hoạt động và mốc thời gian đang được lưu cho nhiệm vụ được phân công; ghi chú nội bộ của quản lý không hiển thị tại đây.</p>' +
                 '<div class="staff-profile-filter-row"><input id="staffActivityFrom" type="date" aria-label="Hoạt động từ ngày" value="' + escapeHtml(profileActivityFilters.from) + '"><input id="staffActivityTo" type="date" aria-label="Hoạt động đến ngày" value="' + escapeHtml(profileActivityFilters.to) + '">' +
                 '<select id="staffActivityStatus" aria-label="Lọc trạng thái"><option value="all">Mọi trạng thái</option>' + ['Chờ tiếp nhận', 'Đang xử lý', 'Hoàn thành (Chờ Quản lý duyệt)', 'Hoàn thành', 'Đã đóng'].map(function (label) {
@@ -670,17 +798,38 @@
                 '<div class="staff-detail-item"><small>Trạng thái tài khoản</small><strong>' + escapeHtml(accountStatus) + '</strong></div><div class="staff-detail-item"><small>Ngày tạo tài khoản</small><strong>' + escapeHtml(profileDateTime(user.createdAt)) + '</strong></div>' +
                 '<div class="staff-detail-item"><small>Lần đăng nhập gần nhất</small><strong>' + escapeHtml(profileDateTime(user.lastLoginAt)) + '</strong></div><div class="staff-detail-item"><small>Phương thức xác thực</small><strong>Chưa có dữ liệu</strong></div><div class="staff-detail-item"><small>Xác minh email</small><strong>Chưa có dữ liệu</strong></div></div>' +
                 '<p class="staff-profile-note">Không hiển thị mật khẩu, mã xác thực hoặc thông tin phiên đăng nhập.</p></div>';
+            var overviewPersonalMarkup = '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title"><span class="staff-profile-title-label"><span class="staff-profile-title-icon"><i class="fas fa-user" aria-hidden="true"></i></span>Thông tin cá nhân</span><button type="button" class="staff-profile-mini-action" data-profile-edit><i class="fas fa-pen" aria-hidden="true"></i> Chỉnh sửa</button></h2>' +
+                '<div class="staff-profile-personal-summary"><div class="staff-profile-personal-avatar">' + avatarMarkup + '</div><div class="staff-profile-info-grid">' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-user" aria-hidden="true"></i></span><div><small>Họ và tên</small><strong>' + escapeHtml(user.name || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-venus-mars" aria-hidden="true"></i></span><div><small>Giới tính</small><strong>' + escapeHtml(user.gender || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-phone" aria-hidden="true"></i></span><div><small>Số điện thoại</small><strong>' + escapeHtml(user.phone || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-calendar" aria-hidden="true"></i></span><div><small>Ngày sinh</small><strong>' + escapeHtml(user.dateOfBirth || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-envelope" aria-hidden="true"></i></span><div><small>Email liên hệ</small><strong>' + escapeHtml(contactEmail || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item staff-profile-info-wide"><span class="staff-profile-info-icon"><i class="fas fa-location-dot" aria-hidden="true"></i></span><div><small>Địa chỉ liên hệ</small><strong>' + escapeHtml(user.contactAddress || 'Chưa cập nhật') + '</strong></div></div></div></div>' +
+                '<p class="staff-profile-readonly-notice"><i class="fas fa-circle-info" aria-hidden="true"></i> Họ tên, ngày sinh và giới tính do quản lý cập nhật. Bạn có thể chỉnh sửa thông tin liên hệ và ảnh đại diện.</p></article>';
+            var overviewWorkMarkup = '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title"><span class="staff-profile-title-label"><span class="staff-profile-title-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span>Thông tin công việc</span><span class="staff-profile-readonly-badge"><i class="fas fa-lock" aria-hidden="true"></i> Quản lý cập nhật</span></h2>' +
+                '<div class="staff-profile-info-grid"><div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-id-card" aria-hidden="true"></i></span><div><small>Mã nhân viên</small><strong>' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span><div><small>Chức vụ</small><strong>' + escapeHtml(user.title || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-users" aria-hidden="true"></i></span><div><small>Bộ phận</small><strong>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-building" aria-hidden="true"></i></span><div><small>Tòa nhà phụ trách</small><strong>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></span><div><small>Ngày bắt đầu làm việc</small><strong>' + escapeHtml(user.employmentStartDate ? dateLabel(user.employmentStartDate) : 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-info-item"><span class="staff-profile-info-icon"><i class="fas fa-user-tie" aria-hidden="true"></i></span><div><small>Quản lý trực tiếp</small><strong>' + escapeHtml(managerNames.join(', ') || 'Chưa cập nhật') + '</strong></div></div></div></article>';
+            var overviewRecentMarkup = '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title"><span class="staff-profile-title-label"><span class="staff-profile-title-icon"><i class="fas fa-clock" aria-hidden="true"></i></span>Hoạt động gần đây</span><button type="button" class="staff-profile-inline-link" data-profile-tab="activity">Xem tất cả</button></h2><div class="staff-profile-recent-list">' + recentEventsMarkup + '</div></article>';
+            var overviewMarkup = '<div class="staff-profile-overview-grid"><div class="staff-profile-overview-column">' + overviewPersonalMarkup + overviewWorkMarkup + '</div><div class="staff-profile-overview-column">' +
+                '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title"><span class="staff-profile-title-label"><span class="staff-profile-title-icon"><i class="fas fa-chart-line" aria-hidden="true"></i></span>Tình hình công việc</span><button type="button" class="staff-profile-inline-link" data-profile-tab="tasks">Xem chi tiết</button></h2>' +
+                '<div class="staff-profile-stat-grid">' + statMarkup + '</div><div class="staff-profile-completion"><div><strong>Tỷ lệ hoàn thành nhiệm vụ</strong><strong>' + stats.completionRate + '%</strong></div><div class="staff-profile-progress" role="progressbar" aria-label="Tỷ lệ hoàn thành nhiệm vụ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stats.completionRate + '"><span style="width:' + stats.completionRate + '%"></span></div></div>' +
+                '<p class="staff-profile-note"><i class="fas fa-clock" aria-hidden="true"></i> Cập nhật gần nhất: ' + escapeHtml(tasks.length ? profileDateTime(tasks.reduce(function (latest, task) { return Math.max(latest, profileTimestamp(task.updatedAt || task.createdAt)); }, 0)) : 'Chưa có dữ liệu') + '</p></article>' +
+                overviewRecentMarkup + '</div></div>';
             var contentByTab = {
-                overview: '<div class="staff-profile-layout"><article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Thông tin cá nhân</h2><div class="staff-detail-grid"><div class="staff-detail-item"><small>Họ và tên</small><strong>' + escapeHtml(user.name || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Mã nhân viên</small><strong>' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Số điện thoại</small><strong>' + escapeHtml(user.phone || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Email liên hệ</small><strong>' + escapeHtml(contactEmail || 'Chưa cập nhật') + '</strong></div></div><div class="staff-actions"><button type="button" class="staff-action-btn secondary" data-profile-tab="personal">Xem thông tin cá nhân</button></div></article>' +
-                    '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Thông tin công tác</h2><div class="staff-profile-work-list"><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-building" aria-hidden="true"></i></span><div><small>Bộ phận</small><strong>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span><div><small>Chức vụ</small><strong>' + escapeHtml(user.title || 'Chưa cập nhật') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-city" aria-hidden="true"></i></span><div><small>Tòa nhà phụ trách</small><strong>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</strong></div></div></div><p class="staff-profile-note">Trạng thái công tác: ' + escapeHtml(user.employmentStatus || 'Chưa cập nhật') + '</p></article></div>' + tasksMarkup,
+                overview: overviewMarkup,
                 personal: personalMarkup,
                 work: workMarkup,
                 tasks: tasksMarkup,
                 activity: activityMarkup,
                 account: accountMarkup
             };
-            staffContent.innerHTML = '<div class="staff-profile-page"><div class="staff-profile-toolbar"><span class="staff-profile-breadcrumb">Cài đặt / Hồ sơ cá nhân</span><button type="button" class="staff-profile-action-link" data-profile-refresh><i class="fas fa-rotate" aria-hidden="true"></i> Làm mới dữ liệu</button></div>' +
-                '<article class="staff-panel staff-profile-card staff-profile-hero"><div class="staff-profile-heading"><div class="staff-avatar">' + avatarMarkup + '</div></div><div class="staff-profile-identity"><h2 style="margin:0;">' + escapeHtml(user.name || 'Chưa cập nhật') + '</h2><p>Mã nhân viên: ' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + ' · ' + escapeHtml(user.title || 'Chưa cập nhật') + '</p><div class="staff-profile-meta"><span>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</span><span>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</span><span class="staff-profile-status ' + accountStatusStyle + '">' + escapeHtml(accountStatus) + '</span></div></div><button type="button" class="staff-profile-action-link" data-profile-edit>Chỉnh sửa thông tin liên hệ</button></article>' +
+            staffContent.innerHTML = '<div class="staff-profile-page"><div class="staff-profile-toolbar"><span class="staff-profile-breadcrumb">Cài đặt <i class="fas fa-chevron-right" aria-hidden="true"></i> Hồ sơ cá nhân</span></div>' +
+                '<article class="staff-panel staff-profile-card staff-profile-hero"><div class="staff-profile-heading"><div class="staff-avatar">' + avatarMarkup + '</div></div><div class="staff-profile-identity"><h2 style="margin:0;">' + escapeHtml(user.name || 'Chưa cập nhật') + '</h2><p>Mã nhân viên: ' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + ' · ' + escapeHtml(user.title || 'Chưa cập nhật') + '</p><div class="staff-profile-meta"><span class="staff-profile-status ' + accountStatusStyle + '"><i class="fas fa-circle" aria-hidden="true"></i>' + escapeHtml(accountStatus) + '</span></div><div class="staff-profile-hero-meta"><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span><div><small>Chức vụ</small><strong>' + escapeHtml(user.title || 'Chưa cập nhật') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-users" aria-hidden="true"></i></span><div><small>Bộ phận</small><strong>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-building" aria-hidden="true"></i></span><div><small>Tòa nhà phụ trách</small><strong>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-calendar-days" aria-hidden="true"></i></span><div><small>Ngày bắt đầu làm việc</small><strong>' + escapeHtml(user.employmentStartDate ? dateLabel(user.employmentStartDate) : 'Chưa cập nhật') + '</strong></div></div></div></div><div class="staff-profile-hero-actions"><button type="button" class="staff-profile-action-link" data-profile-refresh><i class="fas fa-rotate" aria-hidden="true"></i> Làm mới dữ liệu</button><button type="button" class="staff-profile-action-link staff-profile-edit-link" data-profile-edit><i class="fas fa-pen" aria-hidden="true"></i> Chỉnh sửa thông tin</button></div></article>' +
                 '<div class="staff-profile-tabs" role="tablist" aria-label="Các nhóm hồ sơ">' + tabMarkup + '</div><div class="staff-profile-tab-content" id="staffProfileTabPanel" role="tabpanel" aria-labelledby="staffProfileTab-' + profileTab + '">' + (contentByTab[profileTab] || contentByTab.overview) + '</div></div>';
         }
 
@@ -873,8 +1022,8 @@
             currentStaffPage = page;
             appearanceDraft = null;
             document.getElementById('staffContentTitle').hidden = page === 'Cài đặt giao diện';
-            document.getElementById('staffPageTitle').textContent = page === 'Hồ sơ cá nhân' ? 'Không gian Nhân viên' : page;
-            document.querySelector('.topbar-caption').textContent = page === 'Hồ sơ cá nhân' ? 'ResidentHub' : 'ResidentHub · Không gian Nhân viên';
+            document.getElementById('staffPageTitle').textContent = page;
+            document.querySelector('.topbar-caption').textContent = page === 'Hồ sơ cá nhân' ? 'ResidentHub · Cài đặt' : 'ResidentHub · Không gian Nhân viên';
             document.getElementById('staffContentTitle').textContent = page;
             menuItems.forEach(function (item) { item.classList.toggle('active', item.dataset.title === page); });
             document.getElementById('staffSidebar').classList.remove('open');

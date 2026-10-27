@@ -63,6 +63,10 @@
             font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif;
         }
 
+        .staff-profile-update-row { display:grid; grid-template-columns:minmax(150px,1fr) minmax(210px,1.4fr) minmax(200px,1.2fr) minmax(220px,1.4fr); gap:12px; align-items:start; padding:14px 0; border-bottom:1px solid var(--line); }
+        @media (max-width: 900px) { .staff-profile-update-row { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media (max-width: 560px) { .staff-profile-update-row { grid-template-columns:minmax(0,1fr); } }
+
         .sidebar {
             position: fixed;
             left: 0;
@@ -3742,6 +3746,7 @@
                         <tbody id="accountsTableBody"></tbody>
                     </table>
                 </div>
+                <section id="staffProfileUpdates" aria-label="Theo dõi cập nhật hồ sơ nhân viên" style="margin-top:1.75rem;"></section>
             </div>
         </div>
 
@@ -5009,7 +5014,8 @@
             const users = RH.getUsers();
             const selfId = RH_SESSION ? RH_SESSION.id : '';
             body.innerHTML = users.map(function (u) {
-                const role = u.role === 'manager' ? pill(ROLE_LABELS.manager, '#0d65d5', '#eaf3ff') : pill(ROLE_LABELS.resident, '#18a878', '#e6f8ef');
+                const isStaff = u.role === 'staff' || u.accountTypeId === 'at-staff';
+                const role = isStaff ? pill('Nhân viên', '#7c3aed', '#f3e8ff') : (u.role === 'manager' ? pill(ROLE_LABELS.manager, '#0d65d5', '#eaf3ff') : pill(ROLE_LABELS.resident, '#18a878', '#e6f8ef'));
                 const locked = u.status === 'locked';
                 const status = locked ? pill('Đã khoá', '#ef4444', '#fee2e2') : pill('Đang hoạt động', '#18a878', '#e6f8ef');
                 const lockBtn = u.id === selfId ? '' : '<button class="acc-btn" onclick="toggleAccountLock(\'' + u.id + '\')" title="' + (locked ? 'Mở khoá' : 'Khoá') + '"><i class="fas ' + (locked ? 'fa-lock-open' : 'fa-lock') + '"></i></button>';
@@ -5026,6 +5032,58 @@
                     '</td>' +
                 '</tr>';
             }).join('') || '<tr><td colspan="6" style="text-align:center;color:#94a3b8;padding:1.5rem;">Chưa có tài khoản nào</td></tr>';
+            renderStaffProfileUpdates(users);
+        }
+
+        function renderStaffProfileUpdates(users) {
+            const root = document.getElementById('staffProfileUpdates');
+            if (!root) return;
+            users = users || RH.getUsers();
+            const staffUpdates = [];
+            users.forEach(function (user) {
+                if (user.role !== 'staff' && user.accountTypeId !== 'at-staff') return;
+                (Array.isArray(user.profileUpdateHistory) ? user.profileUpdateHistory : []).forEach(function (update) {
+                    staffUpdates.push({ user: user, update: update });
+                });
+            });
+            staffUpdates.sort(function (a, b) { return Date.parse(b.update.at) - Date.parse(a.update.at); });
+            const pendingCount = staffUpdates.filter(function (item) { return (item.update.managerStatus || 'new') === 'new'; }).length;
+            const statusLabels = { new: 'Chưa xem', contacted: 'Đang theo dõi', resolved: 'Đã xử lý' };
+            const rows = staffUpdates.map(function (item) {
+                const user = item.user, update = item.update;
+                const changes = (Array.isArray(update.changes) ? update.changes : []).map(function (change) {
+                    if (change.field === 'avatar') return '<li><strong>' + escapeHtml(change.label || 'Ảnh đại diện') + ':</strong> Nhân viên đã thay đổi ảnh đại diện.</li>';
+                    return '<li><strong>' + escapeHtml(change.label || change.field) + ':</strong> ' + escapeHtml(change.before || 'Chưa cập nhật') + ' <i class="fas fa-arrow-right" aria-hidden="true"></i> <strong>' + escapeHtml(change.after || 'Đã xóa') + '</strong></li>';
+                }).join('');
+                const status = statusLabels[update.managerStatus] ? update.managerStatus : 'new';
+                return '<article class="staff-profile-update-row">' +
+                    '<div><strong>' + escapeHtml(user.name || user.email) + '</strong><div style="font-size:.8rem;color:#64748b;">' + escapeHtml(user.employeeCode || user.email || user.id) + '</div><div style="font-size:.75rem;color:#64748b;">' + escapeHtml(update.actorName || user.name || 'Nhân viên') + ' · ' + escapeHtml(new Date(update.at).toLocaleString('vi-VN')) + '</div></div>' +
+                    '<ul style="margin:0;padding-left:18px;font-size:.85rem;line-height:1.6;">' + changes + '</ul>' +
+                    '<div><label for="staffUpdateStatus-' + escapeHtml(update.id) + '" style="display:block;margin-bottom:5px;font-size:.8rem;font-weight:600;">Tình hình xử lý</label><select id="staffUpdateStatus-' + escapeHtml(update.id) + '" data-staff-update-status style="width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);"><option value="new"' + (status === 'new' ? ' selected' : '') + '>Chưa xem</option><option value="contacted"' + (status === 'contacted' ? ' selected' : '') + '>Đang theo dõi</option><option value="resolved"' + (status === 'resolved' ? ' selected' : '') + '>Đã xử lý</option></select></div>' +
+                    '<div><label for="staffUpdateNote-' + escapeHtml(update.id) + '" style="display:block;margin-bottom:5px;font-size:.8rem;font-weight:600;">Ghi chú của quản lý</label><textarea id="staffUpdateNote-' + escapeHtml(update.id) + '" data-staff-update-note maxlength="1000" rows="2" placeholder="Ghi nhận trao đổi hoặc hướng xử lý" style="box-sizing:border-box;width:100%;padding:8px;border:1px solid var(--line);border-radius:7px;background:var(--surface);color:var(--ink);font:inherit;font-size:.85rem;">' + escapeHtml(update.managerNote || '') + '</textarea><button type="button" class="acc-btn" data-staff-update-save data-user-id="' + escapeHtml(user.id) + '" data-update-id="' + escapeHtml(update.id) + '" style="margin-top:6px;"><i class="fas fa-floppy-disk" aria-hidden="true"></i> Lưu tình hình</button>' +
+                    (update.reviewedAt ? '<div style="margin-top:4px;font-size:.72rem;color:#64748b;">Cập nhật bởi ' + escapeHtml(update.reviewedByName || 'Quản lý') + ' · ' + escapeHtml(new Date(update.reviewedAt).toLocaleString('vi-VN')) + '</div>' : '') + '</div></article>';
+            }).join('');
+            root.innerHTML = '<div class="acc-head"><div><h2><i class="fas fa-clipboard-list" aria-hidden="true" style="color:#1683ff;margin-right:.45rem;"></i>Cập nhật hồ sơ nhân viên' + (pendingCount ? ' <span style="display:inline-block;padding:.15rem .5rem;border-radius:99px;background:#fff4df;color:#9a6700;font-size:.75rem;">' + pendingCount + ' mới</span>' : '') + '</h2><p>Khi nhân viên lưu số điện thoại, email liên hệ hoặc ảnh đại diện, nội dung và thời điểm cập nhật sẽ hiển thị tại đây. Quản lý có thể ghi nhận tình hình xử lý.</p></div></div>' +
+                (rows || '<p style="padding:1rem;color:#64748b;">Chưa có cập nhật hồ sơ nhân viên.</p>');
+        }
+
+        function saveStaffProfileFollowUp(button) {
+            const userId = button.dataset.userId;
+            const updateId = button.dataset.updateId;
+            const status = document.getElementById('staffUpdateStatus-' + updateId);
+            const note = document.getElementById('staffUpdateNote-' + updateId);
+            if (!status || !note) return;
+            button.disabled = true;
+            const result = RH.updateStaffProfileFollowUp(userId, updateId, {
+                managerStatus: status.value,
+                managerNote: note.value
+            });
+            if (!result.ok) {
+                button.disabled = false;
+                alert(result.error || 'Không thể lưu tình hình cập nhật hồ sơ.');
+                return;
+            }
+            renderAccountsTable();
         }
 
         function escapeHtml(str) {
@@ -5625,6 +5683,8 @@
             if (!RH_IS_DEMO) { renderAccountsTable(); renderAccountRequestsTable(); }
             RHUI.renderDashboardCounts();
             document.addEventListener('click', function (ev) {
+                const profileUpdateSave = ev.target.closest('[data-staff-update-save]');
+                if (profileUpdateSave) { saveStaffProfileFollowUp(profileUpdateSave); return; }
                 const link = ev.target.closest('[data-goto-link]');
                 if (link) { ev.preventDefault(); switchTab(link.dataset.gotoLink); return; }
                 const card = ev.target.closest('.kpi-card[data-goto]');
