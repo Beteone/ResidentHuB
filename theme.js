@@ -14,13 +14,13 @@
         try {
             var stored = JSON.parse(localStorage.getItem('residenthub_theme_v1') || '{}');
             return {
-                theme: ['light', 'dark', 'system'].indexOf(stored.theme) !== -1 ? stored.theme : 'system',
+                theme: ['light', 'dark', 'system'].indexOf(stored.theme) !== -1 ? stored.theme : 'light',
                 density: ['comfortable', 'compact'].indexOf(stored.density) !== -1 ? stored.density : 'comfortable',
                 fontSize: ['small', 'medium', 'large'].indexOf(stored.fontSize) !== -1 ? stored.fontSize : 'medium',
                 accentColor: ['blue', 'green', 'purple', 'orange', 'red', 'teal'].indexOf(stored.accentColor) !== -1 ? stored.accentColor : 'blue'
             };
         } catch (error) {
-            return { theme: 'system', density: 'comfortable', fontSize: 'medium', accentColor: 'blue' };
+            return { theme: 'light', density: 'comfortable', fontSize: 'medium', accentColor: 'blue' };
         }
     }
 

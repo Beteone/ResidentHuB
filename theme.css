@@ -6,6 +6,13 @@ html[data-theme="dark"] {
     --rh-ink: #e5edf7;
     --rh-muted: #a7b4c7;
     --rh-line: #37465b;
+    --bg-soft: var(--rh-page);
+    --surface: var(--rh-surface);
+    --surface-alt: var(--rh-surface-raised);
+    --surface-muted: var(--rh-surface-raised);
+    --ink: var(--rh-ink);
+    --muted: var(--rh-muted);
+    --line: var(--rh-line);
 }
 
 html[data-accent="blue"] { --rh-accent:#1683ff; --rh-accent-strong:#0d65d5; --primary:#1683ff; --primary-strong:#0d65d5; }
@@ -33,7 +40,7 @@ html[data-theme="dark"] :is(main, .main-content, .content-area, .page-content, .
 
 html[data-theme="dark"] :is(.topbar, [class*="card"], [class*="panel"], [class*="modal"], [class*="drawer"], [class*="dropdown"], [class*="popover"], [role="dialog"], dialog) {
     border-color: var(--rh-line) !important;
-    background-color: var(--rh-surface) !important;
+    background: var(--rh-surface) !important;
     color: var(--rh-ink);
 }
 
@@ -53,6 +60,18 @@ html[data-theme="dark"] :is(table, th, td, hr) {
 
 html[data-theme="dark"] :is(th, td) {
     color: var(--rh-ink);
+}
+
+html[data-theme="dark"] :is(.main-content, [role="dialog"]) :is(h1, h2, h3, h4, .topbar-title, .stat-value, .acc-head h2, .rh-field label) {
+    color: var(--rh-ink);
+}
+
+html[data-theme="dark"] :is(.stat-label, .acc-head p, .uf-hint) {
+    color: var(--rh-muted);
+}
+
+html[data-theme="dark"] :is(th, .uf-card-head) {
+    background: var(--rh-surface-raised);
 }
 
 html[data-theme="dark"] :is(.staff-detail-item, .staff-field input[readonly]) {

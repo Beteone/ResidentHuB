@@ -2434,6 +2434,41 @@
         /* Sidebar counters (Yêu cầu hỗ trợ mới / Tài khoản chờ duyệt) */
         .rh-nav-badge{margin-left:auto;min-width:20px;height:20px;padding:0 6px;border-radius:999px;background:#ef4444;color:#fff;font-size:.7rem;font-weight:700;align-items:center;justify-content:center}
         /* Tài khoản */
+        /* Shared account forms restored alongside the unified Users renderer. */
+        #accounts-tab .acc-head>div{flex:1;min-width:220px}
+        #accounts-tab .asset-filters{display:grid;gap:.6rem;grid-template-columns:minmax(200px,2fr) repeat(2,minmax(150px,1fr))}
+        #accounts-tab .asset-search{position:relative}
+        #accounts-tab .asset-search i{position:absolute;left:.75rem;top:50%;transform:translateY(-50%);color:var(--muted)}
+        #accounts-tab .asset-search input,#accounts-tab .asset-filter{background:var(--surface);border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;min-width:0;padding:.65rem .75rem;width:100%}
+        #accounts-tab .asset-search input{padding-left:2rem}
+        .acc-subtabs{border-bottom:1px solid var(--line);display:flex;gap:.25rem;margin-top:1.1rem;overflow-x:auto}
+        .acc-subtabs button{align-items:center;background:none;border:0;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;display:inline-flex;font:inherit;font-size:.88rem;font-weight:600;gap:.45rem;padding:.6rem .9rem;white-space:nowrap}
+        .acc-subtabs button.active{border-bottom-color:var(--primary);color:var(--primary-strong)}
+        .acc-subtabs button span:not(.rh-nav-badge){font-weight:500}
+        .rh-grid-3{display:grid;gap:1rem;grid-template-columns:repeat(3,minmax(0,1fr))}
+        .uf-card{border:1px solid var(--line);border-radius:12px;margin-bottom:1rem;min-width:0}
+        .uf-card-head{align-items:center;background:var(--surface-muted);border-bottom:1px solid var(--line);border-radius:12px 12px 0 0;color:var(--ink);display:flex;font-size:.9rem;font-weight:700;justify-content:space-between;gap:1rem;padding:.75rem 1rem}
+        .uf-card-body{padding:1rem}
+        .uf-active{align-items:center;cursor:pointer;display:flex;font-weight:600;gap:.6rem}
+        .uf-hint{color:var(--muted);font-size:.8rem;padding:0 1rem 1rem}
+        .uf-password{position:relative}
+        .uf-password input{padding-right:2.5rem!important}
+        .uf-password button{background:none;border:0;color:var(--muted);cursor:pointer;position:absolute;right:.6rem;top:50%;transform:translateY(-50%)}
+        .pm-note{background:var(--surface-muted);border:1px solid var(--line);border-radius:10px;color:var(--ink);font-size:.84rem;margin-bottom:1rem;padding:.65rem .9rem}
+        .pm-check{align-items:center;cursor:pointer;display:flex;gap:.5rem;font-size:.86rem;color:var(--ink);line-height:1.3}
+        .pm-check input{accent-color:var(--primary);flex:0 0 auto;height:17px;width:17px}
+        .pm-check.is-disabled{cursor:default;opacity:.6}
+        .pm-all{margin-bottom:.75rem;font-weight:600}
+        .pm-wrap{border:1px solid var(--line);border-radius:12px;overflow:auto}
+        .pm-table{min-width:760px;width:100%}
+        .pm-table th{background:var(--surface-muted);font-size:.8rem;text-align:left}
+        .pm-table td,.pm-table th{border-bottom:1px solid var(--line);border-left:1px solid var(--line);padding:.6rem .75rem;vertical-align:middle}
+        .pm-table td:first-child,.pm-table th:first-child{border-left:0}
+        .pm-table tr:last-child td{border-bottom:0}
+        .pm-module span{font-weight:600;color:var(--ink)}
+        .pm-extra{display:grid;gap:.4rem}
+        @media(max-width:760px){.rh-grid-3{grid-template-columns:repeat(2,minmax(0,1fr))}#accounts-tab .asset-filters{grid-template-columns:1fr}}
+        @media(max-width:560px){.rh-grid-3{grid-template-columns:minmax(0,1fr)}.uf-card-body>.rh-field{grid-column:auto!important}.uf-card-head{flex-wrap:wrap}}
         .acc-head{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem}
         .acc-head h2{font-size:1.4rem;font-weight:700;color:#10213c}
         .acc-head p{color:#94a3b8;margin-top:.3rem;font-size:.875rem}
@@ -2758,7 +2793,7 @@
                     <i class="fas fa-id-badge"></i>
                     <span>Loại tài khoản</span>
                 </div>
-                <div class="sidebar-menu-item rh-nav-child" data-perm="users.view,users.approveResident" onclick="switchTab('accounts', event)">
+                <div class="sidebar-menu-item rh-nav-child" data-perm="users.view,users.approveResident,users.create,users.createResident" onclick="switchTab('accounts', event)">
                     <i class="fas fa-users-gear"></i>
                     <span>Người dùng</span>
                     <span class="rh-nav-badge" id="rhNavAccountsCount" style="display:none;">0</span>
@@ -3660,95 +3695,7 @@
         <div id="statistics-tab" style="display: none;"></div>
 
         <!-- Tài khoản: duyệt đăng ký Cư dân + quản lý tài khoản đăng nhập (tách khỏi Cài đặt) -->
-        <div id="accounts-tab" style="display: none;">
-            <div class="card" style="margin-bottom: 1.5rem;">
-                <div class="acc-head">
-                    <div>
-                        <h2>Yêu cầu đăng ký tài khoản cư dân</h2>
-                        <p>Cư dân đăng ký từ trang chủ sẽ ở trạng thái Chờ phê duyệt. Chỉ khi được phê duyệt, tài khoản mới được kích hoạt và liên kết với hồ sơ cư dân.</p>
-                    </div>
-                </div>
-                <div class="acc-filters" id="accountRequestFilters"></div>
-                <div class="table-container" style="margin-top: 1rem;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">Người đăng ký</th>
-                                <th style="text-align: left;">Liên hệ</th>
-                                <th style="text-align: left;">Tòa nhà / Căn hộ</th>
-                                <th style="text-align: left;">Hồ sơ cư dân</th>
-                                <th style="text-align: left;">Trạng thái</th>
-                                <th style="text-align: left;">Ngày đăng ký</th>
-                                <th style="text-align: right;">Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody id="accountRequestsTableBody"></tbody>
-                    </table>
-                </div>
-            </div>
-
-            <div class="card">
-                <div class="acc-head">
-                    <div>
-                        <h2>Danh sách tài khoản</h2>
-                        <p>Tài khoản Cư dân chỉ được tạo qua phê duyệt đăng ký ở trên. Tại đây bạn có thể thêm tài khoản Quản lý, đổi liên kết hồ sơ cư dân, khoá hoặc mở khoá tài khoản.</p>
-                    </div>
-                    <button class="btn-icon" style="width: auto; padding: 0 1rem; background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border-radius: 10px;" onclick="openAccountForm()">
-                        <i class="fas fa-user-plus"></i>&nbsp; Thêm tài khoản Quản lý
-                    </button>
-                </div>
-
-                <form id="accountForm" onsubmit="handleAccountFormSubmit(event)" style="display: none; margin-top: 1.5rem; background: #f8fafc; border: 1px solid var(--line); border-radius: 12px; padding: 1.25rem;">
-                    <input type="hidden" id="accountId">
-                    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
-                        <div class="acc-field">
-                            <label for="accountName">Họ tên</label>
-                            <input id="accountName" type="text" required placeholder="Họ và tên">
-                        </div>
-                        <div class="acc-field">
-                            <label for="accountEmail">Email đăng nhập</label>
-                            <input id="accountEmail" type="email" required placeholder="ten@residenthub.vn">
-                        </div>
-                        <div class="acc-field">
-                            <label for="accountPassword">Mật khẩu</label>
-                            <input id="accountPassword" type="text" placeholder="Tối thiểu 6 ký tự">
-                            <small id="accountPasswordHint"></small>
-                        </div>
-                        <div class="acc-field">
-                            <label for="accountRoleLabel">Vai trò</label>
-                            <input id="accountRoleLabel" type="text" readonly style="background:#f1f5f9;color:#475569;">
-                        </div>
-                        <div class="acc-field" id="accountResidentWrap" style="display:none;">
-                            <label for="accountResidentId">Hồ sơ cư dân liên kết</label>
-                            <select id="accountResidentId"></select>
-                            <small>Tòa nhà, căn hộ, hợp đồng và hóa đơn của cư dân được lấy tự động từ hồ sơ này.</small>
-                        </div>
-                    </div>
-                    <div id="accountFormError" style="color: #ef4444; font-size: 0.85rem; margin-top: 0.75rem;"></div>
-                    <div style="display: flex; gap: 0.6rem; margin-top: 1rem;">
-                        <button type="submit" style="background: linear-gradient(135deg, #1683ff 0%, #0d65d5 100%); color: #fff; border: 0; border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Lưu tài khoản</button>
-                        <button type="button" onclick="closeAccountForm()" style="background: #fff; color: #475569; border: 1px solid var(--line); border-radius: 8px; padding: 0.6rem 1.2rem; font: inherit; cursor: pointer;">Huỷ</button>
-                    </div>
-                </form>
-
-                <div class="table-container" style="margin-top: 1.25rem;">
-                    <table style="width: 100%; border-collapse: collapse;">
-                        <thead>
-                            <tr>
-                                <th style="text-align: left;">Họ tên</th>
-                                <th style="text-align: left;">Email</th>
-                                <th style="text-align: left;">Vai trò</th>
-                                <th style="text-align: left;">Hồ sơ cư dân / Căn hộ</th>
-                                <th style="text-align: left;">Trạng thái</th>
-                                <th style="text-align: right;">Hành động</th>
-                            </tr>
-                        </thead>
-                        <tbody id="accountsTableBody"></tbody>
-                    </table>
-                </div>
-                <section id="staffProfileUpdates" aria-label="Theo dõi cập nhật hồ sơ nhân viên" style="margin-top:1.75rem;"></section>
-            </div>
-        </div>
+        <div id="accounts-tab" style="display: none;"></div>
 
         <!-- Cài đặt: chỉ cấu hình hệ thống (RHD.getSettings/saveSettings), không chứa duyệt tài khoản.
              Mỗi ô có data-setting = khóa trong SETTINGS_DEFAULTS (data.js) và đều được module thật đọc. -->
@@ -4395,7 +4342,7 @@
             support: (f) => RHUI.renderSupportTab(f),
             notifications: () => renderNotificationsManagerTab(),
             roles: () => RHAccounts.renderRolesTab(),
-            accounts: (f) => { renderAccountRequestsTable(f); renderAccountsTable(); },
+            accounts: (f) => RHAccounts.renderUsersTab(f),
             settings: () => renderSettingsTab()
         };
         let currentTab = 'dashboard';
@@ -4417,7 +4364,7 @@
             reports: 'reports.view',
             statistics: 'reports.view',
             roles: 'roles.view',
-            accounts: ['users.view', 'users.approveResident']
+            accounts: ['users.view', 'users.approveResident', 'users.create', 'users.createResident']
         };
         const TAB_ORDER = ['dashboard', 'buildings', 'apartments', 'service-fees', 'customers', 'deposits', 'meters', 'contracts', 'invoices', 'cashflow', 'support', 'notifications', 'accounts', 'roles', 'reports', 'statistics'];
 
@@ -5083,7 +5030,7 @@
                 alert(result.error || 'Không thể lưu tình hình cập nhật hồ sơ.');
                 return;
             }
-            renderAccountsTable();
+            renderStaffProfileUpdates();
         }
 
         function escapeHtml(str) {
@@ -5242,8 +5189,7 @@
         }
 
         function refreshAccountViews() {
-            renderAccountRequestsTable();
-            renderAccountsTable();
+            if (currentTab === 'accounts') RHAccounts.renderUsersTab();
             RHUI.renderDashboardCounts();
         }
 
