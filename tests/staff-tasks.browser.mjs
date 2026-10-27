@@ -120,7 +120,35 @@ try {
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus}})()`), {
         status: 'in_progress', taskStatus: 'in_progress'
     });
-    await evaluate(`document.getElementById('staffCompletionNote').value='Đã kiểm tra và khắc phục.';document.querySelector('[data-task-action="complete"]').click()`);
+    await evaluate(`
+        document.querySelector('[data-add-material]').click();
+        document.querySelector('[data-add-material]').click();
+        document.querySelector('[data-add-material]').click();
+        const values=[['Vòi nước mới','1','120000','Thay vòi bị hỏng'],['Băng tan','1','10000','Làm kín ren nối'],['Keo dán','1','20000','Cố định đường ống']];
+        Array.from(document.querySelectorAll('[data-material-row]')).forEach((row,index)=>{
+            const fields=['[data-material-name]','[data-material-quantity]','[data-material-price]','[data-material-reason]'];
+            fields.forEach((selector,fieldIndex)=>{const input=row.querySelector(selector);input.value=values[index][fieldIndex];input.dispatchEvent(new Event('input',{bubbles:true}))});
+        });
+    `);
+    assert.equal(await evaluate(`document.getElementById('staffMaterialTotal').textContent==='150.000 ₫'`), true, 'Material total updates from quantity multiplied by unit price');
+    assert.deepEqual(await evaluate(`(async()=>{const encoded='iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mP8/x8AAwMCAO+/lS8AAAAASUVORK5CYII=';const file=new File([Uint8Array.from(atob(encoded),c=>c.charCodeAt(0))],'progress.png',{type:'image/png'});const transfer=new DataTransfer();transfer.items.add(file);const progressInput=document.getElementById('staffProgressImageFile');progressInput.files=transfer.files;progressInput.dispatchEvent(new Event('change',{bubbles:true}));const receiptInput=document.querySelector('[data-material-row] [data-material-receipt-file]');receiptInput.files=transfer.files;receiptInput.dispatchEvent(new Event('change',{bubbles:true}));await new Promise(resolve=>setTimeout(resolve,100));return {progress:document.querySelectorAll('#staffProgressImages [data-progress-image]').length,receipt:document.querySelectorAll('[data-material-row] [data-material-receipt]').length}})()`), {
+        progress: 1, receipt: 1
+    }, 'Progress and receipt images can be previewed before saving');
+    await evaluate(`document.querySelector('[data-progress-save="save"]').click()`);
+    assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return r.staffMaterials.map(item=>({name:item.materialName,amount:item.amount,status:item.approvalStatus}))})()`), [
+        { name: 'Vòi nước mới', amount: 120000, status: 'draft' },
+        { name: 'Băng tan', amount: 10000, status: 'draft' },
+        { name: 'Keo dán', amount: 20000, status: 'draft' }
+    ], 'Progress materials are saved as task-linked drafts, separate from wages');
+    assert.equal(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return r.staffProgress.images.length===1&&!!r.staffMaterials[0].receipt.dataUrl})()`), true, 'Progress and receipt images persist with the task data');
+    await evaluate(`document.querySelector('[data-title="Danh sách nhiệm vụ"]').click();document.querySelector('[data-open-task="staff-task-request"]').click();document.querySelector('[data-title="Cập nhật tiến độ"]').click()`);
+    assert.equal(await evaluate(`document.querySelectorAll('[data-material-row]').length===3&&document.getElementById('staffMaterialTotal').textContent==='150.000 ₫'`), true, 'Saved materials and totals reload when the assigned task is opened again');
+    await evaluate(`document.querySelector('[data-add-material]').click();document.querySelector('[data-material-row]:last-child [data-remove-material]').click();document.querySelector('[data-progress-save="save"]').click()`);
+    assert.equal(await evaluate(`RHD.get('supportRequests','staff-task-request').staffMaterials.length===3`), true, 'An unsent material row can be removed without persisting an empty row');
+    await evaluate(`document.querySelector('[data-progress-save="materials"]').click()`);
+    assert.equal(await evaluate(`RHD.get('supportRequests','staff-task-request').staffMaterials.every(item=>item.approvalStatus==='pending')`), true, 'Submitting material costs marks them as awaiting management review');
+    assert.equal(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return !RHD.update('supportRequests',r.id,{staffMaterials:r.staffMaterials.map(item=>({...item,approvalStatus:'approved'}))}).ok})()`), true, 'Staff cannot approve submitted material costs through a direct data update');
+    await evaluate(`document.getElementById('staffProgressNote').value='Đã kiểm tra và khắc phục.';document.querySelector('[data-progress-save="complete"]').click()`);
     assert.deepEqual(await evaluate(`(()=>{const r=RHD.get('supportRequests','staff-task-request');return {status:r.status,taskStatus:r.staffTaskStatus,note:r.staffCompletionNote}})()`), {
         status: 'in_progress', taskStatus: 'pending_approval', note: 'Đã kiểm tra và khắc phục.'
     }, 'Staff completion waits for management approval without closing the resident request');

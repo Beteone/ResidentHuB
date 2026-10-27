@@ -246,6 +246,94 @@
         .staff-profile-page .staff-detail-item small { font-size:11px; }
         .staff-profile-page .staff-detail-item strong { font-size:13px; }
         .staff-profile-page .staff-profile-contact-actions { margin-top:16px; }
+        .staff-progress-page { overflow:hidden; border:1px solid #dce8f5; border-radius:15px; background:var(--surface); box-shadow:0 10px 28px rgba(15,35,64,.06); }
+        .staff-progress-header { display:flex; align-items:center; justify-content:space-between; gap:14px; padding:19px 22px; background:linear-gradient(112deg,#12365e,#1b568e); color:#fff; }
+        .staff-progress-header small { color:#bdd7f4; font-size:10px; font-weight:700; letter-spacing:.08em; }
+        .staff-progress-header h2 { margin:5px 0 0; color:#fff; font:700 19px 'Plus Jakarta Sans','Be Vietnam Pro',sans-serif; overflow-wrap:anywhere; }
+        .staff-progress-header .staff-badge { background:#eaf3ff; }
+        .staff-progress-meta { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:0; padding:15px 20px; border-bottom:1px solid var(--line); }
+        .staff-progress-meta > div { min-width:0; padding:4px 12px; border-right:1px solid var(--line); }
+        .staff-progress-meta > div:first-child { padding-left:0; }
+        .staff-progress-meta > div:last-child { padding-right:0; border-right:0; }
+        .staff-progress-meta small,.staff-progress-section-heading span { display:block; color:var(--muted); font-size:10px; }
+        .staff-progress-meta strong { display:block; margin-top:5px; font-size:12px; overflow-wrap:anywhere; }
+        .staff-progress-section { margin:18px; padding:16px; border:1px solid var(--line); border-radius:12px; background:var(--surface); }
+        .staff-progress-section h3 { margin:0; font-size:15px; }
+        .staff-progress-steps { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); margin:19px 0; }
+        .staff-progress-step { position:relative; display:grid; justify-items:center; gap:7px; color:var(--muted); text-align:center; }
+        .staff-progress-step:not(:last-child):after { position:absolute; z-index:0; top:14px; left:calc(50% + 17px); width:calc(100% - 34px); height:2px; background:#e5ebf3; content:''; }
+        .staff-progress-step span { z-index:1; display:grid; width:29px; height:29px; place-items:center; border-radius:50%; background:#edf1f6; color:#718096; font-size:12px; font-weight:700; }
+        .staff-progress-step small { font-size:10px; }
+        .staff-progress-step.active span { background:var(--primary); color:#fff; }
+        .staff-progress-step.active small { color:var(--primary-strong); font-weight:700; }
+        .staff-progress-request { padding:14px; border:1px solid #e3edf8; border-radius:10px; background:#fbfdff; }
+        .staff-progress-request > strong,.staff-progress-gallery > strong { display:block; font-size:12px; }
+        .staff-progress-request > p { margin:7px 0 0; color:#40516a; font-size:12px; line-height:1.65; white-space:pre-wrap; }
+        .staff-progress-fields { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
+        .staff-progress-fields label { display:grid; gap:6px; color:var(--muted); font-size:11px; font-weight:600; }
+        .staff-progress-fields label:first-child { grid-column:1/-1; }
+        .staff-progress-fields input,.staff-progress-fields textarea,.staff-progress-material-table input { width:100%; min-width:0; min-height:38px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:8px 9px; font:500 12px 'Be Vietnam Pro',sans-serif; }
+        .staff-progress-fields textarea { resize:vertical; line-height:1.5; }
+        .staff-progress-fields input[readonly],.staff-progress-fields textarea[readonly] { background:#f6f8fb; }
+        .staff-progress-gallery { margin-top:16px; }
+        .staff-progress-images { display:flex; flex-wrap:wrap; gap:9px; margin-top:9px; }
+        .staff-progress-image,.staff-progress-receipt { position:relative; width:94px; height:94px; flex:0 0 94px; margin:0; overflow:hidden; border:1px solid var(--line); border-radius:10px; background:#f3f7fc; }
+        .staff-progress-image img,.staff-progress-receipt img { display:block; width:100%; height:100%; object-fit:cover; }
+        .staff-progress-image > button,.staff-progress-receipt > button { position:absolute; top:4px; right:4px; display:grid; width:23px; height:23px; place-items:center; border:0; border-radius:50%; background:#132b49d9; color:#fff; cursor:pointer; font-size:16px; }
+        .staff-progress-add-image { display:grid; width:94px; height:94px; flex:0 0 94px; place-content:center; gap:4px; border:1px dashed #9fc5f3; border-radius:10px; background:#f6faff; color:var(--primary-strong); cursor:pointer; text-align:center; }
+        .staff-progress-add-image span { font-size:30px; line-height:1; }
+        .staff-progress-add-image small { font-size:10px; }
+        .staff-progress-add-image input,.staff-progress-upload-link input { position:absolute; width:1px; height:1px; overflow:hidden; clip:rect(0,0,0,0); }
+        .staff-progress-empty { align-self:center; color:var(--muted); font-size:11px; }
+        .staff-progress-section-heading { display:flex; justify-content:space-between; align-items:baseline; gap:12px; margin-bottom:12px; }
+        .staff-progress-table-wrap { width:100%; overflow-x:auto; border:1px solid #e3edf8; border-radius:9px; }
+        .staff-progress-material-table { width:100%; min-width:900px; border-collapse:collapse; text-align:left; }
+        .staff-progress-material-table th,.staff-progress-material-table td { padding:9px 8px; border-bottom:1px solid var(--line); vertical-align:middle; font-size:11px; }
+        .staff-progress-material-table thead th { background:#eff6ff; color:#38516d; font-size:10px; }
+        .staff-progress-material-table tfoot th { border-bottom:0; background:#f7faff; color:var(--ink); font-size:12px; }
+        .staff-progress-material-table input { min-width:74px; min-height:34px; padding:6px; font-size:11px; }
+        .staff-progress-material-table td[data-label="Tên vật tư"] input,.staff-progress-material-table td[data-label="Lý do sử dụng"] input { min-width:115px; }
+        .staff-progress-material-table .staff-progress-receipt { width:48px; height:48px; }
+        .staff-progress-material-table .staff-progress-receipt > button { width:18px; height:18px; font-size:13px; }
+        .staff-progress-upload-link { position:relative; display:inline-flex; color:var(--primary-strong); font-size:10px; cursor:pointer; white-space:nowrap; }
+        .staff-progress-row-actions { display:grid; justify-items:start; gap:5px; }
+        .staff-progress-delete { border:0; background:transparent; color:#b42318; padding:2px 0; cursor:pointer; font:600 10px 'Be Vietnam Pro',sans-serif; }
+        .staff-progress-add-material { margin-top:11px; border:1px solid #9fc5f3; border-radius:8px; background:var(--surface); color:var(--primary-strong); padding:8px 12px; cursor:pointer; font:600 12px 'Be Vietnam Pro',sans-serif; }
+        .staff-progress-footer { display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin:0 18px; padding:0 0 18px; }
+        .staff-progress-footer-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; }
+        .staff-progress-save-message { min-height:20px; margin:0 18px 10px; color:#16865e; font-size:12px; }
+        .staff-progress-save-message.error,.staff-progress-message { color:#b42318; }
+        .staff-progress-message { font-size:11px; }
+        .staff-progress-empty-row td { color:var(--muted); text-align:center; }
+        @media (max-width: 720px) {
+            .staff-progress-header { padding:16px; }
+            .staff-progress-header h2 { font-size:16px; }
+            .staff-progress-meta { grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px 0; padding:12px; }
+            .staff-progress-meta > div:nth-child(2) { border-right:0; }
+            .staff-progress-meta > div:nth-child(3) { padding-left:0; }
+            .staff-progress-section { margin:12px; padding:12px; }
+            .staff-progress-material-table { min-width:0; }
+            .staff-progress-material-table thead { display:none; }
+            .staff-progress-material-table tbody tr:not(.staff-progress-empty-row) { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:7px 10px; padding:10px; border-bottom:1px solid var(--line); }
+            .staff-progress-material-table tbody td { display:grid; grid-template-columns:minmax(0,1fr); gap:5px; padding:3px 0; border:0; font-size:11px; overflow-wrap:anywhere; }
+            .staff-progress-material-table tbody td:before { color:var(--muted); content:attr(data-label); font-size:9px; font-weight:600; }
+            .staff-progress-material-table tbody td[data-label="Tên vật tư"],.staff-progress-material-table tbody td[data-label="Lý do sử dụng"],.staff-progress-material-table tbody td[data-label="Hóa đơn/chứng từ"],.staff-progress-material-table tbody td[data-label="Trạng thái / thao tác"] { grid-column:1/-1; }
+            .staff-progress-material-table tfoot th { padding:9px 6px; font-size:10px; }
+            .staff-progress-material-table tfoot th:nth-child(1) { width:50%; }
+            .staff-progress-material-table tfoot th:nth-child(2) { text-align:right; }
+            .staff-progress-fields { grid-template-columns:minmax(0,1fr); }
+            .staff-progress-fields label:first-child { grid-column:auto; }
+            .staff-progress-section-heading { display:block; }
+            .staff-progress-section-heading span { margin-top:4px; }
+            .staff-progress-footer { align-items:stretch; margin-inline:12px; }
+            .staff-progress-footer > button { width:100%; }
+            .staff-progress-footer-actions { display:grid; grid-template-columns:minmax(0,1fr); width:100%; }
+            .staff-progress-footer-actions > button { width:100%; }
+        }
+        html[data-theme="dark"] .staff-progress-request { border-color:#344e6e; background:#1b2c43; }
+        html[data-theme="dark"] .staff-progress-request > p { color:#d6e0ee; }
+        html[data-theme="dark"] .staff-progress-fields input[readonly],html[data-theme="dark"] .staff-progress-fields textarea[readonly],html[data-theme="dark"] .staff-progress-add-image { background:#223852; }
+        html[data-theme="dark"] .staff-progress-material-table thead th,html[data-theme="dark"] .staff-progress-material-table tfoot th { background:#263b55; color:#d6e0ee; }
         .staff-profile-page .staff-profile-hero-actions .staff-profile-action-link:hover,.staff-profile-page .staff-profile-mini-action:hover { border-color:var(--primary); }
         html[data-theme="dark"] .staff-profile-hero { border-color:var(--line); background:linear-gradient(112deg,#1b2c43 0%,var(--surface) 72%); }
         html[data-theme="dark"] .staff-profile-meta span { background:#263244; }
@@ -1552,6 +1640,85 @@
             bindTaskFilters();
         }
 
+        function progressDateTime(value) {
+            if (!value) return '';
+            var date = new Date(value);
+            if (isNaN(date.getTime())) return '';
+            return new Date(date.getTime() - date.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+        }
+
+        function renderStaffProgress(request, pair, status) {
+            var progress = request.staffProgress || {};
+            var materials = Array.isArray(request.staffMaterials) ? request.staffMaterials : [];
+            var sampleTask = request.id.indexOf('sample-CV') === 0;
+            var canUpdate = !sampleTask && staffAllowed('staffTasks.update') && status.label !== 'Hoàn thành' && status.label !== 'Đã đóng';
+            var stage = status.label === 'Chờ tiếp nhận' ? 0 : status.label === 'Đang xử lý' ? 1 :
+                status.label.indexOf('Chờ Quản lý duyệt') !== -1 ? 2 : 3;
+            var steps = ['Chờ tiếp nhận', 'Đang xử lý', 'Chờ duyệt', 'Hoàn thành'];
+            var stepMarkup = steps.map(function (label, index) {
+                return '<div class="staff-progress-step' + (index === stage ? ' active' : '') + (index < stage ? ' passed' : '') + '"><span>' + (index + 1) + '</span><small>' + label + '</small></div>';
+            }).join('');
+            var assignedUser = request.assigneeId ? RH.getUsers().filter(function (user) { return user.id === request.assigneeId; })[0] : null;
+            var imageMarkup = (Array.isArray(progress.images) ? progress.images : []).map(function (image, index) {
+                return '<figure class="staff-progress-image" data-progress-image data-image-name="' + escapeHtml(image.name || 'Ảnh tiến độ ' + (index + 1)) + '" data-image-type="' + escapeHtml(image.type || '') + '" data-image-url="' + escapeHtml(image.dataUrl || '') + '"><a href="' + escapeHtml(image.dataUrl || '') + '" target="_blank" rel="noopener"><img src="' + escapeHtml(image.dataUrl || '') + '" alt="' + escapeHtml(image.name || 'Ảnh tiến độ ' + (index + 1)) + '"></a>' +
+                    (canUpdate ? '<button type="button" data-remove-progress-image aria-label="Xóa ảnh tiến độ">×</button>' : '') + '</figure>';
+            }).join('');
+            var materialRows = materials.map(function (item, index) {
+                var locked = item.approvalStatus && item.approvalStatus !== 'draft';
+                var receipt = item.receipt && item.receipt.dataUrl
+                    ? '<figure class="staff-progress-receipt" data-material-receipt data-receipt-name="' + escapeHtml(item.receipt.name || 'Chứng từ') + '" data-receipt-type="' + escapeHtml(item.receipt.type || '') + '" data-receipt-url="' + escapeHtml(item.receipt.dataUrl) + '"><a href="' + escapeHtml(item.receipt.dataUrl) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(item.receipt.dataUrl) + '" alt="Xem trước chứng từ"></a>' +
+                        (!locked && canUpdate ? '<button type="button" data-remove-receipt aria-label="Xóa chứng từ">×</button>' : '') + '</figure>'
+                    : '';
+                var approval = item.approvalStatus === 'pending' ? '<span class="staff-badge waiting">Vật tư: Chờ duyệt</span>' :
+                    item.approvalStatus === 'approved' ? '<span class="staff-badge done">Vật tư: Đã duyệt</span>' :
+                    item.approvalStatus === 'rejected' ? '<span class="staff-badge rejected">Vật tư: Từ chối</span>' : '<span class="staff-badge">Bản nháp</span>';
+                return '<tr data-material-row data-material-id="' + escapeHtml(item.id) + '" data-material-status="' + escapeHtml(item.approvalStatus || 'draft') + '" data-material-line-total="' + (Number(item.amount) || 0) + '">' +
+                    '<td data-label="STT">' + (index + 1) + '</td>' +
+                    '<td data-label="Tên vật tư">' + (locked || !canUpdate ? escapeHtml(item.materialName || '') : '<input data-material-name aria-label="Tên vật tư" maxlength="200" value="' + escapeHtml(item.materialName || '') + '" placeholder="Tên vật tư">') + '</td>' +
+                    '<td data-label="Số lượng">' + (locked || !canUpdate ? Number(item.quantity || 0).toLocaleString('vi-VN') : '<input data-material-quantity type="number" min="1" step="1" aria-label="Số lượng" value="' + escapeHtml(item.quantity || '') + '">') + '</td>' +
+                    '<td data-label="Đơn giá">' + (locked || !canUpdate ? compensationMoney(item.unitPrice) : '<input data-material-price type="number" min="0" step="1" aria-label="Đơn giá (VNĐ)" value="' + escapeHtml(item.unitPrice == null ? '' : item.unitPrice) + '">') + '</td>' +
+                    '<td data-label="Thành tiền"><strong data-material-amount>' + compensationMoney(item.amount || 0) + '</strong></td>' +
+                    '<td data-label="Lý do sử dụng">' + (locked || !canUpdate ? escapeHtml(item.reason || '') : '<input data-material-reason aria-label="Lý do sử dụng" maxlength="1000" value="' + escapeHtml(item.reason || '') + '" placeholder="Lý do sử dụng">') + '</td>' +
+                    '<td data-label="Hóa đơn/chứng từ">' + receipt + (!locked && canUpdate ? '<label class="staff-progress-upload-link">Tải ảnh<input type="file" data-material-receipt-file accept="image/png,image/jpeg,image/webp" aria-label="Tải hóa đơn hoặc chứng từ"></label>' : '') + '</td>' +
+                    '<td data-label="Trạng thái / thao tác"><div class="staff-progress-row-actions">' + approval + (!locked && canUpdate ? '<button type="button" class="staff-progress-delete" data-remove-material aria-label="Xóa dòng vật tư">Xóa</button>' : '') + '</div></td></tr>';
+            }).join('');
+            var total = materials.reduce(function (sum, item) { return sum + (Number(item.quantity) || 0) * (Number(item.unitPrice) || 0); }, 0);
+            var startButton = status.label === 'Chờ tiếp nhận' && staffAllowed('staffTasks.accept')
+                ? '<button type="button" class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '">Tiếp nhận và bắt đầu xử lý</button>' : '';
+            var completionButton = status.label === 'Đang xử lý' && staffAllowed('staffTasks.report')
+                ? '<button type="button" class="staff-action-btn" data-progress-save="complete">Báo hoàn thành, chờ Quản lý duyệt</button>' : '';
+            var materialButton = canUpdate && materials.some(function (item) { return !item.approvalStatus || item.approvalStatus === 'draft'; })
+                ? '<button type="button" class="staff-action-btn secondary" data-progress-save="materials">Gửi duyệt vật tư</button>' : '';
+            var readOnly = !canUpdate;
+            var requestNote = '<section class="staff-progress-section"><h3>Cập nhật tiến độ</h3>' +
+                '<div class="staff-progress-steps">' + stepMarkup + '</div>' +
+                '<div class="staff-progress-request"><strong>Mô tả yêu cầu ban đầu</strong><p>' + escapeHtml(request.description || 'Không có mô tả.') + '</p>' +
+                '<div class="staff-progress-fields"><label>Ghi chú tiến độ<textarea id="staffProgressNote" rows="3" maxlength="5000"' + (readOnly ? ' readonly' : '') + ' placeholder="Ghi lại công việc đã thực hiện">' + escapeHtml(progress.note || request.staffCompletionNote || '') + '</textarea></label>' +
+                '<label>Thời gian bắt đầu thực tế<input id="staffActualStart" type="datetime-local" value="' + escapeHtml(progress.actualStartAt || progressDateTime(request.startedAt)) + '"' + (readOnly ? ' readonly' : '') + '></label>' +
+                '<label>Thời gian kết thúc thực tế<input id="staffActualEnd" type="datetime-local" value="' + escapeHtml(progress.actualEndAt || '') + '"' + (readOnly ? ' readonly' : '') + '></label>' +
+                '<label>Nguyên nhân chậm trễ (nếu có)<input id="staffDelayReason" maxlength="1000" value="' + escapeHtml(progress.delayReason || '') + '"' + (readOnly ? ' readonly' : '') + ' placeholder="Nhập nguyên nhân nếu bị chậm"></label></div>' +
+                '<div class="staff-progress-gallery"><strong>Hình ảnh tiến độ</strong><div id="staffProgressImages" class="staff-progress-images">' + imageMarkup +
+                (canUpdate ? '<label class="staff-progress-add-image" aria-label="Thêm ảnh tiến độ"><span>+</span><small>Thêm ảnh</small><input type="file" id="staffProgressImageFile" accept="image/png,image/jpeg,image/webp"></label>' : '') +
+                (!imageMarkup && readOnly ? '<span class="staff-progress-empty">Chưa có ảnh tiến độ.</span>' : '') + '</div></div></div>' +
+                (sampleTask ? '<p class="staff-progress-message">Nhiệm vụ minh họa chỉ xem; không thể lưu thay đổi.</p>' : '') + '</section>';
+            var materialsSection = '<section class="staff-progress-section"><div class="staff-progress-section-heading"><h3>Vật tư phát sinh</h3><span>Trạng thái duyệt vật tư độc lập với trạng thái nhiệm vụ.</span></div>' +
+                '<div class="staff-progress-table-wrap"><table class="staff-progress-material-table"><thead><tr><th>STT</th><th>Tên vật tư</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th>Lý do sử dụng</th><th>Hóa đơn/chứng từ</th><th>Thao tác / duyệt</th></tr></thead><tbody id="staffMaterialRows">' +
+                (materialRows || '<tr class="staff-progress-empty-row"><td colspan="8">Chưa có vật tư phát sinh.</td></tr>') + '</tbody><tfoot><tr><th colspan="4">Tổng chi phí vật tư</th><th colspan="4" id="staffMaterialTotal">' + compensationMoney(total) + '</th></tr></tfoot></table></div>' +
+                (canUpdate ? '<button type="button" class="staff-progress-add-material" data-add-material>+ Thêm vật tư</button>' : '') + '</section>';
+            var taskAction = status.label.indexOf('Chờ Quản lý duyệt') !== -1
+                ? '<span class="staff-badge approval">Kết quả nhiệm vụ: Chờ Quản lý duyệt</span>'
+                : status.label === 'Hoàn thành' ? '<span class="staff-badge done">Nhiệm vụ đã hoàn thành</span>' : '';
+            staffContent.innerHTML = '<div class="staff-progress-page"><header class="staff-progress-header"><div><small>CHI TIẾT NHIỆM VỤ</small><h2>' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</h2></div><span class="staff-badge ' + status.style + '">' + escapeHtml(status.label) + '</span></header>' +
+                '<div class="staff-progress-meta"><div><small>Mã nhiệm vụ</small><strong>' + escapeHtml(request.code || request.id) + '</strong></div>' +
+                '<div><small>Căn hộ · Tòa nhà</small><strong>' + escapeHtml(pair.label || request.location || 'Chưa rõ vị trí') + '</strong></div>' +
+                '<div><small>Người được phân công</small><strong>' + escapeHtml(assignedUser ? assignedUser.name : request.assignee || '—') + '</strong></div>' +
+                '<div><small>Hạn xử lý</small><strong>' + escapeHtml(dateLabel(request.dueAt || request.scheduledAt)) + '</strong></div></div>' +
+                requestNote + materialsSection +
+                '<div class="staff-progress-footer"><button type="button" class="staff-action-btn secondary" data-staff-page="Danh sách nhiệm vụ">Quay lại danh sách</button><div class="staff-progress-footer-actions">' + taskAction + startButton +
+                (canUpdate ? '<button type="button" class="staff-action-btn" data-progress-save="save">Lưu cập nhật</button>' : '') + materialButton + completionButton + '</div></div>' +
+                '<p class="staff-progress-save-message" id="staffProgressMessage" role="status" aria-live="polite"></p></div>';
+        }
+
         function renderTaskDetail(progressOnly) {
             var request = assignedTasks().filter(function (task) { return task.id === selectedTaskId; })[0];
             if (!request && compensationUsesSampleData) {
@@ -1563,6 +1730,10 @@
             }
             var pair = buildingForTask(request);
             var status = taskStatus(request);
+            if (progressOnly) {
+                renderStaffProgress(request, pair, status);
+                return;
+            }
             var group = groupForTask(request);
             var groupInfo = RHD.SUPPORT_STAFF_GROUPS.filter(function (item) { return item.id === group; })[0];
             var sampleTask = request.id.indexOf('sample-CV') === 0;
@@ -1570,19 +1741,7 @@
                 return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || '');
             }) : [];
             var actionMarkup = '';
-            if (sampleTask) {
-                actionMarkup = '';
-            } else if (progressOnly && status.label === 'Chờ tiếp nhận' && staffAllowed('staffTasks.accept')) {
-                actionMarkup = '<button class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '">Tiếp nhận và bắt đầu xử lý</button>';
-            } else if (progressOnly && status.label === 'Đang xử lý' && staffAllowed('staffTasks.report')) {
-                actionMarkup = '<label style="display:block;margin:14px 0 7px;font-weight:600;font-size:13px;">Báo cáo kết quả xử lý</label><textarea class="staff-report-input" id="staffCompletionNote" rows="4" placeholder="Mô tả công việc đã thực hiện"></textarea><button class="staff-action-btn" data-task-action="complete" data-task-id="' + escapeHtml(request.id) + '" style="margin-top:9px;">Báo hoàn thành, chờ Quản lý duyệt</button>';
-            } else if (progressOnly && status.label.indexOf('Chờ Quản lý duyệt') !== -1) {
-                actionMarkup = '<p class="staff-badge approval">Đã gửi kết quả, đang chờ Quản lý duyệt.</p>';
-            } else if (progressOnly) {
-                actionMarkup = '<p class="staff-badge">' + escapeHtml(status.label) + ' · Không có thao tác được cấp quyền tại đây.</p>';
-            } else {
-                actionMarkup = '<button class="staff-action-btn" data-staff-page="Cập nhật tiến độ">Cập nhật tiến độ</button>';
-            }
+            if (!sampleTask) actionMarkup = '<button class="staff-action-btn" data-staff-page="Cập nhật tiến độ">Cập nhật tiến độ</button>';
             var taskWage = request.staffWage || {};
             var taskWageState = wageStatus(taskWage);
             var taskWageCashflow = taskWage.cashflowId ? RHD.get('cashflows', taskWage.cashflowId) : null;
@@ -1689,6 +1848,145 @@
                 return;
             }
             renderStaffPage();
+        }
+
+        function updateStaffMaterialTotal() {
+            var total = Array.from(staffContent.querySelectorAll('[data-material-row]')).reduce(function (sum, row) {
+                var quantityInput = row.querySelector('[data-material-quantity]');
+                var priceInput = row.querySelector('[data-material-price]');
+                var lineTotal = quantityInput && priceInput
+                    ? (Number(quantityInput.value) || 0) * (Number(priceInput.value) || 0)
+                    : Number(row.dataset.materialLineTotal) || 0;
+                return sum + lineTotal;
+            }, 0);
+            var target = document.getElementById('staffMaterialTotal');
+            if (target) target.textContent = compensationMoney(total);
+        }
+
+        function materialDraftRowMarkup(id, index) {
+            return '<tr data-material-row data-material-id="' + escapeHtml(id) + '" data-material-status="draft">' +
+                '<td data-label="STT">' + index + '</td><td data-label="Tên vật tư"><input data-material-name aria-label="Tên vật tư" maxlength="200" placeholder="Tên vật tư"></td>' +
+                '<td data-label="Số lượng"><input data-material-quantity type="number" min="1" step="1" aria-label="Số lượng"></td>' +
+                '<td data-label="Đơn giá"><input data-material-price type="number" min="0" step="1" aria-label="Đơn giá (VNĐ)"></td>' +
+                '<td data-label="Thành tiền"><strong data-material-amount>' + compensationMoney(0) + '</strong></td>' +
+                '<td data-label="Lý do sử dụng"><input data-material-reason aria-label="Lý do sử dụng" maxlength="1000" placeholder="Lý do sử dụng"></td>' +
+                '<td data-label="Hóa đơn/chứng từ"><label class="staff-progress-upload-link">Tải ảnh<input type="file" data-material-receipt-file accept="image/png,image/jpeg,image/webp" aria-label="Tải hóa đơn hoặc chứng từ"></label></td>' +
+                '<td data-label="Trạng thái / thao tác"><div class="staff-progress-row-actions"><span class="staff-badge">Bản nháp</span><button type="button" class="staff-progress-delete" data-remove-material aria-label="Xóa dòng vật tư">Xóa</button></div></td></tr>';
+        }
+
+        function readStaffProgressImage(file) {
+            return new Promise(function (resolve, reject) {
+                if (!file || !/^image\/(png|jpeg|webp)$/.test(file.type) || file.size > 2 * 1024 * 1024) {
+                    reject(new Error('Chọn ảnh PNG, JPEG hoặc WebP có dung lượng tối đa 2 MB.'));
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function () { resolve({ name: file.name, type: file.type, dataUrl: String(reader.result || '') }); };
+                reader.onerror = function () { reject(new Error('Không thể đọc tệp ảnh đã chọn.')); };
+                reader.readAsDataURL(file);
+            });
+        }
+
+        function staffProgressImageMarkup(image, removable) {
+            return '<figure class="staff-progress-image" data-progress-image data-image-name="' + escapeHtml(image.name) + '" data-image-type="' + escapeHtml(image.type) + '" data-image-url="' + escapeHtml(image.dataUrl) + '"><a href="' + escapeHtml(image.dataUrl) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(image.dataUrl) + '" alt="' + escapeHtml(image.name) + '"></a>' +
+                (removable ? '<button type="button" data-remove-progress-image aria-label="Xóa ảnh tiến độ">×</button>' : '') + '</figure>';
+        }
+
+        function showProgressMessage(message, isError) {
+            var target = document.getElementById('staffProgressMessage');
+            if (target) {
+                target.textContent = message;
+                target.classList.toggle('error', !!isError);
+            }
+        }
+
+        function saveStaffProgress(mode) {
+            if (!staffAllowed(mode === 'complete' ? 'staffTasks.report' : 'staffTasks.update')) {
+                alert('Bạn không có quyền cập nhật tiến độ hoặc vật tư nhiệm vụ này.');
+                return;
+            }
+            var request = assignedTasks().filter(function (task) { return task.id === selectedTaskId; })[0];
+            if (!request || request.id.indexOf('sample-CV') === 0) {
+                alert('Nhiệm vụ không còn được phân công cho tài khoản này.');
+                renderStaffPage();
+                return;
+            }
+            var existingMaterials = Array.isArray(request.staffMaterials) ? request.staffMaterials : [];
+            var rows = Array.from(staffContent.querySelectorAll('[data-material-row]'));
+            var materials = [];
+            var incomplete = false;
+            rows.forEach(function (row) {
+                var status = row.dataset.materialStatus || 'draft';
+                var existing = existingMaterials.filter(function (item) { return item.id === row.dataset.materialId; })[0];
+                if (status !== 'draft') {
+                    if (existing) materials.push(existing);
+                    return;
+                }
+                var name = row.querySelector('[data-material-name]').value.trim();
+                var quantityValue = row.querySelector('[data-material-quantity]').value;
+                var priceValue = row.querySelector('[data-material-price]').value;
+                var reason = row.querySelector('[data-material-reason]').value.trim();
+                var empty = !name && !quantityValue && !priceValue && !reason && !row.querySelector('[data-receipt-url]');
+                if (empty) return;
+                var quantity = Number(quantityValue);
+                var unitPrice = Number(priceValue);
+                if (!name || !Number.isInteger(quantity) || quantity < 1 || priceValue === '' || !isFinite(unitPrice) || unitPrice < 0 || !reason) {
+                    incomplete = true;
+                    return;
+                }
+                var receipt = row.querySelector('[data-material-receipt]');
+                materials.push({
+                    id: row.dataset.materialId,
+                    materialName: name,
+                    quantity: quantity,
+                    unitPrice: unitPrice,
+                    amount: quantity * unitPrice,
+                    reason: reason,
+                    receipt: receipt ? { name: receipt.dataset.receiptName, type: receipt.dataset.receiptType, dataUrl: receipt.dataset.receiptUrl } : null,
+                    approvalStatus: mode === 'materials' ? 'pending' : 'draft',
+                    submittedAt: mode === 'materials' ? Date.now() : null
+                });
+            });
+            if (incomplete) {
+                showProgressMessage('Hoàn thiện tên, số lượng, đơn giá và lý do cho từng dòng vật tư đã nhập.', true);
+                return;
+            }
+            if (mode === 'materials' && !materials.some(function (item) { return item.approvalStatus === 'pending'; })) {
+                showProgressMessage('Thêm ít nhất một dòng vật tư hợp lệ trước khi gửi duyệt.', true);
+                return;
+            }
+            var progressImages = Array.from(staffContent.querySelectorAll('[data-progress-image]')).map(function (figure) {
+                return { name: figure.dataset.imageName, type: figure.dataset.imageType, dataUrl: figure.dataset.imageUrl };
+            });
+            var progress = {
+                note: document.getElementById('staffProgressNote').value.trim(),
+                actualStartAt: document.getElementById('staffActualStart').value,
+                actualEndAt: document.getElementById('staffActualEnd').value,
+                delayReason: document.getElementById('staffDelayReason').value.trim(),
+                images: progressImages
+            };
+            if (mode === 'complete' && !progress.note) {
+                showProgressMessage('Nhập ghi chú kết quả trước khi gửi Quản lý duyệt.', true);
+                return;
+            }
+            if (mode === 'complete' && taskStatus(request).label !== 'Đang xử lý') {
+                showProgressMessage('Chỉ có thể báo hoàn thành khi nhiệm vụ đang xử lý.', true);
+                return;
+            }
+            var changes = { staffProgress: progress, staffMaterials: materials, updatedAt: Date.now() };
+            if (mode === 'complete') {
+                changes.staffTaskStatus = 'pending_approval';
+                changes.staffCompletionNote = progress.note;
+                changes.staffCompletedAt = Date.now();
+            }
+            var result = RHD.update('supportRequests', request.id, changes);
+            if (!result.ok) {
+                showProgressMessage(result.error || 'Không thể lưu tiến độ nhiệm vụ.', true);
+                return;
+            }
+            renderStaffPage();
+            showProgressMessage(mode === 'materials' ? 'Vật tư đã được gửi và đang chờ Quản lý duyệt.' :
+                mode === 'complete' ? 'Đã gửi kết quả; nhiệm vụ đang chờ Quản lý duyệt.' : 'Cập nhật tiến độ đã được lưu thành công.', false);
         }
 
         staffContent.addEventListener('click', function (event) {
@@ -1857,6 +2155,34 @@
                 openPage('Chi tiết nhiệm vụ');
                 return;
             }
+            var progressSave = event.target.closest('[data-progress-save]');
+            if (progressSave) { saveStaffProgress(progressSave.dataset.progressSave); return; }
+            if (event.target.closest('[data-add-material]')) {
+                var tableBody = document.getElementById('staffMaterialRows');
+                if (tableBody) {
+                    var emptyRow = tableBody.querySelector('.staff-progress-empty-row');
+                    if (emptyRow) emptyRow.remove();
+                    var draftId = 'staff-material-' + Date.now() + '-' + Math.random().toString(36).slice(2, 8);
+                    tableBody.insertAdjacentHTML('beforeend', materialDraftRowMarkup(draftId, tableBody.querySelectorAll('[data-material-row]').length + 1));
+                    var newName = tableBody.querySelector('[data-material-row]:last-child [data-material-name]');
+                    if (newName) newName.focus();
+                }
+                return;
+            }
+            var removeMaterial = event.target.closest('[data-remove-material]');
+            if (removeMaterial) {
+                var materialRow = removeMaterial.closest('[data-material-row]');
+                if (materialRow && materialRow.dataset.materialStatus === 'draft') materialRow.remove();
+                return;
+            }
+            if (event.target.closest('[data-remove-progress-image]')) {
+                event.target.closest('[data-progress-image]').remove();
+                return;
+            }
+            if (event.target.closest('[data-remove-receipt]')) {
+                event.target.closest('[data-material-receipt]').remove();
+                return;
+            }
             var actionButton = event.target.closest('[data-task-action]');
             if (actionButton) updateTaskStatus(actionButton.dataset.taskId, actionButton.dataset.taskAction);
         });
@@ -1941,6 +2267,15 @@
             renderProfile();
         });
         staffContent.addEventListener('input', function (event) {
+            if (event.target.matches('[data-material-quantity], [data-material-price]')) {
+                var row = event.target.closest('[data-material-row]');
+                var quantity = Number(row.querySelector('[data-material-quantity]').value) || 0;
+                var price = Number(row.querySelector('[data-material-price]').value) || 0;
+                row.dataset.materialLineTotal = String(quantity * price);
+                row.querySelector('[data-material-amount]').textContent = compensationMoney(quantity * price);
+                updateStaffMaterialTotal();
+                return;
+            }
             if (event.target.id === 'staffNotificationSearch') {
                 notificationSearch = event.target.value;
                 renderNotificationList(RH.getCurrentUserNotifications().slice().sort(function (a, b) {
@@ -1954,6 +2289,32 @@
         });
         staffContent.addEventListener('change', function (event) {
             if (event.target.id === 'staffHelpFiles') { previewStaffHelpFiles(); return; }
+            if (event.target.id === 'staffProgressImageFile') {
+                var progressInput = event.target;
+                var currentImages = document.querySelectorAll('#staffProgressImages [data-progress-image]').length;
+                if (currentImages >= 5) { showProgressMessage('Chỉ có thể tải tối đa 5 ảnh tiến độ.', true); progressInput.value = ''; return; }
+                readStaffProgressImage(progressInput.files && progressInput.files[0]).then(function (image) {
+                    document.getElementById('staffProgressImages').insertAdjacentHTML('afterbegin', staffProgressImageMarkup(image, true));
+                    progressInput.value = '';
+                }).catch(function (error) {
+                    showProgressMessage(error.message, true);
+                    progressInput.value = '';
+                });
+                return;
+            }
+            if (event.target.matches('[data-material-receipt-file]')) {
+                var receiptInput = event.target;
+                readStaffProgressImage(receiptInput.files && receiptInput.files[0]).then(function (image) {
+                    var oldReceipt = receiptInput.closest('[data-label="Hóa đơn/chứng từ"]').querySelector('[data-material-receipt]');
+                    if (oldReceipt) oldReceipt.remove();
+                    receiptInput.insertAdjacentHTML('beforebegin', '<figure class="staff-progress-receipt" data-material-receipt data-receipt-name="' + escapeHtml(image.name) + '" data-receipt-type="' + escapeHtml(image.type) + '" data-receipt-url="' + escapeHtml(image.dataUrl) + '"><a href="' + escapeHtml(image.dataUrl) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(image.dataUrl) + '" alt="Xem trước chứng từ"></a><button type="button" data-remove-receipt aria-label="Xóa chứng từ">×</button></figure>');
+                    receiptInput.value = '';
+                }).catch(function (error) {
+                    showProgressMessage(error.message, true);
+                    receiptInput.value = '';
+                });
+                return;
+            }
             var target = event.target;
             if (target.id === 'staffActivityFrom' || target.id === 'staffActivityTo' ||
                 target.id === 'staffActivityStatus' || target.id === 'staffActivityType') {
