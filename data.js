@@ -343,6 +343,57 @@
         return { ok: true, item: record };
     }
 
+    function staffImageError(image) {
+        return !image || typeof image !== 'object' ||
+            !/^image\/(png|jpeg|webp)$/.test(image.type || '') ||
+            typeof image.dataUrl !== 'string' ||
+            image.dataUrl.length === 0 || String(image.name || '').length > 255 ||
+            image.dataUrl.length > 2800000 ||
+            !new RegExp('^data:' + image.type.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + ';base64,').test(image.dataUrl);
+    }
+
+    function staffProgressError(progress) {
+        if (!progress || typeof progress !== 'object' || Array.isArray(progress)) return 'Thông tin tiến độ không hợp lệ.';
+        if (String(progress.note || '').length > 5000 || String(progress.delayReason || '').length > 1000) return 'Ghi chú tiến độ vượt quá giới hạn cho phép.';
+        if (progress.images !== undefined && !Array.isArray(progress.images)) return 'Danh sách ảnh tiến độ không hợp lệ.';
+        var images = Array.isArray(progress.images) ? progress.images : [];
+        if (images.length > 5 || images.some(staffImageError)) return 'Ảnh tiến độ không hợp lệ hoặc vượt quá 5 ảnh.';
+        return '';
+    }
+
+    function staffMaterialsError(previous, materials) {
+        if (!Array.isArray(materials) || materials.length > 100) return 'Danh sách vật tư không hợp lệ.';
+        var oldItems = Array.isArray(previous.staffMaterials) ? previous.staffMaterials : [];
+        var ids = [];
+        for (var i = 0; i < materials.length; i++) {
+            var item = materials[i];
+            if (!item || typeof item !== 'object' || !item.id || ids.indexOf(item.id) !== -1) return 'Mỗi vật tư phải có mã dòng riêng.';
+            ids.push(item.id);
+            var oldItem = oldItems.filter(function (candidate) { return candidate.id === item.id; })[0];
+            var status = item.approvalStatus || 'draft';
+            if (oldItem && oldItem.approvalStatus !== 'draft') {
+                if (JSON.stringify(item) !== JSON.stringify(oldItem)) return 'Vật tư đã gửi duyệt không thể được nhân viên chỉnh sửa.';
+                continue;
+            }
+            if (['draft', 'pending'].indexOf(status) === -1 ||
+                !String(item.materialName || '').trim() ||
+                !Number.isInteger(Number(item.quantity)) || Number(item.quantity) < 1 ||
+                !isFinite(Number(item.unitPrice)) || Number(item.unitPrice) < 0 ||
+                Number(item.amount) !== Number(item.quantity) * Number(item.unitPrice) ||
+                !String(item.reason || '').trim()) {
+                return 'Vật tư cần có tên, số lượng nguyên dương, đơn giá hợp lệ và lý do sử dụng.';
+            }
+            if (String(item.materialName).length > 200 || String(item.reason).length > 1000) return 'Tên hoặc lý do vật tư vượt quá giới hạn cho phép.';
+            if (item.receipt != null && staffImageError(item.receipt)) return 'Ảnh hóa đơn/chứng từ không hợp lệ.';
+        }
+        for (var j = 0; j < oldItems.length; j++) {
+            if (oldItems[j].approvalStatus !== 'draft' && ids.indexOf(oldItems[j].id) === -1) {
+                return 'Vật tư đã gửi duyệt không thể bị xóa.';
+            }
+        }
+        return '';
+    }
+
     function update(entity, id, patch) {
         var items = readAll(entity);
         var idx = -1;
@@ -354,8 +405,12 @@
             if (!session) return { ok: false, error: 'Phiên đăng nhập không còn hợp lệ.' };
             var assigned = previous.assigneeId ? previous.assigneeId === session.id : !!previous.assignee && [session.name, session.email].some(function (value) { return String(value || '').trim().toLowerCase() === String(previous.assignee).trim().toLowerCase(); });
             var permission = previous.source === 'staff' ? 'support.update' : patch.staffTaskStatus === 'pending_approval' ? 'staffTasks.report' : patch.staffTaskStatus === 'in_progress' ? 'staffTasks.accept' : 'staffTasks.update';
-            var allowedFields = previous.source === 'staff' ? ['status', 'response', 'messages', 'updatedAt'] : ['status', 'staffTaskStatus', 'startedAt', 'acceptedAt', 'staffCompletionNote', 'staffCompletedAt', 'updatedAt'];
+            var allowedFields = previous.source === 'staff' ? ['status', 'response', 'messages', 'updatedAt'] : ['status', 'staffTaskStatus', 'startedAt', 'acceptedAt', 'staffCompletionNote', 'staffCompletedAt', 'staffProgress', 'staffMaterials', 'updatedAt'];
+            var progressError = '';
+            if (previous.source !== 'staff' && Object.prototype.hasOwnProperty.call(patch || {}, 'staffProgress')) progressError = staffProgressError(patch.staffProgress);
+            if (!progressError && previous.source !== 'staff' && Object.prototype.hasOwnProperty.call(patch || {}, 'staffMaterials')) progressError = staffMaterialsError(previous, patch.staffMaterials);
             if (!assigned || !global.RHP || !global.RHP.can(permission) ||
+                progressError ||
                 (previous.source !== 'staff' && patch.status === 'in_progress' && previous.status !== 'in_progress' && !global.RHP.can('staffTasks.accept')) ||
                 (previous.source !== 'staff' && patch.staffTaskStatus === 'pending_approval' && previous.status !== 'in_progress') ||
                 (previous.source === 'staff' && patch.status !== undefined && !SUPPORT_STATUSES.some(function (s) { return s.id === patch.status; })) ||
@@ -383,7 +438,16 @@
             updated = prepared.item;
         }
         items[idx] = updated;
-        writeAll(entity, items);
+        try {
+            writeAll(entity, items);
+        } catch (error) {
+            if (isStaffPortalSession() && entity === 'supportRequests' &&
+                (Object.prototype.hasOwnProperty.call(patch || {}, 'staffProgress') || Object.prototype.hasOwnProperty.call(patch || {}, 'staffMaterials')) &&
+                error && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error.code === 22)) {
+                return { ok: false, error: 'Không đủ dung lượng lưu trữ cho ảnh tiến độ hoặc chứng từ. Hãy giảm dung lượng ảnh rồi thử lại.' };
+            }
+            throw error;
+        }
         auditChange(entity, 'update', previous, items[idx]);
         if (entity === 'meters') notifyMeterChanges([previous, items[idx]]);
         return { ok: true, item: items[idx] };
