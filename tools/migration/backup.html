@@ -1,0 +1,18 @@
+<!doctype html>
+<html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'none'; base-uri 'none'; form-action 'none'">
+<title>Sao lưu ResidentHub trước chuyển đổi</title>
+<style>body{font:16px system-ui;max-width:850px;margin:40px auto;padding:16px;color:#183049}label{display:block;margin:16px 0}input,button{padding:10px}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f8;padding:16px}button{cursor:pointer}</style>
+<h1>Sao lưu trước chuyển đổi</h1>
+<p>Mở trang này từ đúng origin đã dùng ResidentHub. Trang chỉ đọc localStorage; không nạp auth.js, không chạy seed, không gửi dữ liệu lên mạng và không nhập dữ liệu vào Supabase.</p>
+<p>Tệp sao lưu được mã hóa và có thể chứa mật khẩu cũ. Giữ tệp và mật khẩu riêng; không gửi vào Git hoặc chat. Nếu mất mật khẩu, công cụ không thể khôi phục tệp.</p>
+<p id="origin"></p>
+<label>Mật khẩu mã hóa (ít nhất 12 ký tự) <input id="password" type="password" autocomplete="new-password" minlength="12"></label>
+<button id="export">Tải bản sao lưu mã hóa</button>
+<h2>Kiểm tra bản sao lưu</h2>
+<label>Tệp thứ nhất <input id="first" type="file" accept="application/json,.json"></label>
+<label>Tệp thứ hai (tùy chọn, để so sánh nguồn) <input id="second" type="file" accept="application/json,.json"></label>
+<label>Mật khẩu tệp thứ hai (nếu khác) <input id="second-password" type="password" autocomplete="off"></label>
+<button id="inspect">Giải mã trong bộ nhớ và kiểm tra</button>
+<pre id="result" role="status">Chưa thực hiện thao tác.</pre>
+<script type="module" src="./backup-ui.mjs"></script></html>
