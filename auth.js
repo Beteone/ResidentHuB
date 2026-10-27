@@ -18,6 +18,24 @@
     var LOCKOUT_MS = 5 * 60 * 1000;
     var ROLES = { MANAGER: 'manager', RESIDENT: 'resident', STAFF: 'staff' };
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
+    var STAFF_NOTIFICATION_CATEGORIES = ['taskNew', 'assignmentChanged', 'deadline', 'infoRequest', 'taskStatus', 'system'];
+    var DEFAULT_STAFF_PREFERENCES = {
+        theme: 'system',
+        density: 'comfortable',
+        fontSize: 'medium',
+        accentColor: 'blue',
+        notifications: {
+            channels: { inApp: true, email: false },
+            categories: {
+                taskNew: true,
+                assignmentChanged: true,
+                deadline: true,
+                infoRequest: true,
+                taskStatus: true,
+                system: true
+            }
+        }
+    };
 
     function readDataStore() {
         try {
@@ -150,9 +168,11 @@
             return { ok: false, error: 'Vui lòng nhập tiêu đề thông báo.' };
         }
         var campaignId = payload && payload.campaignId;
-        if (campaignId) {
+        var eventId = payload && payload.eventId;
+        if (campaignId || eventId) {
             var existing = getNotificationsForUser(userId).find(function (item) {
-                return String(item.campaignId || '') === String(campaignId);
+                return (campaignId && String(item.campaignId || '') === String(campaignId)) ||
+                    (eventId && String(item.eventId || '') === String(eventId));
             });
             if (existing) return { ok: true, item: existing };
         }
@@ -166,6 +186,7 @@
             refType: payload && payload.refType ? payload.refType : 'notifications',
             refId: payload && payload.refId ? payload.refId : '',
             campaignId: payload && payload.campaignId ? payload.campaignId : '',
+            eventId: payload && payload.eventId ? payload.eventId : '',
             audience: payload && payload.audience ? payload.audience : 'all',
             audienceName: payload && payload.audienceName ? payload.audienceName : '',
             recipientCount: Number(payload && payload.recipientCount) || 0,
@@ -251,6 +272,170 @@
         data.users[userId] = userData;
         writeDataStore(data);
         return { ok: true, item: userData.notifications[index] };
+    }
+
+    function currentAccount() {
+        var session = getSession();
+        if (!session || getCurrentUserId() !== session.id) return null;
+        return readUsers().filter(function (user) { return user.id === session.id; })[0] || null;
+    }
+
+    function getCurrentUserSettings() {
+        var user = currentAccount();
+        var stored = user && user.preferences && typeof user.preferences === 'object' ? user.preferences : {};
+        var notifications = stored.notifications && typeof stored.notifications === 'object' ? stored.notifications : {};
+        var channels = notifications.channels && typeof notifications.channels === 'object' ? notifications.channels : {};
+        var categories = notifications.categories && typeof notifications.categories === 'object' ? notifications.categories : {};
+        return {
+            theme: ['light', 'dark', 'system'].indexOf(stored.theme) !== -1 ? stored.theme : DEFAULT_STAFF_PREFERENCES.theme,
+            density: ['comfortable', 'compact'].indexOf(stored.density) !== -1 ? stored.density : DEFAULT_STAFF_PREFERENCES.density,
+            fontSize: ['small', 'medium', 'large'].indexOf(stored.fontSize) !== -1 ? stored.fontSize : DEFAULT_STAFF_PREFERENCES.fontSize,
+            accentColor: ['blue', 'green', 'purple', 'orange', 'red', 'teal'].indexOf(stored.accentColor) !== -1 ? stored.accentColor : DEFAULT_STAFF_PREFERENCES.accentColor,
+            notifications: {
+                channels: {
+                    inApp: typeof channels.inApp === 'boolean' ? channels.inApp : true,
+                    email: false
+                },
+                categories: STAFF_NOTIFICATION_CATEGORIES.reduce(function (result, category) {
+                    result[category] = typeof categories[category] === 'boolean' ? categories[category] : true;
+                    return result;
+                }, {})
+            }
+        };
+    }
+
+    function updateCurrentUserProfile(patch) {
+        var user = currentAccount();
+        if (!user) return { ok: false, error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' };
+        if (user.role !== ROLES.STAFF && user.accountTypeId !== 'at-staff') return { ok: false, error: 'Chỉ tài khoản nhân viên được cập nhật hồ sơ tại đây.' };
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return { ok: false, error: 'Thông tin hồ sơ không hợp lệ.' };
+        var allowed = ['email', 'phone', 'avatar'];
+        if (Object.keys(patch).some(function (key) { return allowed.indexOf(key) === -1; })) {
+            return { ok: false, error: 'Chỉ được cập nhật email, số điện thoại và ảnh đại diện.' };
+        }
+        var email = String(patch.email === undefined ? (user.contactEmail || user.email) : (patch.email || '')).trim().toLowerCase();
+        var phone = patch.phone === undefined ? user.phone : String(patch.phone || '').trim();
+        var avatar = patch.avatar === undefined ? user.avatar : String(patch.avatar || '');
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email) || email.length > 254) {
+            return { ok: false, error: 'Vui lòng nhập địa chỉ email hợp lệ.' };
+        }
+        var phoneDigits = phone.replace(/\D/g, '');
+        if (phone && (!/^[+]?[0-9\s().-]+$/.test(phone) || phoneDigits.length < 7 || phoneDigits.length > 15)) {
+            return { ok: false, error: 'Vui lòng nhập số điện thoại hợp lệ.' };
+        }
+        var validAvatar = avatar === String(user.avatar || '') || !avatar ||
+            (/^data:image\/(?:png|jpeg|webp|gif);base64,[A-Za-z0-9+/]+={0,2}$/.test(avatar) && avatar.length <= 2800000) ||
+            (/^https:\/\/[^\s]+$/i.test(avatar) && avatar.length <= 2048);
+        if (!validAvatar) {
+            return { ok: false, error: 'Ảnh đại diện không hợp lệ hoặc vượt quá 2 MB.' };
+        }
+        user.contactEmail = email;
+        user.phone = phone;
+        user.avatar = avatar;
+        try {
+            var users = readUsers().map(function (item) { return item.id === user.id ? user : item; });
+            writeUsers(users);
+        } catch (error) {
+            return { ok: false, error: 'Không thể lưu hồ sơ vào bộ nhớ thiết bị.' };
+        }
+        try {
+            global.dispatchEvent(new CustomEvent('residenthub:user-updated', { detail: { id: user.id } }));
+        } catch (e) { /* Storage events remain available in older browsers. */ }
+        return { ok: true, user: user };
+    }
+
+    function updateCurrentUserSettings(patch) {
+        var user = currentAccount();
+        if (!user) return { ok: false, error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' };
+        if (!patch || typeof patch !== 'object' || Array.isArray(patch)) return { ok: false, error: 'Cài đặt không hợp lệ.' };
+        if (Object.keys(patch).some(function (key) { return ['theme', 'density', 'fontSize', 'accentColor', 'notifications'].indexOf(key) === -1; })) {
+            return { ok: false, error: 'Có tùy chọn cài đặt không được hỗ trợ.' };
+        }
+        var preferences = getCurrentUserSettings();
+        if (patch.theme !== undefined) {
+            if (['light', 'dark', 'system'].indexOf(patch.theme) === -1) return { ok: false, error: 'Giao diện không hợp lệ.' };
+            preferences.theme = patch.theme;
+        }
+        if (patch.density !== undefined) {
+            if (['comfortable', 'compact'].indexOf(patch.density) === -1) return { ok: false, error: 'Mật độ hiển thị không hợp lệ.' };
+            preferences.density = patch.density;
+        }
+        if (patch.fontSize !== undefined) {
+            if (['small', 'medium', 'large'].indexOf(patch.fontSize) === -1) return { ok: false, error: 'Cỡ chữ không hợp lệ.' };
+            preferences.fontSize = patch.fontSize;
+        }
+        if (patch.accentColor !== undefined) {
+            if (['blue', 'green', 'purple', 'orange', 'red', 'teal'].indexOf(patch.accentColor) === -1) return { ok: false, error: 'Màu nhấn không hợp lệ.' };
+            preferences.accentColor = patch.accentColor;
+        }
+        if (patch.notifications !== undefined) {
+            var incoming = patch.notifications;
+            if (!incoming || typeof incoming !== 'object' || Array.isArray(incoming)) return { ok: false, error: 'Cài đặt thông báo không hợp lệ.' };
+            if (Object.keys(incoming).some(function (key) { return ['channels', 'categories'].indexOf(key) === -1; })) {
+                return { ok: false, error: 'Có nhóm cài đặt thông báo không được hỗ trợ.' };
+            }
+            var notificationError = '';
+            ['channels', 'categories'].forEach(function (group) {
+                if (incoming[group] === undefined) return;
+                if (!incoming[group] || typeof incoming[group] !== 'object' || Array.isArray(incoming[group])) {
+                    notificationError = 'Cài đặt thông báo không hợp lệ.';
+                    return;
+                }
+                Object.keys(incoming[group]).forEach(function (key) {
+                    var validKey = group === 'channels' ? ['inApp', 'email'].indexOf(key) !== -1 : STAFF_NOTIFICATION_CATEGORIES.indexOf(key) !== -1;
+                    if (!validKey || typeof incoming[group][key] !== 'boolean') notificationError = 'Tùy chọn thông báo không hợp lệ.';
+                    else if (group === 'channels' && key === 'email' && incoming[group][key]) notificationError = 'Thông báo email chưa khả dụng vì hệ thống chưa tích hợp dịch vụ gửi email.';
+                    else preferences.notifications[group][key] = incoming[group][key];
+                });
+            });
+            if (notificationError) return { ok: false, error: notificationError };
+        }
+        user.preferences = preferences;
+        try {
+            writeUsers(readUsers().map(function (item) { return item.id === user.id ? user : item; }));
+        } catch (error) {
+            return { ok: false, error: 'Không thể lưu cài đặt vào bộ nhớ thiết bị.' };
+        }
+        try {
+            global.dispatchEvent(new CustomEvent('residenthub:preferences-changed', { detail: { id: user.id } }));
+        } catch (e) { /* Storage events remain available in older browsers. */ }
+        return { ok: true, preferences: preferences };
+    }
+
+    function createStaffNotificationForEvent(userId, category, payload) {
+        var target = readUsers().filter(function (item) { return item.id === userId; })[0];
+        if (!target || target.status !== 'active' || (target.role !== ROLES.STAFF && target.accountTypeId !== 'at-staff')) {
+            return { ok: false, error: 'Không tìm thấy nhân viên nhận thông báo.' };
+        }
+        if (STAFF_NOTIFICATION_CATEGORIES.indexOf(category) === -1) return { ok: false, error: 'Loại thông báo không hợp lệ.' };
+        var actor = currentAccount();
+        var isManager = actor && actor.role === ROLES.MANAGER && actor.accountTypeId !== 'at-staff';
+        var ownDeadlineReminder = actor && actor.id === target.id && category === 'deadline';
+        if (!isManager && !ownDeadlineReminder) return { ok: false, error: 'Không có quyền tạo thông báo cho nhân viên này.' };
+        var preferences = target.preferences && target.preferences.notifications;
+        var channels = preferences && preferences.channels;
+        var categories = preferences && preferences.categories;
+        if ((channels && channels.inApp === false) || (categories && categories[category] === false)) return { ok: true, skipped: true };
+        if (!payload || !payload.eventId) return { ok: false, error: 'Thiếu mã sự kiện để chống thông báo trùng.' };
+        return createNotificationForUser(target.id, Object.assign({}, payload, {
+            type: 'STAFF_TASK',
+            subType: category,
+            eventId: String(payload.eventId)
+        }));
+    }
+
+    function getCurrentUserNotifications() {
+        var user = currentAccount();
+        return user ? getNotificationsForUser(user.id) : [];
+    }
+
+    function markCurrentUserNotificationRead(notificationId) {
+        var user = currentAccount();
+        if (!user) return { ok: false, error: 'Phiên đăng nhập không hợp lệ. Vui lòng đăng nhập lại.' };
+        var notification = getNotificationsForUser(user.id).filter(function (item) { return item.id === notificationId; })[0];
+        if (!notification) return { ok: false, error: 'Không tìm thấy thông báo.' };
+        if (notification.isRead) return { ok: true, item: notification };
+        return updateNotificationForUser(user.id, notificationId, { isRead: true });
     }
 
     function managerStore(store) {
@@ -1180,6 +1365,12 @@
         syncManagerNotification: syncManagerNotification,
         resolveNotificationRecipients: usersForManagerRecord,
         updateNotificationForUser: updateNotificationForUser,
+        getCurrentUserSettings: getCurrentUserSettings,
+        updateCurrentUserProfile: updateCurrentUserProfile,
+        updateCurrentUserSettings: updateCurrentUserSettings,
+        createStaffNotificationForEvent: createStaffNotificationForEvent,
+        getCurrentUserNotifications: getCurrentUserNotifications,
+        markCurrentUserNotificationRead: markCurrentUserNotificationRead,
         updateRequestForUser: updateRequestForUser,
         deleteRequestForUser: deleteRequestForUser,
         submitAccountRequest: submitAccountRequest,

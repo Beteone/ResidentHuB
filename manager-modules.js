@@ -3548,6 +3548,7 @@
             '<div class="rh-field"><label>Nhóm chuyên môn</label><select id="srStaffGroup"><option value="">Chọn nhóm</option>' + selectOptions(RHD.SUPPORT_STAFF_GROUPS, 'id', 'label', selectedStaffGroup) + '</select></div>' +
             '<div class="rh-field"><label>Hạn xử lý</label><input id="srDueAt" type="date" value="' + escapeHtml(String(r.dueAt || '').slice(0, 10)) + '"></div>' +
             '<div class="rh-field" style="grid-column:1/-1;"><label>Ghi chú cho nhân viên</label><textarea id="srStaffNote" rows="3" placeholder="Nhập hướng dẫn hoặc lưu ý dành riêng cho nhân viên">' + escapeHtml(r.staffManagerNote || '') + '</textarea><small>Ghi chú này chỉ hiển thị trong chi tiết nhiệm vụ của nhân viên.</small></div>' +
+            '<div class="rh-field" style="grid-column:1/-1;"><label style="display:flex;align-items:center;gap:.55rem;"><input id="srNeedsStaffInfo" type="checkbox"' + (r.requiresStaffInformation ? ' checked' : '') + '> Yêu cầu nhân viên bổ sung thông tin</label><small>Bật lựa chọn này để gửi thông báo cho nhân viên được phân công.</small></div>' +
             '<div class="support-drawer-chat"><div class="support-drawer-chat-head"><strong>Trao đổi với cư dân</strong></div><div id="srConversation" class="support-drawer-messages">' + supportConversationHtml(Array.isArray(r.messages) ? r.messages : []) + '</div><div class="support-drawer-compose"><textarea id="srReply" rows="2" placeholder="Nhập tin nhắn gửi cư dân..."></textarea><button type="button" class="btn-primary" onclick="RHUI.sendSupportReply()" aria-label="Gửi tin nhắn"><i class="fas fa-paper-plane"></i></button></div></div>' +
             '</div>' +
             '<div style="display:flex;gap:.6rem;margin-top:1.25rem;">' +
@@ -3652,6 +3653,7 @@
             staffGroup: byId('srStaffGroup').value,
             dueAt: byId('srDueAt').value,
             staffManagerNote: byId('srStaffNote').value.trim(),
+            requiresStaffInformation: byId('srNeedsStaffInfo').checked,
             updatedAt: now
         };
         if (assignedStaff && assignmentChanged && status !== 'resolved' && status !== 'closed') {
@@ -3761,6 +3763,56 @@
                 body: 'Trạng thái mới: ' + statusMeta(RHD.SUPPORT_STATUSES, res.item.status).label + (res.item.assignee ? ' • Phụ trách: ' + res.item.assignee : ''),
                 refType: 'request', actionUrl: 'requests', actionLabel: 'Xem yêu cầu'
             });
+        }
+        if (res.ok && RHD.mode() !== 'demo' && global.RH && global.RH.createStaffNotificationForEvent) {
+            var notificationFailure = '';
+            var notification = function (recipientId, category, eventId, title, body) {
+                if (!recipientId) return;
+                try {
+                    var result = global.RH.createStaffNotificationForEvent(recipientId, category, {
+                        eventId: eventId,
+                        title: title,
+                        body: body,
+                        refType: 'task',
+                        refId: res.item.id,
+                        actionUrl: 'staff.html',
+                        actionLabel: 'Mở không gian nhân viên'
+                    });
+                    if (!result.ok && !notificationFailure) notificationFailure = result.error || 'Không thể tạo thông báo nhân viên.';
+                } catch (error) {
+                    if (!notificationFailure) notificationFailure = error.message || 'Không thể lưu thông báo nhân viên.';
+                }
+            };
+            var taskCode = res.item.code || res.item.id;
+            if (assignmentChanged) {
+                if (before.assigneeId && (!assignedStaff || before.assigneeId !== assignedStaff.id)) {
+                    notification(before.assigneeId, 'assignmentChanged', 'task:' + res.item.id + ':removed:' + now,
+                        'Nhiệm vụ đã thay đổi phân công',
+                        assignedStaff ? 'Nhiệm vụ ' + taskCode + ' đã được chuyển sang nhân viên khác.' : 'Nhiệm vụ ' + taskCode + ' đã được gỡ khỏi danh sách phân công của bạn.');
+                }
+                if (assignedStaff) {
+                    notification(assignedStaff.id, before.assigneeId || before.assignee ? 'assignmentChanged' : 'taskNew',
+                        'task:' + res.item.id + ':assigned:' + now,
+                        before.assigneeId || before.assignee ? 'Nhiệm vụ đã thay đổi phân công' : 'Bạn được giao nhiệm vụ mới',
+                        'Nhiệm vụ ' + taskCode + ': ' + (res.item.title || 'Nhiệm vụ') + (res.item.dueAt ? ' · Hạn ' + res.item.dueAt : ''));
+                }
+            }
+            if (!assignmentChanged && assignedStaff && before.status !== res.item.status) {
+                notification(assignedStaff.id, 'taskStatus', 'task:' + res.item.id + ':status:' + now,
+                    'Trạng thái nhiệm vụ đã cập nhật',
+                    'Nhiệm vụ ' + taskCode + ' chuyển sang trạng thái ' + statusMeta(RHD.SUPPORT_STATUSES, res.item.status).label + '.');
+            }
+            if (assignedStaff && String(before.dueAt || '') !== String(res.item.dueAt || '') && res.item.dueAt) {
+                notification(assignedStaff.id, 'deadline', 'task:' + res.item.id + ':deadline:' + now,
+                    'Thời hạn nhiệm vụ đã cập nhật',
+                    'Nhiệm vụ ' + taskCode + ' có hạn xử lý mới: ' + res.item.dueAt + '.');
+            }
+            if (assignedStaff && !before.requiresStaffInformation && res.item.requiresStaffInformation) {
+                notification(assignedStaff.id, 'infoRequest', 'task:' + res.item.id + ':info-request:' + now,
+                    'Quản lý yêu cầu bổ sung thông tin',
+                    'Vui lòng xem ghi chú và cập nhật thông tin cho nhiệm vụ ' + taskCode + '.');
+            }
+            if (notificationFailure) alert('Hồ sơ nhiệm vụ đã được lưu nhưng không thể gửi thông báo: ' + notificationFailure);
         }
         closeDrawer();
         renderSupportTab();

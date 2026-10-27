@@ -19,6 +19,14 @@
             --line: #e4eaf2;
             --primary: #1683ff;
             --primary-strong: #0d65d5;
+            .staff-profile-hero { grid-template-columns:auto minmax(0,1fr); }
+            .staff-profile-hero > .staff-profile-action-link { grid-column:1/-1; }
+            .staff-profile-filter-row { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        }
+        @media (max-width: 560px) {
+            .staff-profile-hero { grid-template-columns:minmax(0,1fr); justify-items:start; }
+            .staff-profile-event { grid-template-columns:minmax(0,1fr); gap:4px; }
+            .staff-profile-filter-row { grid-template-columns:minmax(0,1fr); }
         }
         * { box-sizing: border-box; }
         body { margin: 0; background: linear-gradient(180deg, #f7f9fc 0%, #edf3fb 100%); color: var(--ink); font-family: 'Be Vietnam Pro', 'Segoe UI', sans-serif; }
@@ -77,7 +85,207 @@
         .staff-attachments { display:flex; flex-wrap:wrap; gap:10px; margin-top:12px; }
         .staff-attachments img { width:130px; height:96px; object-fit:cover; border:1px solid var(--line); border-radius:9px; }
         .menu-toggle { display: none; width: 40px; height: 40px; border: 1px solid var(--line); border-radius: 9px; background: #fff; color: var(--ink); }
-        @media (max-width: 760px) {
+        .staff-notification-link { position:relative; display:flex; align-items:center; gap:8px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); padding:9px 12px; font:600 12px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-notification-count { display:inline-grid; min-width:20px; height:20px; place-items:center; border-radius:99px; background:#ef4444; color:#fff; font-size:10px; }
+        .staff-settings-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+        .staff-profile-heading { display:flex; align-items:center; gap:16px; margin-bottom:20px; }
+        .staff-avatar { display:grid; width:80px; height:80px; flex:0 0 80px; place-items:center; overflow:hidden; border-radius:50%; background:#eaf3ff; color:#0d65d5; font-size:24px; font-weight:700; }
+        .staff-avatar img { width:100%; height:100%; object-fit:cover; }
+        .staff-profile-page { max-width:1120px; }
+        .staff-profile-description { margin:0 0 18px !important; }
+        .staff-profile-layout { display:grid; grid-template-columns:minmax(0,1fr) minmax(0,1fr); align-items:start; gap:18px; }
+        .staff-profile-column { display:grid; min-width:0; gap:18px; }
+        .staff-profile-card { min-width:0; margin:0; padding:22px; }
+        .staff-profile-heading { align-items:flex-start; }
+        .staff-profile-heading h2 { font-size:19px; }
+        .staff-profile-identity { min-width:0; }
+        .staff-profile-identity p { margin:6px 0 0; color:var(--muted); font-size:12px; }
+        .staff-profile-actions { margin-top:10px; }
+        .staff-profile-actions .staff-action-btn { min-height:38px; }
+        .staff-profile-actions label { cursor:pointer; }
+        .staff-profile-section-title { display:flex; align-items:center; justify-content:space-between; gap:10px; margin:0 0 16px; font-size:16px; }
+        .staff-profile-section-title i { color:var(--muted); font-size:13px; }
+        .staff-profile-meta { display:flex; flex-wrap:wrap; gap:8px; margin-top:12px; }
+        .staff-profile-meta span { display:inline-flex; align-items:center; gap:6px; border:1px solid var(--line); border-radius:999px; padding:6px 10px; color:var(--muted); font-size:11px; }
+        .staff-profile-meta .staff-profile-status { border-color:#bce8d1; background:#effaf4; color:#16865e; }
+        .staff-profile-meta .staff-profile-status.inactive { border-color:#f1d7a6; background:#fff8e8; color:#9a6700; }
+        .staff-profile-meta .staff-profile-status.locked { border-color:#f2c6c6; background:#fff1f1; color:#b42318; }
+        .staff-profile-toolbar { display:flex; align-items:center; justify-content:space-between; gap:12px; margin:16px 0; }
+        .staff-profile-breadcrumb { color:var(--muted); font-size:12px; }
+        .staff-profile-tabs { display:flex; gap:7px; overflow-x:auto; margin:16px 0; padding:3px 1px 8px; }
+        .staff-profile-tab { flex:0 0 auto; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--muted); padding:9px 12px; font:600 12px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-profile-tab.active { border-color:#b8d8ff; background:#eaf3ff; color:#0d65d5; }
+        .staff-profile-hero { display:grid; grid-template-columns:auto minmax(0,1fr) auto; align-items:center; gap:18px; margin-top:16px; }
+        .staff-profile-hero .staff-profile-heading { margin:0; }
+        .staff-profile-hero-meta { display:grid; grid-template-columns:repeat(auto-fit,minmax(145px,1fr)); gap:12px; }
+        .staff-profile-stat-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(150px,1fr)); gap:12px; }
+        .staff-profile-stat { width:100%; border:1px solid var(--line); border-radius:12px; background:var(--surface); color:var(--ink); padding:15px; text-align:left; cursor:pointer; }
+        .staff-profile-stat:hover { border-color:#b8d8ff; box-shadow:0 6px 18px rgba(15,35,64,.06); }
+        .staff-profile-stat span { display:block; color:var(--muted); font-size:11px; }
+        .staff-profile-stat strong { display:block; margin-top:6px; font:700 23px 'Plus Jakarta Sans',sans-serif; }
+        .staff-profile-progress { height:8px; overflow:hidden; border-radius:99px; background:#e8eef6; }
+        .staff-profile-progress span { display:block; height:100%; border-radius:inherit; background:var(--primary); }
+        .staff-profile-timeline { display:grid; gap:0; }
+        .staff-profile-event { display:grid; grid-template-columns:110px minmax(0,1fr); gap:12px; border-bottom:1px solid var(--line); padding:14px 0; }
+        .staff-profile-event:last-child { border-bottom:0; }
+        .staff-profile-event time { color:var(--muted); font-size:11px; }
+        .staff-profile-event p { margin:4px 0 0; font-size:12px; line-height:1.6; overflow-wrap:anywhere; }
+        .staff-profile-event strong { font-size:13px; }
+        .staff-profile-readonly { border:1px solid var(--line); border-radius:9px; background:#f7f9fc; padding:11px 12px; overflow-wrap:anywhere; }
+        .staff-profile-filter-row { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:9px; margin:14px 0; }
+        .staff-profile-filter-row select,.staff-profile-filter-row input { min-width:0; width:100%; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); padding:9px; font:inherit; font-size:12px; }
+        .staff-profile-action-link { border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); padding:9px 12px; font:600 12px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-profile-work-list { display:grid; gap:0; }
+        .staff-profile-work-item { display:flex; align-items:flex-start; gap:12px; padding:13px 0; border-bottom:1px solid var(--line); }
+        .staff-profile-work-item:last-child { border-bottom:0; padding-bottom:0; }
+        .staff-profile-work-icon { display:grid; width:34px; height:34px; flex:0 0 34px; place-items:center; border-radius:9px; background:#f1f6fc; color:#526982; }
+        .staff-profile-work-item small { display:block; margin:0 0 4px; color:var(--muted); font-size:11px; }
+        .staff-profile-work-item strong { display:block; overflow-wrap:anywhere; font-size:13px; font-weight:600; line-height:1.5; }
+        .staff-profile-note { margin:14px 0 0; color:var(--muted); font-size:11px; line-height:1.5; }
+        .staff-profile-contact-fields { display:grid; gap:18px; }
+        .staff-profile-contact-value { min-height:24px; overflow-wrap:anywhere; color:var(--ink); font-size:14px; line-height:1.6; }
+        .staff-profile-field-error { display:block; min-height:16px; margin-top:5px; color:#b42318; font-size:11px; }
+        .staff-profile-field-error:empty { display:none; }
+        .staff-profile-page .staff-field input[aria-invalid="true"] { border-color:#d92d20; }
+        .staff-profile-message { min-height:20px; margin:12px 0 0; color:#16865e; font-size:12px; }
+        .staff-profile-message.error { color:#b42318; }
+        .staff-profile-contact-actions { display:flex; flex-wrap:wrap; gap:9px; margin-top:22px; }
+        .staff-profile-contact-actions .staff-action-btn { min-height:42px; }
+        .staff-visually-hidden { position:absolute; width:1px; height:1px; padding:0; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; clip-path:inset(50%); border:0; }
+        .staff-visually-hidden:focus + label { outline:3px solid rgba(22,131,255,.28); outline-offset:2px; }
+        .staff-profile-page .staff-action-btn:hover:not(:disabled) { background:var(--primary-strong); }
+        .staff-profile-page .staff-action-btn.secondary:hover:not(:disabled) { background:#f5f8fc; }
+        .staff-profile-page .staff-action-btn:focus-visible,.staff-profile-actions label:focus-visible { outline:3px solid rgba(22,131,255,.28); outline-offset:2px; }
+        .staff-profile-load-error { border-color:#f2c6c6; color:#b42318; }
+        .staff-form-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:14px; }
+        .staff-field { min-width:0; }
+        .staff-field label { display:block; margin-bottom:6px; color:var(--muted); font-size:12px; font-weight:600; }
+        .staff-field input,.staff-field select { width:100%; min-height:42px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); padding:10px 11px; font:inherit; font-size:13px; }
+        .staff-field input[readonly] { background:#f7f9fc; }
+        .staff-setting-choice { display:flex; align-items:flex-start; justify-content:space-between; gap:16px; padding:14px 0; border-bottom:1px solid var(--line); }
+        .staff-setting-choice:last-child { border-bottom:0; }
+        .staff-setting-choice strong { display:block; font-size:13px; }
+        .staff-setting-choice small { display:block; margin-top:4px; color:var(--muted); font-size:11px; line-height:1.5; }
+        .staff-setting-choice input[type=checkbox] { width:18px; height:18px; accent-color:var(--primary); }
+        .staff-notice-row { display:flex; align-items:flex-start; justify-content:space-between; gap:12px; border-bottom:1px solid var(--line); padding:13px 0; }
+        .staff-notice-row:last-child { border-bottom:0; }
+        .staff-notice-row.unread strong:after { display:inline-block; width:7px; height:7px; margin-left:7px; border-radius:50%; background:#1683ff; content:''; vertical-align:middle; }
+        .staff-notice-row p { margin:5px 0 0; color:var(--muted); font-size:12px; line-height:1.6; }
+        .staff-notice-row small { display:block; margin-top:6px; color:var(--muted); font-size:10px; }
+        .staff-notice-read { flex:0 0 auto; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:7px 9px; font:500 11px 'Be Vietnam Pro',sans-serif; cursor:pointer; }
+        .staff-settings-note { margin-top:12px; color:var(--muted); font-size:11px; line-height:1.6; }
+        .staff-settings-message { min-height:20px; margin-top:10px; color:#16865e; font-size:12px; }
+        .staff-settings-message.error { color:#c24141; }
+        .staff-appearance-page { display:grid; grid-template-columns:minmax(340px,.95fr) minmax(0,1.05fr); gap:14px; align-items:stretch; }
+        .staff-appearance-panel { min-width:0; margin:0; padding:16px; }
+        .staff-appearance-panel h2 { margin:0; font-size:15px; }
+        .staff-appearance-heading { display:flex; align-items:flex-start; gap:11px; }
+        .staff-appearance-icon { display:grid; width:34px; height:34px; flex:0 0 34px; place-items:center; border-radius:11px; background:#edf5ff; color:var(--primary); }
+        .staff-appearance-heading p { margin:4px 0 0; color:var(--muted); font-size:11px; line-height:1.55; }
+        .staff-appearance-section { margin-top:14px; padding:13px 10px 0; border-top:1px solid var(--line); }
+        .staff-appearance-options { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); gap:8px; margin-top:11px; }
+        .staff-appearance-options.two { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .staff-appearance-options.font { grid-template-columns:repeat(3,minmax(0,1fr)); }
+        .staff-appearance-option { min-width:0; min-height:68px; padding:9px 10px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); cursor:pointer; font:inherit; text-align:left; transition:border-color .15s,background .15s,box-shadow .15s; }
+        .staff-appearance-option:hover { border-color:var(--primary); }
+        .staff-appearance-option[aria-pressed="true"] { border-color:var(--primary); background:color-mix(in srgb,var(--primary) 7%,var(--surface)); box-shadow:0 0 0 1px color-mix(in srgb,var(--primary) 25%,transparent); }
+        .staff-appearance-option-head { display:flex; align-items:center; gap:8px; font-size:12px; font-weight:700; }
+        .staff-appearance-option-head i { color:var(--primary); font-size:15px; }
+        .staff-appearance-option small { display:block; margin:5px 0 0 21px; color:var(--muted); font-size:10px; line-height:1.45; }
+        .staff-appearance-radio { width:13px; height:13px; flex:0 0 13px; border:1px solid #9aabc1; border-radius:50%; }
+        .staff-appearance-option[aria-pressed="true"] .staff-appearance-radio { border:4px solid var(--primary); }
+        .staff-appearance-options.font .staff-appearance-option { min-height:55px; }
+        .staff-appearance-options.font .staff-appearance-option small { margin-left:21px; }
+        .staff-appearance-swatches { display:flex; gap:10px; flex-wrap:wrap; margin-top:10px; }
+        .staff-appearance-swatch { display:grid; width:27px; height:27px; place-items:center; border:2px solid transparent; border-radius:50%; color:#fff; cursor:pointer; background:var(--swatch); }
+        .staff-appearance-swatch[aria-pressed="true"] { outline:2px solid var(--swatch); outline-offset:2px; }
+        .staff-appearance-swatch:focus-visible,.staff-appearance-option:focus-visible,.staff-appearance-device:focus-visible,.staff-appearance-actions button:focus-visible { outline:3px solid color-mix(in srgb,var(--primary) 30%,transparent); outline-offset:2px; }
+        .staff-appearance-note { display:flex; gap:9px; margin-top:13px; padding:10px; border:1px solid #dceaff; border-radius:8px; background:#f3f8ff; color:#45617f; font-size:10px; line-height:1.55; }
+        .staff-appearance-preview-head { display:flex; justify-content:space-between; align-items:flex-start; gap:12px; }
+        .staff-appearance-device-switch { display:flex; gap:5px; padding:3px; border:1px solid var(--line); border-radius:9px; }
+        .staff-appearance-device { border:0; border-radius:6px; padding:6px 9px; background:transparent; color:var(--muted); cursor:pointer; font:600 10px 'Be Vietnam Pro',sans-serif; white-space:nowrap; }
+        .staff-appearance-device[aria-pressed="true"] { background:var(--primary); color:#fff; }
+        .staff-appearance-preview-canvas { display:flex; min-height:330px; align-items:stretch; justify-content:center; margin-top:13px; padding:10px; overflow:hidden; border:1px solid #dce6f2; border-radius:10px; background:#f4f8fd; }
+        .staff-appearance-mock { display:grid; width:100%; min-width:0; grid-template-columns:96px minmax(0,1fr); overflow:hidden; border:1px solid #dce6f2; border-radius:8px; background:#fff; color:#18324f; font-size:8px; box-shadow:0 4px 14px #17365b12; }
+        .staff-appearance-mock-sidebar { padding:10px 7px; background:linear-gradient(180deg,#0c2545,#15395f); color:#d5e5f7; }
+        .staff-appearance-mock-brand { margin-bottom:13px; color:#fff; font-size:9px; font-weight:700; }
+        .staff-appearance-mock-nav { padding:5px 4px; border-radius:4px; }
+        .staff-appearance-mock-nav.active { background:#154273; color:#fff; }
+        .staff-appearance-mock-main { min-width:0; padding:12px; background:#f8fbff; }
+        .staff-appearance-mock-top { display:flex; justify-content:space-between; padding-bottom:9px; border-bottom:1px solid #e8eef5; font-size:10px; font-weight:700; }
+        .staff-appearance-mock-welcome { margin:11px 0; font-size:9px; font-weight:700; }
+        .staff-appearance-mock-stats { display:grid; grid-template-columns:repeat(4,minmax(0,1fr)); gap:5px; }
+        .staff-appearance-mock-stats span,.staff-appearance-mock-table { padding:7px; border:1px solid #edf1f6; border-radius:5px; background:#fff; }
+        .staff-appearance-mock-stats strong { display:block; margin-top:4px; color:var(--primary); font-size:11px; }
+        .staff-appearance-mock-table { margin-top:8px; line-height:2; }
+        .staff-appearance-mock-table div { display:flex; justify-content:space-between; gap:8px; border-bottom:1px solid #f0f3f7; }
+        .staff-appearance-mock-table div:last-child { border-bottom:0; }
+        .staff-appearance-mock-chip { padding:1px 5px; border-radius:8px; background:#e9f4ff; color:var(--primary-strong); white-space:nowrap; }
+        .staff-appearance-mock-brand { font-size:calc(9px * var(--preview-font-scale,1)); }
+        .staff-appearance-mock-top { font-size:calc(10px * var(--preview-font-scale,1)); }
+        .staff-appearance-mock-welcome { font-size:calc(9px * var(--preview-font-scale,1)); }
+        .staff-appearance-mock-stats strong { font-size:calc(11px * var(--preview-font-scale,1)); }
+        .staff-appearance-preview-canvas[data-density="compact"] .staff-appearance-mock-table { line-height:1.5; }
+        .staff-appearance-preview-canvas[data-density="comfortable"] .staff-appearance-mock-table { line-height:2; }
+        .staff-appearance-preview-canvas[data-font-size="small"] { --preview-font-scale:.88; }
+        .staff-appearance-preview-canvas[data-font-size="large"] { --preview-font-scale:1.12; }
+        .staff-appearance-preview-canvas[data-device="mobile"] { min-height:330px; }
+        .staff-appearance-preview-canvas[data-device="mobile"] .staff-appearance-mock { width:min(190px,100%); min-height:320px; grid-template-columns:minmax(0,1fr); border:5px solid #182a3d; border-radius:18px; }
+        .staff-appearance-preview-canvas[data-device="mobile"] .staff-appearance-mock-sidebar { display:none; }
+        .staff-appearance-preview-canvas[data-device="mobile"] .staff-appearance-mock-main { padding:12px 9px; }
+        .staff-appearance-preview-canvas[data-device="mobile"] .staff-appearance-mock-stats { grid-template-columns:repeat(2,minmax(0,1fr)); }
+        .staff-appearance-preview-canvas[data-device="mobile"] .staff-appearance-mock-top { font-size:9px; }
+        .staff-appearance-preview-canvas[data-theme="dark"] { background:#111827; }
+        .staff-appearance-preview-canvas[data-theme="dark"] .staff-appearance-mock-main { background:#1f2937; color:#e5edf7; }
+        .staff-appearance-preview-canvas[data-theme="dark"] .staff-appearance-mock { border-color:#37465b; background:#1f2937; color:#e5edf7; }
+        .staff-appearance-preview-canvas[data-theme="dark"] .staff-appearance-mock-stats span,.staff-appearance-preview-canvas[data-theme="dark"] .staff-appearance-mock-table { border-color:#37465b; background:#263244; }
+        .staff-appearance-preview-canvas[data-theme="dark"] .staff-appearance-mock-table div { border-color:#37465b; }
+        .staff-appearance-checklist { display:grid; gap:9px; align-content:start; margin:0; padding:15px; border:1px solid var(--line); border-radius:9px; list-style:none; color:var(--muted); font-size:10px; }
+        .staff-appearance-checklist li { display:flex; gap:7px; align-items:flex-start; }
+        .staff-appearance-checklist i { color:var(--primary); }
+        .staff-appearance-actions { display:flex; justify-content:flex-end; flex-wrap:wrap; gap:8px; margin-top:14px; padding-top:12px; border-top:1px solid var(--line); }
+        .staff-appearance-actions button { min-height:36px; border:1px solid var(--line); border-radius:8px; background:var(--surface); color:var(--ink); padding:7px 11px; cursor:pointer; font:600 11px 'Be Vietnam Pro',sans-serif; }
+        .staff-appearance-actions .primary { border-color:var(--primary); background:var(--primary); color:#fff; }
+        .staff-appearance-actions .primary:hover { background:var(--primary-strong); }
+        html[data-theme="dark"] .staff-appearance-icon { background:#263b55; }
+        html[data-theme="dark"] .staff-appearance-note { border-color:#344e6e; background:#223852; color:#c8daf0; }
+        html[data-theme="dark"] .staff-appearance-preview-canvas { border-color:#37465b; background:#111827; }
+        @media (max-width: 1050px) { .staff-appearance-page { grid-template-columns:minmax(0,1fr); } }
+        @media (max-width: 560px) {
+            .staff-appearance-panel { padding:13px; }
+            .staff-appearance-section { padding-inline:2px; }
+            .staff-appearance-option { padding:8px 7px; }
+            .staff-appearance-options { gap:6px; }
+            .staff-appearance-preview-head { flex-direction:column; }
+            .staff-appearance-preview-canvas { min-height:280px; }
+            .staff-appearance-actions { justify-content:stretch; }
+            .staff-appearance-actions button { flex:1; }
+        }
+        .staff-density-compact .staff-panel { padding:13px; }
+        .staff-density-compact .staff-summary-card { padding:13px; }
+        .staff-density-compact .staff-table th,.staff-density-compact .staff-table td { padding:8px; }
+        html[data-theme="dark"] { color-scheme:dark; --bg:#111827; --surface:#1f2937; --ink:#e5edf7; --muted:#a7b4c7; --line:#37465b; --primary:#4b9cff; --primary-strong:#72b0ff; }
+        html[data-theme="dark"] body { background:#111827; color:var(--ink); }
+        html[data-theme="dark"] .topbar,html[data-theme="dark"] .staff-panel,html[data-theme="dark"] .staff-summary-card { background:#1f2937; }
+        html[data-theme="dark"] .staff-detail-item,html[data-theme="dark"] .staff-field input[readonly] { background:#293548; }
+        html[data-theme="dark"] .staff-profile-meta .staff-profile-status { border-color:#275a43; background:#19382c; color:#a8e4c7; }
+        html[data-theme="dark"] .staff-profile-meta .staff-profile-status.inactive { border-color:#695329; background:#40351e; color:#f4d78f; }
+        html[data-theme="dark"] .staff-profile-meta .staff-profile-status.locked { border-color:#713737; background:#432727; color:#ffb4b4; }
+        html[data-theme="dark"] .staff-profile-work-icon { background:#293548; color:#c4d0df; }
+        html[data-theme="dark"] .staff-profile-page .staff-action-btn.secondary:hover:not(:disabled) { background:#293548; }
+        html[data-theme="dark"] .staff-field input,html[data-theme="dark"] .staff-field select,html[data-theme="dark"] .staff-action-btn.secondary,html[data-theme="dark"] .staff-notification-link,html[data-theme="dark"] .staff-notice-read { background:#1f2937; color:var(--ink); }
+        html[data-theme="dark"] .staff-description { color:#d6e0ee; }
+        html[data-theme="dark"] .staff-linked-request span { border-color:#344e6e; background:#223852; color:#b8d8ff; }
+        html[data-theme="dark"] .staff-badge { background:#263b55; color:#b8d8ff; }
+        html[data-theme="dark"] .staff-badge.waiting { background:#493c24; color:#f4d78f; }
+        html[data-theme="dark"] .staff-badge.approval { background:#3e3158; color:#dcc9ff; }
+        html[data-theme="dark"] .staff-badge.done { background:#1c4037; color:#a8e4c7; }
+        html[data-theme="dark"] .staff-empty { color:var(--muted); }
+        @media (max-width: 1100px) {
+            .staff-toolbar,.staff-toolbar[style] { grid-template-columns:repeat(2,minmax(0,1fr)) !important; }
+            .staff-toolbar input[type="search"] { grid-column:1/-1; }
+        }
+        @media (max-width: 900px) {
             .sidebar { box-shadow: 12px 0 30px rgba(15, 35, 64, .12); transform: translateX(-105%); transition: transform .2s ease; }
             .sidebar.open { transform: translateX(0); }
             .main-content { margin-left: 0; padding: 16px; }
@@ -90,8 +298,15 @@
             .staff-toolbar input[type="search"] { grid-column:1/-1; }
             .staff-detail-grid { grid-template-columns:minmax(0,1fr); }
             .staff-panel { padding:14px; }
+            .staff-settings-grid,.staff-form-grid { grid-template-columns:minmax(0,1fr); }
+            .staff-profile-layout { grid-template-columns:minmax(0,1fr); }
+            .staff-profile-card { padding:18px; }
+            .staff-profile-contact-actions { display:grid; grid-template-columns:minmax(0,1fr); }
+            .topbar { flex-wrap:wrap; }
+            .staff-notification-link { margin-left:auto; }
         }
     </style>
+    <script src="theme.js"></script>
 </head>
 <body>
     <script>
@@ -143,6 +358,9 @@
                 <div class="topbar-caption">ResidentHub · Không gian Nhân viên</div>
             </div>
             <div class="user-label" id="staffUserName"></div>
+            <button type="button" class="staff-notification-link" id="staffNotificationLink" aria-label="Mở cài đặt thông báo">
+                <i class="fas fa-bell"></i><span>Thông báo</span><span class="staff-notification-count" id="staffNotificationCount" hidden>0</span>
+            </button>
         </header>
         <section class="content" aria-live="polite">
             <h1 id="staffContentTitle">Danh sách nhiệm vụ</h1>
@@ -154,9 +372,17 @@
         var staffContent = document.getElementById('staffContent');
         var selectedTaskId = '';
         var currentStaffPage = 'Danh sách nhiệm vụ';
-        var staffFilters = { search: '', status: 'all', priority: 'all', building: 'all', from: '', to: '' };
+        var staffFilters = { search: '', status: 'all', priority: 'all', building: 'all', from: '', to: '', dueStatus: 'all' };
         var wageFilters = { search: '', status: 'all', from: '', to: '' };
         var staffGroupLabels = {};
+        var profileEditing = false;
+        var profileDraftAvatar = '';
+        var profileFieldErrors = {};
+        var staffSettingsMessage = null;
+        var appearanceDraft = null;
+        var appearancePreviewDevice = 'desktop';
+        var profileTab = 'overview';
+        var profileActivityFilters = { from: '', to: '', status: 'all', type: 'all' };
         RHD.SUPPORT_STAFF_GROUPS.forEach(function (group) { staffGroupLabels[group.id] = group.label; });
 
         function escapeHtml(value) {
@@ -212,6 +438,11 @@
             return isNaN(date.getTime()) ? '' : date.toISOString().slice(0, 10);
         }
 
+        function todayValue() {
+            var now = new Date();
+            return now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0');
+        }
+
         function dateLabel(value) {
             var date = dateValue(value);
             return date ? new Date(date + 'T00:00:00').toLocaleDateString('vi-VN') : 'Chưa đặt hạn';
@@ -220,6 +451,366 @@
         function wageTotal(wage) {
             var adjustments = Array.isArray(wage && wage.adjustments) ? wage.adjustments : [];
             return (Number(wage && wage.baseAmount) || 0) + adjustments.reduce(function (sum, item) { return sum + (Number(item.amount) || 0); }, 0);
+        }
+
+        function currentStaffAccount() {
+            return RH.getUsers().filter(function (user) { return user.id === RH_SESSION.id; })[0] || {};
+        }
+
+        function setProfileFieldError(field, message) {
+            profileFieldErrors[field] = message;
+            var input = document.getElementById('staffProfile' + (field === 'phone' ? 'Phone' : 'Email'));
+            var error = document.getElementById('staffProfile' + (field === 'phone' ? 'Phone' : 'Email') + 'Error');
+            if (input) input.setAttribute('aria-invalid', message ? 'true' : 'false');
+            if (error) error.textContent = message || '';
+        }
+
+        function profileFieldError(field, value) {
+            if (field === 'email') {
+                if (!value) return 'Vui lòng nhập email liên hệ.';
+                if (value.length > 254 || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)) return 'Vui lòng nhập địa chỉ email hợp lệ.';
+                return '';
+            }
+            if (value && (!/^[+]?[0-9\s().-]+$/.test(value) || value.replace(/\D/g, '').length < 7 || value.replace(/\D/g, '').length > 15)) {
+                return 'Vui lòng nhập số điện thoại hợp lệ (7–15 chữ số).';
+            }
+            return '';
+        }
+
+        function setStaffSettingsMessage(text, isError) {
+            staffSettingsMessage = { text: text, error: !!isError };
+            var node = document.getElementById('staffSettingsMessage');
+            if (node) {
+                node.textContent = text;
+                node.classList.toggle('error', !!isError);
+            }
+        }
+
+        function profileTimestamp(value) {
+            if (!value) return 0;
+            var timestamp = typeof value === 'number' ? value : new Date(value).getTime();
+            return isFinite(timestamp) ? timestamp : 0;
+        }
+
+        function profileDateTime(value) {
+            var timestamp = profileTimestamp(value);
+            return timestamp ? new Date(timestamp).toLocaleString('vi-VN') : 'Chưa cập nhật';
+        }
+
+        function profileTaskCompleted(task) {
+            return task.staffTaskStatus === 'approved' || task.status === 'resolved' || task.status === 'closed';
+        }
+
+        function profileTaskStats(tasks) {
+            var today = todayValue();
+            var completed = tasks.filter(profileTaskCompleted).length;
+            return {
+                total: tasks.length,
+                pending: tasks.filter(function (task) { return taskStatus(task).label === 'Chờ tiếp nhận'; }).length,
+                progress: tasks.filter(function (task) { return taskStatus(task).label === 'Đang xử lý'; }).length,
+                completed: completed,
+                overdue: tasks.filter(function (task) {
+                    var due = dateValue(task.dueAt || task.scheduledAt);
+                    return due && due < today && !profileTaskCompleted(task);
+                }).length,
+                completionRate: tasks.length ? Math.round(completed / tasks.length * 100) : 0
+            };
+        }
+
+        function profileActivityLabel(category) {
+            return {
+                taskNew: 'Nhiệm vụ mới',
+                assignmentChanged: 'Thay đổi phân công',
+                taskStatus: 'Cập nhật trạng thái',
+                infoRequest: 'Yêu cầu bổ sung thông tin',
+                deadline: 'Hạn xử lý'
+            }[category] || 'Hoạt động';
+        }
+
+        function renderProfileActivity(tasks) {
+            var taskById = {};
+            tasks.forEach(function (task) { taskById[task.id] = task; });
+            var allowedCategories = ['taskNew', 'assignmentChanged', 'taskStatus', 'infoRequest', 'deadline'];
+            var events = RH.getCurrentUserNotifications().filter(function (notice) {
+                return notice.refType === 'task' && allowedCategories.indexOf(notice.subType) !== -1;
+            }).map(function (notice) {
+                var task = taskById[notice.refId] || null;
+                return {
+                    at: notice.createdAt,
+                    task: task,
+                    type: notice.subType,
+                    title: notice.title || profileActivityLabel(notice.subType),
+                    body: notice.body || '',
+                    status: task ? taskStatus(task).label : 'Chưa cập nhật'
+                };
+            });
+            tasks.forEach(function (task) {
+                if (task.staffCompletedAt) events.push({
+                    at: task.staffCompletedAt,
+                    task: task,
+                    type: 'taskStatus',
+                    title: 'Đã gửi báo cáo hoàn thành',
+                    body: '',
+                    status: taskStatus(task).label
+                });
+                var hasTimestampedNotice = events.some(function (item) {
+                    return item.task.id === task.id && profileTimestamp(item.at) === profileTimestamp(task.updatedAt);
+                });
+                if (task.updatedAt && profileTimestamp(task.updatedAt) !== profileTimestamp(task.createdAt) &&
+                    profileTimestamp(task.updatedAt) !== profileTimestamp(task.staffCompletedAt) && !hasTimestampedNotice) events.push({
+                    at: task.updatedAt,
+                    task: task,
+                    type: 'taskStatus',
+                    title: 'Cập nhật gần nhất',
+                    body: 'Trạng thái hiện tại: ' + taskStatus(task).label,
+                    status: taskStatus(task).label
+                });
+            });
+            events.sort(function (a, b) { return profileTimestamp(b.at) - profileTimestamp(a.at); });
+            return events.filter(function (item) {
+                var day = dateValue(item.at);
+                return (!profileActivityFilters.from || day >= profileActivityFilters.from) &&
+                    (!profileActivityFilters.to || day <= profileActivityFilters.to) &&
+                    (profileActivityFilters.status === 'all' || item.status === profileActivityFilters.status) &&
+                    (profileActivityFilters.type === 'all' || item.type === profileActivityFilters.type);
+            });
+        }
+
+        function renderProfile() {
+            var user = currentStaffAccount();
+            if (!user.id || user.id !== RH_SESSION.id) {
+                staffContent.innerHTML = '<div class="staff-panel staff-profile-load-error" role="alert">Không thể tải hồ sơ tài khoản. Vui lòng tải lại trang hoặc đăng nhập lại.</div>';
+                return;
+            }
+            if (!profileEditing) profileDraftAvatar = user.avatar || '';
+            var tasks = assignedTasks();
+            var stats = profileTaskStats(tasks);
+            var avatar = profileDraftAvatar || user.avatar || '';
+            var avatarMarkup = /^data:image\/(?:png|jpeg|webp|gif);base64,/.test(avatar) || /^https:\/\//i.test(avatar)
+                ? '<img src="' + escapeHtml(avatar) + '" alt="Ảnh đại diện của ' + escapeHtml(user.name || 'nhân viên') + '">'
+                : escapeHtml(String(user.name || 'NV').split(/\s+/).map(function (part) { return part.charAt(0); }).slice(-2).join('').toLocaleUpperCase());
+            var buildings = (Array.isArray(user.buildingIds) ? user.buildingIds : []).map(function (id) { return RHD.get('buildings', id); }).filter(Boolean);
+            var buildingNames = buildings.map(function (building) { return building.shortName || building.name; });
+            if (!buildingNames.length && user.building) buildingNames.push(user.building);
+            var managerNames = buildings.map(function (building) {
+                var manager = building.managerId ? RH.getUsers().filter(function (account) { return account.id === building.managerId; })[0] : null;
+                return manager ? manager.name : '';
+            }).filter(function (name, index, names) { return name && names.indexOf(name) === index; });
+            var statusLabels = { active: 'Đang hoạt động', inactive: 'Tạm ngưng', locked: 'Đã khóa', pending: 'Chưa kích hoạt' };
+            var accountStatus = statusLabels[user.status] || 'Chưa cập nhật';
+            var accountStatusStyle = user.status === 'locked' ? 'locked' : (user.status === 'inactive' || user.status === 'pending' ? 'inactive' : '');
+            var contactEmail = user.contactEmail || user.email || '';
+            var emailError = profileFieldErrors.email || '';
+            var phoneError = profileFieldErrors.phone || '';
+            var accountDepartment = user.department || staffGroupLabels[user.staffGroup] || '';
+            var scopeDescription = (RHD.SUPPORT_STAFF_GROUPS || []).filter(function (group) { return group.id === user.staffGroup; })[0];
+            var avatarActions = profileEditing
+                ? '<div class="staff-profile-actions"><input class="staff-visually-hidden" id="staffAvatarFile" type="file" accept="image/png,image/jpeg,image/webp" aria-label="Chọn ảnh đại diện"><label class="staff-action-btn secondary" for="staffAvatarFile">Đổi ảnh đại diện</label></div>'
+                : '';
+            var tabs = [
+                ['overview', 'Tổng quan'], ['personal', 'Thông tin cá nhân'], ['work', 'Công tác'],
+                ['tasks', 'Công việc'], ['activity', 'Lịch sử hoạt động'], ['account', 'Tài khoản']
+            ];
+            var tabMarkup = tabs.map(function (tab) {
+                return '<button type="button" role="tab" class="staff-profile-tab' + (profileTab === tab[0] ? ' active' : '') + '" id="staffProfileTab-' + tab[0] + '" data-profile-tab="' + tab[0] + '" aria-selected="' + (profileTab === tab[0] ? 'true' : 'false') + '" tabindex="' + (profileTab === tab[0] ? '0' : '-1') + '" aria-controls="staffProfileTabPanel">' + tab[1] + '</button>';
+            }).join('');
+            var statMarkup = [
+                ['all', 'Nhiệm vụ được giao', stats.total],
+                ['pending', 'Chưa thực hiện', stats.pending],
+                ['progress', 'Đang xử lý', stats.progress],
+                ['completed', 'Đã hoàn thành', stats.completed],
+                ['overdue', 'Quá hạn', stats.overdue]
+            ].map(function (item) {
+                return '<button type="button" class="staff-profile-stat" data-profile-task-filter="' + item[0] + '"><span>' + item[1] + '</span><strong>' + item[2] + '</strong></button>';
+            }).join('');
+            var personalMarkup = '<div class="staff-profile-layout"><article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Thông tin định danh</h2>' +
+                '<div class="staff-detail-grid"><div class="staff-detail-item"><small>Họ và tên</small><strong>' + escapeHtml(user.name || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Mã nhân viên</small><strong>' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Ngày sinh</small><strong>' + escapeHtml(user.dateOfBirth || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Giới tính</small><strong>' + escapeHtml(user.gender || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<p class="staff-profile-note"><i class="fas fa-lock" aria-hidden="true"></i> Họ tên và mã nhân viên do quản lý kiểm soát.</p></article>' +
+                '<form id="staffProfileForm" class="staff-panel staff-profile-card" novalidate><h2 class="staff-profile-section-title">Thông tin liên hệ</h2><div class="staff-profile-contact-fields">' +
+                '<div class="staff-field"><label for="staffProfilePhone">Số điện thoại</label>' + (profileEditing
+                    ? '<input id="staffProfilePhone" type="tel" autocomplete="tel" inputmode="tel" maxlength="20" value="' + escapeHtml(user.phone || '') + '" aria-describedby="staffProfilePhoneError" aria-invalid="' + (phoneError ? 'true' : 'false') + '"><span class="staff-profile-field-error" id="staffProfilePhoneError">' + escapeHtml(phoneError) + '</span>'
+                    : '<div class="staff-profile-contact-value">' + escapeHtml(user.phone || 'Chưa cập nhật') + '</div>') + '</div>' +
+                '<div class="staff-field"><label for="staffProfileEmail">Email liên hệ</label>' + (profileEditing
+                    ? '<input id="staffProfileEmail" type="email" autocomplete="email" maxlength="254" value="' + escapeHtml(contactEmail) + '" aria-describedby="staffProfileEmailError" aria-invalid="' + (emailError ? 'true' : 'false') + '"><span class="staff-profile-field-error" id="staffProfileEmailError">' + escapeHtml(emailError) + '</span>'
+                    : '<div class="staff-profile-contact-value">' + escapeHtml(contactEmail || 'Chưa cập nhật') + '</div>') + '</div>' +
+                '<div class="staff-field"><label>Địa chỉ liên hệ</label><div class="staff-profile-contact-value">' + escapeHtml(user.contactAddress || 'Chưa cập nhật') + '</div></div>' +
+                '<div class="staff-field"><label>Ảnh đại diện</label><div class="staff-profile-heading"><div class="staff-avatar" id="staffAvatarPreview">' + avatarMarkup + '</div>' + avatarActions + '</div></div></div>' +
+                '<div class="staff-profile-contact-actions">' + (profileEditing
+                    ? '<button type="button" class="staff-action-btn secondary" data-profile-cancel>Hủy thay đổi</button><button type="submit" class="staff-action-btn" id="staffProfileSave">Lưu thay đổi</button>'
+                    : '<button type="button" class="staff-action-btn" data-profile-edit>Chỉnh sửa thông tin liên hệ</button>') + '</div>' +
+                '<p class="staff-profile-note">Email liên hệ không thay đổi địa chỉ đăng nhập. Địa chỉ chỉ hiển thị nếu dữ liệu được hệ thống lưu; hiện không hỗ trợ chỉnh sửa địa chỉ từ hồ sơ nhân viên.</p>' +
+                '<p class="staff-profile-message' + (staffSettingsMessage && staffSettingsMessage.error ? ' error' : '') + '" id="staffSettingsMessage" role="status" aria-live="polite">' + escapeHtml(staffSettingsMessage ? staffSettingsMessage.text : '') + '</p></form></div>';
+            var workMarkup = '<div class="staff-profile-layout"><article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Phân công và thông tin công tác <i class="fas fa-lock" aria-label="Chỉ quản lý được cập nhật"></i></h2>' +
+                '<div class="staff-detail-grid"><div class="staff-detail-item"><small>Mã nhân viên</small><strong>' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Chức vụ</small><strong>' + escapeHtml(user.title || 'Chưa cập nhật') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Bộ phận</small><strong>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Tòa nhà phụ trách</small><strong>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Người quản lý trực tiếp</small><strong>' + escapeHtml(managerNames.join(', ') || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Ngày tiếp nhận công việc</small><strong>' + escapeHtml(user.employmentStartDate ? dateLabel(user.employmentStartDate) : 'Chưa cập nhật') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Hình thức làm việc</small><strong>' + escapeHtml(user.employmentType || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Trạng thái công tác</small><strong>' + escapeHtml(user.employmentStatus || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<p class="staff-profile-note"><i class="fas fa-lock" aria-hidden="true"></i> Các trường công tác do quản lý thiết lập; nhân viên chỉ có quyền xem.</p></article>' +
+                '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Phạm vi công việc</h2><div class="staff-profile-work-list"><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-layer-group" aria-hidden="true"></i></span><div><small>Nhóm chuyên môn</small><strong>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</strong></div></div>' +
+                '<div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-clipboard-check" aria-hidden="true"></i></span><div><small>Mô tả phạm vi</small><strong>' + escapeHtml(scopeDescription ? scopeDescription.description : 'Chưa cập nhật') + '</strong></div></div></div></article></div>';
+            var tasksMarkup = '<div class="staff-panel"><h2>Tình hình công việc</h2><p>Các số liệu dưới đây được tính từ nhiệm vụ hiện được phân công cho tài khoản của bạn.</p>' +
+                '<div class="staff-profile-stat-grid">' + statMarkup + '</div><div style="margin-top:18px;"><div style="display:flex;justify-content:space-between;gap:10px;margin-bottom:7px;font-size:12px;"><strong>Tỷ lệ hoàn thành</strong><span>' + stats.completionRate + '%</span></div>' +
+                '<div class="staff-profile-progress" role="progressbar" aria-label="Tỷ lệ hoàn thành nhiệm vụ" aria-valuemin="0" aria-valuemax="100" aria-valuenow="' + stats.completionRate + '"><span style="width:' + stats.completionRate + '%"></span></div></div>' +
+                '<p class="staff-profile-note">Cập nhật tiến độ gần nhất: ' + escapeHtml(tasks.length ? profileDateTime(tasks.reduce(function (latest, task) { return Math.max(latest, profileTimestamp(task.updatedAt || task.createdAt)); }, 0)) : 'Chưa có dữ liệu') + '.</p></div>';
+            var activityEvents = renderProfileActivity(tasks);
+            var activityMarkup = '<div class="staff-panel"><h2>Lịch sử hoạt động công việc</h2><p>Lịch sử gồm các thông báo hoạt động và mốc thời gian đang được lưu cho nhiệm vụ được phân công; ghi chú nội bộ của quản lý không hiển thị tại đây.</p>' +
+                '<div class="staff-profile-filter-row"><input id="staffActivityFrom" type="date" aria-label="Hoạt động từ ngày" value="' + escapeHtml(profileActivityFilters.from) + '"><input id="staffActivityTo" type="date" aria-label="Hoạt động đến ngày" value="' + escapeHtml(profileActivityFilters.to) + '">' +
+                '<select id="staffActivityStatus" aria-label="Lọc trạng thái"><option value="all">Mọi trạng thái</option>' + ['Chờ tiếp nhận', 'Đang xử lý', 'Hoàn thành (Chờ Quản lý duyệt)', 'Hoàn thành', 'Đã đóng'].map(function (label) {
+                    return '<option value="' + escapeHtml(label) + '"' + (profileActivityFilters.status === label ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
+                }).join('') + '</select><select id="staffActivityType" aria-label="Lọc loại hoạt động"><option value="all">Mọi hoạt động</option>' + ['taskNew', 'assignmentChanged', 'taskStatus', 'infoRequest', 'deadline'].map(function (type) {
+                    return '<option value="' + type + '"' + (profileActivityFilters.type === type ? ' selected' : '') + '>' + escapeHtml(profileActivityLabel(type)) + '</option>';
+                }).join('') + '</select></div><div class="staff-profile-timeline">' +
+                (activityEvents.length ? activityEvents.map(function (item) {
+                    return '<article class="staff-profile-event"><time>' + escapeHtml(profileDateTime(item.at)) + '</time><div><strong>' + escapeHtml(item.title) + '</strong><p>' + (item.task
+                        ? '<button type="button" class="staff-task-open" data-open-task="' + escapeHtml(item.task.id) + '">' + escapeHtml(item.task.title || 'Nhiệm vụ') + '</button>'
+                        : 'Nhiệm vụ đã thay đổi phân công') + ' · ' + escapeHtml(item.status) + '</p>' + (item.body ? '<p>' + escapeHtml(item.body) + '</p>' : '') + '</div></article>';
+                }).join('') : '<div class="staff-empty">Chưa có dữ liệu hoạt động phù hợp với bộ lọc.</div>') + '</div></div>';
+            var accountMarkup = '<div class="staff-panel"><h2>Thông tin tài khoản</h2><div class="staff-detail-grid"><div class="staff-detail-item"><small>Email / tên đăng nhập</small><strong>' + escapeHtml(user.email || 'Chưa cập nhật') + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Trạng thái tài khoản</small><strong>' + escapeHtml(accountStatus) + '</strong></div><div class="staff-detail-item"><small>Ngày tạo tài khoản</small><strong>' + escapeHtml(profileDateTime(user.createdAt)) + '</strong></div>' +
+                '<div class="staff-detail-item"><small>Lần đăng nhập gần nhất</small><strong>' + escapeHtml(profileDateTime(user.lastLoginAt)) + '</strong></div><div class="staff-detail-item"><small>Phương thức xác thực</small><strong>Chưa có dữ liệu</strong></div><div class="staff-detail-item"><small>Xác minh email</small><strong>Chưa có dữ liệu</strong></div></div>' +
+                '<p class="staff-profile-note">Không hiển thị mật khẩu, mã xác thực hoặc thông tin phiên đăng nhập.</p></div>';
+            var contentByTab = {
+                overview: '<div class="staff-profile-layout"><article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Thông tin cá nhân</h2><div class="staff-detail-grid"><div class="staff-detail-item"><small>Họ và tên</small><strong>' + escapeHtml(user.name || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Mã nhân viên</small><strong>' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Số điện thoại</small><strong>' + escapeHtml(user.phone || 'Chưa cập nhật') + '</strong></div><div class="staff-detail-item"><small>Email liên hệ</small><strong>' + escapeHtml(contactEmail || 'Chưa cập nhật') + '</strong></div></div><div class="staff-actions"><button type="button" class="staff-action-btn secondary" data-profile-tab="personal">Xem thông tin cá nhân</button></div></article>' +
+                    '<article class="staff-panel staff-profile-card"><h2 class="staff-profile-section-title">Thông tin công tác</h2><div class="staff-profile-work-list"><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-building" aria-hidden="true"></i></span><div><small>Bộ phận</small><strong>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-briefcase" aria-hidden="true"></i></span><div><small>Chức vụ</small><strong>' + escapeHtml(user.title || 'Chưa cập nhật') + '</strong></div></div><div class="staff-profile-work-item"><span class="staff-profile-work-icon"><i class="fas fa-city" aria-hidden="true"></i></span><div><small>Tòa nhà phụ trách</small><strong>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</strong></div></div></div><p class="staff-profile-note">Trạng thái công tác: ' + escapeHtml(user.employmentStatus || 'Chưa cập nhật') + '</p></article></div>' + tasksMarkup,
+                personal: personalMarkup,
+                work: workMarkup,
+                tasks: tasksMarkup,
+                activity: activityMarkup,
+                account: accountMarkup
+            };
+            staffContent.innerHTML = '<div class="staff-profile-page"><div class="staff-profile-toolbar"><span class="staff-profile-breadcrumb">Cài đặt / Hồ sơ cá nhân</span><button type="button" class="staff-profile-action-link" data-profile-refresh><i class="fas fa-rotate" aria-hidden="true"></i> Làm mới dữ liệu</button></div>' +
+                '<article class="staff-panel staff-profile-card staff-profile-hero"><div class="staff-profile-heading"><div class="staff-avatar">' + avatarMarkup + '</div></div><div class="staff-profile-identity"><h2 style="margin:0;">' + escapeHtml(user.name || 'Chưa cập nhật') + '</h2><p>Mã nhân viên: ' + escapeHtml(user.employeeCode || 'Chưa cập nhật') + ' · ' + escapeHtml(user.title || 'Chưa cập nhật') + '</p><div class="staff-profile-meta"><span>' + escapeHtml(accountDepartment || 'Chưa cập nhật') + '</span><span>' + escapeHtml(buildingNames.join(', ') || 'Chưa phân công') + '</span><span class="staff-profile-status ' + accountStatusStyle + '">' + escapeHtml(accountStatus) + '</span></div></div><button type="button" class="staff-profile-action-link" data-profile-edit>Chỉnh sửa thông tin liên hệ</button></article>' +
+                '<div class="staff-profile-tabs" role="tablist" aria-label="Các nhóm hồ sơ">' + tabMarkup + '</div><div class="staff-profile-tab-content" id="staffProfileTabPanel" role="tabpanel" aria-labelledby="staffProfileTab-' + profileTab + '">' + (contentByTab[profileTab] || contentByTab.overview) + '</div></div>';
+        }
+
+        function renderAppearanceSettings() {
+            var settings = RH.getCurrentUserSettings();
+            if (!appearanceDraft) appearanceDraft = {
+                theme: settings.theme,
+                density: settings.density,
+                fontSize: settings.fontSize,
+                accentColor: settings.accentColor
+            };
+            var optionGroup = function (key, options, layout) {
+                return '<div class="staff-appearance-options' + (layout ? ' ' + layout : '') + '">' + options.map(function (option) {
+                    return '<button type="button" class="staff-appearance-option" data-appearance-option="' + key + '" data-value="' + option.value + '" aria-pressed="' + (appearanceDraft[key] === option.value) + '"><span class="staff-appearance-option-head"><span class="staff-appearance-radio" aria-hidden="true"></span>' + (option.icon ? '<i class="' + option.icon + '" aria-hidden="true"></i>' : '') + '<span>' + option.label + '</span></span>' + (option.note ? '<small>' + option.note + '</small>' : '') + '</button>';
+                }).join('') + '</div>';
+            };
+            var themeOptions = [
+                { value: 'light', label: 'Sáng', note: 'Giao diện sáng, rõ ràng, dễ nhìn.', icon: 'fas fa-sun' },
+                { value: 'dark', label: 'Tối', note: 'Giảm ánh sáng, bảo vệ mắt khi làm việc.', icon: 'fas fa-moon' },
+                { value: 'system', label: 'Theo hệ thống', note: 'Tự đồng bộ theo thiết bị.', icon: 'fas fa-desktop' }
+            ];
+            var densityOptions = [
+                { value: 'comfortable', label: 'Thoải mái', note: 'Khoảng cách rộng, dễ đọc.' },
+                { value: 'compact', label: 'Gọn gàng', note: 'Hiển thị nhiều nội dung hơn.' }
+            ];
+            var fontOptions = [
+                { value: 'small', label: 'Nhỏ', note: '(13px)' },
+                { value: 'medium', label: 'Vừa', note: '(14px)' },
+                { value: 'large', label: 'Lớn', note: '(16px)' }
+            ];
+            var accents = [
+                { value: 'blue', color: '#1683ff', strong: '#0d65d5', label: 'Xanh dương' },
+                { value: 'green', color: '#10b981', strong: '#059669', label: 'Xanh lá' },
+                { value: 'purple', color: '#8b5cf6', strong: '#7c3aed', label: 'Tím' },
+                { value: 'orange', color: '#f97316', strong: '#ea580c', label: 'Cam' },
+                { value: 'red', color: '#f43f5e', strong: '#e11d48', label: 'Đỏ' },
+                { value: 'teal', color: '#14b8a6', strong: '#0d9488', label: 'Xanh ngọc' }
+            ];
+            var darkPreview = appearanceDraft.theme === 'dark' || (appearanceDraft.theme === 'system' && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches);
+            var selectedAccent = accents.filter(function (accent) { return accent.value === appearanceDraft.accentColor; })[0];
+            staffContent.innerHTML = '<div class="staff-appearance-page">' +
+                '<section class="staff-panel staff-appearance-panel" aria-label="Tùy chỉnh giao diện"><div class="staff-appearance-heading"><span class="staff-appearance-icon"><i class="fas fa-gear" aria-hidden="true"></i></span><div><h2>Giao diện hệ thống</h2><p>Tùy chỉnh giao diện để phù hợp với sở thích và thói quen sử dụng của bạn.</p></div></div>' +
+                '<div class="staff-appearance-section"><div class="staff-appearance-heading"><span class="staff-appearance-icon"><i class="fas fa-sun" aria-hidden="true"></i></span><div><h2>Chế độ giao diện</h2><p>Thay đổi giao diện tổng thể của hệ thống.</p></div></div>' + optionGroup('theme', themeOptions, '') + '</div>' +
+                '<div class="staff-appearance-section"><div class="staff-appearance-heading"><span class="staff-appearance-icon"><i class="fas fa-grip" aria-hidden="true"></i></span><div><h2>Mật độ hiển thị</h2><p>Điều chỉnh khoảng cách giữa các thành phần trên giao diện.</p></div></div>' + optionGroup('density', densityOptions, 'two') + '</div>' +
+                '<div class="staff-appearance-section"><div class="staff-appearance-heading"><span class="staff-appearance-icon"><i class="fas fa-font" aria-hidden="true"></i></span><div><h2>Cỡ chữ</h2><p>Thay đổi kích thước chữ trong toàn bộ hệ thống.</p></div></div>' + optionGroup('fontSize', fontOptions, 'font') + '</div>' +
+                '<div class="staff-appearance-section"><div class="staff-appearance-heading"><span class="staff-appearance-icon"><i class="fas fa-palette" aria-hidden="true"></i></span><div><h2>Màu nhấn</h2><p>Chọn màu sắc cho các nút bấm, liên kết và thành phần nổi bật.</p></div></div><div class="staff-appearance-swatches">' + accents.map(function (accent) {
+                    return '<button type="button" class="staff-appearance-swatch" style="--swatch:' + accent.color + '" data-appearance-option="accentColor" data-value="' + accent.value + '" aria-label="' + accent.label + '" title="' + accent.label + '" aria-pressed="' + (appearanceDraft.accentColor === accent.value) + '">' + (appearanceDraft.accentColor === accent.value ? '<i class="fas fa-check" aria-hidden="true"></i>' : '') + '</button>';
+                }).join('') + '</div></div>' +
+                '<div class="staff-appearance-note"><i class="fas fa-circle-info" aria-hidden="true"></i><span>Thay đổi sẽ được áp dụng trên toàn bộ hệ thống và lưu theo tài khoản của bạn.</span></div>' +
+                '<p class="staff-settings-message' + (staffSettingsMessage && staffSettingsMessage.error ? ' error' : '') + '" id="staffSettingsMessage" role="status" aria-live="polite">' + escapeHtml(staffSettingsMessage ? staffSettingsMessage.text : '') + '</p></section>' +
+                '<section class="staff-panel staff-appearance-panel" aria-label="Xem trước giao diện"><div class="staff-appearance-preview-head"><div class="staff-appearance-heading"><span class="staff-appearance-icon"><i class="fas fa-display" aria-hidden="true"></i></span><div><h2>Xem trước giao diện</h2><p>Kiểm tra các thay đổi trên máy tính và điện thoại trước khi áp dụng.</p></div></div><div class="staff-appearance-device-switch" role="group" aria-label="Thiết bị xem trước"><button type="button" class="staff-appearance-device" data-appearance-device="desktop" aria-pressed="' + (appearancePreviewDevice === 'desktop') + '"><i class="fas fa-desktop" aria-hidden="true"></i> Máy tính</button><button type="button" class="staff-appearance-device" data-appearance-device="mobile" aria-pressed="' + (appearancePreviewDevice === 'mobile') + '"><i class="fas fa-mobile-screen" aria-hidden="true"></i> Điện thoại</button></div></div>' +
+                '<div class="staff-appearance-preview-canvas" data-device="' + appearancePreviewDevice + '" data-theme="' + (darkPreview ? 'dark' : 'light') + '" data-density="' + appearanceDraft.density + '" data-font-size="' + appearanceDraft.fontSize + '" style="--primary:' + selectedAccent.color + ';--primary-strong:' + selectedAccent.strong + '">' +
+                '<div class="staff-appearance-mock"><aside class="staff-appearance-mock-sidebar"><div class="staff-appearance-mock-brand"><i class="fas fa-house" aria-hidden="true"></i> ResidentHub</div><div class="staff-appearance-mock-nav active">Tổng quan</div><div class="staff-appearance-mock-nav">Danh sách nhiệm vụ</div><div class="staff-appearance-mock-nav">Cập nhật tiến độ</div><div class="staff-appearance-mock-nav">Cài đặt</div></aside><div class="staff-appearance-mock-main"><div class="staff-appearance-mock-top"><span>Tổng quan</span><i class="fas fa-bell" aria-hidden="true"></i></div><div class="staff-appearance-mock-welcome">Xin chào, ' + escapeHtml(RH_SESSION.name || 'Nguyễn Minh Anh') + '</div><div class="staff-appearance-mock-stats"><span>Tổng nhiệm vụ<strong>12</strong></span><span>Đang xử lý<strong>5</strong></span><span>Hoàn thành<strong>6</strong></span><span>Quá hạn<strong>1</strong></span></div><div class="staff-appearance-mock-table"><strong>Nhiệm vụ gần đây</strong><div><span>Kiểm tra hệ thống điện tòa A</span><span class="staff-appearance-mock-chip">Đang xử lý</span></div><div><span>Bảo trì thang máy</span><span class="staff-appearance-mock-chip">Chờ duyệt</span></div><div><span>Vệ sinh khu vực công cộng</span><span class="staff-appearance-mock-chip">Hoàn thành</span></div></div></div></div></div>' +
+                '<ul class="staff-appearance-checklist"><li><i class="fas fa-check" aria-hidden="true"></i><span>Toàn bộ giao diện (sidebar, header, nội dung)</span></li><li><i class="fas fa-check" aria-hidden="true"></i><span>Các biểu mẫu, bảng dữ liệu, nút bấm</span></li><li><i class="fas fa-check" aria-hidden="true"></i><span>Hộp thoại, dropdown, thông báo</span></li><li><i class="fas fa-check" aria-hidden="true"></i><span>Tất cả các trang chức năng</span></li></ul>' +
+                '<div class="staff-appearance-actions"><button type="button" data-appearance-action="reset">Khôi phục mặc định</button><button type="button" data-appearance-action="cancel">Hủy thay đổi</button><button type="button" class="primary" data-appearance-action="save"><i class="fas fa-floppy-disk" aria-hidden="true"></i> Lưu cài đặt</button></div></section></div>';
+        }
+
+        function notificationLabel(category) {
+            return {
+                taskNew: ['Nhiệm vụ mới', 'Khi Quản lý giao nhiệm vụ lần đầu.'],
+                assignmentChanged: ['Thay đổi phân công', 'Khi nhiệm vụ được chuyển giao hoặc gỡ khỏi danh sách.'],
+                deadline: ['Nhắc thời hạn và nhiệm vụ quá hạn', 'Khi hạn xử lý được cập nhật, đến hạn hoặc đã quá hạn.'],
+                infoRequest: ['Yêu cầu bổ sung thông tin', 'Dùng khi quy trình yêu cầu bổ sung thông tin được kích hoạt.'],
+                taskStatus: ['Cập nhật trạng thái nhiệm vụ', 'Khi trạng thái nhiệm vụ được Quản lý cập nhật.'],
+                system: ['Thông báo hệ thống', 'Dành cho thông báo vận hành của hệ thống.']
+            }[category];
+        }
+
+        function formatNotificationTime(value) {
+            var date = new Date(Number(value) || value);
+            return isNaN(date.getTime()) ? '' : date.toLocaleString('vi-VN');
+        }
+
+        function updateStaffNotificationCount() {
+            var items = RH.getCurrentUserNotifications();
+            var count = items.filter(function (item) { return !item.isRead; }).length;
+            var badge = document.getElementById('staffNotificationCount');
+            if (badge) {
+                badge.textContent = count > 99 ? '99+' : String(count);
+                badge.hidden = count === 0;
+            }
+        }
+
+        function syncStaffDueNotifications() {
+            var today = todayValue();
+            assignedTasks().forEach(function (task) {
+                var due = dateValue(task.dueAt || task.scheduledAt);
+                if (!due || due > today || ['resolved', 'closed'].indexOf(task.status) !== -1 || task.staffTaskStatus === 'approved') return;
+                var overdue = due < today;
+                try {
+                    var result = RH.createStaffNotificationForEvent(RH_SESSION.id, 'deadline', {
+                        eventId: 'task:' + task.id + ':due-reminder:' + due,
+                        title: overdue ? 'Nhiệm vụ đã quá hạn' : 'Nhiệm vụ đến hạn hôm nay',
+                        body: 'Nhiệm vụ ' + (task.code || task.id) + ': ' + (task.title || 'Nhiệm vụ') + (overdue ? ' đã quá hạn từ ' + due + '.' : ' có hạn xử lý hôm nay.'),
+                        refType: 'task',
+                        refId: task.id,
+                        actionUrl: 'staff.html',
+                        actionLabel: 'Mở không gian nhân viên'
+                    });
+                    if (!result.ok) setStaffSettingsMessage(result.error || 'Không thể lưu nhắc hạn nhiệm vụ.', true);
+                } catch (error) {
+                    setStaffSettingsMessage(error.message || 'Không thể lưu nhắc hạn nhiệm vụ.', true);
+                }
+            });
+        }
+
+        function renderNotificationSettings() {
+            syncStaffDueNotifications();
+            var settings = RH.getCurrentUserSettings().notifications;
+            var notifications = RH.getCurrentUserNotifications().slice().sort(function (a, b) {
+                return Number(b.createdAt || 0) - Number(a.createdAt || 0);
+            });
+            var categories = ['taskNew', 'assignmentChanged', 'deadline', 'infoRequest', 'taskStatus', 'system'];
+            var categoryMarkup = categories.map(function (category) {
+                var label = notificationLabel(category);
+                return '<label class="staff-setting-choice"><span><strong>' + escapeHtml(label[0]) + '</strong><small>' + escapeHtml(label[1]) + '</small></span><input type="checkbox" data-notification-category="' + category + '"' + (settings.categories[category] ? ' checked' : '') + ' aria-label="Bật thông báo: ' + escapeHtml(label[0]) + '"></label>';
+            }).join('');
+            var inboxMarkup = notifications.map(function (item) {
+                return '<div class="staff-notice-row' + (!item.isRead ? ' unread' : '') + '"><div><strong>' + escapeHtml(item.title || 'Thông báo') + '</strong><p>' + escapeHtml(item.body || '') + '</p><small>' + escapeHtml(formatNotificationTime(item.createdAt)) + '</small></div>' +
+                    (!item.isRead ? '<button type="button" class="staff-notice-read" data-notification-read="' + escapeHtml(item.id) + '">Đánh dấu đã đọc</button>' : '<span class="staff-settings-note">Đã đọc</span>') + '</div>';
+            }).join('');
+            var unread = notifications.filter(function (item) { return !item.isRead; }).length;
+            staffContent.innerHTML = '<div class="staff-settings-grid"><div class="staff-panel"><h2>Tùy chọn nhận thông báo</h2>' +
+                '<label class="staff-setting-choice"><span><strong>Thông báo trong website</strong><small>Bật/tắt kênh thông báo lưu trong tài khoản.</small></span><input type="checkbox" data-notification-channel="inApp"' + (settings.channels.inApp ? ' checked' : '') + ' aria-label="Thông báo trong website"></label>' +
+                '<label class="staff-setting-choice"><span><strong>Email</strong><small>Chưa khả dụng vì hệ thống chưa tích hợp dịch vụ gửi email.</small></span><input type="checkbox" disabled aria-label="Thông báo email chưa được hỗ trợ"></label>' + categoryMarkup +
+                '<p class="staff-settings-message' + (staffSettingsMessage && staffSettingsMessage.error ? ' error' : '') + '" id="staffSettingsMessage" role="status">' + escapeHtml(staffSettingsMessage ? staffSettingsMessage.text : '') + '</p></div>' +
+                '<div class="staff-panel"><h2>Hộp thư thông báo <span class="staff-badge">' + unread + ' chưa đọc</span></h2>' +
+                (inboxMarkup || '<div class="staff-empty">Chưa có thông báo.</div>') +
+                '<p class="staff-settings-note">Thông báo ở đây lấy từ dữ liệu thực của tài khoản. Tắt thông báo chỉ ngừng tạo thông báo mới, không ảnh hưởng nhiệm vụ.</p></div></div>';
+            updateStaffNotificationCount();
         }
 
         function wageStatus(wage) {
@@ -280,7 +871,10 @@
 
         function openPage(page) {
             currentStaffPage = page;
-            document.getElementById('staffPageTitle').textContent = page;
+            appearanceDraft = null;
+            document.getElementById('staffContentTitle').hidden = page === 'Cài đặt giao diện';
+            document.getElementById('staffPageTitle').textContent = page === 'Hồ sơ cá nhân' ? 'Không gian Nhân viên' : page;
+            document.querySelector('.topbar-caption').textContent = page === 'Hồ sơ cá nhân' ? 'ResidentHub' : 'ResidentHub · Không gian Nhân viên';
             document.getElementById('staffContentTitle').textContent = page;
             menuItems.forEach(function (item) { item.classList.toggle('active', item.dataset.title === page); });
             document.getElementById('staffSidebar').classList.remove('open');
@@ -311,13 +905,15 @@
             var tasks = allTasks.filter(function (task) {
                 var pair = buildingForTask(task);
                 var status = taskStatus(task).label;
+                var isComplete = profileTaskCompleted(task);
                 var priority = String(task.priority || 'normal');
                 var search = [task.code, task.title, task.category, task.residentName, task.location, pair.label].join(' ').toLocaleLowerCase();
                 var due = dateValue(task.dueAt || task.scheduledAt);
                 return (!staffFilters.search || search.indexOf(staffFilters.search.toLocaleLowerCase()) !== -1) &&
-                    (staffFilters.status === 'all' || status === staffFilters.status) &&
+                    (staffFilters.status === 'all' || (staffFilters.status === 'completed' ? isComplete : status === staffFilters.status)) &&
                     (staffFilters.priority === 'all' || priority === staffFilters.priority) &&
                     (staffFilters.building === 'all' || task.buildingId === staffFilters.building) &&
+                    (staffFilters.dueStatus === 'all' || (!!due && due < todayValue() && !isComplete)) &&
                     (!staffFilters.from || (due && due >= staffFilters.from)) &&
                     (!staffFilters.to || (due && due <= staffFilters.to));
             });
@@ -342,7 +938,9 @@
                 '<select id="staffTaskStatus"><option value="all">Mọi trạng thái</option>' +
                 ['Chờ tiếp nhận', 'Đang xử lý', 'Hoàn thành (Chờ Quản lý duyệt)', 'Hoàn thành', 'Đã đóng'].map(function (label) {
                     return '<option value="' + escapeHtml(label) + '"' + (staffFilters.status === label ? ' selected' : '') + '>' + escapeHtml(label) + '</option>';
-                }).join('') + '</select><select id="staffTaskPriority">' + priorityOptions + '</select><select id="staffTaskBuilding">' + buildingOptions + '</select>' +
+                }).join('') + '<option value="completed"' + (staffFilters.status === 'completed' ? ' selected' : '') + '>Đã hoàn thành (bao gồm đã đóng)</option></select>' +
+                '<select id="staffTaskDue"><option value="all"' + (staffFilters.dueStatus === 'all' ? ' selected' : '') + '>Mọi thời hạn</option><option value="overdue"' + (staffFilters.dueStatus === 'overdue' ? ' selected' : '') + '>Chỉ nhiệm vụ quá hạn</option></select>' +
+                '<select id="staffTaskPriority">' + priorityOptions + '</select><select id="staffTaskBuilding">' + buildingOptions + '</select>' +
                 '<input id="staffTaskFrom" type="date" aria-label="Hạn từ ngày" value="' + escapeHtml(staffFilters.from) + '">' +
                 '<input id="staffTaskTo" type="date" aria-label="Hạn đến ngày" value="' + escapeHtml(staffFilters.to) + '"></div>' +
                 '<div class="staff-table-wrap"><table class="staff-table"><thead><tr><th>Nhiệm vụ</th><th>Nhóm</th><th>Tòa nhà / căn hộ</th><th>Trạng thái</th><th>Ưu tiên</th><th>Hạn xử lý</th></tr></thead><tbody>' +
@@ -388,6 +986,7 @@
                 '<div class="staff-detail-item"><small>Vị trí xử lý</small><strong>' + escapeHtml(request.location || '—') + '</strong></div>' +
                 '<div class="staff-detail-item"><small>Hạn xử lý</small><strong>' + escapeHtml(dateLabel(request.dueAt || request.scheduledAt)) + '</strong></div></div>' +
                 '<div class="staff-detail-item" style="margin-top:12px;"><small>Mô tả yêu cầu</small><div class="staff-description">' + escapeHtml(request.description || 'Không có mô tả.') + '</div></div>' +
+                (request.requiresStaffInformation ? '<div class="staff-detail-item" style="margin-top:12px;border:1px solid #f0d48a;background:#fff8e6;color:#8a5a00;"><strong><i class="fas fa-circle-info" aria-hidden="true"></i> Quản lý yêu cầu bổ sung thông tin</strong><div class="staff-description">' + escapeHtml(request.staffManagerNote || 'Vui lòng liên hệ Quản lý để xác nhận nội dung cần bổ sung.') + '</div></div>' : '') +
                 (request.staffManagerNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Ghi chú từ Quản lý</small><div class="staff-description">' + escapeHtml(request.staffManagerNote) + '</div></div>' : '') +
                 (request.staffCompletionNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Báo cáo kết quả của bạn</small><div class="staff-description">' + escapeHtml(request.staffCompletionNote) + '</div></div>' : '') +
                 wageMarkup +
@@ -402,12 +1001,15 @@
             else if (currentStaffPage === 'Chi tiết nhiệm vụ') renderTaskDetail(false);
             else if (currentStaffPage === 'Cập nhật tiến độ') renderTaskDetail(true);
             else if (currentStaffPage === 'Lịch sử tiền công' || currentStaffPage === 'Theo dõi trạng thái tiền công' || currentStaffPage === 'Tổng hợp tiền công và chi phí') renderWageHistory();
+            else if (currentStaffPage === 'Hồ sơ cá nhân') renderProfile();
+            else if (currentStaffPage === 'Cài đặt giao diện') renderAppearanceSettings();
+            else if (currentStaffPage === 'Cài đặt thông báo') renderNotificationSettings();
             else staffContent.innerHTML = '<div class="staff-panel"><p>Nội dung sẽ hiển thị tại đây.</p></div>';
         }
 
         function bindTaskFilters() {
             var controls = [
-                ['staffTaskSearch', 'search'], ['staffTaskStatus', 'status'], ['staffTaskPriority', 'priority'],
+                ['staffTaskSearch', 'search'], ['staffTaskStatus', 'status'], ['staffTaskDue', 'dueStatus'], ['staffTaskPriority', 'priority'],
                 ['staffTaskBuilding', 'building'], ['staffTaskFrom', 'from'], ['staffTaskTo', 'to']
             ];
             controls.forEach(function (pair) {
@@ -461,6 +1063,112 @@
         staffContent.addEventListener('click', function (event) {
             var pageButton = event.target.closest('[data-staff-page]');
             if (pageButton) { openPage(pageButton.dataset.staffPage); return; }
+            var appearanceOption = event.target.closest('[data-appearance-option]');
+            if (appearanceOption) {
+                appearanceDraft[appearanceOption.dataset.appearanceOption] = appearanceOption.dataset.value;
+                staffSettingsMessage = null;
+                renderAppearanceSettings();
+                var selectedOption = Array.prototype.filter.call(staffContent.querySelectorAll('[data-appearance-option]'), function (option) {
+                    return option.dataset.appearanceOption === appearanceOption.dataset.appearanceOption && option.dataset.value === appearanceOption.dataset.value;
+                })[0];
+                if (selectedOption) selectedOption.focus();
+                return;
+            }
+            var appearanceDevice = event.target.closest('[data-appearance-device]');
+            if (appearanceDevice) {
+                appearancePreviewDevice = appearanceDevice.dataset.appearanceDevice;
+                renderAppearanceSettings();
+                var selectedDevice = staffContent.querySelector('[data-appearance-device="' + appearancePreviewDevice + '"]');
+                if (selectedDevice) selectedDevice.focus();
+                return;
+            }
+            var appearanceAction = event.target.closest('[data-appearance-action]');
+            if (appearanceAction) {
+                var appearanceActionName = appearanceAction.dataset.appearanceAction;
+                if (appearanceActionName === 'reset') {
+                    appearanceDraft = { theme: 'system', density: 'comfortable', fontSize: 'medium', accentColor: 'blue' };
+                    staffSettingsMessage = { text: 'Đã khôi phục mặc định. Nhấn Lưu cài đặt để áp dụng.', error: false };
+                    renderAppearanceSettings();
+                    return;
+                }
+                if (appearanceActionName === 'cancel') {
+                    var savedAppearance = RH.getCurrentUserSettings();
+                    appearanceDraft = { theme: savedAppearance.theme, density: savedAppearance.density, fontSize: savedAppearance.fontSize, accentColor: savedAppearance.accentColor };
+                    staffSettingsMessage = { text: 'Đã hủy các thay đổi chưa lưu.', error: false };
+                    renderAppearanceSettings();
+                    return;
+                }
+                if (appearanceActionName === 'save') {
+                    var savedResult = RH.updateCurrentUserSettings({
+                        theme: appearanceDraft.theme,
+                        density: appearanceDraft.density,
+                        fontSize: appearanceDraft.fontSize,
+                        accentColor: appearanceDraft.accentColor
+                    });
+                    if (!savedResult.ok) {
+                        staffSettingsMessage = { text: savedResult.error || 'Không thể lưu cài đặt giao diện.', error: true };
+                        renderAppearanceSettings();
+                        return;
+                    }
+                    appearanceDraft = { theme: savedResult.preferences.theme, density: savedResult.preferences.density, fontSize: savedResult.preferences.fontSize, accentColor: savedResult.preferences.accentColor };
+                    document.body.classList.toggle('staff-density-compact', savedResult.preferences.density === 'compact');
+                    staffSettingsMessage = { text: 'Cài đặt giao diện đã được lưu và áp dụng.', error: false };
+                    renderAppearanceSettings();
+                    return;
+                }
+            }
+            var profileTabButton = event.target.closest('[data-profile-tab]');
+            if (profileTabButton) {
+                profileTab = profileTabButton.dataset.profileTab;
+                renderProfile();
+                return;
+            }
+            var profileTaskFilter = event.target.closest('[data-profile-task-filter]');
+            if (profileTaskFilter) {
+                var filter = profileTaskFilter.dataset.profileTaskFilter;
+                staffFilters.search = '';
+                staffFilters.priority = 'all';
+                staffFilters.building = 'all';
+                staffFilters.from = '';
+                staffFilters.to = '';
+                staffFilters.status = filter === 'pending' ? 'Chờ tiếp nhận' :
+                    (filter === 'progress' ? 'Đang xử lý' : (filter === 'completed' ? 'completed' : 'all'));
+                staffFilters.dueStatus = filter === 'overdue' ? 'overdue' : 'all';
+                openPage('Danh sách nhiệm vụ');
+                return;
+            }
+            if (event.target.closest('[data-profile-refresh]')) {
+                profileEditing = false;
+                profileDraftAvatar = '';
+                profileFieldErrors = {};
+                staffSettingsMessage = null;
+                renderProfile();
+                return;
+            }
+            if (event.target.closest('[data-profile-edit]')) {
+                profileEditing = true;
+                profileTab = 'personal';
+                profileFieldErrors = {};
+                staffSettingsMessage = null;
+                renderProfile();
+                return;
+            }
+            if (event.target.closest('[data-profile-cancel]')) {
+                profileEditing = false;
+                profileDraftAvatar = '';
+                profileFieldErrors = {};
+                staffSettingsMessage = null;
+                renderProfile();
+                return;
+            }
+            var readButton = event.target.closest('[data-notification-read]');
+            if (readButton) {
+                var readResult = RH.markCurrentUserNotificationRead(readButton.dataset.notificationRead);
+                if (!readResult.ok) setStaffSettingsMessage(readResult.error || 'Không thể cập nhật thông báo.', true);
+                else staffSettingsMessage = { text: 'Đã đánh dấu thông báo là đã đọc.', error: false };
+                renderNotificationSettings();
+                return;
+            }
             var taskButton = event.target.closest('[data-open-task]');
             if (taskButton) {
                 selectedTaskId = taskButton.dataset.openTask;
@@ -470,16 +1178,140 @@
             var actionButton = event.target.closest('[data-task-action]');
             if (actionButton) updateTaskStatus(actionButton.dataset.taskId, actionButton.dataset.taskAction);
         });
+        staffContent.addEventListener('submit', function (event) {
+            if (event.target.id !== 'staffProfileForm') return;
+            event.preventDefault();
+            var emailInput = document.getElementById('staffProfileEmail');
+            var phoneInput = document.getElementById('staffProfilePhone');
+            var email = emailInput.value.trim();
+            var phone = phoneInput.value.trim();
+            profileFieldErrors = {
+                email: profileFieldError('email', email),
+                phone: profileFieldError('phone', phone)
+            };
+            setProfileFieldError('email', profileFieldErrors.email);
+            setProfileFieldError('phone', profileFieldErrors.phone);
+            var invalidField = profileFieldErrors.email ? emailInput : (profileFieldErrors.phone ? phoneInput : null);
+            if (invalidField) {
+                invalidField.focus();
+                return;
+            }
+            var saveButton = document.getElementById('staffProfileSave');
+            if (saveButton) { saveButton.disabled = true; saveButton.textContent = 'Đang lưu...'; }
+            var result = RH.updateCurrentUserProfile({
+                phone: phone,
+                email: email,
+                avatar: profileDraftAvatar
+            });
+            if (!result.ok) {
+                setStaffSettingsMessage(result.error || 'Không thể lưu hồ sơ.', true);
+                if (saveButton) { saveButton.disabled = false; saveButton.textContent = 'Lưu thay đổi'; }
+                return;
+            }
+            profileEditing = false;
+            profileFieldErrors = {};
+            profileDraftAvatar = result.user.avatar || '';
+            staffSettingsMessage = { text: 'Hồ sơ đã được cập nhật.', error: false };
+            renderProfile();
+        });
+        staffContent.addEventListener('input', function (event) {
+            var field = event.target.id === 'staffProfileEmail' ? 'email' : (event.target.id === 'staffProfilePhone' ? 'phone' : '');
+            if (!field || !profileFieldErrors[field]) return;
+            setProfileFieldError(field, profileFieldError(field, event.target.value.trim()));
+        });
+        staffContent.addEventListener('change', function (event) {
+            var target = event.target;
+            if (target.id === 'staffActivityFrom' || target.id === 'staffActivityTo' ||
+                target.id === 'staffActivityStatus' || target.id === 'staffActivityType') {
+                var activityFilterKey = {
+                    staffActivityFrom: 'from',
+                    staffActivityTo: 'to',
+                    staffActivityStatus: 'status',
+                    staffActivityType: 'type'
+                }[target.id];
+                profileActivityFilters[activityFilterKey] = target.value;
+                renderProfile();
+                return;
+            }
+            if (target.id === 'staffAvatarFile') {
+                var file = target.files && target.files[0];
+                if (!file) return;
+                if (!/^image\/(png|jpeg|webp)$/.test(file.type) || file.size > 2 * 1024 * 1024) {
+                    setStaffSettingsMessage('Chọn ảnh PNG, JPEG hoặc WebP có dung lượng tối đa 2 MB.', true);
+                    target.value = '';
+                    return;
+                }
+                var reader = new FileReader();
+                reader.onload = function () {
+                    profileDraftAvatar = String(reader.result || '');
+                    var preview = document.getElementById('staffAvatarPreview');
+                    if (preview) preview.innerHTML = '<img src="' + escapeHtml(profileDraftAvatar) + '" alt="Ảnh đại diện xem trước">';
+                    setStaffSettingsMessage('Ảnh xem trước đã sẵn sàng. Nhấn Lưu thay đổi để áp dụng.', false);
+                };
+                reader.onerror = function () { setStaffSettingsMessage('Không thể đọc tệp ảnh đã chọn.', true); };
+                reader.readAsDataURL(file);
+                return;
+            }
+            var category = target.dataset.notificationCategory;
+            var channel = target.dataset.notificationChannel;
+            if (category || channel) {
+                var notificationPatch = { notifications: { categories: {}, channels: {} } };
+                if (category) notificationPatch.notifications.categories[category] = target.checked;
+                if (channel) notificationPatch.notifications.channels[channel] = target.checked;
+                target.disabled = true;
+                try {
+                    var notificationResult = RH.updateCurrentUserSettings(notificationPatch);
+                    if (!notificationResult.ok) {
+                        target.checked = !target.checked;
+                        setStaffSettingsMessage(notificationResult.error || 'Không thể lưu tùy chọn thông báo.', true);
+                    } else {
+                        setStaffSettingsMessage('Tùy chọn thông báo đã được lưu.', false);
+                        updateStaffNotificationCount();
+                        if (category === 'deadline' && target.checked) syncStaffDueNotifications();
+                    }
+                } catch (error) {
+                    target.checked = !target.checked;
+                    setStaffSettingsMessage(error.message || 'Không thể lưu tùy chọn thông báo.', true);
+                } finally {
+                    target.disabled = false;
+                }
+            }
+        });
         menuItems.forEach(function (item) {
             item.addEventListener('click', function () { openPage(item.dataset.title); });
+        });
+        document.getElementById('staffNotificationLink').addEventListener('click', function () {
+            openPage('Cài đặt thông báo');
         });
         window.addEventListener('residenthub:business-data-changed', function (event) {
             if (!event.detail || event.detail.entity === 'supportRequests' || event.detail.entity === 'cashflows') renderStaffPage();
         });
+        window.addEventListener('residenthub:data-changed', function () {
+            updateStaffNotificationCount();
+            if (currentStaffPage === 'Cài đặt thông báo') renderNotificationSettings();
+        });
+        window.addEventListener('residenthub:user-updated', function () {
+            if (currentStaffPage === 'Hồ sơ cá nhân') renderProfile();
+        });
+        window.addEventListener('residenthub:preferences-changed', function () {
+            if (window.RHTheme) window.RHTheme.apply();
+            if (currentStaffPage === 'Cài đặt giao diện') appearanceDraft = null;
+            if (currentStaffPage === 'Cài đặt giao diện' || currentStaffPage === 'Cài đặt thông báo') renderStaffPage();
+        });
         window.addEventListener('storage', function (event) {
             if (event.key === 'residenthub_live_supportRequests' || event.key === 'residenthub_live_cashflows') renderStaffPage();
+            if (event.key === 'residenthub_users' || event.key === 'residenthub_internal_data') {
+                updateStaffNotificationCount();
+                if (currentStaffPage === 'Cài đặt giao diện') appearanceDraft = null;
+                if (currentStaffPage === 'Hồ sơ cá nhân' || currentStaffPage === 'Cài đặt giao diện' || currentStaffPage === 'Cài đặt thông báo') renderStaffPage();
+            }
         });
         document.getElementById('staffUserName').textContent = (RH_SESSION.name || '') + (staffGroupLabels[RH_SESSION.staffGroup] ? ' · ' + staffGroupLabels[RH_SESSION.staffGroup] : '');
+        var currentPreferences = RH.getCurrentUserSettings();
+        document.body.classList.toggle('staff-density-compact', currentPreferences.density === 'compact');
+        updateStaffNotificationCount();
+        syncStaffDueNotifications();
+        window.setInterval(syncStaffDueNotifications, 60000);
         renderStaffPage();
         document.getElementById('staffMenuToggle').addEventListener('click', function () {
             document.getElementById('staffSidebar').classList.toggle('open');
