@@ -71,7 +71,17 @@
         .staff-badge.progress { background:#eaf3ff; color:#0d65d5; }
         .staff-badge.approval { background:#f3e8ff; color:#7c3aed; }
         .staff-badge.done { background:#e6f8ef; color:#16865e; }
+        .staff-badge.rejected { background:#feecec; color:#b42318; }
         .staff-empty { padding:30px 16px; color:var(--muted); text-align:center; }
+        .staff-compensation-intro { margin:0 0 14px; color:var(--muted); font-size:12px; line-height:1.6; }
+        .staff-compensation-toolbar { display:grid; grid-template-columns:minmax(170px,1.3fr) repeat(4,minmax(130px,1fr)); gap:9px; margin:15px 0; }
+        .staff-compensation-toolbar input,.staff-compensation-toolbar select { min-width:0; width:100%; min-height:40px; border:1px solid var(--line); border-radius:9px; background:var(--surface); color:var(--ink); padding:9px 10px; font:inherit; font-size:12px; }
+        .staff-panel .staff-compensation-section-title { display:flex; align-items:center; gap:8px; margin:28px 0 12px; font-size:15px; }
+        .staff-compensation-section-title i { color:var(--primary); }
+        .staff-compensation-empty { padding:22px 14px; color:var(--muted); text-align:center; line-height:1.6; }
+        .staff-compensation-note { margin:12px 0 0; color:var(--muted); font-size:11px; line-height:1.6; }
+        @media (max-width: 860px) { .staff-compensation-toolbar { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+        @media (max-width: 560px) { .staff-compensation-toolbar { grid-template-columns:minmax(0,1fr); } }
         .staff-detail-grid { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)); gap:12px; margin-top:16px; }
         .staff-detail-item { padding:12px; border-radius:10px; background:#f7f9fc; }
         .staff-detail-item small { display:block; margin-bottom:5px; color:var(--muted); }
@@ -496,7 +506,7 @@
             </div>
             <div class="menu-group">
                 <div class="menu-heading">THU NHẬP &amp; CHI PHÍ</div>
-                <button class="menu-item" data-title="Tổng hợp tiền công và chi phí"><i class="fas fa-coins"></i><span>Tổng hợp tiền công và chi phí</span></button>
+                <button class="menu-item" data-title="Tổng hợp tiền công &amp; chi phí"><i class="fas fa-coins"></i><span>Tổng hợp tiền công &amp; chi phí</span></button>
                 <button class="menu-item" data-title="Theo dõi trạng thái tiền công"><i class="fas fa-money-check-dollar"></i><span>Theo dõi trạng thái tiền công</span></button>
                 <button class="menu-item" data-title="Lịch sử tiền công"><i class="fas fa-clock-rotate-left"></i><span>Lịch sử tiền công</span></button>
             </div>
@@ -536,6 +546,8 @@
         var currentStaffPage = 'Danh sách nhiệm vụ';
         var staffFilters = { search: '', status: 'all', priority: 'all', building: 'all', from: '', to: '', dueStatus: 'all' };
         var wageFilters = { search: '', status: 'all', from: '', to: '' };
+        var compensationFilters = { month: todayValue().slice(0, 7), from: '', to: '', status: 'all', search: '' };
+        var compensationUsesSampleData = false;
         var staffGroupLabels = {};
         var profileEditing = false;
         var profileDraftAvatar = '';
@@ -1057,6 +1069,245 @@
             return { label: 'Đã duyệt · Chưa thanh toán', style: 'approval' };
         }
 
+        function compensationDate(task) {
+            return dateValue(task.staffCompletedAt || task.resolvedAt || (task.staffWage && task.staffWage.approvedAt) || task.updatedAt || task.createdAt);
+        }
+
+        function compensationApproval(expense) {
+            var status = String(expense.approvalStatus || expense.materialApprovalStatus || expense.expenseApprovalStatus || expense.status || '').trim().toLocaleLowerCase();
+            if (['approved', 'đã duyệt', 'duyet', 'approved_by_manager'].indexOf(status) !== -1) return { key: 'approved', label: 'Đã duyệt', style: 'done' };
+            if (['pending', 'pending_approval', 'chờ duyệt', 'đang chờ duyệt', 'waiting'].indexOf(status) !== -1) return { key: 'pending', label: 'Đang chờ duyệt', style: 'waiting' };
+            if (['rejected', 'declined', 'bị từ chối', 'từ chối'].indexOf(status) !== -1) return { key: 'rejected', label: 'Bị từ chối', style: 'rejected' };
+            return { key: 'unknown', label: 'Chưa có trạng thái duyệt', style: 'approval' };
+        }
+
+        function approvedCompensationWage(task) {
+            var wage = task.staffWage || {};
+            var status = String(wage.status || '').toLocaleLowerCase();
+            var managerApproved = status === 'paid' || status === 'unpaid' || status === 'approved' ||
+                (!status && (Number(wage.approvedAmount) > 0 || !!wage.approvedAt || !!wage.approvedBy));
+            var amount = wageTotal(wage);
+            return managerApproved && amount > 0 ? amount : 0;
+        }
+
+        function compensationMoney(value) {
+            return (Number(value) || 0).toLocaleString('vi-VN') + ' ₫';
+        }
+
+        function sampleCompensationData() {
+            var sampleTasks = [
+                {
+                    id: 'sample-CV001', code: 'CV001', title: 'Sửa vòi nước phòng 203', category: 'Sửa chữa hệ thống nước',
+                    location: 'Phòng 203 · Tòa A', residentName: 'Lê Thu Hà', buildingId: '', apartmentId: '',
+                    description: 'Vòi lavabo bị rò nước tại khớp nối. Kiểm tra đường cấp nước, thay ống nối và gioăng cao su, thử kín sau khi sửa.',
+                    staffCompletionNote: 'Đã thay ống nối và gioăng cao su, mở nước kiểm tra không còn rò rỉ.',
+                    staffCompletedAt: '2026-10-05', resolvedAt: '2026-10-05', status: 'resolved', staffTaskStatus: 'approved', priority: 'needed',
+                    assigneeId: RH_SESSION.id, assignee: RH_SESSION.name || 'Nhân viên đang đăng nhập',
+                    staffWage: { baseAmount: 150000, approvedAmount: 150000, adjustments: [], status: 'unpaid', approvedAt: '2026-10-06', approvedBy: 'Quản lý' },
+                    sampleMaterials: [
+                        { id: 'sample-CV001-M01', materialName: 'Ống nối cấp nước', quantity: 1, unitPrice: 40000, amount: 40000, approvalStatus: 'approved', date: '2026-10-05', description: 'Ống nối cấp nước' },
+                        { id: 'sample-CV001-M02', materialName: 'Gioăng cao su', quantity: 1, unitPrice: 20000, amount: 20000, approvalStatus: 'approved', date: '2026-10-05', description: 'Gioăng cao su' }
+                    ]
+                },
+                {
+                    id: 'sample-CV002', code: 'CV002', title: 'Sửa điện hành lang tầng 2', category: 'Sửa chữa hệ thống điện',
+                    location: 'Hành lang tầng 2 · Tòa A', residentName: 'Ban quản lý tòa A', buildingId: '', apartmentId: '',
+                    description: 'Đèn hành lang chập chờn, kiểm tra đoạn dây điện và cách điện mối nối. Thay dây hỏng, bọc kín đầu nối và kiểm tra vận hành.',
+                    staffCompletionNote: 'Đã thay đoạn dây điện hỏng và bọc kín mối nối; chi phí vật tư đang chờ Quản lý duyệt.',
+                    staffCompletedAt: '2026-10-12', resolvedAt: '2026-10-12', status: 'resolved', staffTaskStatus: 'approved', priority: 'urgent',
+                    assigneeId: RH_SESSION.id, assignee: RH_SESSION.name || 'Nhân viên đang đăng nhập',
+                    staffWage: { baseAmount: 200000, approvedAmount: 200000, adjustments: [], status: 'unpaid', approvedAt: '2026-10-13', approvedBy: 'Quản lý' },
+                    sampleMaterials: [
+                        { id: 'sample-CV002-M01', materialName: 'Dây điện lõi đồng', quantity: 1, unitPrice: 120000, amount: 120000, approvalStatus: 'pending', date: '2026-10-12', description: 'Dây điện lõi đồng' },
+                        { id: 'sample-CV002-M02', materialName: 'Băng keo điện', quantity: 1, unitPrice: 25000, amount: 25000, approvalStatus: 'pending', date: '2026-10-12', description: 'Băng keo điện' }
+                    ]
+                },
+                {
+                    id: 'sample-CV003', code: 'CV003', title: 'Thay bóng đèn phòng 105', category: 'Bảo trì thiết bị điện',
+                    location: 'Phòng 105 · Tòa B', residentName: 'Phạm Quốc Bảo', buildingId: '', apartmentId: '',
+                    description: 'Bóng đèn phòng 105 bị cháy. Tháo bóng cũ, thay bóng mới đúng công suất và kiểm tra công tắc.',
+                    staffCompletionNote: 'Đã thay bóng đèn mới, công tắc hoạt động bình thường.',
+                    staffCompletedAt: '2026-10-20', resolvedAt: '2026-10-20', status: 'resolved', staffTaskStatus: 'approved', priority: 'normal',
+                    assigneeId: RH_SESSION.id, assignee: RH_SESSION.name || 'Nhân viên đang đăng nhập',
+                    staffWage: { baseAmount: 100000, approvedAmount: 100000, adjustments: [], status: 'unpaid', approvedAt: '2026-10-21', approvedBy: 'Quản lý' },
+                    sampleMaterials: [
+                        { id: 'sample-CV003-M01', materialName: 'Bóng đèn LED 9W', quantity: 1, unitPrice: 80000, amount: 80000, approvalStatus: 'approved', date: '2026-10-20', description: 'Bóng đèn LED 9W' }
+                    ]
+                },
+                {
+                    id: 'sample-CV004', code: 'CV004', title: 'Sửa khóa cửa phòng 301', category: 'Sửa chữa khóa cửa',
+                    location: 'Phòng 301 · Tòa B', residentName: 'Nguyễn Ngọc Mai', buildingId: '', apartmentId: '',
+                    description: 'Khóa cửa bị kẹt, chìa xoay khó. Kiểm tra ruột khóa, thay mới nếu không thể khắc phục và bàn giao chìa cho cư dân.',
+                    staffCompletionNote: 'Đã thay ruột khóa và bàn giao chìa. Khoản vật tư bị từ chối duyệt, cần đối chiếu chứng từ với Quản lý.',
+                    staffCompletedAt: '2026-10-25', resolvedAt: '2026-10-25', status: 'resolved', staffTaskStatus: 'approved', priority: 'needed',
+                    assigneeId: RH_SESSION.id, assignee: RH_SESSION.name || 'Nhân viên đang đăng nhập',
+                    staffWage: { baseAmount: 180000, approvedAmount: 180000, adjustments: [], status: 'unpaid', approvedAt: '2026-10-26', approvedBy: 'Quản lý' },
+                    sampleMaterials: [
+                        { id: 'sample-CV004-M01', materialName: 'Ruột khóa cửa', quantity: 1, unitPrice: 150000, amount: 150000, approvalStatus: 'rejected', date: '2026-10-25', description: 'Ruột khóa cửa' }
+                    ]
+                }
+            ];
+            return {
+                tasks: sampleTasks,
+                expenses: sampleTasks.reduce(function (all, task) {
+                    return all.concat(task.sampleMaterials.map(function (material) {
+                        return Object.assign({}, material, { taskId: task.id, type: 'expense', taskCode: task.code });
+                    }));
+                }, [])
+            };
+        }
+
+        function renderCompensationSummary() {
+            staffContent.setAttribute('aria-busy', 'true');
+            staffContent.innerHTML = '<div class="staff-panel staff-empty" role="status"><i class="fas fa-spinner fa-spin" aria-hidden="true"></i> Đang tải dữ liệu tổng hợp...</div>';
+            var tasks;
+            var cashflows;
+            try {
+                tasks = assignedTasks();
+                compensationUsesSampleData = tasks.length === 0;
+                if (compensationUsesSampleData) {
+                    var sample = sampleCompensationData();
+                    tasks = sample.tasks;
+                    cashflows = sample.expenses;
+                } else {
+                    cashflows = RHD.list('cashflows');
+                }
+            } catch (error) {
+                console.error('Không thể tải dữ liệu tổng hợp tiền công và chi phí.', error);
+                staffContent.setAttribute('aria-busy', 'false');
+                staffContent.innerHTML = '<div class="staff-panel staff-empty" role="alert">Không thể tải dữ liệu tổng hợp. Vui lòng tải lại trang hoặc đăng nhập lại.</div>';
+                return;
+            }
+
+            var taskById = {};
+            tasks.forEach(function (task) { taskById[task.id] = task; });
+            var expensesByTask = {};
+            cashflows.forEach(function (record) {
+                var task = record && taskById[record.taskId];
+                if (!task || record.type !== 'expense' || (task.staffWage && record.id === task.staffWage.cashflowId)) return;
+                var amount = Number(record.amount);
+                if (!isFinite(amount) || amount < 0) return;
+                var quantityValue = Number(record.quantity || record.qty);
+                var quantity = isFinite(quantityValue) && quantityValue > 0 ? quantityValue : null;
+                var unitPriceValue = Number(record.unitPrice);
+                var unitPrice = record.unitPrice != null && isFinite(unitPriceValue) && unitPriceValue >= 0
+                    ? unitPriceValue
+                    : (quantity ? amount / quantity : null);
+                var approval = compensationApproval(record);
+                (expensesByTask[task.id] || (expensesByTask[task.id] = [])).push({
+                    id: record.id,
+                    name: record.materialName || record.itemName || record.description || record.category || 'Chi phí nhiệm vụ',
+                    quantity: quantity,
+                    unitPrice: unitPrice,
+                    amount: amount,
+                    approval: approval,
+                    date: dateValue(record.date)
+                });
+            });
+
+            var filteredTasks = tasks.filter(function (task) {
+                var when = compensationDate(task);
+                var text = [task.code, task.title, task.category].join(' ').toLocaleLowerCase();
+                if (compensationFilters.month && (!when || when.slice(0, 7) !== compensationFilters.month)) return false;
+                if (compensationFilters.from && (!when || when < compensationFilters.from)) return false;
+                if (compensationFilters.to && (!when || when > compensationFilters.to)) return false;
+                if (compensationFilters.search && text.indexOf(compensationFilters.search.toLocaleLowerCase()) === -1) return false;
+                return true;
+            });
+            var filteredExpenses = [];
+            filteredTasks.forEach(function (task) {
+                (expensesByTask[task.id] || []).forEach(function (expense) {
+                    if (compensationFilters.status === 'all' || expense.approval.key === compensationFilters.status) {
+                        filteredExpenses.push({ task: task, expense: expense });
+                    }
+                });
+            });
+            var wageAmounts = {};
+            filteredTasks.forEach(function (task) {
+                wageAmounts[task.id] = approvedCompensationWage(task);
+            });
+            var wageTotalAmount = Object.keys(wageAmounts).reduce(function (sum, id) { return sum + wageAmounts[id]; }, 0);
+            var approvedMaterialTotal = filteredExpenses.reduce(function (sum, row) {
+                return sum + (row.expense.approval.key === 'approved' ? row.expense.amount : 0);
+            }, 0);
+            var waitingMaterialTotal = filteredExpenses.reduce(function (sum, row) {
+                return sum + (row.expense.approval.key === 'pending' ? row.expense.amount : 0);
+            }, 0);
+            var unapprovedCount = filteredExpenses.filter(function (row) { return row.expense.approval.key !== 'approved'; }).length;
+            var completedCount = filteredTasks.filter(profileTaskCompleted).length;
+            var taskRows = filteredTasks.filter(function (task) {
+                return wageAmounts[task.id] > 0 || (expensesByTask[task.id] || []).length > 0;
+            }).map(function (task) {
+                var expenses = filteredExpenses.filter(function (row) { return row.task.id === task.id; });
+                var approved = expenses.reduce(function (sum, row) {
+                    return sum + (row.expense.approval.key === 'approved' ? row.expense.amount : 0);
+                }, 0);
+                var amount = wageAmounts[task.id] + approved;
+                var status = expenses.some(function (row) { return row.expense.approval.key === 'rejected'; })
+                    ? { label: 'Có khoản bị từ chối', style: 'rejected' }
+                    : expenses.some(function (row) { return row.expense.approval.key === 'pending' || row.expense.approval.key === 'unknown'; })
+                        ? { label: 'Chờ xác nhận chi phí', style: 'waiting' }
+                        : { label: wageAmounts[task.id] > 0 || approved > 0 ? 'Đã ghi nhận' : 'Chưa ghi nhận', style: wageAmounts[task.id] > 0 || approved > 0 ? 'done' : 'waiting' };
+                return '<tr><td><button type="button" class="staff-task-open" data-open-task="' + escapeHtml(task.id) + '">' + escapeHtml(task.code || task.id) + '</button><div style="margin-top:4px;color:var(--muted);font-size:11px;">' + escapeHtml(task.title || 'Nhiệm vụ') + '</div></td>' +
+                    '<td>' + escapeHtml(compensationDate(task) ? dateLabel(compensationDate(task)) : 'Chưa xác định') + '</td>' +
+                    '<td>' + compensationMoney(wageAmounts[task.id]) + '</td><td>' + compensationMoney(approved) + '</td><td><strong>' + compensationMoney(amount) + '</strong></td>' +
+                    '<td><span class="staff-badge ' + status.style + '">' + escapeHtml(status.label) + '</span></td><td><button type="button" class="staff-task-open" data-open-task="' + escapeHtml(task.id) + '">Xem nhiệm vụ</button></td></tr>';
+            }).join('');
+            var expenseRows = filteredExpenses.map(function (row) {
+                var expense = row.expense;
+                return '<tr><td><strong>' + escapeHtml(expense.name) + '</strong></td><td>' + (expense.quantity == null ? '—' : expense.quantity.toLocaleString('vi-VN')) + '</td><td>' + (expense.unitPrice == null ? '—' : compensationMoney(expense.unitPrice)) + '</td><td><strong>' + compensationMoney(expense.amount) + '</strong></td>' +
+                    '<td><button type="button" class="staff-task-open" data-open-task="' + escapeHtml(row.task.id) + '">' + escapeHtml(row.task.code || row.task.id) + ' · ' + escapeHtml(row.task.title || 'Nhiệm vụ') + '</button></td>' +
+                    '<td><span class="staff-badge ' + expense.approval.style + '">' + escapeHtml(expense.approval.label) + '</span></td></tr>';
+            }).join('');
+            var monthValue = compensationFilters.month || '';
+            var taskFilterOptions = tasks.slice().sort(function (a, b) {
+                return String(a.code || a.id).localeCompare(String(b.code || b.id), 'vi');
+            }).map(function (task) {
+                return '<option value="' + escapeHtml((task.code || task.id) + ' · ' + (task.title || 'Nhiệm vụ')) + '"></option>';
+            }).join('');
+            staffContent.innerHTML = '<div class="staff-panel">' +
+                '<p class="staff-compensation-intro">' + (compensationUsesSampleData ? 'Tổng hợp công việc tháng 10/2026.' : 'Chỉ hiển thị nhiệm vụ được giao cho ' + escapeHtml(RH_SESSION.name || 'tài khoản đang đăng nhập') + '. Tiền công lấy từ hồ sơ do Quản lý lập; vật tư/chi phí chỉ được ghi nhận khi có phiếu chi gắn với nhiệm vụ và trạng thái duyệt rõ ràng.') + '</p>' +
+                '<div class="staff-compensation-toolbar"><input id="staffCompensationSearch" type="search" list="staffCompensationTasks" placeholder="Tìm kiếm hoặc chọn mã / tên nhiệm vụ..." aria-label="Tìm kiếm hoặc chọn mã, tên nhiệm vụ" value="' + escapeHtml(compensationFilters.search) + '">' +
+                '<datalist id="staffCompensationTasks">' + taskFilterOptions + '</datalist>' +
+                '<input id="staffCompensationMonth" type="month" aria-label="Lọc theo tháng" value="' + escapeHtml(monthValue) + '">' +
+                '<input id="staffCompensationFrom" type="date" aria-label="Từ ngày" value="' + escapeHtml(compensationFilters.from) + '">' +
+                '<input id="staffCompensationTo" type="date" aria-label="Đến ngày" value="' + escapeHtml(compensationFilters.to) + '">' +
+                '<select id="staffCompensationStatus" aria-label="Trạng thái duyệt chi phí"><option value="all">Mọi trạng thái chi phí</option>' +
+                [['approved', 'Đã duyệt'], ['pending', 'Đang chờ duyệt'], ['rejected', 'Bị từ chối'], ['unknown', 'Chưa có trạng thái duyệt']].map(function (option) {
+                    return '<option value="' + option[0] + '"' + (compensationFilters.status === option[0] ? ' selected' : '') + '>' + option[1] + '</option>';
+                }).join('') + '</select></div>' +
+                '<div class="staff-summary-grid"><div class="staff-summary-card"><span>Tổng tiền công hợp lệ</span><strong>' + compensationMoney(wageTotalAmount) + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Vật tư đã được duyệt</span><strong>' + compensationMoney(approvedMaterialTotal) + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Tổng chi phí được ghi nhận</span><strong>' + compensationMoney(wageTotalAmount + approvedMaterialTotal) + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Vật tư đang chờ duyệt</span><strong>' + compensationMoney(waitingMaterialTotal) + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Nhiệm vụ hoàn thành</span><strong>' + completedCount + '</strong></div>' +
+                '<div class="staff-summary-card"><span>Khoản chi chưa được duyệt</span><strong>' + unapprovedCount + '</strong></div></div>' +
+                '<h2 class="staff-compensation-section-title"><i class="fas fa-coins" aria-hidden="true"></i>Tiền công và chi phí theo nhiệm vụ</h2>' +
+                '<div class="staff-table-wrap"><table class="staff-table" style="min-width:920px;"><thead><tr><th>Mã / nhiệm vụ</th><th>Ngày thực hiện</th><th>Tiền công</th><th>Vật tư đã duyệt</th><th>Tổng được ghi nhận</th><th>Trạng thái chi phí</th><th>Thao tác</th></tr></thead><tbody>' +
+                (taskRows || '<tr><td colspan="7" class="staff-compensation-empty">Không có nhiệm vụ hoặc khoản chi phù hợp với bộ lọc.</td></tr>') + '</tbody></table></div>' +
+                '<h2 class="staff-compensation-section-title"><i class="fas fa-boxes-stacked" aria-hidden="true"></i>Vật tư / chi phí phát sinh</h2>' +
+                '<div class="staff-table-wrap"><table class="staff-table" style="min-width:900px;"><thead><tr><th>Tên vật tư / khoản chi</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th>Nhiệm vụ liên quan</th><th>Trạng thái duyệt</th></tr></thead><tbody>' +
+                (expenseRows || '<tr><td colspan="6" class="staff-compensation-empty">Chưa có khoản vật tư/chi phí gắn với nhiệm vụ trong dữ liệu hiện tại.</td></tr>') + '</tbody></table></div>' +
+                '<p class="staff-compensation-note">Chi phí đang chờ duyệt, bị từ chối hoặc chưa có trạng thái duyệt không được cộng vào tổng chi phí được ghi nhận. Bộ lọc tháng và khoảng ngày được áp dụng đồng thời.</p></div>';
+            staffContent.setAttribute('aria-busy', 'false');
+
+            [['staffCompensationSearch', 'search'], ['staffCompensationMonth', 'month'], ['staffCompensationFrom', 'from'], ['staffCompensationTo', 'to'], ['staffCompensationStatus', 'status']].forEach(function (pair) {
+                var input = document.getElementById(pair[0]);
+                if (!input) return;
+                input.addEventListener(pair[1] === 'search' ? 'input' : 'change', function () {
+                    var focused = document.activeElement && document.activeElement.id === pair[0];
+                    var caret = pair[1] === 'search' && focused ? input.selectionStart : null;
+                    compensationFilters[pair[1]] = input.value.trim();
+                    renderCompensationSummary();
+                    if (focused) {
+                        var restored = document.getElementById(pair[0]);
+                        restored.focus();
+                        if (caret != null) restored.setSelectionRange(caret, caret);
+                    }
+                });
+            });
+        }
+
         function renderWageHistory() {
             var completed = assignedTasks().filter(function (task) {
                 return task.staffTaskStatus === 'approved' || task.status === 'resolved' || task.status === 'closed';
@@ -1110,7 +1361,8 @@
         function openPage(page) {
             currentStaffPage = page;
             appearanceDraft = null;
-            document.getElementById('staffContentTitle').hidden = page === 'Cài đặt giao diện';
+            document.getElementById('staffContentTitle').hidden = page === 'Cài đặt giao diện' ||
+                page === 'Tổng hợp tiền công & chi phí' || page === 'Tổng hợp tiền công và chi phí';
             document.getElementById('staffPageTitle').textContent = page;
             document.querySelector('.topbar-caption').textContent = page === 'Hồ sơ cá nhân' ? 'ResidentHub · Cài đặt' : 'ResidentHub · Không gian Nhân viên';
             document.getElementById('staffContentTitle').textContent = page;
@@ -1188,6 +1440,9 @@
 
         function renderTaskDetail(progressOnly) {
             var request = assignedTasks().filter(function (task) { return task.id === selectedTaskId; })[0];
+            if (!request && compensationUsesSampleData) {
+                request = sampleCompensationData().tasks.filter(function (task) { return task.id === selectedTaskId; })[0];
+            }
             if (!request) {
                 staffContent.innerHTML = '<div class="staff-panel staff-empty">Chọn một nhiệm vụ trong danh sách để xem chi tiết và cập nhật tiến độ.<div class="staff-actions" style="justify-content:center;"><button class="staff-action-btn" data-staff-page="Danh sách nhiệm vụ">Mở danh sách nhiệm vụ</button></div></div>';
                 return;
@@ -1196,11 +1451,14 @@
             var status = taskStatus(request);
             var group = groupForTask(request);
             var groupInfo = RHD.SUPPORT_STAFF_GROUPS.filter(function (item) { return item.id === group; })[0];
+            var sampleTask = request.id.indexOf('sample-CV') === 0;
             var attachments = Array.isArray(request.attachmentFiles) ? request.attachmentFiles.filter(function (file) {
                 return file && /^data:image\/jpeg;base64,/i.test(file.dataUrl || '');
             }) : [];
             var actionMarkup = '';
-            if (progressOnly && status.label === 'Chờ tiếp nhận') {
+            if (sampleTask) {
+                actionMarkup = '';
+            } else if (progressOnly && status.label === 'Chờ tiếp nhận') {
                 actionMarkup = '<button class="staff-action-btn" data-task-action="start" data-task-id="' + escapeHtml(request.id) + '">Tiếp nhận và bắt đầu xử lý</button>';
             } else if (progressOnly && status.label === 'Đang xử lý') {
                 actionMarkup = '<label style="display:block;margin:14px 0 7px;font-weight:600;font-size:13px;">Báo cáo kết quả xử lý</label><textarea class="staff-report-input" id="staffCompletionNote" rows="4" placeholder="Mô tả công việc đã thực hiện"></textarea><button class="staff-action-btn" data-task-action="complete" data-task-id="' + escapeHtml(request.id) + '" style="margin-top:9px;">Báo hoàn thành, chờ Quản lý duyệt</button>';
@@ -1216,6 +1474,10 @@
             var taskWageCashflow = taskWage.cashflowId ? RHD.get('cashflows', taskWage.cashflowId) : null;
             var wageMarkup = (taskWage.baseAmount != null || taskWage.status) ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Tiền công đã được Quản lý duyệt · chỉ xem</small><div class="staff-detail-grid"><div><small>Tiền cơ bản</small><strong>' + (Number(taskWage.baseAmount) || 0).toLocaleString('vi-VN') + ' đ</strong></div><div><small>Tổng tiền công</small><strong>' + wageTotal(taskWage).toLocaleString('vi-VN') + ' đ</strong></div><div><small>Trạng thái</small><strong><span class="staff-badge ' + taskWageState.style + '">' + escapeHtml(taskWageState.label) + '</span></strong></div><div><small>Phiếu chi liên kết</small><strong>' + (taskWageCashflow ? escapeHtml(taskWageCashflow.code || taskWageCashflow.reference || 'Đã ghi nhận') + (Number(taskWageCashflow.amount) !== wageTotal(taskWage) ? ' · Chênh ' + (Number(taskWageCashflow.amount) - wageTotal(taskWage)).toLocaleString('vi-VN') + ' đ' : ' · Khớp số tiền') : (taskWage.status === 'paid' ? 'Không tìm thấy phiếu chi' : 'Chưa có')) + '</strong></div></div>' +
                 ((taskWage.adjustments || []).length ? '<details style="margin-top:8px;"><summary>Lịch sử điều chỉnh có lý do (' + taskWage.adjustments.length + ')</summary>' + taskWage.adjustments.map(function (item) { return '<p style="margin:6px 0;color:#475569;font-size:12px;">' + (Number(item.amount) > 0 ? '+' : '') + Number(item.amount).toLocaleString('vi-VN') + ' đ · ' + escapeHtml(item.reason || '—') + ' · ' + escapeHtml(item.by || 'Quản lý') + '</p>'; }).join('') + '</details>' : '') + '</div>' : '<div class="staff-detail-item" style="margin-top:12px;"><small>Tiền công</small><strong>Chưa được Quản lý lập hoặc duyệt.</strong></div>';
+            var sampleMaterialsMarkup = sampleTask && Array.isArray(request.sampleMaterials) ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Vật tư phát sinh</small><div class="staff-table-wrap"><table class="staff-table" style="min-width:560px;"><thead><tr><th>Vật tư</th><th>Số lượng</th><th>Đơn giá</th><th>Thành tiền</th><th>Duyệt</th></tr></thead><tbody>' + request.sampleMaterials.map(function (material) {
+                var approval = compensationApproval(material);
+                return '<tr><td>' + escapeHtml(material.materialName) + '</td><td>' + material.quantity.toLocaleString('vi-VN') + '</td><td>' + compensationMoney(material.unitPrice) + '</td><td><strong>' + compensationMoney(material.amount) + '</strong></td><td><span class="staff-badge ' + approval.style + '">' + escapeHtml(approval.label) + '</span></td></tr>';
+            }).join('') + '</tbody></table></div></div>' : '';
             staffContent.innerHTML = '<div class="staff-panel"><div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;flex-wrap:wrap;"><div><div style="color:#718096;font-size:12px;">' + escapeHtml(request.code || request.id) + '</div><h2 style="margin:5px 0 0;">' + escapeHtml(request.title || 'Yêu cầu hỗ trợ') + '</h2></div><span class="staff-badge ' + status.style + '">' + escapeHtml(status.label) + '</span></div>' +
                 '<div class="staff-detail-grid"><div class="staff-detail-item"><small>Nhóm chuyên môn</small><strong>' + escapeHtml(group ? staffGroupLabels[group] : 'Chưa phân nhóm') + (groupInfo ? '<br><span style="font-size:12px;font-weight:400;color:#61708a;">' + escapeHtml(groupInfo.description) + '</span>' : '') + '</strong></div>' +
                 '<div class="staff-detail-item"><small>Loại yêu cầu / mức độ</small><strong>' + escapeHtml(request.category || 'Khác') + ' · ' + escapeHtml(((RHD.SUPPORT_PRIORITIES || []).filter(function (item) { return item.id === request.priority; })[0] || {}).label || 'Bình thường') + '</strong></div>' +
@@ -1227,6 +1489,7 @@
                 (request.requiresStaffInformation ? '<div class="staff-detail-item" style="margin-top:12px;border:1px solid #f0d48a;background:#fff8e6;color:#8a5a00;"><strong><i class="fas fa-circle-info" aria-hidden="true"></i> Quản lý yêu cầu bổ sung thông tin</strong><div class="staff-description">' + escapeHtml(request.staffManagerNote || 'Vui lòng liên hệ Quản lý để xác nhận nội dung cần bổ sung.') + '</div></div>' : '') +
                 (request.staffManagerNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Ghi chú từ Quản lý</small><div class="staff-description">' + escapeHtml(request.staffManagerNote) + '</div></div>' : '') +
                 (request.staffCompletionNote ? '<div class="staff-detail-item" style="margin-top:12px;"><small>Báo cáo kết quả của bạn</small><div class="staff-description">' + escapeHtml(request.staffCompletionNote) + '</div></div>' : '') +
+                sampleMaterialsMarkup +
                 wageMarkup +
                 (attachments.length ? '<div class="staff-attachments">' + attachments.map(function (file, index) { return '<a href="' + escapeHtml(file.dataUrl) + '" target="_blank" rel="noopener"><img src="' + escapeHtml(file.dataUrl) + '" alt="Ảnh yêu cầu ' + (index + 1) + '"></a>'; }).join('') + '</div>' : '') +
                 '<div class="staff-linked-request"><span>Mã hồ sơ liên kết: ' + escapeHtml(request.code || request.id) + '</span><span>Cư dân: Yêu cầu hỗ trợ</span><span>Quản lý: Hồ sơ yêu cầu</span></div>' +
@@ -1238,7 +1501,8 @@
             else if (currentStaffPage === 'Danh sách nhiệm vụ') renderTaskList();
             else if (currentStaffPage === 'Chi tiết nhiệm vụ') renderTaskDetail(false);
             else if (currentStaffPage === 'Cập nhật tiến độ') renderTaskDetail(true);
-            else if (currentStaffPage === 'Lịch sử tiền công' || currentStaffPage === 'Theo dõi trạng thái tiền công' || currentStaffPage === 'Tổng hợp tiền công và chi phí') renderWageHistory();
+            else if (currentStaffPage === 'Tổng hợp tiền công & chi phí' || currentStaffPage === 'Tổng hợp tiền công và chi phí') renderCompensationSummary();
+            else if (currentStaffPage === 'Lịch sử tiền công' || currentStaffPage === 'Theo dõi trạng thái tiền công') renderWageHistory();
             else if (currentStaffPage === 'Hồ sơ cá nhân') renderProfile();
             else if (currentStaffPage === 'Cài đặt giao diện') renderAppearanceSettings();
             else if (currentStaffPage === 'Cài đặt thông báo') renderNotificationSettings();
