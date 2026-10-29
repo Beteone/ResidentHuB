@@ -3,6 +3,7 @@ import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 
 const local = new Map();
+local.set('residenthub_users', JSON.stringify([{ id: 'consistency-admin', email: 'consistency@example.test', name: 'Fixture administrator', password: 'fixture-only-password', role: 'manager', status: 'active' }]));
 const session = new Map();
 const storage = (map) => ({
     getItem: (key) => map.get(key) ?? null,
@@ -28,6 +29,8 @@ const context = vm.createContext({
     alert() {}
 });
 context.window = context;
+// Explicit standard-role fixture for this existing-account integration test.
+vm.runInContext(readFileSync('permissions.js', 'utf8'), context);
 for (const file of ['auth.js', 'permissions.js', 'data.js', 'billing.js']) {
     vm.runInContext(readFileSync(file, 'utf8'), context, { filename: file });
 }

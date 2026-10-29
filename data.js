@@ -901,6 +901,11 @@
     // ---- demo seed -----------------------------------------------------------
 
     function seedDataset(targetMode) {
+        // Sample records belong only to a completely new demo workspace.
+        // An empty buildings list does not mean the other collections are empty.
+        if (targetMode !== 'demo' || ENTITIES.some(function (entity) {
+            return localStorage.getItem('residenthub_demo_' + entity) !== null;
+        })) return;
         var prevMode = global.RHD_MODE;
         global.RHD_MODE = targetMode;
         try {
@@ -998,7 +1003,7 @@
         // visitor always sees a complete sample system on first visit, and anything
         // they add afterwards persists alongside it instead of being wiped.
         // DEMO_LIMITS is sized with headroom above the seed so "Thêm" stays usable.
-        seedDataset(global.RHD_MODE);
+        if (global.RHD_MODE === 'demo') seedDataset('demo');
     }
 
     function resetDemo() {
