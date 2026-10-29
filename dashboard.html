@@ -2902,7 +2902,7 @@
                 </div>
                 <div class="db-toolbar-actions">
                     <select id="dashBuildingFilter" aria-label="Chọn tòa nhà" onchange="RHUI.renderDashboardCounts()"><option value="">Tất cả tòa nhà</option></select>
-                    <button type="button" class="btn-primary db-add" onclick="switchTab('buildings'); RHUI.openBuildingForm();"><i class="fas fa-plus"></i> Tòa nhà</button>
+                    <button type="button" class="btn-primary db-add" data-perm="buildings.create" onclick="switchTab('buildings'); RHUI.openBuildingForm();"><i class="fas fa-plus"></i> Tòa nhà</button>
                 </div>
             </div>
 
@@ -5616,7 +5616,7 @@
         window.addEventListener('storage', function (event) {
             if (!event.key) return refreshFromStorage();
             const prefix = 'residenthub_' + RHD.mode() + '_';
-            if (event.key.indexOf(prefix) === 0 || event.key === 'residenthub_account_requests' || event.key === 'residenthub_users') refreshFromStorage();
+            if (event.key.indexOf(prefix) === 0 || event.key === 'residenthub_account_requests' || event.key === 'residenthub_users' || event.key === 'residenthub_account_types') refreshFromStorage();
         });
 
         // Initialize on load
