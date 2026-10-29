@@ -73,3 +73,49 @@ assert.equal(a.c.RHP.diagnoseBuildingCreate().sessionValid,false);
 assert.equal(JSON.stringify([[...a.store],[...a.session]]),lockedSnapshot);
 assert.equal(a.c.RHP.can('buildings.create'),false);assert.equal(a.c.RHP.guard('buildings.create'),false);
 console.log('PASS clean stores, restricted roles, read-only diagnostics, locked session, no client privilege restoration, data preservation.');
+
+// Explicit compatibility recovery only for the exact, active demo with no type.
+const standardTypes=a.store.get('residenthub_account_types');
+const backupKey='residenthub_demo_admin_link_recovery_v2';
+for(const missing of [undefined,null,'','  ']) {
+ const demo={...legacy,accountTypeId:missing};
+ const others=[ordinary,{...resident,id:'other-resident'}];
+ const e=environment({residenthub_users:JSON.stringify([demo,...others]),residenthub_account_types:standardTypes,residenthub_live_buildings:initial.residenthub_live_buildings});
+ const before=e.store.get('residenthub_users');assert.equal(e.prompts(),0);
+ assert.equal(e.c.RHP.migrateDemoAdmin().reason,'demo-login-required');
+ e.session.set('residenthub_session',JSON.stringify({id:legacy.id,credentialVersion:0}));
+ assert.equal(e.c.RHP.diagnoseBuildingCreate().buildingsCreate,false);
+ e.c.prompt=()=>null;assert.equal(e.c.RHP.migrateDemoAdmin().reason,'canceled');
+ e.c.prompt=()=> 'KHOI PHUC ADMIN DEMO';e.c.confirm=()=>false;
+ assert.equal(e.c.RHP.migrateDemoAdmin().reason,'canceled');assert.equal(e.store.get('residenthub_users'),before);
+ e.c.confirm=()=>true;assert.equal(e.c.RHP.migrateDemoAdmin().ok,true);
+ assert.equal(e.store.get('residenthub_account_types'),standardTypes);
+ assert.equal(e.store.get('residenthub_live_buildings'),initial.residenthub_live_buildings);
+ assert.equal(JSON.parse(e.store.get(backupKey)).usersRaw,before);
+ const after=e.users();assert.equal(after[0].accountTypeId,'at-admin');
+ for(const [key,value] of Object.entries(demo))if(key!=='accountTypeId')assert.deepEqual(after[0][key],value);
+ assert.deepEqual(after.slice(1),others);
+ assert.equal(e.c.RHP.can('buildings.create'),true);assert.equal(e.c.RHP.guard('buildings.create'),true);
+ const snapshot=JSON.stringify([...e.store]);assert.equal(e.c.RHP.migrateDemoAdmin().ok,false);e.reload();assert.equal(JSON.stringify([...e.store]),snapshot);
+ // Removing the link later must not permit repeated recovery after revocation.
+ after[0].accountTypeId='';e.store.set('residenthub_users',JSON.stringify(after));
+ assert.equal(e.c.RHP.migrateDemoAdmin().reason,'already-recorded');
+}
+function recoverable(patch={},typeRaw=standardTypes,host='localhost') {
+ const e=environment({residenthub_users:JSON.stringify([{...legacy,accountTypeId:'',...patch}]),residenthub_account_types:typeRaw},host);
+ if(host==='localhost')e.session.set('residenthub_session',JSON.stringify({id:legacy.id,credentialVersion:0}));e.c.prompt=()=> 'KHOI PHUC ADMIN DEMO';return e;
+}
+for(const status of ['locked','inactive'])assert.equal(recoverable({status}).c.RHP.migrateDemoAdmin().reason,'inactive-account');
+assert.equal(recoverable({},JSON.stringify([restricted])).c.RHP.migrateDemoAdmin().reason,'admin-type-conflict');
+assert.equal(recoverable({},JSON.stringify([])).c.RHP.migrateDemoAdmin().reason,'admin-type-conflict');
+assert.equal(recoverable({},standardTypes,'example.com').c.RHP.migrateDemoAdmin().ok,false);
+for(const accountTypeId of ['at-building-manager','at-admin','unknown',0,false,{}])assert.equal(recoverable({accountTypeId}).c.RHP.migrateDemoAdmin().ok,false);
+const raced=recoverable();raced.c.confirm=()=>{raced.store.set('residenthub_users',raced.store.get('residenthub_users')+' ');return true;};
+assert.equal(raced.c.RHP.migrateDemoAdmin().reason,'store-changed');assert.equal(raced.store.has(backupKey),false);
+const quota=recoverable();const quotaBefore=quota.store.get('residenthub_users');quota.c.localStorage.setItem=()=>{throw Error('quota');};
+assert.equal(quota.c.RHP.migrateDemoAdmin().reason,'storage-write-failed');assert.equal(quota.store.get('residenthub_users'),quotaBefore);
+const partial=recoverable();const partialBefore=partial.store.get('residenthub_users');const set=partial.c.localStorage.setItem;
+partial.c.localStorage.setItem=(key,value)=>{if(key==='residenthub_users')throw Error('quota');set(key,value);};
+assert.equal(partial.c.RHP.migrateDemoAdmin().reason,'storage-write-failed');assert.equal(partial.store.get('residenthub_users'),partialBefore);
+assert.equal(partial.c.RHP.migrateDemoAdmin().reason,'already-recorded');
+console.log('PASS explicit missing-link recovery, cancellation, revocation, restricted/missing Admin, scope/password/status preservation, race and write failures.');

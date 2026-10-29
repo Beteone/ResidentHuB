@@ -356,6 +356,7 @@
     }
 
     var DEMO_MIGRATION_KEY = 'residenthub_demo_admin_migration_v1';
+    var DEMO_LINK_RECOVERY_KEY = 'residenthub_demo_admin_link_recovery_v2';
 
     function demoAdminState() {
         if (!global.RH || !global.RH.isLocalDemoEnvironment || !global.RH.isLocalDemoEnvironment()) return { status: 'disabled' };
@@ -380,14 +381,45 @@
         var state = demoAdminState();
         return { status: state.status, accountTypeId: state.user ? state.user.accountTypeId || '' : null,
             accountStatus: state.user ? state.user.status || 'active' : null,
-            migrationRecorded: localStorage.getItem(DEMO_MIGRATION_KEY) !== null,
+            migrationRecorded: localStorage.getItem(DEMO_MIGRATION_KEY) !== null || localStorage.getItem(DEMO_LINK_RECOVERY_KEY) !== null,
             message: state.status === 'permission-conflict' ? 'Quyền Admin demo khác cấu hình chuẩn. Không thể suy ra đây là lỗi hay thu hồi có chủ đích; không tự thay đổi.' : '' };
     }
 
-    // Client-held credentials cannot authorize restoring a revoked grant.
-    // Keep the old entry point fail-closed for earlier callers.
+    // Explicit local-demo compatibility repair, never called at startup.
+    // An assigned/restricted type is ambiguous and must not be replaced.
     function migrateDemoAdmin() {
-        return { ok: false, reason: 'requires-trusted-reprovisioning' };
+        var state = demoAdminState();
+        if (state.status !== 'permission-conflict' || !state.user ||
+            (state.user.accountTypeId != null && (typeof state.user.accountTypeId !== 'string' || state.user.accountTypeId.trim()))) {
+            return { ok: false, reason: 'requires-trusted-reprovisioning' };
+        }
+        var admins = state.types.filter(function (t) { return t && t.id === ADMIN_TYPE_ID; });
+        if (admins.length !== 1 || admins[0].portal !== 'manager' || admins[0].fullAccess !== true) {
+            return { ok: false, reason: 'admin-type-conflict' };
+        }
+        if (state.user.status !== 'active') return { ok: false, reason: 'inactive-account' };
+        // getSession() reads/normalizes all users in some versions; use the
+        // read-only snapshot so recovery changes only the one missing link.
+        var session = diagnoseBuildingCreate();
+        if (!session.sessionValid || !session.account || session.account.id !== state.user.id || session.sessionSource === 'demo-preview') return { ok: false, reason: 'demo-login-required' };
+        var backupKey = DEMO_LINK_RECOVERY_KEY;
+        if (localStorage.getItem(DEMO_MIGRATION_KEY) !== null || localStorage.getItem(backupKey) !== null) return { ok: false, reason: 'already-recorded' };
+        if (typeof global.prompt !== 'function' || typeof global.confirm !== 'function') return { ok: false, reason: 'confirmation-unavailable' };
+        if (global.prompt('CHỈ DEMO: thiếu loại có thể là thu hồi quyền có chủ đích. Chỉ người phụ trách xác nhận đây là dữ liệu cũ cần khôi phục mới tiếp tục. Đóng các tab ResidentHub khác. Nhập KHOI PHUC ADMIN DEMO để cho phép liên kết u-manager-1 với at-admin:') !== 'KHOI PHUC ADMIN DEMO') return { ok: false, reason: 'canceled' };
+        if (!global.confirm('Xác nhận cấp lại quyền Admin demo cho u-manager-1 / manager@residenthub.vn đang thiếu loại. Chỉ đổi accountTypeId thành at-admin; giữ nguyên mật khẩu, trạng thái, loại quyền và nghiệp vụ. Lưu bản sao users trước khi ghi; bản sao chứa dữ liệu nhạy cảm, không chia sẻ.')) return { ok: false, reason: 'canceled' };
+        var liveSession = diagnoseBuildingCreate();
+        if (!liveSession.sessionValid || !liveSession.account || liveSession.account.id !== state.user.id || liveSession.sessionSource === 'demo-preview') return { ok: false, reason: 'session-changed' };
+        if (localStorage.getItem('residenthub_users') !== state.usersRaw || localStorage.getItem(TYPES_KEY) !== state.typesRaw || localStorage.getItem(DEMO_MIGRATION_KEY) !== null || localStorage.getItem(backupKey) !== null) return { ok: false, reason: 'store-changed' };
+        try {
+            localStorage.setItem(backupKey, JSON.stringify({ version: 2, createdAt: Date.now(), usersRaw: state.usersRaw, accountId: state.user.id, toTypeId: ADMIN_TYPE_ID }));
+            localStorage.setItem('residenthub_users', JSON.stringify(state.users.map(function (u) {
+                return u === state.user ? Object.assign({}, u, { accountTypeId: ADMIN_TYPE_ID }) : u;
+            })));
+            cache.key = null;
+            return { ok: true, accountTypeId: ADMIN_TYPE_ID, backupKey: backupKey, reloadRequired: true };
+        } catch (e) {
+            return { ok: false, reason: 'storage-write-failed', backupKey: backupKey };
+        }
     }
 
     // Read-only: current policy decisions, not claims that an action ran.
@@ -414,10 +446,10 @@
         var allowed = !!(sessionValid && type && type.portal === 'manager' && (type.fullAccess || (type.permissions || []).indexOf('buildings.create') !== -1));
         var button = global.document && global.document.querySelector('.db-add');
         return {
-            version: 'building-permissions-2026-10-30-v2',
+            version: 'building-permissions-2026-10-30-v3',
             origin: global.location && global.location.origin || null,
             sessionValid: sessionValid, sessionSource: sessionSource,
-            initialization: 'empty-local-demo-only; existing grants preserved; no privilege migration',
+            initialization: 'empty-local-demo-only; missing demo link requires explicit owner confirmation',
             account: user ? { id: user.id, role: user.role, status: user.status || null, accountTypeId: user.accountTypeId || '' } : null,
             resolvedType: type ? { id: type.id, portal: type.portal, fullAccess: type.fullAccess === true,
                 buildingsCreate: (type.permissions || []).indexOf('buildings.create') !== -1 } : null,

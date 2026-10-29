@@ -63,15 +63,48 @@ try {
             if (await evaluate(`!window.__navigationPending && location.pathname === ${JSON.stringify(path.split(/[?#]/)[0])} && document.readyState === "complete" && !!window.RHD`)) return;
             await new Promise(r => setTimeout(r, 50));
         }
-        throw Error('Load timeout');
+        throw Error('Load timeout: '+JSON.stringify(await evaluate('({path:location.pathname,ready:document.readyState,hasData:!!window.RHD})'))+' '+JSON.stringify(errors));
     };
     await send('Page.enable');
     await send('Runtime.enable');
     await send('Page.addScriptToEvaluateOnNewDocument', { source: 'window.__alerts=[];window.alert=message=>window.__alerts.push(message);window.confirm=()=>true;' });
     await send('Page.addScriptToEvaluateOnNewDocument', { source: 'window.prompt=()=>{sessionStorage.setItem("fixture-prompt-count",String(Number(sessionStorage.getItem("fixture-prompt-count")||0)+1));return "browser-fixture-password";};' });
+    const legacyProfile = process.env.RH_TEST_LEGACY === '1';
+    if (legacyProfile) {
+        const fixture = {
+            residenthub_users: JSON.stringify([
+                {id:'u-manager-1',email:'manager@residenthub.vn',name:'Legacy demo',password:'browser-fixture-password',role:'manager',status:'active',buildingIds:['keep-building']},
+                {id:'keep-staff',email:'keep-staff@example.test',password:'fixture-staff',role:'staff',status:'active',accountTypeId:'at-staff'},
+                {id:'keep-resident',email:'keep-resident@example.test',password:'fixture-resident',role:'resident',status:'active',accountTypeId:'at-resident'}
+            ]),
+            residenthub_account_types: JSON.stringify([
+                {id:'at-admin',portal:'manager',fullAccess:true,permissions:[]},
+                {id:'at-building-manager',portal:'manager',permissions:['dashboard.view','buildings.view','buildings.update']},
+                {id:'at-staff',portal:'manager',permissions:['dashboard.view','staffTasks.view']},
+                {id:'at-resident',portal:'resident',permissions:[]}
+            ]),
+            residenthub_live_buildings: JSON.stringify([{id:'keep-building',name:'Existing building',active:true}]),
+            residenthub_live_customers: JSON.stringify([{id:'keep-customer',fullName:'Existing customer'}])
+        };
+        await send('Page.addScriptToEvaluateOnNewDocument', {source:`if(!localStorage.getItem('residenthub_users'))Object.entries(${JSON.stringify(fixture)}).forEach(([k,v])=>localStorage.setItem(k,v));`});
+    }
     await navigate('/index.html');
     assert.equal(await evaluate('RH.authenticateDetailed("manager@residenthub.vn","browser-fixture-password").ok'), true);
     await evaluate('RH.login(RH.authenticateDetailed("manager@residenthub.vn","browser-fixture-password").user,false)');
+    if (legacyProfile) {
+        assert.equal(await evaluate('RHP.can("buildings.create")'),false);
+        const before = await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types"),localStorage.getItem("residenthub_live_buildings"),localStorage.getItem("residenthub_live_customers")])');
+        await evaluate('window.prompt=()=>"KHOI PHUC ADMIN DEMO";window.confirm=()=>false');
+        assert.equal(await evaluate('RHP.migrateDemoAdmin().reason'),'canceled');
+        assert.equal(await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types"),localStorage.getItem("residenthub_live_buildings"),localStorage.getItem("residenthub_live_customers")])'),before);
+        await evaluate('window.confirm=()=>true');
+        assert.equal(await evaluate('RHP.migrateDemoAdmin().ok'),true);
+        const after = await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types"),localStorage.getItem("residenthub_live_buildings"),localStorage.getItem("residenthub_live_customers")])');
+        const oldStores=JSON.parse(before),newStores=JSON.parse(after);
+        assert.deepEqual(newStores.slice(1),oldStores.slice(1));
+        const oldUsers=JSON.parse(oldStores[0]),newUsers=JSON.parse(newStores[0]);
+        assert.deepEqual(newUsers,oldUsers.map(u=>u.id==='u-manager-1'?{...u,accountTypeId:'at-admin'}:u));
+    }
     await navigate('/dashboard.html');
     assert.equal(await evaluate('RHP.isAdmin()'),true);
     assert.equal(await evaluate('RHP.allKeys().every(k=>RHP.can(k))'),true);
@@ -83,12 +116,14 @@ try {
     assert.equal(await evaluate('document.querySelector("#rhDrawerOverlay.show #bfName")!==null'),true);
     await evaluate(`document.getElementById('bfName').value='Bootstrap Test';document.getElementById('bfShort').value='BOOT';document.getElementById('bfProvince').value='Hà Nội';document.getElementById('bfWard').value='Test';document.getElementById('bfAddress').value='Fixture';RHUI.submitBuildingForm({preventDefault(){}})`);
     assert.equal(await evaluate('RHD.list("buildings").some(b=>b.name==="Bootstrap Test")'),true,'Real save handler allows Admin');
+    const buildingCount = await evaluate('RHD.list("buildings").length');
+    if (legacyProfile) assert.equal(await evaluate('RHD.list("buildings").some(b=>b.id==="keep-building")'),true);
     // A role edit from another tab must refresh both static and module buttons.
-    await evaluate('window.__typesBefore=localStorage.getItem("residenthub_account_types");const types=JSON.parse(__typesBefore);types.find(t=>t.id==="at-admin").fullAccess=false;localStorage.setItem("residenthub_account_types",JSON.stringify(types));dispatchEvent(new StorageEvent("storage",{key:"residenthub_account_types"}))');
+    await evaluate('window.__typesBefore=localStorage.getItem("residenthub_account_types");const types=JSON.parse(__typesBefore);const admin=types.find(t=>t.id==="at-admin");admin.fullAccess=false;admin.permissions=["dashboard.view","buildings.view"];localStorage.setItem("residenthub_account_types",JSON.stringify(types));dispatchEvent(new StorageEvent("storage",{key:"residenthub_account_types"}))');
     assert.equal(await evaluate('getComputedStyle(document.querySelector(".db-add")).display'),'none');
-    assert.equal(await evaluate('Array.from(document.querySelectorAll("#buildings-tab button")).some(b=>b.textContent.includes("Th?m t?a nh?"))'),false);
+    assert.equal(await evaluate('Array.from(document.querySelectorAll("#buildings-tab button")).some(b=>b.getAttribute("onclick")==="RHUI.openBuildingForm()")'),false);
     await evaluate('RHUI.openBuildingForm();RHUI.submitBuildingForm({preventDefault(){}})');
-    assert.equal(await evaluate('RHD.list("buildings").length'),1);
+    assert.equal(await evaluate('RHD.list("buildings").length'),buildingCount);
     await evaluate('localStorage.setItem("residenthub_account_types",__typesBefore);dispatchEvent(new StorageEvent("storage",{key:"residenthub_account_types"}))');
     assert.equal(await evaluate('getComputedStyle(document.querySelector(".db-add")).display!=="none"'),true);
     await evaluate(`window.__saved=localStorage.getItem('residenthub_live_buildings');const users=RH.getUsers();users.push({...users.find(u=>u.id==='u-manager-1'),id:'ordinary',email:'ordinary@example.test',accountTypeId:'at-building-manager',allBuildings:false,buildingIds:[]});localStorage.setItem('residenthub_users',JSON.stringify(users));RH.login(RH.getUsers().find(u=>u.id==='ordinary'),false)`);
@@ -100,12 +135,12 @@ try {
     await evaluate('RHUI.openBuildingForm()');
     assert.equal(await evaluate('!!document.querySelector("#rhDrawerOverlay.show")'),false);
     await evaluate('RHUI.submitBuildingForm({preventDefault(){}})');
-    assert.equal(await evaluate('RHD.list("buildings").length'),1,'Denied save cannot change buildings');
+    assert.equal(await evaluate('RHD.list("buildings").length'),buildingCount,'Denied save cannot change buildings');
     assert.equal(await evaluate('window.__alerts.some(s=>s.includes("Thêm · Tòa nhà"))'),true);
     await evaluate('RH.login(RH.getUsers().find(u=>u.id==="u-manager-1"),false);const locked=RH.getUsers();locked.find(u=>u.id==="u-manager-1").status="locked";localStorage.setItem("residenthub_users",JSON.stringify(locked));RHUI.openBuildingForm();RHUI.submitBuildingForm({preventDefault(){}})');
     assert.equal(await evaluate('RH.getSession()'),null);
     assert.equal(await evaluate('RHP.can("buildings.create")'),false);
-    assert.equal(await evaluate('RHD.list("buildings").length'),1);
+    assert.equal(await evaluate('RHD.list("buildings").length'),buildingCount);
     await evaluate('const unlocked=RH.getUsers();unlocked.find(u=>u.id==="u-manager-1").status="active";localStorage.setItem("residenthub_users",JSON.stringify(unlocked))');
     const businessBefore = await evaluate('localStorage.getItem("residenthub_live_buildings")');
     await evaluate(`const users=JSON.parse(localStorage.getItem('residenthub_users'));const admin=users.find(u=>u.id==='u-manager-1');admin.accountTypeId='';admin.password='changed-fixture-password';localStorage.setItem('residenthub_users',JSON.stringify(users));RH.logout()`);
@@ -113,15 +148,28 @@ try {
     assert.equal(await evaluate('RH.findUserByEmail("manager@residenthub.vn").accountTypeId'),'');
     assert.equal(await evaluate('RHP.inspectDemoAdmin().status'),'permission-conflict');
     assert.equal(await evaluate('RH.authenticateDetailed("manager@residenthub.vn","changed-fixture-password").ok'),true);
-    assert.equal(await evaluate('sessionStorage.getItem("fixture-prompt-count")'),'1','Old environments never bootstrap automatically');
+    assert.equal(await evaluate('sessionStorage.getItem("fixture-prompt-count")'),legacyProfile?null:'1','Old environments never bootstrap automatically');
     assert.equal(await evaluate('localStorage.getItem("residenthub_live_buildings")'),businessBefore);
     assert.equal(await evaluate('localStorage.getItem("residenthub_demo_admin_migration_v1")'),null);
     const grantsBefore = await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types")])');
-    assert.equal(await evaluate('RHP.migrateDemoAdmin().reason'),'requires-trusted-reprovisioning');
+    assert.equal(await evaluate('RHP.migrateDemoAdmin().reason'),'demo-login-required');
     assert.equal(await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types")])'),grantsBefore);
     assert.equal(await evaluate('localStorage.getItem("residenthub_live_buildings")'),businessBefore);
+    await evaluate('RH.login(RH.authenticateDetailed("manager@residenthub.vn","changed-fixture-password").user,false);window.prompt=()=>"KHOI PHUC ADMIN DEMO"');
+    if (legacyProfile) {
+        assert.equal(await evaluate('RHP.migrateDemoAdmin().reason'),'already-recorded');
+        assert.equal(await evaluate('RHP.can("buildings.create")'),false);
+    } else {
+        assert.equal(await evaluate('RHP.migrateDemoAdmin().ok'),true);
+        assert.equal(await evaluate('localStorage.getItem("residenthub_live_buildings")'),businessBefore);
+        await navigate('/dashboard.html');
+        await evaluate('switchTab("buildings");RHUI.openBuildingForm()');
+        assert.equal(await evaluate('document.querySelector("#rhDrawerOverlay.show #bfName")!==null'),true);
+        await evaluate(`document.getElementById('bfName').value='Recovered Test';document.getElementById('bfShort').value='REC';document.getElementById('bfProvince').value='Test';document.getElementById('bfWard').value='Test';document.getElementById('bfAddress').value='Fixture';RHUI.submitBuildingForm({preventDefault(){}})`);
+        assert.equal(await evaluate('RHD.list("buildings").some(b=>b.name==="Recovered Test")'),true);
+    }
     assert.equal(errors.length,0,JSON.stringify(errors));
     assert.equal(pageLogs.length,0,JSON.stringify(pageLogs));
     console.log('PASS browser profile:', artifactDir, 'Admin permission signature:', signature);
-    console.log('PASS clean bootstrap/login/button/form/save; old conflict preserved; client privilege restoration disabled; ordinary manager denied; business data preserved.');
+    console.log('PASS',legacyProfile?'legacy-first':'clean-first','profile; explicit missing-link recovery/button/form/save; revocation respected; ordinary/locked denied; business data preserved.');
 } finally {ws?.close();browser.kill();server.closeAllConnections();server.close();}
