@@ -19,6 +19,19 @@ npm run dev        # build lại tự động khi sửa file trong src/
 
 ## Phân quyền (Loại tài khoản)
 
+### Admin demo cục bộ
+
+- Chạy static server tại `localhost`, `127.0.0.1` hoặc `[::1]` rồi mở `index.html`. Live Server của repo dùng port 5501; `npm run dev` chỉ build/watch bundle.
+- Trên kho demo mới, nhập mật khẩu chung do nhóm tự thống nhất (ít nhất 12 ký tự) một lần. Mật khẩu không được đưa vào source hoặc Git. Đăng nhập bằng `manager@residenthub.vn` (ID cố định `u-manager-1`). Hủy hoặc mật khẩu quá ngắn sẽ bỏ qua; có thể tải lại để thử lại.
+- Bootstrap chỉ tạo `u-manager-1` / `manager@residenthub.vn` khi chưa có tài khoản và dữ liệu nghiệp vụ; không tự tạo tài khoản mẫu vào kho người dùng cũ. `index.html` nạp `permissions.js` để tạo bộ quyền chuẩn trước khi chuyển trang. Cùng code, hai kho sạch có cùng quyền Admin qua `fullAccess` và registry hiện có.
+- Tài khoản và loại quyền cũ được giữ nguyên; không tự đổi `accountTypeId`, khôi phục `fullAccess` hoặc cập nhật quyền nhân viên cũ. Cư dân/nhân viên demo đã tồn tại được giữ nguyên, kể cả mật khẩu và trạng thái khóa. Cấu hình khác chuẩn có thể là thu hồi có chủ đích; không tự suy đoán.
+- Sau cập nhật, giữ nguyên hostname/port và profile, tải lại trang rồi dùng mật khẩu cũ. Không xóa storage. Chạy `RHP.inspectDemoAdmin()` trong Console: `ready` nghĩa là loại đang liên kết có toàn quyền; `permission-conflict` nghĩa là cần đối chiếu; `identity-conflict` / `invalid-store` nghĩa là phải dừng để kiểm tra. Hàm chỉ đọc và không trả mật khẩu.
+- Nếu người phụ trách xác nhận cần chuyển tài khoản demo cũ: đóng các tab ResidentHub khác, chạy `RHP.migrateDemoAdmin()` trên loopback, nhập mật khẩu hiện tại và đọc/xác nhận hộp mô tả thay đổi. Tài khoản khóa, danh tính trùng, môi trường ngoài loopback hoặc xung đột đích đều bị từ chối. Không chạy tự động khi mở trang/đăng nhập.
+- Migration một lần tạo loại riêng `at-demo-admin-v1-u-manager-1` với `fullAccess` và chỉ đổi liên kết của đúng tài khoản demo. Không sửa loại `at-admin` cũ hoặc những tài khoản khác dùng nó. Snapshot nguyên users/types được lưu trước khi ghi tại `residenthub_demo_admin_migration_v1`; snapshot chứa thông tin nhạy cảm như kho gốc, không chia sẻ/commit. Thu hồi quyền sau migration được giữ nguyên.
+- Nếu ghi lỗi, trạng thái migration có thể là `pending`: dừng và đối chiếu snapshot, không xóa marker để chạy lại. localStorage không có transaction/khóa liên tab; kiểm tra snapshot trước khi ghi chưa bảo đảm transaction giữa nhiều tab. Không đồng thời chỉnh tài khoản/quyền khi migration.
+- Bootstrap/migration chỉ dành cho demo loopback qua HTTP/HTTPS; không bật bằng cờ localStorage hoặc URL trên domain production. Loopback không chứng minh mục đích triển khai. Kiến trúc client-side không ngăn người có quyền sửa JavaScript/localStorage tự thay dữ liệu; production cần kiểm tra quyền phía server ở bước riêng.
+- Live không tự seed dữ liệu mẫu. Demo chỉ seed khi chưa tồn tại bất kỳ tập dữ liệu nghiệp vụ nào; không xóa storage để cập nhật phiên bản. Dữ liệu và mật khẩu hiện có vẫn riêng theo origin/profile/thiết bị, chưa đồng bộ giữa máy.
+
 - `permissions.js` (`RHP`) là nơi **duy nhất** khai báo quyền: `PERMISSION_SCHEMA` = danh sách module + `actions` (view/create/update/delete) + `extra` (quyền nghiệp vụ). Ma trận trong *Tài khoản › Loại tài khoản* tự render từ đây.
 - Thêm module mới: thêm 1 mục vào `PERMISSION_SCHEMA`, rồi dùng `RHP.can('module.action')` để ẩn nút và `RHP.guard('module.action')` ở đầu mỗi hàm ghi dữ liệu. Admin (`fullAccess`) tự có quyền mới.
 - Phạm vi dữ liệu: người dùng có `allBuildings` hoặc chỉ các `buildingIds` + tòa mà họ là `managerId`. Lọc danh sách bằng `RHP.scopeList(entity, items)`.

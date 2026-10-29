@@ -17,6 +17,15 @@
     var MAX_LOGIN_ATTEMPTS = 5;
     var LOCKOUT_MS = 5 * 60 * 1000;
     var ROLES = { MANAGER: 'manager', RESIDENT: 'resident', STAFF: 'staff' };
+    // This bootstrap is for the repository's local demo only. Neither storage,
+    // query parameters nor a display name can enable it on a deployed host.
+    var DEMO_ADMIN = { id: 'u-manager-1', email: 'manager@residenthub.vn', typeId: 'at-admin' };
+    var demoAdminCreated = false;
+    function isLocalDemoEnvironment() {
+        var loc = global.location || {};
+        return (loc.protocol === 'http:' || loc.protocol === 'https:') &&
+            ['localhost', '127.0.0.1', '[::1]'].indexOf(loc.hostname) !== -1;
+    }
     var REQUEST_STATUSES = { PENDING: 'pending', APPROVED: 'approved', REJECTED: 'rejected' };
     var STAFF_NOTIFICATION_CATEGORIES = ['taskNew', 'assignmentChanged', 'deadline', 'infoRequest', 'taskStatus', 'system'];
     var DEFAULT_STAFF_PREFERENCES = {
@@ -766,23 +775,51 @@
     }
 
     function seedIfEmpty() {
-        var users = readUsers();
-        if (users.length > 0) return;
+        if (!isLocalDemoEnvironment()) return;
+        var raw = localStorage.getItem(USERS_KEY);
+        var users;
+        try { users = raw === null ? [] : JSON.parse(raw); } catch (e) { return; }
+        if (!Array.isArray(users)) return;
+        var matches = users.filter(function (u) {
+            return u && (u.id === DEMO_ADMIN.id || normalizeEmail(u.email) === DEMO_ADMIN.email);
+        });
+        // Existing identities and grants are never migrated during page load.
+        if (matches.length || users.length) return;
+        for (var i = 0; i < localStorage.length; i++) {
+            if (/^residenthub_(live|demo)_/.test(localStorage.key(i) || '')) return;
+        }
+        var rawTypes = localStorage.getItem('residenthub_account_types');
+        if (rawTypes !== null) {
+            var types;
+            try { types = JSON.parse(rawTypes); } catch (e) { return; }
+            // Never bind a new account to an existing restricted/conflicting role.
+            if (!Array.isArray(types) || !types.some(function (t) {
+                return t && t.id === DEMO_ADMIN.typeId && t.portal === 'manager' && t.fullAccess === true;
+            })) return;
+        }
+        // No shared secret in source control. Each clean local demo supplies
+        // the team's agreed password once; existing passwords are untouched.
+        if (typeof global.prompt !== 'function') return;
+        var password = global.prompt('Khởi tạo Admin demo cục bộ (manager@residenthub.vn). Nhập mật khẩu demo chung của nhóm (ít nhất 12 ký tự); Hủy để bỏ qua:');
+        if (typeof password !== 'string' || password.length < 12) return;
         // No seeded resident login account: residents only ever get an active
         // account through the registration-request + manager-approval flow
         // (see submitAccountRequest/approveAccountRequest below), never mocked in.
-        users = [
+        users.push(
             {
                 id: 'u-manager-1',
                 name: 'Nguyễn Văn An',
                 email: 'manager@residenthub.vn',
-                password: 'Manager@123',
+                password: password,
                 role: ROLES.MANAGER,
+                accountTypeId: DEMO_ADMIN.typeId,
+                status: 'active',
                 unit: '',
                 createdAt: Date.now()
             }
-        ];
+        );
         writeUsers(users);
+        demoAdminCreated = true;
     }
 
     function seedDemoStaffAccount() {
@@ -790,7 +827,7 @@
         var users = readUsers();
         var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
         var seedKey = 'residenthub_staff_demo_initialized';
-        if (index !== -1) { localStorage.setItem(seedKey, '1'); return; }
+        if (index !== -1 || users.some(function (user) { return user.id === 'u-staff-demo'; })) return;
         if (localStorage.getItem(seedKey)) return;
         localStorage.setItem(seedKey, '1');
         var user = index === -1 ? {
@@ -812,6 +849,7 @@
         var email = 'resident.demo@residenthub.test';
         var users = readUsers();
         var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
+        if (index !== -1 || users.some(function (user) { return user.id === 'u-resident-demo'; })) return;
         var user = index === -1 ? {
             id: 'u-resident-demo',
             createdAt: Date.now()
@@ -1524,12 +1562,26 @@
         return session;
     }
 
-    seedIfEmpty();
-    seedDemoStaffAccount();
-    seedDemoResidentAccount();
+    // Never treat an unreadable account store as a clean installation.
+    var seedableUsers = false;
+    try {
+        var storedUsers = localStorage.getItem(USERS_KEY);
+        seedableUsers = storedUsers === null || Array.isArray(JSON.parse(storedUsers));
+    } catch (e) { /* Preserve the original store for recovery. */ }
+    if (seedableUsers) {
+        seedIfEmpty();
+        // Canceled clean bootstrap can be retried; do not initialize accounts
+        // behind the user's back or normalize/rewrite an existing user list.
+        if (storedUsers === null && localStorage.getItem(USERS_KEY) !== null) {
+            seedDemoStaffAccount();
+            seedDemoResidentAccount();
+        }
+    }
 
     global.RH = {
         ROLES: ROLES,
+        isLocalDemoEnvironment: isLocalDemoEnvironment,
+        wasDemoAdminCreated: function () { return demoAdminCreated; },
         getUsers: readUsers,
         findUserByEmail: findUserByEmail,
         createUser: createUser,

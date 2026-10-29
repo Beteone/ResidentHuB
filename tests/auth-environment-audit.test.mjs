@@ -3,9 +3,12 @@ import assert from 'node:assert/strict';
 import vm from 'node:vm';
 import { readFileSync } from 'node:fs';
 function workspace(local = new Map(), session = new Map()) {
+  if (!local.has('residenthub_users')) local.set('residenthub_users', JSON.stringify([{ id:'audit-manager', email:'audit-manager@example.test', name:'Audit manager', password:'fixture-only-password', role:'manager', status:'active' }]));
   const storage = m => ({ getItem: k => m.get(k) ?? null, setItem: (k,v) => m.set(k,String(v)), removeItem: k => m.delete(k) });
   const c = vm.createContext({ console, localStorage: storage(local), sessionStorage: storage(session), location: { replace() {} }, alert() {}, CustomEvent: class {}, dispatchEvent() {}, addEventListener() {} });
   c.window = c;
+  // Explicit standard-role fixture, not an implicit repair of existing users.
+  if (!local.has('residenthub_account_types')) vm.runInContext(readFileSync('permissions.js','utf8'), c);
   for (const f of ['auth.js','permissions.js','data.js']) vm.runInContext(readFileSync(f,'utf8'), c, { filename: f });
   return { c, local, session };
 }
@@ -57,17 +60,20 @@ check('data API bypasses UI permission checks (defect)', () => {
   assert.equal(a.c.RHD.create('buildings', { id:'unguarded' }).ok, true);
 });
 check('demo initialization preserves changed credentials and lock', () => {
+  const existing = JSON.parse(a.local.get('residenthub_users'));
+  existing.push({ id:'u-staff-demo', email:'staff.demo@residenthub.test', name:'Fixture staff', password:'fixture-only-password', role:'staff', status:'active' });
+  a.local.set('residenthub_users', JSON.stringify(existing));
   a.c.RH.updateUser('u-staff-demo', { password:'changed-demo-secret', status:'locked' });
   const reload = workspace(a.local);
   const demo = reload.c.RH.getUsers().find(u => u.id === 'u-staff-demo');
   assert.equal(demo.password, 'changed-demo-secret');
   assert.equal(demo.status, 'locked');
 });
-check('live seed replaces remaining collections when buildings are empty (defect)', () => {
+check('live initialization preserves remaining collections when buildings are empty', () => {
   const b = workspace();
   b.local.set('residenthub_live_customers', JSON.stringify([{ id:'existing-customer' }]));
   b.c.RHD.setMode('live');
-  assert.equal(b.c.RHD.get('customers','existing-customer'), null);
+  assert.equal(b.c.RHD.get('customers','existing-customer').id, 'existing-customer');
 });
 check('invalid session, deleted user and corrupt users fail session restore', () => {
   const b = workspace();

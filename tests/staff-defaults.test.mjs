@@ -31,7 +31,7 @@ const legacy = { id: 'at-staff', name: 'Nhân viên', portal: 'manager', created
     permissions: ['dashboard.view', 'buildings.view', 'apartments.view', 'assets.view', 'assets.create', 'assets.update', 'assetTypes.view', 'assetTypes.create', 'customers.view', 'customers.create', 'customers.update', 'meters.view', 'meters.create', 'meters.update', 'contracts.view', 'invoices.view', 'support.view', 'support.update'] };
 const unrelated = { id: 'custom', name: 'Custom', portal: 'manager', permissions: ['support.update', 'retired.permission'], extra: { keep: true } };
 const migrated = environment([legacy, unrelated]);
-assert.deepEqual(migrated.types().find(t => t.id === 'at-staff').permissions, baseline);
+assert.deepEqual(migrated.types().find(t => t.id === 'at-staff').permissions, legacy.permissions, 'Startup preserves historical staff permissions instead of guessing intent');
 assert.equal(migrated.types().find(t => t.id === 'at-staff').createdAt, 123);
 assert.deepEqual(migrated.types().find(t => t.id === 'custom'), unrelated);
 const migratedRaw = migrated.store.get(key);
@@ -43,7 +43,7 @@ const revoked = fresh.types();
 revoked.find(t => t.id === 'at-staff').permissions = ['dashboard.view'];
 fresh.store.set(key, JSON.stringify(revoked)); fresh.reload();
 assert.deepEqual(fresh.types().find(t => t.id === 'at-staff').permissions, ['dashboard.view'], 'Startup cannot undo revocations');
-assert.equal(environment([unrelated]).types().filter(t => t.id === 'at-staff').length, 1);
+assert.equal(environment([unrelated]).types().filter(t => t.id === 'at-staff').length, 0, 'Existing type stores are not silently extended');
 const alias = { ...unrelated, name: 'Nhân viên' };
 assert.equal(environment([alias]).types().filter(t => t.name === 'Nhân viên').length, 1, 'Do not duplicate an existing same-name custom role');
-console.log('Staff defaults: clean seed, migration, three groups, least privilege, revocation, idempotence and custom data preservation passed.');
+console.log('Staff defaults: clean seed, three groups, least privilege, historical grants/revocations, idempotence and custom data preservation passed.');
