@@ -24,7 +24,7 @@ const server = createServer((req, res) => {
 await new Promise(r => server.listen(0, '127.0.0.1', r));
 const artifactDir = mkdtempSync(join(tmpdir(), 'residenthub-ui-check-'));
 const browser = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', [
-    '--headless=new', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
+    '--headless=new', '--no-sandbox', '--disable-extensions', '--disable-gpu', '--no-first-run', '--no-default-browser-check',
     '--remote-debugging-port=0', `--user-data-dir=${join(artifactDir, 'profile')}`, 'about:blank'
 ], { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'] });
 let ws;
@@ -76,22 +76,37 @@ try {
     assert.equal(await evaluate('RHP.isAdmin()'),true);
     assert.equal(await evaluate('RHP.allKeys().every(k=>RHP.can(k))'),true);
     const signature = createHash('sha256').update(await evaluate('JSON.stringify(RHP.allKeys().sort().map(k=>[k,RHP.can(k)]))')).digest('hex');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".db-add")).display!=="none"'),true);
     await evaluate('switchTab("buildings")');
     assert.equal(await evaluate('Array.from(document.querySelectorAll("#buildings-tab button")).some(b=>b.textContent.includes("Thêm tòa nhà"))'),true);
     await evaluate('Array.from(document.querySelectorAll("#buildings-tab button")).find(b=>b.textContent.includes("Thêm tòa nhà")).click()');
     assert.equal(await evaluate('document.querySelector("#rhDrawerOverlay.show #bfName")!==null'),true);
     await evaluate(`document.getElementById('bfName').value='Bootstrap Test';document.getElementById('bfShort').value='BOOT';document.getElementById('bfProvince').value='Hà Nội';document.getElementById('bfWard').value='Test';document.getElementById('bfAddress').value='Fixture';RHUI.submitBuildingForm({preventDefault(){}})`);
     assert.equal(await evaluate('RHD.list("buildings").some(b=>b.name==="Bootstrap Test")'),true,'Real save handler allows Admin');
+    // A role edit from another tab must refresh both static and module buttons.
+    await evaluate('window.__typesBefore=localStorage.getItem("residenthub_account_types");const types=JSON.parse(__typesBefore);types.find(t=>t.id==="at-admin").fullAccess=false;localStorage.setItem("residenthub_account_types",JSON.stringify(types));dispatchEvent(new StorageEvent("storage",{key:"residenthub_account_types"}))');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".db-add")).display'),'none');
+    assert.equal(await evaluate('Array.from(document.querySelectorAll("#buildings-tab button")).some(b=>b.textContent.includes("Th?m t?a nh?"))'),false);
+    await evaluate('RHUI.openBuildingForm();RHUI.submitBuildingForm({preventDefault(){}})');
+    assert.equal(await evaluate('RHD.list("buildings").length'),1);
+    await evaluate('localStorage.setItem("residenthub_account_types",__typesBefore);dispatchEvent(new StorageEvent("storage",{key:"residenthub_account_types"}))');
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".db-add")).display!=="none"'),true);
     await evaluate(`window.__saved=localStorage.getItem('residenthub_live_buildings');const users=RH.getUsers();users.push({...users.find(u=>u.id==='u-manager-1'),id:'ordinary',email:'ordinary@example.test',accountTypeId:'at-building-manager',allBuildings:false,buildingIds:[]});localStorage.setItem('residenthub_users',JSON.stringify(users));RH.login(RH.getUsers().find(u=>u.id==='ordinary'),false)`);
     await navigate('/dashboard.html');
     await evaluate('switchTab("buildings")');
     assert.equal(await evaluate('RHP.isAdmin()'),false);
+    assert.equal(await evaluate('getComputedStyle(document.querySelector(".db-add")).display'), 'none');
     assert.equal(await evaluate('Array.from(document.querySelectorAll("#buildings-tab button")).some(b=>b.textContent.includes("Thêm tòa nhà"))'),false);
     await evaluate('RHUI.openBuildingForm()');
     assert.equal(await evaluate('!!document.querySelector("#rhDrawerOverlay.show")'),false);
     await evaluate('RHUI.submitBuildingForm({preventDefault(){}})');
     assert.equal(await evaluate('RHD.list("buildings").length'),1,'Denied save cannot change buildings');
     assert.equal(await evaluate('window.__alerts.some(s=>s.includes("Thêm · Tòa nhà"))'),true);
+    await evaluate('RH.login(RH.getUsers().find(u=>u.id==="u-manager-1"),false);const locked=RH.getUsers();locked.find(u=>u.id==="u-manager-1").status="locked";localStorage.setItem("residenthub_users",JSON.stringify(locked));RHUI.openBuildingForm();RHUI.submitBuildingForm({preventDefault(){}})');
+    assert.equal(await evaluate('RH.getSession()'),null);
+    assert.equal(await evaluate('RHP.can("buildings.create")'),false);
+    assert.equal(await evaluate('RHD.list("buildings").length'),1);
+    await evaluate('const unlocked=RH.getUsers();unlocked.find(u=>u.id==="u-manager-1").status="active";localStorage.setItem("residenthub_users",JSON.stringify(unlocked))');
     const businessBefore = await evaluate('localStorage.getItem("residenthub_live_buildings")');
     await evaluate(`const users=JSON.parse(localStorage.getItem('residenthub_users'));const admin=users.find(u=>u.id==='u-manager-1');admin.accountTypeId='';admin.password='changed-fixture-password';localStorage.setItem('residenthub_users',JSON.stringify(users));RH.logout()`);
     await navigate('/index.html');
@@ -101,16 +116,12 @@ try {
     assert.equal(await evaluate('sessionStorage.getItem("fixture-prompt-count")'),'1','Old environments never bootstrap automatically');
     assert.equal(await evaluate('localStorage.getItem("residenthub_live_buildings")'),businessBefore);
     assert.equal(await evaluate('localStorage.getItem("residenthub_demo_admin_migration_v1")'),null);
-    await evaluate('window.prompt=()=>"changed-fixture-password"');
-    assert.equal(await evaluate('RHP.migrateDemoAdmin().ok'),true);
-    assert.equal(await evaluate('JSON.parse(localStorage.getItem("residenthub_demo_admin_migration_v1")).status'),'completed');
+    const grantsBefore = await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types")])');
+    assert.equal(await evaluate('RHP.migrateDemoAdmin().reason'),'requires-trusted-reprovisioning');
+    assert.equal(await evaluate('JSON.stringify([localStorage.getItem("residenthub_users"),localStorage.getItem("residenthub_account_types")])'),grantsBefore);
     assert.equal(await evaluate('localStorage.getItem("residenthub_live_buildings")'),businessBefore);
-    await evaluate('RH.login(RH.authenticateDetailed("manager@residenthub.vn","changed-fixture-password").user,false)');
-    await navigate('/dashboard.html');
-    assert.equal(await evaluate('RHP.can("buildings.create")'),true);
-    assert.equal(await evaluate('RH.findUserByEmail("ordinary@example.test").accountTypeId'),'at-building-manager');
     assert.equal(errors.length,0,JSON.stringify(errors));
     assert.equal(pageLogs.length,0,JSON.stringify(pageLogs));
     console.log('PASS browser profile:', artifactDir, 'Admin permission signature:', signature);
-    console.log('PASS clean bootstrap/login/button/form/save; old conflict unchanged until confirmed backed-up migration; ordinary manager denied; business data preserved.');
+    console.log('PASS clean bootstrap/login/button/form/save; old conflict preserved; client privilege restoration disabled; ordinary manager denied; business data preserved.');
 } finally {ws?.close();browser.kill();server.closeAllConnections();server.close();}

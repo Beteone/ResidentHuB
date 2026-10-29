@@ -356,7 +356,6 @@
     }
 
     var DEMO_MIGRATION_KEY = 'residenthub_demo_admin_migration_v1';
-    var DEMO_MIGRATION_TYPE = 'at-demo-admin-v1-u-manager-1';
 
     function demoAdminState() {
         if (!global.RH || !global.RH.isLocalDemoEnvironment || !global.RH.isLocalDemoEnvironment()) return { status: 'disabled' };
@@ -385,34 +384,48 @@
             message: state.status === 'permission-conflict' ? 'Quyền Admin demo khác cấu hình chuẩn. Không thể suy ra đây là lỗi hay thu hồi có chủ đích; không tự thay đổi.' : '' };
     }
 
-    // Explicit local-demo maintenance only. Client storage is not a production
-    // security boundary. No call from page load, login, or permission resolution.
+    // Client-held credentials cannot authorize restoring a revoked grant.
+    // Keep the old entry point fail-closed for earlier callers.
     function migrateDemoAdmin() {
-        var state = demoAdminState();
-        if (state.status !== 'permission-conflict') return { ok: false, reason: state.status };
-        if (localStorage.getItem(DEMO_MIGRATION_KEY) !== null) return { ok: false, reason: 'already-recorded' };
-        if (state.user.status && state.user.status !== 'active') return { ok: false, reason: 'inactive-account' };
-        if (state.types.some(function (t) { return t && t.id === DEMO_MIGRATION_TYPE; }) || state.users.some(function (u) { return u && u.accountTypeId === DEMO_MIGRATION_TYPE; })) return { ok: false, reason: 'target-type-conflict' };
-        if (typeof global.prompt !== 'function' || typeof global.confirm !== 'function') return { ok: false, reason: 'confirmation-unavailable' };
-        var password = global.prompt('Migration Admin demo cục bộ: nhập mật khẩu hiện tại của manager@residenthub.vn. Không nhập mật khẩu production.');
-        if (!password || password !== state.user.password) return { ok: false, reason: 'authentication-failed' };
-        if (!global.confirm('CHỈ DEMO CỤC BỘ: đổi accountTypeId của u-manager-1 / manager@residenthub.vn từ "' + (state.user.accountTypeId || '(trống)') + '" sang "' + DEMO_MIGRATION_TYPE + '" và thêm một loại Admin demo fullAccess riêng. Sao lưu nguyên trạng users/types trước khi ghi. Không sửa loại cũ, mật khẩu, role, trạng thái hoặc nghiệp vụ. Thao tác một lần; quyền có thể đã bị thu hồi có chủ đích. Bạn xác nhận cho phép cấp Admin demo?')) return { ok: false, reason: 'canceled' };
-        if (localStorage.getItem('residenthub_users') !== state.usersRaw || localStorage.getItem(TYPES_KEY) !== state.typesRaw || localStorage.getItem(DEMO_MIGRATION_KEY) !== null) return { ok: false, reason: 'store-changed' };
-        var backup = { version: 1, status: 'pending', createdAt: Date.now(), usersRaw: state.usersRaw, typesRaw: state.typesRaw, accountId: state.user.id, fromTypeId: state.user.accountTypeId || '', toTypeId: DEMO_MIGRATION_TYPE };
+        return { ok: false, reason: 'requires-trusted-reprovisioning' };
+    }
+
+    // Read-only: current policy decisions, not claims that an action ran.
+    function diagnoseBuildingCreate() {
+        // Do not call getSession()/resolve(): invalid sessions are logged out
+        // by getSession(), which would make this diagnostic mutate storage.
+        var user = null, sessionValid = false, sessionSource = null;
         try {
-            // Stop before account changes if the backup cannot be stored.
-            localStorage.setItem(DEMO_MIGRATION_KEY, JSON.stringify(backup));
-            var types = state.types.concat([Object.assign({}, DEFAULT_TYPES[0], { id: DEMO_MIGRATION_TYPE, name: 'Admin demo riêng (u-manager-1)', system: false, createdAt: Date.now() })]);
-            var users = state.users.map(function (u) { return u === state.user ? Object.assign({}, u, { accountTypeId: DEMO_MIGRATION_TYPE }) : u; });
-            writeTypes(types);
-            localStorage.setItem('residenthub_users', JSON.stringify(users));
-            backup.status = 'completed';
-            localStorage.setItem(DEMO_MIGRATION_KEY, JSON.stringify(backup));
-            cache.key = null;
-            return { ok: true, backupKey: DEMO_MIGRATION_KEY, accountTypeId: DEMO_MIGRATION_TYPE };
-        } catch (e) {
-            return { ok: false, reason: 'storage-write-failed', backupKey: DEMO_MIGRATION_KEY, message: 'Dừng migration. Giữ bản sao lưu để đối chiếu; không tự chạy lại hoặc xóa khóa backup.' };
-        }
+            var tabRaw = sessionStorage.getItem('residenthub_session');
+            var raw = tabRaw || localStorage.getItem('residenthub_session');
+            sessionSource = raw ? (tabRaw ? 'sessionStorage' : 'localStorage') : null;
+            var session = JSON.parse(raw || 'null');
+            var users = JSON.parse(localStorage.getItem('residenthub_users') || '[]');
+            var candidate = Array.isArray(users) && session ? users.filter(function (u) { return u && u.id === session.id; })[0] : null;
+            sessionValid = !!(candidate && candidate.status === 'active' && Number(session.credentialVersion || 0) === Number(candidate.credentialVersion || 0));
+            if (sessionValid) user = candidate;
+            if (global.RH_SESSION && global.RH_SESSION.demo) {
+                user = { id: 'demo', accountTypeId: ADMIN_TYPE_ID, role: 'manager' };
+                sessionValid = true;
+                sessionSource = 'demo-preview';
+            }
+        } catch (e) { sessionValid = false; }
+        var type = typeForUser(user);
+        var allowed = !!(sessionValid && type && type.portal === 'manager' && (type.fullAccess || (type.permissions || []).indexOf('buildings.create') !== -1));
+        var button = global.document && global.document.querySelector('.db-add');
+        return {
+            version: 'building-permissions-2026-10-30-v2',
+            origin: global.location && global.location.origin || null,
+            sessionValid: sessionValid, sessionSource: sessionSource,
+            initialization: 'empty-local-demo-only; existing grants preserved; no privilege migration',
+            account: user ? { id: user.id, role: user.role, status: user.status || null, accountTypeId: user.accountTypeId || '' } : null,
+            resolvedType: type ? { id: type.id, portal: type.portal, fullAccess: type.fullAccess === true,
+                buildingsCreate: (type.permissions || []).indexOf('buildings.create') !== -1 } : null,
+            fallbackUsed: !!(user && type && user.accountTypeId !== type.id),
+            buildingsCreate: allowed, renderCheck: allowed, openFormCheck: allowed, saveCheck: allowed,
+            dashboardButtonVisible: button && global.getComputedStyle ? global.getComputedStyle(button).display !== 'none' : null,
+            demo: inspectDemoAdmin()
+        };
     }
 
     seed();
@@ -422,6 +435,7 @@
     global.RHP = {
         ADMIN_TYPE_ID: ADMIN_TYPE_ID,
         inspectDemoAdmin: inspectDemoAdmin,
+        diagnoseBuildingCreate: diagnoseBuildingCreate,
         migrateDemoAdmin: migrateDemoAdmin,
         RESIDENT_TYPE_ID: RESIDENT_TYPE_ID,
         ACTIONS: ACTIONS,
