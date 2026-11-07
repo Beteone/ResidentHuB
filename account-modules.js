@@ -187,12 +187,12 @@
         if (!readOnly) byId('rfName').focus();
     }
 
-    function submitRole(ev) {
+    async function submitRole(ev) {
         ev.preventDefault();
         if (roleState.readOnly) return;
         if (!U().guard(roleState.id ? 'roles.update' : 'roles.create')) return;
         var portalEl = document.querySelector('input[name="rfPortal"]:checked');
-        var res = global.RHP.saveType(roleState.id, {
+        var res = await global.RHP.saveType(roleState.id, {
             name: byId('rfName').value,
             description: byId('rfDesc').value,
             portal: portalEl ? portalEl.value : undefined,
@@ -204,11 +204,11 @@
         afterAccessChange();
     }
 
-    function deleteRole(id) {
+    async function deleteRole(id) {
         if (!U().guard('roles.delete')) return;
         var t = global.RHP.getType(id);
         if (!t || !confirm('Xoá loại tài khoản "' + t.name + '"?')) return;
-        var res = global.RHP.deleteType(id);
+        var res = await global.RHP.deleteType(id);
         if (!res.ok) { alert(res.error); return; }
         renderRolesTab();
     }
@@ -411,7 +411,7 @@
             '</div>' +
 
             '<div class="uf-card"><div class="uf-card-head"><span>Mật khẩu</span></div><div class="rh-grid-2 uf-card-body">' +
-            '<div class="rh-field"><label>Mật khẩu' + (u ? '' : ' <span style="color:#ef4444;">*</span>') + '</label>' + passwordInput('ufPassword', u ? 'Để trống nếu không đổi' : 'Tối thiểu 6 ký tự') + '</div>' +
+            '<div class="rh-field"><label>Mật khẩu' + (u ? '' : ' <span style="color:#ef4444;">*</span>') + '</label>' + passwordInput('ufPassword', RH.central ? 'Để trống: người dùng tự đặt qua email Auth' : (u ? 'Để trống nếu không đổi' : 'Tối thiểu 6 ký tự')) + '</div>' +
             '<div class="rh-field"><label>Xác nhận mật khẩu' + (u ? '' : ' <span style="color:#ef4444;">*</span>') + '</label>' + passwordInput('ufPassword2', 'Xác nhận mật khẩu') + '</div>' +
             '</div><p class="uf-hint">Người dùng đăng nhập bằng số điện thoại hoặc email cùng mật khẩu này.</p></div>' +
 
@@ -488,7 +488,7 @@
         byId('ufName').focus();
     }
 
-    function submitUser(ev) {
+    async function submitUser(ev) {
         ev.preventDefault();
         var id = userState.editingId;
         if (id && !U().guard('users.update')) return;
@@ -516,7 +516,7 @@
         if (!type) return fail('Vui lòng chọn loại tài khoản.');
         if (type.fullAccess && !isAdmin()) return fail('Chỉ Admin mới được gán loại tài khoản Admin.');
         if (!u && !U().guard(type.portal === 'resident' ? 'users.createResident' : 'users.create')) return;
-        if (!u || pw) {
+        if ((!u && !RH.central) || pw) {
             if (pw.length < 6) return fail('Mật khẩu phải có ít nhất 6 ký tự.');
             if (pw !== pw2) return fail('Mật khẩu xác nhận không khớp.');
         }
@@ -554,27 +554,28 @@
                 // Tòa nhà › Người quản lý); the list flags it as "Chưa gán tòa nhà".
             }
         }
-        if (pw) payload.password = pw;
+        if (pw && !RH.central) payload.password = pw;
+        if (RH.central && pw) return fail('Mật khẩu phải do người dùng đặt qua lời mời/khôi phục Auth.');
 
-        var res = u ? global.RH.updateUser(u.id, payload) : global.RH.createUser(Object.assign({}, payload, { password: pw }));
+        var res = u ? await global.RH.updateUser(u.id, payload) : await global.RH.createUser(Object.assign({}, payload, RH.central ? {} : { password: pw }));
         if (!res.ok) return fail(res.error);
         global.RHUI.closeDrawer();
         renderUsersTab();
         afterAccessChange();
     }
 
-    function toggleLock(id) {
+    async function toggleLock(id) {
         if (!U().guard('users.lock')) return;
         var u = global.RH.getUsers().filter(function (x) { return x.id === id; })[0];
         if (!u || !canManageUser(u, 'users.lock')) return;
         var lock = u.status !== 'locked';
         if (lock && !confirm('Khoá tài khoản ' + u.name + '? Tài khoản sẽ không đăng nhập được cho đến khi mở khoá.')) return;
-        var res = global.RH.updateUser(id, { status: lock ? 'locked' : 'active' });
+        var res = await global.RH.updateUser(id, { status: lock ? 'locked' : 'active' });
         if (!res.ok) { alert(res.error); return; }
         renderUsersTable();
     }
 
-    function deleteUser(id) {
+    async function deleteUser(id) {
         if (!U().guard('users.delete')) return;
         var u = global.RH.getUsers().filter(function (x) { return x.id === id; })[0];
         if (!u || !canManageUser(u, 'users.delete')) return;
@@ -582,7 +583,7 @@
         var msg = 'Xoá tài khoản ' + u.name + '? Hành động không thể hoàn tác.' +
             (managed.length ? '\n\nNgười này đang là quản lý của ' + managed.length + ' tòa nhà — các tòa sẽ hiển thị "Tài khoản không còn tồn tại" cho đến khi phân công lại.' : '');
         if (!confirm(msg)) return;
-        var res = global.RH.deleteUser(id);
+        var res = await global.RH.deleteUser(id);
         if (!res.ok) { alert(res.error); return; }
         renderUsersTab();
     }

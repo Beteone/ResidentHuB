@@ -19,6 +19,10 @@ npm run dev        # build lại tự động khi sửa file trong src/
 
 ## Phân quyền (Loại tài khoản)
 
+- Mã tích hợp Supabase Auth/RPC đã được bổ sung nhưng **chưa bật và chưa deploy**. Cấu hình, kiểm thử hai trình duyệt, migration an toàn và giới hạn chuyển đổi: [CENTRAL-IDENTITY-IMPLEMENTATION.md](docs/CENTRAL-IDENTITY-IMPLEMENTATION.md).
+
+- Audit đăng nhập VPS, chẩn đoán chỉ đọc và phương án đồng bộ cần phê duyệt: [VPS-AUTH-REMEDIATION.md](docs/VPS-AUTH-REMEDIATION.md). Bản hiện tại vẫn dùng tài khoản cục bộ, chưa đồng bộ đa thiết bị.
+
 ### Admin demo cục bộ
 
 - Chạy static server tại `localhost`, `127.0.0.1` hoặc `[::1]` rồi mở `index.html`. Live Server của repo dùng port 5501; `npm run dev` chỉ build/watch bundle.

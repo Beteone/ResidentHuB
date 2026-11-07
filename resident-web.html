@@ -10,6 +10,8 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <script src="activity-store.js"></script>
+    <script src="auth-config.js"></script>
+    <script src="central-auth.js"></script>
     <script src="auth.js"></script>
     <script src="data.js"></script>
     <script src="app-clock.js"></script>
@@ -1230,11 +1232,11 @@
     <script src="theme.js"></script>
 </head>
 <body>
-    <script>
+    <script type="text/rh-page">
         var RH_SESSION = RH.requireRole('resident');
         // The shared resident demo account uses the same isolated demo dataset as
         // the manager demo, so every browser gets the same seeded experience.
-        var RH_IS_DEMO_RESIDENT = !!(RH_SESSION && String(RH_SESSION.email || '').toLowerCase() === 'resident.demo@residenthub.test');
+        var RH_IS_DEMO_RESIDENT = !RH.central && !!(RH_SESSION && String(RH_SESSION.email || '').toLowerCase() === 'resident.demo@residenthub.test');
         RHD.setMode(RH_IS_DEMO_RESIDENT ? 'demo' : 'live');
         if (RH_IS_DEMO_RESIDENT && RH_SESSION && RH) {
             var residentDemoContracts = RHD.list('contracts');
@@ -1599,7 +1601,7 @@
         <div class="resident-feature-modal" id="residentFeatureModal" aria-hidden="true"><div class="resident-feature-dialog" role="dialog" aria-modal="true"><header><h4 id="residentFeatureTitle">Thông tin</h4><button class="resident-feature-close" aria-label="Đóng"><i class="fas fa-xmark"></i></button></header><div id="residentFeatureContent" style="margin-top:1rem"></div></div></div>
     </main>
 
-    <script>
+    <script type="text/rh-page">
         // Real contract for this resident, from the same RHD source the manager's
         // Hợp đồng module writes to. Falls back to a placeholder shape (not fake
         // financial data — just safe defaults) only when the account has not been
@@ -2037,7 +2039,7 @@
                     ...parsed,
                     user: {
                         ...defaults.user,
-                        ...(parsed.user || {}),
+                        ...(RH.central ? {} : (parsed.user || {})),
                         ...(account ? {
                             name: account.name,
                             email: account.email,
@@ -2169,15 +2171,18 @@
                     </div>
                 `;
                 content.innerHTML = markup;
+                if(RH.central) ['accountName','accountEmail','accountApartment','accountBuilding','accountFloor'].forEach(id=>{const field=document.getElementById(id);if(field)field.readOnly=true;});
                 document.getElementById('avatarUpload')?.addEventListener('change', (event) => {
                     const file = event.target.files && event.target.files[0];
                     if (!file) return;
                     const reader = new FileReader();
-                    reader.onload = () => {
+                    reader.onload = async () => {
+                        if(RH.central) { const result=await RH.updateCurrentUserProfile({avatar:reader.result}); if(!result.ok){showSettingsToast(result.error,'error');return} }
+
                         const nextSettings = { ...settings, user: { ...settings.user, avatar: reader.result } };
                         localStorage.setItem(getResidentSettingsKey(), JSON.stringify(nextSettings));
                         const session = RH.getSession();
-                        if (session) RH.updateUser(session.id, { avatar: reader.result });
+                        if (session && !RH.central) RH.updateUser(session.id, { avatar: reader.result });
                         settingsDirty = false;
                         renderSettingsSaveBar();
                         renderSettingPage();
@@ -2249,7 +2254,7 @@
                     </div>
                 `;
                 content.innerHTML = markup;
-                document.getElementById('changePasswordBtn')?.addEventListener('click', () => {
+                document.getElementById('changePasswordBtn')?.addEventListener('click', async () => {
                     const current = window.prompt('Nhập mật khẩu hiện tại:', '');
                     const next = window.prompt('Nhập mật khẩu mới (ít nhất 6 ký tự):', '');
                     if (!current || !next) {
@@ -2513,16 +2518,16 @@
         `;
         document.body.insertAdjacentHTML('beforeend', settingsDeleteModalHtml);
         document.getElementById('cancelDeleteAccountBtn')?.addEventListener('click', () => document.getElementById('settingsDeleteModal')?.classList.remove('open'));
-        document.getElementById('confirmDeleteAccountBtn')?.addEventListener('click', () => {
+        document.getElementById('confirmDeleteAccountBtn')?.addEventListener('click', async () => {
             const session = RH.getSession();
             if (!session) return;
-            const deleteResult = RH.deleteUser(session.id);
+            const deleteResult = await RH.deleteUser(session.id);
             if (!deleteResult.ok) {
                 showSettingsToast(deleteResult.error || 'Không thể xóa tài khoản.', 'error');
                 document.getElementById('settingsDeleteModal')?.classList.remove('open');
                 return;
             }
-            RH.logout();
+            await RH.logout();
             window.location.href = 'index.html';
         });
 
@@ -2576,12 +2581,12 @@
             showSettingsToast('Đã cập nhật thay đổi', 'success');
             settingsDirty = false;
             renderSettingsSaveBar();
-            window.setTimeout(() => {
+            window.setTimeout(async () => {
                 if (activeSettingsTab === 'account') {
                     const session = RH.getSession();
                     const user = session ? RH.getUsers().find(item => item.id === session.id) : null;
                     if (user) {
-                        const updateResult = RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '', avatar: currentSettings.user.avatar || '', unit: accountApartment || '', building: accountBuilding || '', floor: accountFloor || '' });
+                        const updateResult = RH.central ? await RH.updateCurrentUserProfile({phone:accountPhone || '',avatar:currentSettings.user.avatar || ''}) : RH.updateUser(user.id, { name: accountName, email: accountEmail, phone: accountPhone || '', avatar: currentSettings.user.avatar || '', unit: accountApartment || '', building: accountBuilding || '', floor: accountFloor || '' });
                         if (!updateResult.ok) {
                             settingsDirty = true;
                             renderSettingsSaveBar();
@@ -2975,13 +2980,13 @@
 
         const residentSidebarTargets = ['overview', 'invoices', 'requests', 'contracts', 'notifications', 'settings', 'calendar'];
         navItems.forEach(item => {
-            item.addEventListener('click', function () {
+            item.addEventListener('click', async function () {
                 const target = String(this.dataset.target || '').trim();
                 if (!target) return;
 
                 if (target === 'logout') {
                     if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                        RH.logout();
+                        await RH.logout();
                         window.location.href = 'index.html';
                     }
                     return;
@@ -3155,8 +3160,8 @@
                 const activeStep = renewalStep();
                 progress.innerHTML = renewalSteps.map((label, index) => '<div class="contract-progress-step ' + (index < activeStep ? 'done' : index === activeStep ? 'current' : '') + '">' + label + '</div>').join('');
             }
-            document.querySelector('.contract-terms').addEventListener('click', () => open('Điều khoản hợp đồng · 2 trong số 14 điều khoản', '<div class="notice-list"><div class="notice-item"><strong>Thanh toán và đặt cọc</strong><p style="color:#64748b;font-size:.84rem">Tiền đặt cọc ' + money(REAL_CONTRACT ? REAL_CONTRACT.depositPrice : 0) + ' được hoàn trả sau khi đối soát hiện trạng và công nợ.</p></div><div class="notice-item"><strong>Chấm dứt sớm</strong><p style="color:#64748b;font-size:.84rem">Báo trước 30 ngày; chấm dứt không đủ báo trước có thể bị khấu trừ tối đa một tháng tiền thuê.</p></div><div class="notice-item"><strong>Sửa chữa, thú cưng, cho thuê lại</strong><p style="color:#64748b;font-size:.84rem">Cần có chấp thuận bằng văn bản đối với sửa chữa kết cấu, nuôi thú cưng và cho thuê lại.</p></div></div><button class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đã hiểu</button>'));
-            document.querySelector('.contract-renew').addEventListener('click', () => {
+            document.querySelector('.contract-terms')?.addEventListener('click', () => open('Điều khoản hợp đồng · 2 trong số 14 điều khoản', '<div class="notice-list"><div class="notice-item"><strong>Thanh toán và đặt cọc</strong><p style="color:#64748b;font-size:.84rem">Tiền đặt cọc ' + money(REAL_CONTRACT ? REAL_CONTRACT.depositPrice : 0) + ' được hoàn trả sau khi đối soát hiện trạng và công nợ.</p></div><div class="notice-item"><strong>Chấm dứt sớm</strong><p style="color:#64748b;font-size:.84rem">Báo trước 30 ngày; chấm dứt không đủ báo trước có thể bị khấu trừ tối đa một tháng tiền thuê.</p></div><div class="notice-item"><strong>Sửa chữa, thú cưng, cho thuê lại</strong><p style="color:#64748b;font-size:.84rem">Cần có chấp thuận bằng văn bản đối với sửa chữa kết cấu, nuôi thú cưng và cho thuê lại.</p></div></div><button class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đã hiểu</button>'));
+            document.querySelector('.contract-renew')?.addEventListener('click', () => {
                 if (contractData.renewalStatus !== 'draft') { open('Theo dõi yêu cầu gia hạn', '<p style="color:#64748b;line-height:1.55">Yêu cầu gia hạn của bạn đang ở trạng thái <strong>' + renewalStatusText() + '</strong></p><button class="btn-primary resident-feature-close go-to-requests" style="width:100%">Mở mục Yêu cầu</button>'); return; }
                 open('Xác nhận yêu cầu gia hạn', '<p style="color:#64748b;line-height:1.55">Bạn đang gửi yêu cầu gia hạn hợp đồng RES-PA-205 đến Ban quản lý. Hạn chót theo hợp đồng là <strong>' + contractFormatDate(contractDeadline().toISOString().slice(0, 10)) + '</strong>. Sau khi được duyệt, bạn sẽ nhận phụ lục để ký.</p><button class="btn-primary submit-renewal" style="width:100%">Gửi yêu cầu</button>');
             });
@@ -3167,7 +3172,7 @@
                 const handoverPreview = '<div class="contract-preview"><strong>BIÊN BẢN BÀN GIAO CĂN HỘ ' + rRoom + '</strong><p><strong>Ngày bàn giao:</strong> ' + contractFormatDate(contractData.startDate) + '</p><p><strong>Địa điểm:</strong> Căn hộ ' + rRoom + ', ' + rBuilding + '</p><p><strong>Bên giao:</strong> ResidentHub</p><p><strong>Bên nhận:</strong> Cư dân căn hộ ' + rRoom + '</p><p><strong>Phạm vi bàn giao:</strong> Căn hộ, chìa khóa cửa chính, thẻ cư dân và các thiết bị được liệt kê trong danh mục bàn giao.</p><p><strong>Hiện trạng:</strong> Hai bên đã kiểm tra và ghi nhận hiện trạng căn hộ, thiết bị, chỉ số điện nước tại thời điểm bàn giao.</p><p><strong>Chữ ký:</strong> Đã ký điện tử ngày ' + contractFormatDate(contractData.startDate) + ' · Trạng thái toàn vẹn: Hợp lệ</p></div>';
                 open(index === 0 ? 'Xem nhanh hợp đồng thuê ' + (rc.code || '') : 'Xem nhanh biên bản bàn giao căn hộ', (index === 0 ? contractPreview : handoverPreview) + '<button class="btn-primary resident-feature-close" style="width:100%;margin-top:1rem">Đóng</button>');
             }));
-            document.querySelector('.contract-download-all').addEventListener('click', () => open('Tải tất cả tài liệu', '<p style="color:#64748b;line-height:1.55">Đã chuẩn bị 2 tài liệu PDF của hợp đồng RES-PA-205, tổng dung lượng 4,2 MB.</p><button class="btn-primary resident-feature-close" style="width:100%">Tải xuống</button>'));
+            document.querySelector('.contract-download-all')?.addEventListener('click', () => open('Tải tất cả tài liệu', '<p style="color:#64748b;line-height:1.55">Đã chuẩn bị 2 tài liệu PDF của hợp đồng RES-PA-205, tổng dung lượng 4,2 MB.</p><button class="btn-primary resident-feature-close" style="width:100%">Tải xuống</button>'));
             const contractFiles = Array.isArray(contractData.files) ? contractData.files : [];
             const contractFile = contractFiles[0] || null;
             const openContractFile = (file, download) => {
@@ -3238,7 +3243,7 @@
             const contractDepositLabel = Number(contractData.depositPrice || 2000000).toLocaleString('vi-VN') + ' ₫';
             const contractRoot = document.getElementById('contractsSection');
             if (contractRoot) {
-                contractRoot.querySelector('#contractTerm').textContent = contractStartLabel + ' — ' + contractEndLabel;
+                const term = contractRoot.querySelector('#contractTerm'); if (term) term.textContent = contractStartLabel + ' — ' + contractEndLabel;
                 const values = contractRoot.querySelectorAll('.contract-values strong');
                 if (values[2]) values[2].textContent = contractRentLabel;
                 const details = contractRoot.querySelectorAll('.contract-detail-grid .meta-box strong');
@@ -3511,7 +3516,7 @@
             renderRenewal();
         })();
     </script>
-    <script>
+    <script type="text/rh-page">
 (function () {
     'use strict';
 
@@ -4768,5 +4773,6 @@
 })();
 
     </script>
+<script src="auth-page.js"></script>
 </body>
 </html>

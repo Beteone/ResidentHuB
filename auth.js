@@ -1,12 +1,15 @@
 /*
  * ResidentHub - shared auth/role module.
- * No backend exists in this project, so accounts and sessions are persisted
- * in localStorage/sessionStorage. This is the single source of truth for
+ * Local demo mode persists accounts and sessions in browser storage.
+ * In explicit Supabase mode central-auth.js supplies server-backed identity;
+ * legacy identity reads/seeds/writes are bypassed without deleting old stores.
+ * Shared APIs are used by
  * users and roles used by: the landing page login/signup modals, the
  * manager dashboard's Settings > "Quản lý tài khoản" screen, and the
  * access guards on the manager/resident pages.
  */
 (function (global) {
+    if (global.RH_AUTH_CONFIG && global.RH_AUTH_CONFIG.mode !== 'local' && !global.RHCentral) throw new Error('Central authentication module is required.');
     var USERS_KEY = 'residenthub_users';
     var SESSION_KEY = 'residenthub_session';
     var CURRENT_USER_KEY = 'residenthub_currentUserId';
@@ -21,6 +24,7 @@
     // query parameters nor a display name can enable it on a deployed host.
     var DEMO_ADMIN = { id: 'u-manager-1', email: 'manager@residenthub.vn', typeId: 'at-admin' };
     var demoAdminCreated = false;
+    var demoBootstrapPassword = null;
     function isLocalDemoEnvironment() {
         var loc = global.location || {};
         return (loc.protocol === 'http:' || loc.protocol === 'https:') &&
@@ -705,6 +709,7 @@
     }
 
     function getCurrentUserId() {
+        if (global.RHCentral && global.RHCentral.enabled) { var central = global.RHCentral.getSession(); return central ? central.id : null; }
         try {
             var session = sessionStorage.getItem(CURRENT_USER_KEY) || localStorage.getItem(CURRENT_USER_KEY);
             return session || null;
@@ -714,6 +719,7 @@
     }
 
     function readUsers() {
+        if (global.RHCentral && global.RHCentral.enabled) return global.RHCentral.users();
         try {
             var raw = localStorage.getItem(USERS_KEY);
             var parsed = raw ? JSON.parse(raw) : [];
@@ -733,6 +739,7 @@
     }
 
     function writeUsers(users) {
+        if (global.RHCentral && global.RHCentral.enabled) throw new Error('Central identity requires a server operation.');
         localStorage.setItem(USERS_KEY, JSON.stringify(users));
     }
 
@@ -802,6 +809,7 @@
         if (typeof global.prompt !== 'function') return;
         var password = global.prompt('Khởi tạo Admin demo cục bộ (manager@residenthub.vn). Nhập mật khẩu demo chung của nhóm (ít nhất 12 ký tự); Hủy để bỏ qua:');
         if (typeof password !== 'string' || password.length < 12) return;
+        demoBootstrapPassword = password;
         // No seeded resident login account: residents only ever get an active
         // account through the registration-request + manager-approval flow
         // (see submitAccountRequest/approveAccountRequest below), never mocked in.
@@ -823,6 +831,7 @@
     }
 
     function seedDemoStaffAccount() {
+        if (!demoBootstrapPassword) return;
         var email = 'staff.demo@residenthub.test';
         var users = readUsers();
         var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
@@ -837,7 +846,7 @@
         var before = JSON.stringify(user);
         user.name = 'Nguyễn Minh Anh';
         user.email = email;
-        user.password = 'StaffDemo@2026';
+        user.password = demoBootstrapPassword;
         user.role = ROLES.STAFF;
         user.status = 'active';
         if (index === -1) users.push(user);
@@ -846,6 +855,7 @@
     }
 
     function seedDemoResidentAccount() {
+        if (!demoBootstrapPassword) return;
         var email = 'resident.demo@residenthub.test';
         var users = readUsers();
         var index = users.findIndex(function (user) { return normalizeEmail(user.email) === email; });
@@ -857,7 +867,7 @@
         var before = JSON.stringify(user);
         user.name = 'Cư dân Demo';
         user.email = email;
-        user.password = 'ResidentDemo@2026';
+        user.password = demoBootstrapPassword;
         user.role = ROLES.RESIDENT;
         user.status = 'active';
         user.unit = user.unit || '';
@@ -1504,6 +1514,7 @@
     }
 
     function getSession() {
+        if (global.RHCentral && global.RHCentral.enabled) return global.RHCentral.getSession();
         try {
             var raw = sessionStorage.getItem(SESSION_KEY) || localStorage.getItem(SESSION_KEY);
             if (!raw) return null;
@@ -1568,7 +1579,7 @@
         var storedUsers = localStorage.getItem(USERS_KEY);
         seedableUsers = storedUsers === null || Array.isArray(JSON.parse(storedUsers));
     } catch (e) { /* Preserve the original store for recovery. */ }
-    if (seedableUsers) {
+    if (seedableUsers && !(global.RHCentral && global.RHCentral.enabled)) {
         seedIfEmpty();
         // Canceled clean bootstrap can be retried; do not initialize accounts
         // behind the user's back or normalize/rewrite an existing user list.
@@ -1578,7 +1589,45 @@
         }
     }
 
+    // Read raw storage: readUsers()/getSession() may normalize or remove data.
+    // This diagnostic never returns credentials, account records or session data.
+    function inspectAuthEnvironment() {
+        function inspect(key) {
+            try {
+                var raw = localStorage.getItem(key);
+                if (raw === null) return { state: 'missing', rows: [] };
+                var parsed = JSON.parse(raw);
+                return Array.isArray(parsed) ? { state: 'valid', rows: parsed } : { state: 'invalid', rows: [] };
+            } catch (e) { return { state: 'unreadable', rows: [] }; }
+        }
+        var users = inspect(USERS_KEY);
+        var types = inspect('residenthub_account_types');
+        var matches = users.rows.filter(function (u) {
+            return u && (u.id === DEMO_ADMIN.id || normalizeEmail(u.email) === DEMO_ADMIN.email);
+        });
+        var account = matches.length === 1 ? matches[0] : null;
+        var identityMatches = !!(account && account.id === DEMO_ADMIN.id && normalizeEmail(account.email) === DEMO_ADMIN.email);
+        var linked = identityMatches ? types.rows.filter(function (t) { return t && t.id === account.accountTypeId; }) : [];
+        var reason = users.state !== 'valid' ? 'account-store-' + users.state :
+            !matches.length ? 'account-missing' : !identityMatches ? 'identity-conflict' :
+            account.status !== 'active' ? 'account-not-active' :
+            linked.length !== 1 ? 'account-type-unresolved' : 'local-account-present';
+        return {
+            version: 'auth-environment-2026-11-04-v1',
+            storage: 'browser-local', sharedIdentity: false, serverAuthorization: false,
+            localDemoBootstrap: isLocalDemoEnvironment(),
+            accountStore: users.state, accountTypeStore: types.state,
+            demoAdmin: {
+                reason: reason, matchCount: matches.length,
+                identityMatches: identityMatches,
+                active: identityMatches && account.status === 'active',
+                linkedTypeResolved: linked.length === 1
+            }
+        };
+    }
+
     global.RH = {
+        inspectAuthEnvironment: inspectAuthEnvironment,
         ROLES: ROLES,
         isLocalDemoEnvironment: isLocalDemoEnvironment,
         wasDemoAdminCreated: function () { return demoAdminCreated; },
@@ -1629,4 +1678,5 @@
         approveAccountRequest: approveAccountRequest,
         rejectAccountRequest: rejectAccountRequest
     };
+    if (global.RHCentral) global.RHCentral.install(global.RH);
 })(window);
