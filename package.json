@@ -7,6 +7,7 @@
   "scripts": {
     "test:identity": "node tests/central-auth.test.mjs && node tests/identity-plan.test.mjs && node tests/central-identity.sql.test.mjs && node tests/central-auth.browser.mjs",
     "test:identity:live": "node tests/central-auth.live.browser.mjs",
+    "test:data": "node tests/central-data.sql.test.mjs && node tests/business-import-plan.test.mjs && node tests/central-data.browser.mjs && node tests/central-import.browser.mjs",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build --emptyOutDir false && vite build --config src/financial-report/vite.config.js && vite build --config src/document-export/vite.config.js",
     "dev": "vite build --watch",

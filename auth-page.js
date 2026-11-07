@@ -10,6 +10,15 @@
         if (global.RH && global.RH.central && !global.RH.getSession()) {
             global.location.replace('index.html?authRequired=1'); return;
         }
+        // Central business data must be loaded before any page code reads it.
+        // No fallback to browser-local data: a failure stops the page.
+        if (global.RHCentralData && global.RHCentralData.enabled) {
+            try { await global.RHCentralData.ready; }
+            catch (_) {
+                document.body.textContent = 'Không tải được dữ liệu từ máy chủ ResidentHub. Kiểm tra kết nối mạng rồi tải lại trang; nếu vẫn lỗi, tài khoản có thể chưa được cấp quyền truy cập dữ liệu.';
+                return;
+            }
+        }
         if (global.RH && global.RH.central) global.addEventListener('residenthub:identity-changed', function () {
             var session = global.RH.getSession();
             if (!session) { global.location.replace('index.html?authRequired=1'); return; }

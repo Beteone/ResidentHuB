@@ -18,6 +18,9 @@ for(const change of [
 ]){const failed=identityPlan({...input,...change});assert.equal(failed.ok,false);assert.deepEqual(failed.members,[]);}
 const env={VITE_SUPABASE_URL:'https://example.supabase.co',VITE_SUPABASE_PUBLISHABLE_KEY:'sb_publishable_fixture',VITE_SUPABASE_ORGANIZATION_ID:org};
 assert.equal(publicConfig(env).mode,'supabase');
+assert.equal(publicConfig(env).businessData,'central');
+assert.equal(publicConfig({...env,VITE_RESIDENTHUB_BUSINESS_DATA:'local'}).businessData,'local');
+assert.throws(()=>publicConfig({...env,VITE_RESIDENTHUB_BUSINESS_DATA:'browser'}));
 for(const key of ['sb_secret_fixture','a.'+Buffer.from(JSON.stringify({role:'service_role'})).toString('base64url')+'.c'])assert.throws(()=>publicConfig({...env,VITE_SUPABASE_PUBLISHABLE_KEY:key}));
 assert.throws(()=>publicConfig({...env,VITE_SUPABASE_URL:'http://example.supabase.co'}));
 assert.throws(()=>publicConfig({...env,VITE_SUPABASE_ORGANIZATION_ID:''}));

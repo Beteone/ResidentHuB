@@ -5,7 +5,9 @@ import { createServer } from 'node:http';
 import { readFileSync } from 'node:fs';
 import { resolve, extname, sep } from 'node:path';
 import { randomUUID } from 'node:crypto';
-export async function centralFixture() {
+// options.dataAccess: also apply the business-data migration, enable the org gate
+// and serve businessData:'central' in the public config (central-data.js active).
+export async function centralFixture(options = {}) {
   const db = new PGlite(), root = resolve('.');
   const org='10000000-0000-4000-a000-000000000001';
   const users = [
@@ -21,8 +23,9 @@ export async function centralFixture() {
     create function auth.jwt() returns jsonb language sql stable as $$select coalesce(nullif(current_setting('request.jwt.claims',true),''),'{}')::jsonb$$;
     create function auth.uid() returns uuid language sql stable as $$select (auth.jwt()->>'sub')::uuid$$;
     grant usage on schema auth to authenticated;`);
-  for (const name of ['202610210001_foundation.sql','202611040001_identity.sql','202611040002_identity_invites.sql']) await db.exec(readFileSync('supabase/migrations/'+name,'utf8'));
-  await db.query('insert into public.rh_organizations(id,name,identity_enabled) values($1,$2,true)',[org,'Browser fixture']);
+  const migrations=['202610210001_foundation.sql','202611040001_identity.sql','202611040002_identity_invites.sql'].concat(options.dataAccess?['202611070001_business_data.sql']:[]);
+  for (const name of migrations) await db.exec(readFileSync('supabase/migrations/'+name,'utf8'));
+  await db.query('insert into public.rh_organizations(id,name,identity_enabled,data_access_enabled) values($1,$2,true,$3)',[org,'Browser fixture',!!options.dataAccess]);
   await db.query(`insert into public.rh_account_types(organization_id,id,name,portal,system_type,full_access,permissions)
     values($1,'at-admin','Admin','manager',true,true,'{}'),($1,'at-building-manager','Quản lý tòa nhà','manager',false,false,ARRAY['dashboard.view','buildings.view','settings.view']),
     ($1,'at-staff','Nhân viên','manager',false,false,ARRAY['dashboard.view','staffTasks.view','staffIncome.view','support.create']),
@@ -39,7 +42,7 @@ export async function centralFixture() {
     return {access_token:token,refresh_token:refresh,expires_in:3600,user:{id:user.id,email:user.email}};
   }
   async function rpc(state,name,args){
-    if(!/^rh_identity_[a-z_]+$/.test(name))throw Error('Unknown RPC');
+    if(!/^rh_(identity|data)_[a-z_]+$/.test(name))throw Error('Unknown RPC');
     return db.transaction(async tx=>{
       await tx.query("select set_config('request.jwt.claims',$1,true)",[JSON.stringify({sub:state.user.id,session_id:state.id,role:'authenticated'})]);
       await tx.exec('set local role authenticated');
@@ -86,16 +89,20 @@ export async function centralFixture() {
         }
         if(endpoint.startsWith('/rest/v1/rpc/'))return json(200,await rpc(state,endpoint.split('/').at(-1),body));
         return json(404,{});
-      }catch(_){return json(403,{error:'Denied by fixture database'});}
+      }catch(error){
+        // Like PostgREST: SQLSTATE in the body, conflict/link errors as 409.
+        const code=typeof error?.code==='string'?error.code:'';
+        return json(['40001','23505','23503','23001'].includes(code)?409:code==='22023'?400:403,{code,message:'Denied by fixture database'});
+      }
     }
     const file=resolve(root,'.'+(path==='/'?'/index.html':path));
     if(!file.startsWith(root+sep))return json(403,{});
     try{
       let content=readFileSync(file);
-      if(file.endsWith('auth-config.js'))content=Buffer.from('window.RH_AUTH_CONFIG='+JSON.stringify({mode:'supabase',url:'https://identity.example.test',publicKey:'sb_publishable_fixture',organizationId:org})+';');
-      if(file.endsWith('central-auth.js'))content=Buffer.from(`{const real=window.fetch.bind(window);window.fetch=(url,args)=>real(String(url).replace('https://identity.example.test',location.origin+'/__api'),args);}\n`+content.toString());
+      if(file.endsWith('auth-config.js'))content=Buffer.from('window.RH_AUTH_CONFIG='+JSON.stringify({mode:'supabase',url:'https://identity.example.test',publicKey:'sb_publishable_fixture',organizationId:org,...(options.dataAccess?{businessData:'central'}:{})})+';');
+      if(file.endsWith('central-auth.js'))content=Buffer.from(`{const real=window.fetch.bind(window);window.fetch=(url,args)=>real(String(url).replace('https://identity.example.test',location.origin+'/__api'),args);const open=XMLHttpRequest.prototype.open;XMLHttpRequest.prototype.open=function(method,url,...rest){return open.call(this,method,String(url).replace('https://identity.example.test',location.origin+'/__api'),...rest);};}\n`+content.toString());
       if(file.endsWith('.html'))content=Buffer.from(content.toString().replace(/<script[^>]*src="https?:[^"<>]+"[^>]*><\/script>/g,'').replace(/<link[^>]*href="https?:[^"<>]+"[^>]*>/g,''));
-      res.setHeader('Content-Type',({'.js':'text/javascript','.html':'text/html','.css':'text/css'})[extname(file)]||'application/octet-stream');res.end(content);
+      res.setHeader('Content-Type',({'.js':'text/javascript','.mjs':'text/javascript','.html':'text/html','.css':'text/css'})[extname(file)]||'application/octet-stream');res.end(content);
     }catch(_){json(404,{});}
   });
   await new Promise(resolve=>server.listen(0,'127.0.0.1',resolve));origin='http://127.0.0.1:'+server.address().port;

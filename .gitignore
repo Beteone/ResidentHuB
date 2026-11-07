@@ -6,3 +6,5 @@ auth-config.generated.js
 !.env.example
 backups/
 supabase/.temp/
+# Deployment credentials must never be committed (rotate any that were).
+.vscode/sftp.json

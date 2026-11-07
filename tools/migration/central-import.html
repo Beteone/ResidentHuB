@@ -1,0 +1,23 @@
+<!doctype html>
+<html lang="vi"><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta http-equiv="Content-Security-Policy" content="default-src 'none'; script-src 'self'; style-src 'unsafe-inline'; connect-src 'self' https:; base-uri 'none'; form-action 'none'">
+<title>Nhập dữ liệu cũ vào máy chủ ResidentHub</title>
+<style>body{font:16px system-ui;max-width:960px;margin:40px auto;padding:16px;color:#183049}button{padding:10px 16px;cursor:pointer}button:disabled{cursor:not-allowed;opacity:.5}table{border-collapse:collapse;width:100%;margin:16px 0}td,th{border:1px solid #c9d6e3;padding:6px 8px;text-align:left}pre{white-space:pre-wrap;overflow-wrap:anywhere;background:#eef3f8;padding:16px;max-height:420px;overflow:auto}.warn{background:#fff4df;padding:12px;border-radius:8px}</style>
+<h1>Nhập dữ liệu nghiệp vụ cũ vào máy chủ</h1>
+<p class="warn"><strong>Trước khi dùng:</strong> sao lưu trình duyệt này bằng <a href="./backup.html">backup.html</a>, và thống nhất với nhóm rằng <em>trình duyệt/origin này</em> là nguồn dữ liệu chuẩn. Trang này chỉ <strong>đọc</strong> localStorage (không sửa, không xóa) và chỉ <strong>thêm mới</strong> lên máy chủ: bản ghi đã có trên máy chủ không bao giờ bị ghi đè.</p>
+<ol>
+  <li>Đăng nhập ResidentHub bằng tài khoản Admin <strong>trong chính tab này</strong>, sau đó mở lại địa chỉ <code>/tools/migration/central-import.html</code> trong tab đó.</li>
+  <li>Bấm “Phân tích (chạy thử)”. Không có gì được ghi ở bước này.</li>
+  <li>Nếu còn xung đột/lỗi: dừng lại, gửi bảng tóm tắt cho nhóm để quyết định nguồn chuẩn. Không tự sửa.</li>
+  <li>Khi kế hoạch hợp lệ: đánh dấu xác nhận rồi bấm “Nhập dữ liệu”.</li>
+</ol>
+<p id="status" role="status">Đang kiểm tra phiên đăng nhập…</p>
+<button id="analyze" disabled>Phân tích (chạy thử)</button>
+<div id="summary"></div>
+<label><input type="checkbox" id="confirm" disabled> Tôi đã sao lưu và xác nhận trình duyệt này là nguồn dữ liệu chuẩn.</label>
+<p><button id="import" disabled>Nhập dữ liệu</button></p>
+<pre id="log">Chưa thực hiện thao tác.</pre>
+<script src="../../auth-config.js"></script>
+<script src="../../central-auth.js"></script>
+<script type="module" src="./central-import.mjs"></script>
+</html>
