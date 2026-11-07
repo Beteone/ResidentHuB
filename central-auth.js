@@ -43,11 +43,50 @@
             if (!response.ok) {
                 var error = new Error('Yêu cầu tài khoản chung bị từ chối.');
                 error.status = response.status; // Never include server bodies, tokens or credentials in UI/logs.
+                error.code = data && typeof data.code === 'string' ? data.code : ''; // SQLSTATE only
                 throw error;
             }
             return data;
         } finally { clearTimeout(timeout); }
     }
+    // Synchronous variant for the business-data adapter: existing modules expect
+    // RHD.create/update/remove to return the committed result immediately.
+    function requestSync(path, body, token) {
+        validate();
+        var xhr = new global.XMLHttpRequest();
+        xhr.open('POST', config.url.replace(/\/$/, '') + path, false);
+        xhr.setRequestHeader('apikey', config.publicKey);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        if (token) xhr.setRequestHeader('Authorization', 'Bearer ' + token);
+        xhr.send(body === undefined ? null : JSON.stringify(body)); // throws on network failure
+        var data = null;
+        try { data = xhr.status === 204 || !xhr.responseText ? null : JSON.parse(xhr.responseText); } catch (_) { data = null; }
+        if (xhr.status < 200 || xhr.status >= 300) {
+            var error = new Error('Yêu cầu dữ liệu chung bị từ chối.');
+            error.status = xhr.status;
+            error.code = data && typeof data.code === 'string' ? data.code : '';
+            throw error;
+        }
+        return data;
+    }
+    function accessTokenSync() {
+        if (!tokens) { var missing = new Error('Vui lòng đăng nhập lại.'); missing.status = 401; throw missing; }
+        if (tokens.expires_at > Date.now() / 1000 + 30) return tokens.access_token;
+        var ticket = generation;
+        var data = requestSync('/auth/v1/token?grant_type=refresh_token', { refresh_token: tokens.refresh_token });
+        if (ticket !== generation) { var stale = new Error('Phiên đã thay đổi.'); stale.status = 401; throw stale; }
+        tokens = { access_token: data.access_token, refresh_token: data.refresh_token, expires_at: Date.now() / 1000 + data.expires_in };
+        persist();
+        return tokens.access_token;
+    }
+    function dataName(name) {
+        if (!/^rh_data_[a-z_]+$/.test(name)) throw new Error('Unknown data RPC');
+        return name;
+    }
+    function dataRpcSync(name, args) {
+        return requestSync('/rest/v1/rpc/' + dataName(name), Object.assign({ p_org: config.organizationId }, args || {}), accessTokenSync());
+    }
+    async function dataRpc(name, args) { return rpc(dataName(name), args); }
     function persist() {
         // Tokens are session-scoped, not the legacy localStorage auth source.
         global.sessionStorage.setItem(sessionKey, JSON.stringify(tokens));
@@ -202,7 +241,10 @@
             var result = await mutate('rh_identity_profile_follow_up', { p_id: id, p_update: updateId, p_patch: patch });
             return Object.assign(result, result.ok ? { update: result.item } : {});
         };
-        api.inspectAuthEnvironment = function () { return { storage: 'supabase', sharedIdentity: !!context, connected: !!context, configured: !!config.url, businessData: 'browser-local', revision: revision }; };
+        api.inspectAuthEnvironment = function () {
+            var data = global.RHCentralData && global.RHCentralData.status ? global.RHCentralData.status() : null;
+            return { storage: 'supabase', sharedIdentity: !!context, connected: !!context, configured: !!config.url, businessData: data && data.enabled ? 'central' : 'browser-local', businessDataLoaded: !!(data && data.loaded), revision: revision };
+        };
     }
     if (enabled) {
         ready = (async function () {
@@ -228,6 +270,8 @@
         revision: function () { return revision; },
         saveType: function (id, data) { return mutate('rh_identity_save_type', { p_id: id || null, p_data: data }); },
         deleteType: function (id) { return mutate('rh_identity_delete_type', { p_id: id }); },
-        ready: ready, completePasswordSetup: completePasswordSetup
+        ready: ready, completePasswordSetup: completePasswordSetup,
+        businessData: enabled && config.businessData === 'central',
+        dataRpc: dataRpc, dataRpcSync: dataRpcSync
     };
 })(window);

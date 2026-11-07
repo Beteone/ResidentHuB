@@ -13,7 +13,10 @@ export function publicConfig(env) {
   }
   const organizationId = env.VITE_SUPABASE_ORGANIZATION_ID;
   if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(organizationId || '')) throw new Error('Organization UUID required');
-  return { mode: 'supabase', url: url.origin, publicKey, organizationId };
+  // central = business data from the shared DB (central-data.js); local = identity only.
+  const businessData = env.VITE_RESIDENTHUB_BUSINESS_DATA || 'central';
+  if (!['central', 'local'].includes(businessData)) throw new Error('VITE_RESIDENTHUB_BUSINESS_DATA must be central or local');
+  return { mode: 'supabase', url: url.origin, publicKey, organizationId, businessData };
 }
 if (process.argv[1] && import.meta.url === pathToFileURL(resolve(process.argv[1])).href) {
   const config = publicConfig(process.env);

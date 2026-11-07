@@ -1,6 +1,9 @@
 /*
  * ResidentHub - shared business data module (RHD).
- * Same pattern as auth.js: no backend, localStorage is the source of truth.
+ * Storage keys residenthub_<mode>_<entity>. In local mode localStorage is the
+ * source of truth. With RH_AUTH_CONFIG.businessData === 'central', central-data.js
+ * routes the live keys to the shared database: a write only returns ok after the
+ * server committed it, and a server rejection comes back as { ok: false, error }.
  * Holds Buildings -> Apartments -> Customers -> Meter readings -> Contracts -> Invoices
  * and keeps every module cross-linked so data entered once is reused everywhere.
  *
@@ -208,6 +211,13 @@
         }
     }
 
+    // Server-side rejection from central-data.js (permission, conflict, link, network).
+    function centralFailure(error) {
+        if (!error || !error.residentHubCentral) return null;
+        error.handled = true;
+        return { ok: false, error: error.message, conflict: !!error.conflict, central: true };
+    }
+
     function notifyMeterChanges(readings) {
         if (!global.RHB || typeof global.RHB.meterChanged !== 'function') return;
         var seen = Object.create(null);
@@ -337,7 +347,13 @@
         var items = readAll(entity);
         var record = Object.assign({ id: genId(entity), createdAt: Date.now() }, data);
         items.push(record);
-        writeAll(entity, items);
+        try {
+            writeAll(entity, items);
+        } catch (error) {
+            var rejected = centralFailure(error);
+            if (rejected) return rejected;
+            throw error;
+        }
         auditChange(entity, 'create', null, record);
         if (entity === 'meters') notifyMeterChanges([record]);
         return { ok: true, item: record };
@@ -441,6 +457,8 @@
         try {
             writeAll(entity, items);
         } catch (error) {
+            var rejected = centralFailure(error);
+            if (rejected) return rejected;
             if (isStaffPortalSession() && entity === 'supportRequests' &&
                 (Object.prototype.hasOwnProperty.call(patch || {}, 'staffProgress') || Object.prototype.hasOwnProperty.call(patch || {}, 'staffMaterials')) &&
                 error && (error.name === 'QuotaExceededError' || error.name === 'NS_ERROR_DOM_QUOTA_REACHED' || error.code === 22)) {
@@ -462,7 +480,13 @@
         }
         var next = items.filter(function (r) { return r.id !== id; });
         if (next.length === items.length) return { ok: false, error: 'Không tìm thấy bản ghi.' };
-        writeAll(entity, next);
+        try {
+            writeAll(entity, next);
+        } catch (error) {
+            var rejected = centralFailure(error);
+            if (rejected) return rejected;
+            throw error;
+        }
         auditChange(entity, 'delete', items.filter(function (r) { return r.id === id; })[0], null);
         if (entity === 'meters') notifyMeterChanges(removed);
         return { ok: true };
@@ -654,7 +678,9 @@
                 changed.push(inv);
             }
         });
-        if (changed.length) writeAll('invoices', items);
+        if (changed.length) {
+            try { writeAll('invoices', items); } catch (error) { if (centralFailure(error)) return []; throw error; }
+        }
         return changed;
     }
 
@@ -998,7 +1024,11 @@
         global.RHD_MODE = m === 'demo' ? 'demo' : 'live';
         // Template library seeds first — building seed data below references
         // RHT.getDefault() to pick its default contract/invoice template.
-        if (global.RHT) global.RHT.seed();
+        // Central mode: only a member allowed to create templates can store the
+        // system templates; for everyone else the server rejects and we continue.
+        if (global.RHT) {
+            try { global.RHT.seed(); } catch (error) { if (!centralFailure(error)) throw error; }
+        }
         // Seeds once (seedDataset no-ops once a dataset already has data), so a demo
         // visitor always sees a complete sample system on first visit, and anything
         // they add afterwards persists alongside it instead of being wiped.

@@ -19,6 +19,7 @@ npm run dev        # build lại tự động khi sửa file trong src/
 
 ## Phân quyền (Loại tài khoản)
 
+- **Đồng bộ đa máy (tài khoản + quyền + dữ liệu nghiệp vụ tập trung):** mã và migration đã hoàn chỉnh, kiểm thử với PostgreSQL thật + 2 trình duyệt; **chưa bật trên VPS** cho tới khi cấu hình Supabase thật. Hướng dẫn kích hoạt, migration dữ liệu cũ và triển khai VPS: [CENTRAL-DATA-CUTOVER.md](docs/CENTRAL-DATA-CUTOVER.md).
 - Mã tích hợp Supabase Auth/RPC đã được bổ sung nhưng **chưa bật và chưa deploy**. Cấu hình, kiểm thử hai trình duyệt, migration an toàn và giới hạn chuyển đổi: [CENTRAL-IDENTITY-IMPLEMENTATION.md](docs/CENTRAL-IDENTITY-IMPLEMENTATION.md).
 
 - Audit đăng nhập VPS, chẩn đoán chỉ đọc và phương án đồng bộ cần phê duyệt: [VPS-AUTH-REMEDIATION.md](docs/VPS-AUTH-REMEDIATION.md). Bản hiện tại vẫn dùng tài khoản cục bộ, chưa đồng bộ đa thiết bị.
