@@ -13,6 +13,8 @@
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="notification-manager.css">
     <script src="activity-store.js"></script>
+    <script src="auth-config.js"></script>
+    <script src="central-auth.js"></script>
     <script src="auth.js"></script>
     <script src="permissions.js"></script>
     <script src="templates.js"></script>
@@ -2705,13 +2707,13 @@
     <script src="theme.js"></script>
 </head>
 <body>
-    <script>
+    <script type="text/rh-page">
         // Demo Mode: dashboard.html#demo=1 opens the manager workspace without login,
         // scoped to a separate sandboxed dataset (see data.js) with hard record limits.
         // Any other access still requires a real manager session.
         // Uses a hash flag (not ?query) because static hosts commonly 301-redirect
         // "clean URLs" and drop query strings; hash fragments always survive that.
-        var RH_IS_DEMO = /(^|[#&])demo=1(&|$)/.test(window.location.hash);
+        var RH_IS_DEMO = !RH.central && /(^|[#&])demo=1(&|$)/.test(window.location.hash);
         var RH_SESSION = RH_IS_DEMO
             ? { id: 'demo', name: 'Khách demo', email: '', role: 'manager', unit: '', demo: true }
             : RH.requireRole('manager');
@@ -4276,7 +4278,7 @@
         </div>
     </div>
 
-    <script>
+    <script type="text/rh-page">
         let revenueChart;
 
         // The chart reads RHD.dashboardStats().revenue12 — no dataset of its own.
@@ -4806,7 +4808,7 @@
 
         let activeResidentTab = 'active';
 
-        document.addEventListener('DOMContentLoaded', function () {
+        RHPageReady('DOMContentLoaded', function () {
             const modal = document.getElementById('residentFormModal');
             const moveOutModal = document.getElementById('residentMoveOutModal');
             const addButton = document.getElementById('residentAddButton');
@@ -4870,9 +4872,9 @@
         }
 
         // Logout Function
-        function logout() {
+        async function logout() {
             if (confirm('Bạn có chắc chắn muốn đăng xuất?')) {
-                RH.logout();
+                await RH.logout();
                 window.location.href = 'index.html';
             }
         }
@@ -5014,14 +5016,14 @@
                 (rows || '<p style="padding:1rem;color:#64748b;">Chưa có cập nhật hồ sơ nhân viên.</p>');
         }
 
-        function saveStaffProfileFollowUp(button) {
+        async function saveStaffProfileFollowUp(button) {
             const userId = button.dataset.userId;
             const updateId = button.dataset.updateId;
             const status = document.getElementById('staffUpdateStatus-' + updateId);
             const note = document.getElementById('staffUpdateNote-' + updateId);
             if (!status || !note) return;
             button.disabled = true;
-            const result = RH.updateStaffProfileFollowUp(userId, updateId, {
+            const result = await RH.updateStaffProfileFollowUp(userId, updateId, {
                 managerStatus: status.value,
                 managerNote: note.value
             });
@@ -5229,6 +5231,7 @@
         // from an approved registration request. Editing a Cư dân account can
         // re-link its Resident Profile (residentId).
         function openAccountForm(id) {
+            if (RH.central) { RHAccounts.openUser(id); return; }
             const form = document.getElementById('accountForm');
             document.getElementById('accountFormError').textContent = '';
             const residentWrap = document.getElementById('accountResidentWrap');
@@ -5258,7 +5261,7 @@
             document.getElementById('accountForm').style.display = 'none';
         }
 
-        function handleAccountFormSubmit(event) {
+        async function handleAccountFormSubmit(event) {
             event.preventDefault();
             const id = document.getElementById('accountId').value;
             const name = document.getElementById('accountName').value;
@@ -5279,13 +5282,13 @@
                     patch.unit = ctx && ctx.apartment ? ctx.apartment.name : '';
                     patch.building = ctx && ctx.building ? (ctx.building.shortName || ctx.building.name) : '';
                 }
-                result = RH.updateUser(id, patch);
+                result = await RH.updateUser(id, patch);
             } else {
                 if (!password) {
                     errorEl.textContent = 'Vui lòng nhập mật khẩu cho tài khoản mới.';
                     return;
                 }
-                result = RH.createUser({ name: name, email: email, password: password, role: 'manager' });
+                result = await RH.createUser({ name: name, email: email, password: password, role: 'manager' });
             }
 
             if (!result.ok) {
@@ -5297,19 +5300,19 @@
             renderCurrentUser();
         }
 
-        function toggleAccountLock(id) {
+        async function toggleAccountLock(id) {
             const user = RH.getUsers().filter(function (u) { return u.id === id; })[0];
             if (!user) return;
             const lock = user.status !== 'locked';
             if (lock && !confirm('Khoá tài khoản ' + user.email + '? Tài khoản sẽ không đăng nhập được cho đến khi mở khoá.')) return;
-            const result = RH.updateUser(id, { status: lock ? 'locked' : 'active' });
+            const result = await RH.updateUser(id, { status: lock ? 'locked' : 'active' });
             if (!result.ok) { alert(result.error); return; }
             renderAccountsTable();
         }
 
-        function deleteAccount(id) {
+        async function deleteAccount(id) {
             if (!confirm('Xoá tài khoản này? Hành động không thể hoàn tác.')) return;
-            const result = RH.deleteUser(id);
+            const result = await RH.deleteUser(id);
             if (!result.ok) {
                 alert(result.error);
                 return;
@@ -5576,16 +5579,17 @@
             box.innerHTML = logo ? '<img src="' + logo + '" alt="Logo" style="width:100%;height:100%;object-fit:contain;border-radius:inherit;background:transparent;">' : '<i class="fas fa-home"></i>';
         }
 
-        function changeOwnPassword() {
+        async function changeOwnPassword() {
             const msg = document.getElementById('setPasswordMsg');
             const current = document.getElementById('setCurrentPassword').value;
             const next = document.getElementById('setNewPassword').value;
             const me = RH_SESSION && RH.getUsers().filter(function (u) { return u.id === RH_SESSION.id; })[0];
             const fail = function (text) { msg.style.color = '#ef4444'; msg.textContent = text; };
             if (!me) return fail('Không tìm thấy tài khoản đang đăng nhập.');
+            if (RH.central) { const centralResult = await RH.beginOwnPasswordChange({currentPassword:current,newPassword:next,confirmPassword:next}); if (!centralResult.ok) return fail(centralResult.error); window.location.replace('index.html?passwordChanged=1'); return; }
             if (String(me.password) !== current) return fail('Mật khẩu hiện tại không đúng.');
             if (next.length < 6) return fail('Mật khẩu mới phải có ít nhất 6 ký tự.');
-            const result = RH.updateUser(me.id, { password: next });
+            const result = await RH.updateUser(me.id, { password: next });
             if (!result.ok) return fail(result.error);
             document.getElementById('setCurrentPassword').value = '';
             document.getElementById('setNewPassword').value = '';
@@ -5620,7 +5624,7 @@
         });
 
         // Initialize on load
-        window.addEventListener('load', function() {
+        RHPageReady('load', function() {
             initCharts();
             renderWorkflows();
             renderCurrentUser();
@@ -5644,5 +5648,6 @@
             workflowTab.innerHTML = `<div class="workflow-hero"><h2>Quy trình làm việc</h2><p>Theo dõi các luồng vận hành quan trọng từ lúc phát sinh đến khi hoàn tất trên cùng một hệ thống.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Tiếp nhận cư dân</h3><p>Tạo hồ sơ và kích hoạt quyền truy cập</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Tạo hồ sơ cư dân</p></li><li><span>2</span><p>Gán tòa nhà, căn hộ và hợp đồng</p></li><li><span>3</span><p>Gửi lời mời đăng nhập tự động</p></li><li><span>4</span><p>Cư dân xác nhận và bắt đầu sử dụng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Đã chuẩn hóa</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Thu phí và thanh toán</h3><p>Tự động hóa chu kỳ thu phí hàng tháng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Hệ thống tạo hóa đơn theo kỳ</p></li><li><span>2</span><p>Gửi thông báo đến cư dân</p></li><li><span>3</span><p>Cư dân kiểm tra và thanh toán trực tuyến</p></li><li><span>4</span><p>Cập nhật công nợ và biên lai</p></li></ol><div class="workflow-footer"><span class="workflow-role">Tự động trên hệ thống</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu</h3><p>Minh bạch tiến độ từ báo sự cố đến hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm hình ảnh</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật trạng thái đang xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Cần theo dõi</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn hợp đồng</h3><p>Chủ động giữ chân cư dân trước ngày hết hạn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Phát hiện hợp đồng sắp hết hạn</p></li><li><span>2</span><p>Gửi cảnh báo cho ban quản lý</p></li><li><span>3</span><p>Cư dân chọn gia hạn hoặc kết thúc</p></li><li><span>4</span><p>Cập nhật trạng thái hợp đồng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Nhắc trước 30 ngày</span></div></article></div>`;
         }
     </script>
+<script src="auth-page.js"></script>
 </body>
 </html>

@@ -8,6 +8,8 @@
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Be+Vietnam+Pro:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@600;700;800&display=swap" rel="stylesheet">
+    <script src="auth-config.js"></script>
+    <script src="central-auth.js"></script>
     <script src="auth.js"></script>
     <script src="permissions.js"></script>
     <script src="data.js"></script>
@@ -594,7 +596,7 @@
     <script src="theme.js"></script>
 </head>
 <body>
-    <script>
+    <script type="text/rh-page">
         var RH_SESSION = RH.requireRole('staff');
         RHD.setMode('live');
     </script>
@@ -651,7 +653,7 @@
             <div id="staffContent"></div>
         </section>
     </main>
-    <script>
+    <script type="text/rh-page">
         if (RH_SESSION) {
         var menuItems = document.querySelectorAll('.menu-item[data-title]');
         var staffContent = document.getElementById('staffContent');
@@ -2041,7 +2043,7 @@
                 mode === 'complete' ? 'Đã gửi kết quả; nhiệm vụ đang chờ Quản lý duyệt.' : 'Cập nhật tiến độ đã được lưu thành công.', false);
         }
 
-        staffContent.addEventListener('click', function (event) {
+        staffContent.addEventListener('click', async function (event) {
             var helpTab = event.target.closest('[data-help-tab]');
             if (helpTab) { switchStaffHelpSection(helpTab.dataset.helpTab); return; }
             if (event.target.closest('[data-help-open]')) {
@@ -2061,7 +2063,7 @@
             var toggle = event.target.closest('[data-password-toggle]');
             if (toggle) { var input = document.getElementById(toggle.dataset.passwordToggle); input.type = input.type === 'password' ? 'text' : 'password'; toggle.textContent = input.type === 'password' ? 'Hiện' : 'Ẩn'; toggle.setAttribute('aria-label', input.type === 'password' ? 'Hiện mật khẩu' : 'Ẩn mật khẩu'); return; }
             if (event.target.id === 'staffCancelOtp') { document.getElementById('staffOtpDialog').close(); return; }
-            if (event.target.id === 'staffResendOtp') { var codeResult = RH.resendOwnPasswordCode(staffPasswordChallengeId); if (codeResult.ok) presentDemoPasswordCode(codeResult); else document.getElementById('staffOtpError').textContent = codeResult.error; return; }
+            if (event.target.id === 'staffResendOtp') { var codeResult = await RH.resendOwnPasswordCode(staffPasswordChallengeId); if (codeResult.ok) presentDemoPasswordCode(codeResult); else document.getElementById('staffOtpError').textContent = codeResult.error; return; }
             var pageButton = event.target.closest('[data-staff-page]');
             if (pageButton) { openPage(pageButton.dataset.staffPage); return; }
             var notificationFilterButton = event.target.closest('[data-notification-filter]');
@@ -2131,7 +2133,7 @@
                     return;
                 }
                 if (appearanceActionName === 'save') {
-                    var savedResult = RH.updateCurrentUserSettings({
+                    var savedResult = await RH.updateCurrentUserSettings({
                         theme: appearanceDraft.theme,
                         density: appearanceDraft.density,
                         fontSize: appearanceDraft.fontSize,
@@ -2241,14 +2243,14 @@
         staffContent.addEventListener('submit', async function (event) {
             if (event.target.id === 'staffPasswordForm') {
                 event.preventDefault();
-                var result = RH.beginOwnPasswordChange({ currentPassword: document.getElementById('staffCurrentPassword').value, newPassword: document.getElementById('staffNewPassword').value, confirmPassword: document.getElementById('staffConfirmPassword').value });
+                var result = await RH.beginOwnPasswordChange({ currentPassword: document.getElementById('staffCurrentPassword').value, newPassword: document.getElementById('staffNewPassword').value, confirmPassword: document.getElementById('staffConfirmPassword').value });
                 document.getElementById('staffSecurityMessage').textContent = result.ok ? '' : result.error;
-                if (result.ok) { event.target.reset(); presentDemoPasswordCode(result); }
+                if (result.ok) { event.target.reset(); if (result.passwordChanged) { window.location.replace('index.html?passwordChanged=1'); return; } presentDemoPasswordCode(result); }
                 return;
             }
             if (event.target.id === 'staffOtpForm') {
                 event.preventDefault();
-                var result = RH.confirmOwnPasswordChange(staffPasswordChallengeId, document.getElementById('staffOtpInput').value);
+                var result = await RH.confirmOwnPasswordChange(staffPasswordChallengeId, document.getElementById('staffOtpInput').value);
                 if (!result.ok) { document.getElementById('staffOtpError').textContent = result.error; return; }
                 document.getElementById('staffOtpDialog').close();
                 document.getElementById('staffSecurityMessage').textContent = 'Đổi mật khẩu thành công. Vui lòng đăng nhập lại.';
@@ -2302,7 +2304,7 @@
             }
             var saveButton = document.getElementById('staffProfileSave');
             if (saveButton) { saveButton.disabled = true; saveButton.textContent = 'Đang lưu...'; }
-            var result = RH.updateCurrentUserProfile({
+            var result = await RH.updateCurrentUserProfile({
                 phone: phone,
                 email: email,
                 avatar: profileDraftAvatar
@@ -2339,7 +2341,7 @@
             if (!field || !profileFieldErrors[field]) return;
             setProfileFieldError(field, profileFieldError(field, event.target.value.trim()));
         });
-        staffContent.addEventListener('change', function (event) {
+        staffContent.addEventListener('change', async function (event) {
             if (event.target.id === 'staffHelpFiles') { previewStaffHelpFiles(); return; }
             if (event.target.id === 'staffProgressImageFile') {
                 var progressInput = event.target;
@@ -2407,7 +2409,7 @@
                 if (channel) notificationPatch.notifications.channels[channel] = target.checked;
                 target.disabled = true;
                 try {
-                    var notificationResult = RH.updateCurrentUserSettings(notificationPatch);
+                    var notificationResult = await RH.updateCurrentUserSettings(notificationPatch);
                     if (!notificationResult.ok) {
                         target.checked = !target.checked;
                         setStaffSettingsMessage(notificationResult.error || 'Không thể lưu tùy chọn thông báo.', true);
@@ -2437,6 +2439,7 @@
             updateStaffNotificationCount();
             if (currentStaffPage === 'Cài đặt thông báo') renderNotificationSettings();
         });
+        window.addEventListener('residenthub:identity-changed', function () { if (RH.getSession()) renderStaffPage(); });
         window.addEventListener('residenthub:user-updated', function () {
             if (currentStaffPage === 'Hồ sơ cá nhân') renderProfile();
         });
@@ -2465,12 +2468,13 @@
         document.getElementById('staffMenuToggle').addEventListener('click', function () {
             document.getElementById('staffSidebar').classList.toggle('open');
         });
-        document.getElementById('staffLogout').addEventListener('click', function () {
+        document.getElementById('staffLogout').addEventListener('click', async function () {
             if (!confirm('Bạn muốn đăng xuất khỏi hệ thống?')) return;
-            RH.logout();
+            await RH.logout();
             window.location.replace('index.html');
         });
         }
     </script>
+<script src="auth-page.js"></script>
 </body>
 </html>

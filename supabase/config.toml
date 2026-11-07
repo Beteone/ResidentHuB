@@ -1,0 +1,7 @@
+# Local CLI settings only. Does not create or connect a Supabase project.
+project_id = "residenthub"
+
+[functions.identity-invite]
+# Supports current Auth signing keys: the function itself verifies getUser(JWT),
+# then DB session/membership/permissions. This is NOT anonymous invitation access.
+verify_jwt = false

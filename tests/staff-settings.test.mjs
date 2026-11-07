@@ -4,6 +4,16 @@ import { webcrypto } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 
 const persistent = new Map();
+// Explicit isolated fixtures: tests must not depend on startup demo provisioning.
+persistent.set('residenthub_users', JSON.stringify([
+    { id:'fixture-manager', name:'Fixture manager', email:'manager@example.invalid', password:'fixture-manager-only', role:'manager', status:'active', accountTypeId:'at-admin' },
+    { id:'u-staff-demo', name:'Nguyễn Minh Anh', email:'staff@example.invalid', password:'fixture-staff-only', role:'staff', status:'active', accountTypeId:'at-staff' }
+]));
+persistent.set('residenthub_account_types', JSON.stringify([
+    { id:'at-admin', name:'Admin', portal:'manager', system:true, fullAccess:true, permissions:[] },
+    { id:'at-staff', name:'Nhân viên', portal:'manager', permissions:['staffTasks.view','staffTasks.accept','staffTasks.update','staffTasks.report','staffIncome.view','support.create'] },
+    { id:'at-resident', name:'Cư dân', portal:'resident', system:true, permissions:[] }
+]));
 const session = new Map();
 const storage = map => ({
     getItem: key => map.has(key) ? map.get(key) : null,

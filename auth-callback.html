@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="vi"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="referrer" content="no-referrer"><title>Đặt mật khẩu — ResidentHub</title>
+<link rel="stylesheet" href="theme.css"><script src="auth-config.js"></script><script src="central-auth.js"></script></head>
+<body><main style="max-width:440px;margin:12vh auto;padding:24px">
+<h1>Đặt mật khẩu ResidentHub</h1><form id="passwordSetup">
+<label>Mật khẩu mới <input id="password" type="password" autocomplete="new-password" minlength="12" required></label>
+<label>Xác nhận <input id="confirm" type="password" autocomplete="new-password" minlength="12" required></label>
+<button type="submit">Lưu mật khẩu</button></form><p id="message" role="status"></p><a href="index.html">Quay lại đăng nhập</a>
+</main><script>
+const hash = new URLSearchParams(location.hash.slice(1)), query = new URLSearchParams(location.search);
+const credentials = { access_token: hash.get('access_token'), token_hash: query.get('token_hash'), type: query.get('type') };
+history.replaceState(null, '', location.pathname);
+document.getElementById('passwordSetup').onsubmit = async event => {
+    event.preventDefault();
+    const password = document.getElementById('password').value;
+    const message = document.getElementById('message');
+    if (password !== document.getElementById('confirm').value) { message.textContent = 'Hai mật khẩu không khớp.'; return; }
+    const button = event.currentTarget.querySelector('button'); button.disabled = true;
+    const result = await RHCentral.completePasswordSetup(credentials, password);
+    message.textContent = result.ok ? 'Đã đặt mật khẩu. Vui lòng đăng nhập lại.' : result.error;
+    button.disabled = result.ok;
+    if (result.ok) { document.getElementById('passwordSetup').reset(); credentials.access_token = credentials.token_hash = null; }
+};
+</script></body></html>

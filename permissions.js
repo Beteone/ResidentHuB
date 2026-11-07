@@ -135,6 +135,7 @@
     // ---------------------------------------------------------------- store
 
     function readTypes() {
+        if (global.RHCentral && global.RHCentral.enabled) return global.RHCentral.types();
         try {
             var raw = localStorage.getItem(TYPES_KEY);
             var parsed = raw ? JSON.parse(raw) : null;
@@ -143,11 +144,13 @@
     }
 
     function writeTypes(list) {
+        if (global.RHCentral && global.RHCentral.enabled) throw new Error('Central roles require a server operation.');
         localStorage.setItem(TYPES_KEY, JSON.stringify(list));
         cache.key = null;
     }
 
     function seed() {
+        if (global.RHCentral && global.RHCentral.enabled) return;
         // Existing (including malformed) stores are never repaired implicitly.
         if (localStorage.getItem(TYPES_KEY) !== null) return;
         if (global.RH && !(global.RH.wasDemoAdminCreated && global.RH.wasDemoAdminCreated())) {
@@ -167,6 +170,7 @@
         var type = getType(user.accountTypeId);
         var portal = user.role === 'resident' ? 'resident' : 'manager';
         if (type && type.portal === portal) return type;
+        if (global.RHCentral && global.RHCentral.enabled) return null;
         if (user.role === 'staff') return getType('at-staff');
         return portal === 'resident' ? getType(RESIDENT_TYPE_ID) : getType(DEFAULT_MANAGER_TYPE_ID);
     }
@@ -190,6 +194,11 @@
     }
 
     function saveType(id, data) {
+        if (global.RHCentral && global.RHCentral.enabled) {
+            var existingCentral = getType(id);
+            var retained = existingCentral ? undeclaredPermissions(existingCentral.permissions) : [];
+            return global.RHCentral.saveType(id, Object.assign({}, data, { permissions: Array.from(new Set((data.permissions || []).concat(retained))) }));
+        }
         var me = currentUser();
         var name = String(data.name || '').trim();
         if (!name) return { ok: false, error: 'Vui lòng nhập tên loại tài khoản.' };
@@ -228,6 +237,7 @@
     }
 
     function deleteType(id) {
+        if (global.RHCentral && global.RHCentral.enabled) return global.RHCentral.deleteType(id);
         var t = getType(id);
         if (!t) return { ok: false, error: 'Không tìm thấy loại tài khoản.' };
         if (t.system) return { ok: false, error: 'Không thể xoá loại tài khoản hệ thống.' };
@@ -244,6 +254,7 @@
     var cache = { key: null, user: null, type: null, set: null };
 
     function sessionUserId() {
+        if (global.RHCentral && global.RHCentral.enabled) { var central = global.RHCentral.getSession(); return central ? central.id : null; }
         var s = global.RH_SESSION;
         if (s && s.demo) return 'demo';
         var live = global.RH && global.RH.getSession ? global.RH.getSession() : null;
@@ -252,7 +263,7 @@
 
     function resolve() {
         var id = sessionUserId();
-        var key = id + '|' + (localStorage.getItem('residenthub_users') || '') + '|' + (localStorage.getItem(TYPES_KEY) || '');
+        var key = global.RHCentral && global.RHCentral.enabled ? 'central|' + id + '|' + global.RHCentral.revision() : id + '|' + (localStorage.getItem('residenthub_users') || '') + '|' + (localStorage.getItem(TYPES_KEY) || '');
         if (cache.key === key) return cache;
         cache.key = key;
         if (id === 'demo') {
@@ -461,7 +472,7 @@
     }
 
     seed();
-    var demoDiagnostic = inspectDemoAdmin();
+    var demoDiagnostic = global.RHCentral && global.RHCentral.enabled ? { status: 'central' } : inspectDemoAdmin();
     if (['permission-conflict', 'identity-conflict', 'invalid-store'].indexOf(demoDiagnostic.status) !== -1 && global.console) global.console.warn('ResidentHub Admin demo:', demoDiagnostic);
 
     global.RHP = {

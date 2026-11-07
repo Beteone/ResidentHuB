@@ -1,5 +1,7 @@
 # ResidentHub — chuẩn bị lưu trữ tập trung
 
+> Cập nhật mã nguồn 04/11/2026: đã thêm tích hợp identity Supabase có cổng bật riêng, RPC và kiểm thử PostgreSQL/Chrome cục bộ. Chưa triển khai dịch vụ hay chuyển dữ liệu. Báo cáo ngày 21/10 bên dưới là lịch sử; trạng thái mới xem [CENTRAL-IDENTITY-IMPLEMENTATION.md](docs/CENTRAL-IDENTITY-IMPLEMENTATION.md).
+
 Ngày 21/10/2026. Người dùng xác nhận **chưa có Supabase project**. Theo điểm dừng cấu hình ở giai đoạn B, công việc hiện tại hoàn tất audit dependency, thiết kế, SQL nền tảng và công cụ sao lưu. **Chưa hoàn thành đồng bộ đa thiết bị; tiêu chí nghiệm thu cuối cùng chưa đạt.**
 
 ## Trạng thái theo giai đoạn

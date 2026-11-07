@@ -5,6 +5,8 @@
   "description": "ResidentHub — React modules bundled into the static manager dashboard",
   "type": "module",
   "scripts": {
+    "test:identity": "node tests/central-auth.test.mjs && node tests/identity-plan.test.mjs && node tests/central-identity.sql.test.mjs && node tests/central-auth.browser.mjs",
+    "test:identity:live": "node tests/central-auth.live.browser.mjs",
     "typecheck": "tsc --noEmit",
     "build": "tsc --noEmit && vite build --emptyOutDir false && vite build --config src/financial-report/vite.config.js && vite build --config src/document-export/vite.config.js",
     "dev": "vite build --watch",
@@ -18,6 +20,7 @@
     "react-dom": "^19.3.0"
   },
   "devDependencies": {
+    "@electric-sql/pglite": "^0.5.15",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "typescript": "^7.0.2",

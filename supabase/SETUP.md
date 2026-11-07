@@ -1,5 +1,7 @@
 # Thiết lập Supabase cho ResidentHub — điểm dừng cấu hình
 
+> Cập nhật mã 04/11/2026: đã có tích hợp Auth/identity có cổng bật riêng và migration bổ sung, chưa deploy. Các bước cấu hình hiện hành xem [CENTRAL-IDENTITY-IMPLEMENTATION.md](../docs/CENTRAL-IDENTITY-IMPLEMENTATION.md); phần dưới ghi lại trạng thái chuẩn bị ngày 21/10, không phải cấu hình đang chạy đã được xác nhận.
+
 Trạng thái 21/10/2026: **chưa có Supabase project** (người dùng xác nhận). Chưa kết nối, chưa tạo bảng trên dịch vụ, chưa nhập dữ liệu, chưa chuyển website sang lưu tập trung. SQL trong thư mục migrations là nền tảng giai đoạn B, không phải bản triển khai đầy đủ C/D.
 
 ## 1. Tạo project
