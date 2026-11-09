@@ -15,6 +15,7 @@ npm run dev        # build lại tự động khi sửa file trong src/
 - `dist/meter-reading.js` được commit vào repo để web vẫn chạy tĩnh không cần build. Sửa code trong `src/` thì nhớ chạy `npm run build` và commit cả file trong `dist/`.
 - Class Tailwind do Tailwind CDN trong `dashboard.html` sinh ra lúc chạy.
 - Hướng dẫn phát triển, kiểm thử và build các module: [PLAYBOOK.md](./PLAYBOOK.md).
+- **Triển khai:** luôn tải lên *toàn bộ* file `*.html`, `*.js`, `*.css` ở thư mục gốc và thư mục `dist/` cùng một lúc (các trang HTML phụ thuộc `auth-config.js`, `central-auth.js`, `central-data.js`, `auth-page.js`). Sau mỗi lần deploy chạy `node tools/verify-deploy.mjs http://162.4.176.164 origin/main` — phải báo `0 problem(s)`.
 - Tài liệu giới thiệu sản phẩm dành cho Marketing/Content: [docs/PRODUCT-INTRODUCTION-FOR-MARKETING.md](./docs/PRODUCT-INTRODUCTION-FOR-MARKETING.md).
 
 ## Phân quyền (Loại tài khoản)
