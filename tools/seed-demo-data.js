@@ -19,6 +19,8 @@ const ORGANIZATION_COLUMNS = {
     rh_customers: 'organization_id',
     rh_contracts: 'organization_id',
     rh_contract_tenants: 'organization_id',
+    rh_deposits: 'organization_id',
+    rh_deposit_transactions: 'organization_id',
     rh_meters: 'organization_id',
     rh_invoices: 'organization_id',
     rh_support_requests: 'organization_id',
@@ -225,6 +227,8 @@ function buildDataset() {
     const residents = [];
     const contracts = [];
     const contractTenants = [];
+    const deposits = [];
+    const depositTransactions = [];
     const meters = [];
     const invoices = [];
     const supportRequests = [];
@@ -253,12 +257,17 @@ function buildDataset() {
                 const primary = makeCustomer(residents.length, buildingIndex, unit, detail, apartmentId, now);
                 residents.push(primary);
                 household.push(primary);
-                if (extraFamilyMembers < 10) {
+                if (extraFamilyMembers < 2) {
                     const familyMember = makeCustomer(residents.length, buildingIndex, unit, detail, apartmentId, now);
                     residents.push(familyMember);
                     household.push(familyMember);
                     extraFamilyMembers++;
                 }
+            } else if (deposited) {
+                const prospectiveTenant = makeCustomer(residents.length, buildingIndex, unit, detail, apartmentId, now);
+                prospectiveTenant.note = 'Khách thuê mẫu đang giữ chỗ; hồ sơ demo.';
+                residents.push(prospectiveTenant);
+                household.push(prospectiveTenant);
             }
 
             apartments.push(marker(apartmentId, {
@@ -277,6 +286,68 @@ function buildDataset() {
                 customerId: household[0]?.id || '',
                 createdAt: now
             }));
+
+            if (deposited) {
+                const prospectiveTenant = household[0];
+                const depositDate = daysAfter(today, -(3 + buildingIndex * 2 + unit));
+                const moveInDate = daysAfter(today, 14 + buildingIndex + unit);
+                const leaseStartDate = moveInDate;
+                const leaseEndDate = new Date(Date.UTC(
+                    moveInDate.getUTCFullYear() + 1,
+                    moveInDate.getUTCMonth(),
+                    moveInDate.getUTCDate()
+                ));
+                const depositFullAmount = rentPrice;
+                const depositReceivedAmount = Math.round(depositFullAmount * 0.3);
+                const depositId = buildId('deposit', buildingCode, unitCode);
+                const depositCode = `DC-DHN${buildingCode}-${unitName}-${String(unit).padStart(3, '0')}`;
+                const transactionId = buildId('deposit-transaction', buildingCode, unitCode, 'receive');
+                const depositRecord = marker(depositId, {
+                    code: depositCode,
+                    buildingId,
+                    apartmentId,
+                    roomId: '',
+                    bedId: '',
+                    tenantIds: [prospectiveTenant.id],
+                    customerId: prospectiveTenant.id,
+                    occupantCount: 1,
+                    referrerUserId: '',
+                    referrerName: '',
+                    rentPrice,
+                    depositMonths: 1,
+                    depositFullAmount,
+                    depositReceivedAmount,
+                    depositRemainingAmount: depositFullAmount - depositReceivedAmount,
+                    discountMonths: 0,
+                    discountAmountPerMonth: 0,
+                    depositDate: isoDate(depositDate),
+                    moveInDate: isoDate(moveInDate),
+                    rentStartDate: isoDate(moveInDate),
+                    leaseStartDate: isoDate(leaseStartDate),
+                    leaseEndDate: isoDate(leaseEndDate),
+                    paymentCycle: 'monthly',
+                    receivingAccount: 'Chuyển khoản · tài khoản demo',
+                    services: [],
+                    status: 'holding',
+                    contractId: '',
+                    isDeleted: false,
+                    createdAt: now,
+                    updatedAt: now
+                });
+                deposits.push(depositRecord);
+                depositTransactions.push(marker(transactionId, {
+                    depositId,
+                    buildingId,
+                    type: 'receive',
+                    label: 'Nhận cọc',
+                    amount: depositReceivedAmount,
+                    date: isoDate(depositDate),
+                    note: 'Ghi nhận tiền giữ chỗ mẫu; giao dịch demo.',
+                    actorId: '',
+                    actorName: 'Ban quản lý Demo',
+                    createdAt: now
+                }));
+            }
 
             if (!occupied) continue;
 
@@ -486,6 +557,8 @@ function buildDataset() {
         customers: residents,
         contracts,
         contractTenants,
+        deposits,
+        depositTransactions,
         meters,
         invoices,
         supportRequests,
@@ -503,13 +576,14 @@ function validateDataset(data) {
     const occupiedRate = occupied / data.apartments.length;
     if (data.buildings.length !== 4 || data.apartments.length !== 60 ||
         data.customers.length < 50 || data.customers.length > 60 ||
-        data.contracts.length !== occupied || data.invoices.length !== occupied * 3 ||
+        data.contracts.length !== occupied || data.deposits.length !== data.apartments.filter(apartment => apartment.status === 'deposited').length ||
+        data.depositTransactions.length !== data.deposits.length || data.invoices.length !== occupied * 3 ||
         data.meters.length !== occupied * 4 || occupiedRate < 0.65 || occupiedRate > 0.75) {
         throw new Error('Dữ liệu tạo ra không đạt các số lượng/tỷ lệ mẫu đã yêu cầu.');
     }
     for (const recordSet of [
         data.buildings, data.apartments, data.customers, data.contracts, data.meters,
-        data.invoices, data.supportRequests, data.assets, data.notificationCampaigns
+        data.deposits, data.depositTransactions, data.invoices, data.supportRequests, data.assets, data.notificationCampaigns
     ]) {
         if (recordSet.some(record => record.demo !== true || !record.id.startsWith(DEMO_PREFIX))) {
             throw new Error('Có bản ghi không mang demo marker và tiền tố demo-rh-.');
@@ -530,6 +604,18 @@ function validateDataset(data) {
         const bills = data.invoices.filter(invoice => invoice.apartmentId === apartment.id);
         if (readings.length !== 4 || bills.length !== 3) {
             throw new Error(`Thiếu lịch sử chỉ số hoặc hóa đơn cho căn ${apartment.id}.`);
+        }
+    }
+    for (const deposit of data.deposits) {
+        const apartment = data.apartments.find(item => item.id === deposit.apartmentId);
+        const tenant = data.customers.find(item => item.id === deposit.customerId);
+        if (!apartment || apartment.status !== 'deposited' || !tenant ||
+            deposit.buildingId !== apartment.buildingId ||
+            deposit.depositReceivedAmount > deposit.depositFullAmount ||
+            !data.depositTransactions.some(transaction =>
+                transaction.depositId === deposit.id && transaction.type === 'receive' &&
+                transaction.amount === deposit.depositReceivedAmount)) {
+            throw new Error(`Đặt cọc demo không hợp lệ cho căn ${deposit.apartmentId}.`);
         }
     }
 }
@@ -704,7 +790,7 @@ async function main() {
     const deposited = data.apartments.filter(apartment => apartment.status === 'deposited').length;
     const vacant = data.apartments.filter(apartment => apartment.status === 'vacant').length;
     if (process.argv.includes('--dry-run')) {
-        console.log(`Dry run: ${data.buildings.length} tòa, ${data.apartments.length} căn (${occupied} đang ở, ${deposited} đặt cọc, ${vacant} trống), ${data.customers.length} cư dân, ${data.contracts.length} hợp đồng, ${data.invoices.length} hóa đơn, ${data.meters.length} bản ghi chỉ số, ${data.supportRequests.length} yêu cầu, ${data.assets.length} tài sản, ${data.notificationCampaigns.length} thông báo.`);
+        console.log(`Dry run: ${data.buildings.length} tòa, ${data.apartments.length} căn (${occupied} đang ở, ${deposited} đặt cọc), ${data.deposits.length} hồ sơ đặt cọc, ${data.depositTransactions.length} giao dịch cọc, ${vacant} căn trống, ${data.customers.length} hồ sơ khách/cư dân, ${data.contracts.length} hợp đồng, ${data.invoices.length} hóa đơn, ${data.meters.length} bản ghi chỉ số, ${data.supportRequests.length} yêu cầu, ${data.assets.length} tài sản, ${data.notificationCampaigns.length} thông báo.`);
         return;
     }
 
@@ -723,13 +809,15 @@ async function main() {
     await bindResident(baseUrl, members.resident, data.customers.find(customer => customer.id === data.targetCustomerId));
     await upsertRows(baseUrl, 'rh_contracts', data.contracts.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await upsertRows(baseUrl, 'rh_contract_tenants', data.contractTenants, 'organization_id,contract_id,customer_id');
+    await upsertRows(baseUrl, 'rh_deposits', data.deposits.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
+    await upsertRows(baseUrl, 'rh_deposit_transactions', data.depositTransactions.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await upsertRows(baseUrl, 'rh_meters', data.meters.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await upsertRows(baseUrl, 'rh_invoices', data.invoices.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await upsertRows(baseUrl, 'rh_support_requests', bindSupportRequests(data, members).map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await upsertRows(baseUrl, 'rh_assets', data.assets.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await seedNotifications(baseUrl, data.notificationCampaigns, members);
 
-    console.log(`Seed complete: ${data.buildings.length} tòa, ${data.apartments.length} căn, ${data.customers.length} cư dân, ${data.contracts.length} hợp đồng, ${data.invoices.length} hóa đơn, ${data.meters.length} bản ghi chỉ số, ${data.supportRequests.length} yêu cầu, ${data.assets.length} tài sản, ${data.notificationCampaigns.length} thông báo.`);
+    console.log(`Seed complete: ${data.buildings.length} tòa, ${data.apartments.length} căn, ${data.customers.length} hồ sơ khách/cư dân, ${data.contracts.length} hợp đồng, ${data.deposits.length} hồ sơ đặt cọc, ${data.depositTransactions.length} giao dịch cọc, ${data.invoices.length} hóa đơn, ${data.meters.length} bản ghi chỉ số, ${data.supportRequests.length} yêu cầu, ${data.assets.length} tài sản, ${data.notificationCampaigns.length} thông báo.`);
     console.log(`Assignments: manager=${BUILDING_IDS.length} tòa, staff=3 tòa; resident@demo.com gắn với căn ${data.targetApartmentId}, hóa đơn kỳ mới nhất chưa thanh toán.`);
 }
 
