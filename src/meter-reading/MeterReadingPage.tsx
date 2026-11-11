@@ -229,10 +229,7 @@ export function MeterReadingPage() {
         <ContentAreaContext.Provider value={rootRef}>
             <div ref={rootRef} className="mx-auto flex max-w-6xl flex-col gap-5">
                 <header className="flex flex-wrap items-end justify-between gap-3">
-                    <div>
-                        <h1 className="text-2xl font-extrabold text-slate-900">Ghi chỉ số</h1>
-                        <p className="text-sm text-slate-500">Chốt = đã nhập chỉ số kỳ này · Duyệt = xác nhận riêng của người duyệt · {monthLabel(selectedMonth)}</p>
-                    </div>
+                    <p className="text-sm text-slate-500">Chốt = đã nhập chỉ số kỳ này · Duyệt = xác nhận riêng của người duyệt · {monthLabel(selectedMonth)}</p>
                     <div className="flex flex-wrap items-center gap-2">
                         <label className="flex items-center gap-2 rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm text-slate-600">
                             <i className="fas fa-calendar" aria-hidden="true" />

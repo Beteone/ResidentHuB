@@ -3058,7 +3058,6 @@
                             <i class="fa-solid fa-chart-column"></i>
                         </div>
                         <div>
-                            <h2>Cư dân</h2>
                             <div class="resident-subtitle">Theo bộ lọc đang xem</div>
                         </div>
                     </div>
@@ -3681,7 +3680,6 @@
 
         <div id="invoices-tab" style="display: none;">
             <div class="card">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b;">Hóa đơn và thanh toán</h2>
                 <p style="color: #94a3b8; margin-top: 1rem;">Nội dung hóa đơn sẽ hiển thị ở đây</p>
             </div>
         </div>
@@ -4060,7 +4058,6 @@
         <!-- Features Tab -->
         <div id="features-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Chi tiết Tính năng MVP</h2>
                 <p style="color: #64748b;">5 Module chính trong phiên bản ban đầu</p>
             </div>
 
@@ -4189,7 +4186,6 @@
         <!-- Architecture Tab -->
         <div id="architecture-tab" style="display: none;">
             <div class="card" style="margin-bottom: 1.5rem;">
-                <h2 style="font-size: 1.5rem; font-weight: 600; color: #1e293b; margin-bottom: 1rem;">Kiến trúc Hệ thống</h2>
                 <p style="color: #64748b;">Cấu trúc website cho công ty quản lý và ứng dụng cho cư dân</p>
             </div>
 
@@ -5646,7 +5642,7 @@
         function renderWorkflows() {
             const workflowTab = document.getElementById('workflows-tab');
             if (!workflowTab) return;
-            workflowTab.innerHTML = `<div class="workflow-hero"><h2>Quy trình làm việc</h2><p>Theo dõi các luồng vận hành quan trọng từ lúc phát sinh đến khi hoàn tất trên cùng một hệ thống.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Tiếp nhận cư dân</h3><p>Tạo hồ sơ và kích hoạt quyền truy cập</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Tạo hồ sơ cư dân</p></li><li><span>2</span><p>Gán tòa nhà, căn hộ và hợp đồng</p></li><li><span>3</span><p>Gửi lời mời đăng nhập tự động</p></li><li><span>4</span><p>Cư dân xác nhận và bắt đầu sử dụng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Đã chuẩn hóa</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Thu phí và thanh toán</h3><p>Tự động hóa chu kỳ thu phí hàng tháng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Hệ thống tạo hóa đơn theo kỳ</p></li><li><span>2</span><p>Gửi thông báo đến cư dân</p></li><li><span>3</span><p>Cư dân kiểm tra và thanh toán trực tuyến</p></li><li><span>4</span><p>Cập nhật công nợ và biên lai</p></li></ol><div class="workflow-footer"><span class="workflow-role">Tự động trên hệ thống</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu</h3><p>Minh bạch tiến độ từ báo sự cố đến hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm hình ảnh</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật trạng thái đang xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Cần theo dõi</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn hợp đồng</h3><p>Chủ động giữ chân cư dân trước ngày hết hạn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Phát hiện hợp đồng sắp hết hạn</p></li><li><span>2</span><p>Gửi cảnh báo cho ban quản lý</p></li><li><span>3</span><p>Cư dân chọn gia hạn hoặc kết thúc</p></li><li><span>4</span><p>Cập nhật trạng thái hợp đồng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Nhắc trước 30 ngày</span></div></article></div>`;
+            workflowTab.innerHTML = `<div class="workflow-hero"><p>Theo dõi các luồng vận hành quan trọng từ lúc phát sinh đến khi hoàn tất trên cùng một hệ thống.</p></div><div class="workflow-grid"><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">01</div><div><h3>Tiếp nhận cư dân</h3><p>Tạo hồ sơ và kích hoạt quyền truy cập</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Tạo hồ sơ cư dân</p></li><li><span>2</span><p>Gán tòa nhà, căn hộ và hợp đồng</p></li><li><span>3</span><p>Gửi lời mời đăng nhập tự động</p></li><li><span>4</span><p>Cư dân xác nhận và bắt đầu sử dụng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Đã chuẩn hóa</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">02</div><div><h3>Thu phí và thanh toán</h3><p>Tự động hóa chu kỳ thu phí hàng tháng</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Hệ thống tạo hóa đơn theo kỳ</p></li><li><span>2</span><p>Gửi thông báo đến cư dân</p></li><li><span>3</span><p>Cư dân kiểm tra và thanh toán trực tuyến</p></li><li><span>4</span><p>Cập nhật công nợ và biên lai</p></li></ol><div class="workflow-footer"><span class="workflow-role">Tự động trên hệ thống</span><span class="workflow-status">Đang hoạt động</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">03</div><div><h3>Xử lý yêu cầu</h3><p>Minh bạch tiến độ từ báo sự cố đến hoàn tất</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Cư dân gửi yêu cầu kèm hình ảnh</p></li><li><span>2</span><p>Nhân viên tiếp nhận và phân công</p></li><li><span>3</span><p>Cập nhật trạng thái đang xử lý</p></li><li><span>4</span><p>Hoàn tất và ghi nhận đánh giá</p></li></ol><div class="workflow-footer"><span class="workflow-role">Cư dân và nhân viên</span><span class="workflow-status orange">Cần theo dõi</span></div></article><article class="workflow-card"><div class="workflow-card-head"><div class="workflow-number">04</div><div><h3>Gia hạn hợp đồng</h3><p>Chủ động giữ chân cư dân trước ngày hết hạn</p></div></div><ol class="workflow-steps"><li><span>1</span><p>Phát hiện hợp đồng sắp hết hạn</p></li><li><span>2</span><p>Gửi cảnh báo cho ban quản lý</p></li><li><span>3</span><p>Cư dân chọn gia hạn hoặc kết thúc</p></li><li><span>4</span><p>Cập nhật trạng thái hợp đồng</p></li></ol><div class="workflow-footer"><span class="workflow-role">Ban quản lý và cư dân</span><span class="workflow-status blue">Nhắc trước 30 ngày</span></div></article></div>`;
         }
     </script>
 <script src="auth-page.js" onerror="document.body.innerHTML='<p style=&quot;font:16px sans-serif;padding:24px&quot;>Bản triển khai thiếu file <b>auth-page.js</b> nên trang đã bị chặn để bảo vệ dữ liệu. Hãy tải lên đầy đủ mã nguồn (kiểm tra bằng <code>node tools/verify-deploy.mjs</code>).</p>'"></script>

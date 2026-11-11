@@ -68,7 +68,7 @@
         }).join('');
 
         tab.innerHTML = '<div class="card">' +
-            '<div class="acc-head"><div><h2>Loại tài khoản</h2><p>Mỗi loại tài khoản là một bộ quyền. Quyền được áp dụng ngay cho mọi người dùng thuộc loại đó — menu, trang, nút thao tác và phạm vi tòa nhà.</p></div>' +
+            '<div class="acc-head"><div><p>Mỗi loại tài khoản là một bộ quyền. Quyền được áp dụng ngay cho mọi người dùng thuộc loại đó — menu, trang, nút thao tác và phạm vi tòa nhà.</p></div>' +
             U().addButton('Thêm loại tài khoản', 'RHAccounts.openRole()', null, 'roles.create') + '</div>' +
             '<div class="table-container" style="margin-top:1.25rem;"><table><thead><tr><th>Tên loại tài khoản</th><th>Mô tả</th><th>Cổng</th><th>Quyền</th><th>Người dùng</th><th></th></tr></thead><tbody>' + rows + '</tbody></table></div>' +
             '</div>';
@@ -284,7 +284,7 @@
         var canRequests = U().can('users.approveResident');
         var canCreate = U().can('users.create') || U().can('users.createResident');
         if (!canUsers && !canRequests) {
-            tab.innerHTML = canCreate ? '<div class="card"><h2>Người dùng</h2><button class="btn-primary" onclick="RHAccounts.openUser()">+ Thêm người dùng</button></div>' : '';
+            tab.innerHTML = canCreate ? '<div class="card"><button class="btn-primary" onclick="RHAccounts.openUser()">+ Thêm người dùng</button></div>' : '';
             return;
         }
         // Dashboard links pass a request filter ('pending', ...) to open the approval queue.
@@ -295,7 +295,7 @@
         var types = global.RHP.listTypes();
 
         tab.innerHTML = '<div class="card">' +
-            '<div class="acc-head"><div><h2>Người dùng</h2><p>Tài khoản đăng nhập của Admin, nhân viên và cư dân. Quyền của mỗi người lấy từ Loại tài khoản; phạm vi dữ liệu theo tòa nhà phụ trách.</p></div>' +
+            '<div class="acc-head"><div><p>Tài khoản đăng nhập của Admin, nhân viên và cư dân. Quyền của mỗi người lấy từ Loại tài khoản; phạm vi dữ liệu theo tòa nhà phụ trách.</p></div>' +
 
             (canCreate ? U().addButton('Thêm người dùng', 'RHAccounts.openUser()', null, U().can('users.create') ? 'users.create' : 'users.createResident') : '') + '</div>' +
             '<div class="acc-subtabs">' +

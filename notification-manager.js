@@ -417,7 +417,7 @@
 
             root.classList.add('notification-manager-page');
             root.innerHTML =
-                '<header class="notification-manager-header"><div class="notification-manager-heading"><span class="notification-manager-heading-icon"><i class="fas fa-bell"></i></span><div><h2>Quản lý thông báo</h2><p>Tạo, gửi và theo dõi thông báo đến cư dân trong hệ thống</p></div></div>' +
+                '<header class="notification-manager-header"><div class="notification-manager-heading"><span class="notification-manager-heading-icon"><i class="fas fa-bell"></i></span><div><p>Tạo, gửi và theo dõi thông báo đến cư dân trong hệ thống</p></div></div>' +
                 '<div class="notification-manager-header-actions">' + (can('notifications.create') ? '<button type="button" class="btn-primary" data-notification-action="open-create"><i class="fas fa-plus"></i> Tạo thông báo mới</button>' : '') + '<button type="button" class="btn-secondary" data-notification-action="refresh"' + (state.refreshing ? ' disabled aria-busy="true"' : '') + '><i class="fas fa-rotate' + (state.refreshing ? ' fa-spin' : '') + '"></i> ' + (state.refreshing ? 'Đang làm mới' : 'Làm mới') + '</button></div></header>' +
                 '<div class="notification-manager-stats">' +
                 '<div class="notification-manager-card notification-manager-stat"><span class="stat-icon blue"><i class="fas fa-bullhorn"></i></span><div><small>Tổng thông báo</small><strong>' + all.length + '</strong></div></div>' +
