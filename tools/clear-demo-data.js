@@ -9,6 +9,7 @@ const SUPABASE_URL = process.env.SUPABASE_URL;
 const SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const DEMO_PREFIX = 'demo-rh-';
 const DEMO_PATTERN = `${DEMO_PREFIX}*`;
+const ID_FILTER = `like.${DEMO_PATTERN}`;
 const ORGANIZATION_COLUMNS = {
     rh_memberships: 'organization_id',
     rh_building_assignments: 'organization_id',
@@ -28,6 +29,26 @@ const ORGANIZATION_COLUMNS = {
     rh_customers: 'organization_id',
     rh_buildings: 'organization_id'
 };
+export const DEMO_DELETE_STEPS = [
+    { table: 'rh_notifications', filters: { id: ID_FILTER } },
+    { table: 'rh_notification_campaigns', filters: { id: ID_FILTER } },
+    { table: 'rh_records', filters: { collection: 'eq.billingRuns', id: ID_FILTER } },
+    { table: 'rh_cashflows', filters: { id: ID_FILTER } },
+    { table: 'rh_deposit_transactions', filters: { id: ID_FILTER } },
+    { table: 'rh_invoices', filters: { id: ID_FILTER } },
+    { table: 'rh_contract_tenants', filters: { contract_id: ID_FILTER } },
+    { table: 'rh_contracts', filters: { id: ID_FILTER } },
+    { table: 'rh_contracts', filters: { apartment_id: ID_FILTER } },
+    { table: 'rh_deposits', filters: { id: ID_FILTER } },
+    { table: 'rh_meters', filters: { id: ID_FILTER } },
+    { table: 'rh_meters', filters: { apartment_id: ID_FILTER } },
+    { table: 'rh_support_requests', filters: { id: ID_FILTER } },
+    { table: 'rh_assets', filters: { id: ID_FILTER } },
+    { table: 'rh_apartments', filters: { id: ID_FILTER } },
+    { table: 'rh_customers', filters: { id: ID_FILTER } },
+    { table: 'rh_building_assignments', filters: { building_id: ID_FILTER } },
+    { table: 'rh_buildings', filters: { id: ID_FILTER } }
+].map(step => Object.freeze(step));
 
 function assertEnvironment() {
     if (!SUPABASE_URL || !SERVICE_ROLE_KEY) {
@@ -129,23 +150,19 @@ export async function clearDemoData(baseUrl, residentMembership) {
         : residentMembership;
     await detachDemoResident(baseUrl, member);
 
-    const idFilter = `like.${DEMO_PATTERN}`;
-    await deleteRows(baseUrl, 'rh_building_assignments', { building_id: idFilter });
-    await deleteRows(baseUrl, 'rh_notifications', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_notification_campaigns', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_records', { collection: 'eq.billingRuns', id: idFilter });
-    await deleteRows(baseUrl, 'rh_cashflows', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_deposit_transactions', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_deposits', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_assets', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_support_requests', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_invoices', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_meters', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_contract_tenants', { contract_id: idFilter });
-    await deleteRows(baseUrl, 'rh_contracts', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_apartments', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_customers', { id: idFilter });
-    await deleteRows(baseUrl, 'rh_buildings', { id: idFilter });
+    for (const step of DEMO_DELETE_STEPS) {
+        await deleteRows(baseUrl, step.table, step.filters);
+        if (step.table === 'rh_contracts') {
+            const remaining = await request(baseUrl, restPath('rh_contracts', {
+                id: ID_FILTER,
+                select: 'id'
+            }));
+            if (!Array.isArray(remaining)) throw new Error('Không xác minh được hợp đồng demo sau khi dọn dữ liệu.');
+            if (remaining.length) {
+                throw new Error(`Còn ${remaining.length} hợp đồng demo; dừng trước khi xóa căn hộ để tránh vi phạm khóa ngoại.`);
+            }
+        }
+    }
 }
 
 async function main() {

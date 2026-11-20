@@ -3,7 +3,7 @@
     'use strict';
     var config = global.RH_AUTH_CONFIG || { mode: 'unconfigured' };
     var enabled = config.mode !== 'local';
-    var context = null, tokens = null, generation = 0, refreshing = null, revision = 0, refreshSequence = 0;
+    var context = null, tokens = null, generation = 0, refreshing = null, identityRefreshing = null, revision = 0;
     var sessionKey = 'residenthub_central_auth_v1';
     var ready = Promise.resolve();
     function clone(value) { return value == null ? value : JSON.parse(JSON.stringify(value)); }
@@ -109,17 +109,23 @@
     }
     async function refresh() {
         var ticket = generation;
-        var sequence = ++refreshSequence;
-        try {
-            var next = await rpc('rh_identity_context');
-            if (ticket !== generation || sequence !== refreshSequence) return failure('Phiên đã thay đổi.');
-            if (!next || !next.user || next.user.status !== 'active' || !next.types || !next.users) throw new Error();
-            var different = JSON.stringify(context) !== JSON.stringify(next);
-            context = next; if (different) changed(); return { ok: true };
-        } catch (_) {
-            if (ticket === generation && sequence === refreshSequence) { context = null; changed(); }
-            return failure();
-        }
+        if (identityRefreshing && identityRefreshing.generation === ticket) return identityRefreshing.promise;
+        var flight = { generation: ticket };
+        flight.promise = (async function () {
+            try {
+                var next = await rpc('rh_identity_context');
+                if (ticket !== generation) return failure('Phiên đã thay đổi.');
+                if (!next || !next.user || next.user.status !== 'active' || !next.types || !next.users) throw new Error();
+                var different = JSON.stringify(context) !== JSON.stringify(next);
+                context = next; if (different) changed(); return { ok: true };
+            } catch (_) {
+                if (ticket === generation) { context = null; changed(); }
+                return failure();
+            }
+        })();
+        identityRefreshing = flight;
+        try { return await flight.promise; }
+        finally { if (identityRefreshing === flight) identityRefreshing = null; }
     }
     async function authenticate(identifier, password) {
         clear();

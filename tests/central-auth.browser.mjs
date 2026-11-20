@@ -15,6 +15,8 @@ async function login(browser,password='fixture-only-password',email='manager@exa
 try{
   const a=await chrome();browsers.push(a);const b=await chrome();browsers.push(b);
   await login(a);await login(b);
+  const simultaneousRefreshes=await a.evaluate('Promise.all([RH.refreshIdentity(),RH.refreshIdentity()])');
+  assert.ok(simultaneousRefreshes.every(result=>result.ok),'Concurrent identity refreshes should share one successful request');
   assert.notEqual(a.profile,b.profile);
   const signature='JSON.stringify({user:RH.getSession(),type:RHP.typeOfUser(RH.getSession())})';
   assert.equal(await a.evaluate(signature),await b.evaluate(signature));

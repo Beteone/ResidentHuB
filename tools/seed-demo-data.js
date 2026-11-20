@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { clearDemoData } from './clear-demo-data.js';
+import { clearDemoData, DEMO_DELETE_STEPS } from './clear-demo-data.js';
 import { resolve } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
@@ -477,6 +477,10 @@ function buildDataset() {
     const targetApartmentId = buildId('apartment', '01', '01');
     const targetCustomer = residents.find(person => person.apartmentId === targetApartmentId);
     if (!targetCustomer) throw new Error('Không tạo được customer cho căn hộ gắn với resident@demo.com.');
+    const staffBuildingIds = new Set(BUILDING_IDS.slice(0, 3));
+    const staffTaskApartments = occupiedApartments.filter(apartment =>
+        staffBuildingIds.has(apartment.buildingId) && apartment.id !== targetApartmentId);
+    if (staffTaskApartments.length < 2) throw new Error('Cần ít nhất hai căn có người ở tại các tòa được giao cho nhân viên.');
 
     const supportTopics = [
         { category: 'Sửa chữa căn hộ', title: 'Ổ cắm điện phòng ngủ chập chờn', status: 'new' },
@@ -492,6 +496,8 @@ function buildDataset() {
         const topic = supportTopics[index];
         const apartment = index === 0
             ? apartments.find(item => item.id === targetApartmentId)
+            : index <= 2
+                ? staffTaskApartments[index - 1]
             : occupiedApartments[(index * 5) % occupiedApartments.length];
         const customer = residents.find(person => person.apartmentId === apartment.id);
         supportRequests.push(marker(buildId('support', String(index + 1).padStart(2, '0')), {
@@ -722,6 +728,21 @@ async function bindResident(baseUrl, member, resident) {
     }, { resident_id: resident.id, profile, all_buildings: false });
 }
 
+async function bindStaff(baseUrl, member) {
+    const profile = member.profile && typeof member.profile === 'object' ? { ...member.profile } : {};
+    Object.assign(profile, {
+        title: 'Kỹ thuật viên',
+        department: 'Kỹ thuật - Sửa chữa',
+        staffGroup: 'technical',
+        employeeCode: 'NV-DEMO-001',
+        employmentStartDate: '2026-01-01'
+    });
+    await patchRow(baseUrl, 'rh_memberships', { id: `eq.${member.id}` }, {
+        profile,
+        all_buildings: false
+    });
+}
+
 function bindSupportRequests(data, members) {
     return data.supportRequests.map((record, index) => {
         if (index === 0) {
@@ -735,6 +756,7 @@ function bindSupportRequests(data, members) {
             ...record,
             assignee: members.staff.name,
             assigneeId: members.staff.id,
+            staffGroup: 'technical',
             responsibleManagerId: members.manager.id
         };
     });
@@ -786,11 +808,18 @@ async function seedNotifications(baseUrl, campaigns, members) {
 
 async function main() {
     const data = buildDataset();
+    const staffBuildingIds = new Set(BUILDING_IDS.slice(0, 3));
+    const staffTaskCount = data.supportRequests.filter((request, index) =>
+        index > 0 && staffBuildingIds.has(request.buildingId)).length;
+    if (staffTaskCount < 2) {
+        throw new Error(`Chỉ có ${staffTaskCount} yêu cầu hỗ trợ được giao tại các tòa của nhân viên; cần ít nhất 2.`);
+    }
     const occupied = data.apartments.filter(apartment => apartment.status === 'occupied').length;
     const deposited = data.apartments.filter(apartment => apartment.status === 'deposited').length;
     const vacant = data.apartments.filter(apartment => apartment.status === 'vacant').length;
     if (process.argv.includes('--dry-run')) {
-        console.log(`Dry run: ${data.buildings.length} tòa, ${data.apartments.length} căn (${occupied} đang ở, ${deposited} đặt cọc), ${data.deposits.length} hồ sơ đặt cọc, ${data.depositTransactions.length} giao dịch cọc, ${vacant} căn trống, ${data.customers.length} hồ sơ khách/cư dân, ${data.contracts.length} hợp đồng, ${data.invoices.length} hóa đơn, ${data.meters.length} bản ghi chỉ số, ${data.supportRequests.length} yêu cầu, ${data.assets.length} tài sản, ${data.notificationCampaigns.length} thông báo.`);
+        console.log(`Dry run: ${data.buildings.length} tòa, ${data.apartments.length} căn (${occupied} đang ở, ${deposited} đặt cọc), ${data.deposits.length} hồ sơ đặt cọc, ${data.depositTransactions.length} giao dịch cọc, ${vacant} căn trống, ${data.customers.length} hồ sơ khách/cư dân, ${data.contracts.length} hợp đồng, ${data.invoices.length} hóa đơn, ${data.meters.length} bản ghi chỉ số, ${data.supportRequests.length} yêu cầu (ít nhất ${staffTaskCount} nhiệm vụ được giao tại 3 tòa của nhân viên), ${data.assets.length} tài sản, ${data.notificationCampaigns.length} thông báo.`);
+        console.log(`Cleanup dry-run order (demo-rh-* only): ${DEMO_DELETE_STEPS.map(step => step.table).join(' → ')}`);
         return;
     }
 
@@ -804,6 +833,7 @@ async function main() {
     }));
     await upsertRows(baseUrl, 'rh_buildings', buildings.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await applyAssignments(baseUrl, members);
+    await bindStaff(baseUrl, members.staff);
     await upsertRows(baseUrl, 'rh_apartments', data.apartments.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await upsertRows(baseUrl, 'rh_customers', data.customers.map(payload => ({ organization_id: ORGANIZATION_ID, payload })));
     await bindResident(baseUrl, members.resident, data.customers.find(customer => customer.id === data.targetCustomerId));
